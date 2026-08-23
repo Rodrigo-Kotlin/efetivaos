@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Efetiva OS · Wireframes Motor de Preços v0.3</title>
+<style>
+:root{
+  --bg:#f4f6f7;--surface:#fff;--text:#17211d;--muted:#66746d;--line:#dfe6e2;
+  --green:#0b6b3a;--green-2:#125f3b;--green-soft:#e9f4ed;--lime:#a8cf2d;
+  --amber:#f2a51f;--amber-soft:#fff5df;--red:#c83d3d;--red-soft:#fff0f0;
+  --blue:#3568dd;--blue-soft:#eef3ff;--shadow:0 10px 28px rgba(22,39,31,.08);
+  --radius:16px;
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:#fff;border-right:1px solid var(--line);padding:20px 14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 8px 22px}.brandmark{width:40px;height:40px;border-radius:12px;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:900;font-size:20px}.brand strong{display:block}.brand small{color:var(--muted)}
+.navgroup{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#8b9791;margin:16px 10px 8px}.navbtn{display:flex;width:100%;border:0;background:transparent;align-items:center;gap:11px;padding:11px 12px;border-radius:11px;color:#435149;cursor:pointer;text-align:left}.navbtn:hover{background:#f3f7f4}.navbtn.active{background:var(--green-soft);color:var(--green);font-weight:700}.ico{width:22px;text-align:center}.admin-only{position:relative}.admin-only::after{content:"ADMIN";font-size:9px;margin-left:auto;color:var(--green);background:#dff0e5;border-radius:999px;padding:3px 6px}
+.main{min-width:0}.topbar{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;border-bottom:1px solid var(--line);background:rgba(244,246,247,.92);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10}.crumb{font-size:13px;color:var(--muted)}.user{width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-weight:800}.content{padding:28px 30px 56px;max-width:1500px;margin:auto}.page{display:none}.page.active{display:block}.head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}.head h1{margin:0 0 5px;font-size:28px}.head p{margin:0;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.btn:hover{box-shadow:0 4px 12px rgba(0,0,0,.05)}.btn.primary{background:var(--green);border-color:var(--green);color:#fff}.btn.lime{background:var(--lime);border-color:var(--lime);color:#1d2a18}.btn.danger{color:var(--red)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}.kpi small{color:var(--muted)}.kpi strong{display:block;font-size:24px;margin-top:5px}.toolbar{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.search{min-width:260px;flex:1;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fafcfb}.select{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}.tablewrap{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:auto;box-shadow:var(--shadow)}table{border-collapse:collapse;width:100%;min-width:980px}th,td{text-align:left;padding:13px 14px;border-bottom:1px solid #edf1ef;vertical-align:middle}th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#75817b;background:#fbfcfb;position:sticky;top:0}td{font-size:14px}.money{font-variant-numeric:tabular-nums;font-weight:700}.muted{color:var(--muted)}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:#f1f4f2;padding:3px 6px;border-radius:6px}.badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;font-size:12px;font-weight:700;white-space:nowrap}.ok{background:var(--green-soft);color:var(--green)}.warn{background:var(--amber-soft);color:#9a6500}.err{background:var(--red-soft);color:var(--red)}.info{background:var(--blue-soft);color:var(--blue)}.neutral{background:#eef1ef;color:#5c6761}.best{color:var(--green);font-weight:800}.rowaction{border:0;background:transparent;color:var(--green);font-weight:800;cursor:pointer}.empty{padding:48px;text-align:center;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px}.card h3{margin:0 0 14px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:800;color:#536159}.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:10px;padding:10px 11px;background:#fff}.hint{font-size:12px;color:var(--muted)}
+.drawerback{display:none;position:fixed;inset:0;background:rgba(10,20,15,.30);z-index:50}.drawerback.open{display:block}.drawer{position:absolute;right:0;top:0;height:100%;width:min(520px,94vw);background:#fff;padding:22px;overflow:auto;box-shadow:-20px 0 50px rgba(0,0,0,.13)}.drawerhead{display:flex;align-items:start;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:16px}.x{border:0;background:#f2f4f3;border-radius:8px;width:34px;height:34px;cursor:pointer}.offer{display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;margin:9px 0}.offer.selected{border:2px solid var(--green);background:var(--green-soft)}.offer strong{display:block}.offer small{color:var(--muted)}
+.tabs{display:flex;gap:6px;margin-bottom:14px}.tab{border:0;background:#eef2ef;border-radius:999px;padding:8px 11px;font-weight:700;color:#536159}.tab.active{background:var(--green);color:#fff}.rulehero{background:#101714;color:#fff;border-radius:16px;padding:20px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:12px}.rulehero .big{font-size:28px;font-weight:900;color:var(--lime)}
+.note{border-left:4px solid var(--lime);padding:12px 14px;background:#f6faef;border-radius:8px;margin:14px 0;color:#4f5d42}.dangerbox{border-left-color:var(--red);background:var(--red-soft)}
+.mobile-toggle{display:none}.wiretag{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#839089;margin-bottom:8px}.footer-note{margin-top:26px;color:var(--muted);font-size:12px}
+@media(max-width:1050px){.app{grid-template-columns:84px 1fr}.sidebar{padding:18px 10px}.brand span,.navbtn .label,.navgroup{display:none}.brand{justify-content:center}.navbtn{justify-content:center}.admin-only::after{display:none}.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.app{display:block}.sidebar{display:none}.mobile-toggle{display:block}.topbar{padding:0 16px}.content{padding:20px 14px 42px}.head{flex-direction:column}.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.tablewrap{border-radius:12px}.mobile-cards table,.mobile-cards thead,.mobile-cards tbody,.mobile-cards th,.mobile-cards td,.mobile-cards tr{display:block}.mobile-cards table{min-width:0}.mobile-cards thead{display:none}.mobile-cards tr{padding:12px;border-bottom:1px solid var(--line)}.mobile-cards td{border:0;padding:5px 0}.mobile-cards td:before{content:attr(data-label);display:block;font-size:10px;text-transform:uppercase;color:#89948e;letter-spacing:.06em}.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><div class="brandmark">e</div><span><strong>Efetiva OS</strong><small>Motor de Preços</small></span></div>
+    <div class="navgroup">Motor de preços</div>
+    <button class="navbtn active" data-page="comparacao"><span class="ico">◫</span><span class="label">Comparação</span></button>
+    <button class="navbtn" data-page="tabela"><span class="ico">▤</span><span class="label">Tabela de Preços</span></button>
+    <button class="navbtn" data-page="cotacoes"><span class="ico">▧</span><span class="label">Cotações</span></button>
+    <button class="navbtn" data-page="fornecedores"><span class="ico">◎</span><span class="label">Fornecedores</span></button>
+    <button class="navbtn" data-page="catalogo"><span class="ico">◇</span><span class="label">Catálogo</span></button>
+    <button class="navbtn admin-only" data-page="regras"><span class="ico">⚙</span><span class="label">Regras de preço</span></button>
+    <div class="navgroup">Sistema</div>
+    <button class="navbtn"><span class="ico">⌂</span><span class="label">Voltar ao início</span></button>
+  </aside>
+  <main class="main">
+    <div class="topbar"><div><button class="btn mobile-toggle">☰</button><div class="crumb" id="crumb">Motor de Preços / Comparação</div></div><div class="user">R</div></div>
+    <div class="content">
+      <section class="page active" id="comparacao">
+        <div class="wiretag">Wireframe 01 · Tela principal</div>
+        <div class="head"><div><h1>Comparação de preços</h1><p>Compare custos vigentes e revise sugestões antes de aprovar.</p></div><div class="actions"><button class="btn" onclick="openDrawer()">Revisar selecionado</button><button class="btn primary" onclick="go('nova-cotacao')">+ Nova cotação</button></div></div>
+        <div class="kpis"><div class="kpi"><small>Itens com cotação</small><strong>46</strong></div><div class="kpi"><small>Preços aprovados</small><strong>39</strong></div><div class="kpi"><small>Revisão necessária</small><strong>5</strong></div><div class="kpi"><small>Sem regra</small><strong>2</strong></div></div>
+        <div class="toolbar"><input class="search" placeholder="Buscar por código ou item..."/><select class="select"><option>Todas as categorias</option><option>Exames laboratoriais</option><option>Toxicológicos</option></select><select class="select"><option>Todos os status</option><option>Revisão necessária</option><option>Sem regra</option></select><select class="select"><option>Validade: todas</option><option>Vence em 30 dias</option><option>Sem validade</option></select></div>
+        <div class="tablewrap"><table><thead><tr><th>Item</th><th>Categoria</th><th>Menor custo</th><th>Fonte</th><th>Ofertas</th><th>Regra</th><th>Sugerido</th><th>Aprovado</th><th>Validade</th><th>Status</th><th></th></tr></thead><tbody>
+          <tr><td><span class="code">EXA-001</span><br><strong>Hemograma completo</strong></td><td>Laboratorial</td><td class="money best">R$ 15,50</td><td>Lab Norte</td><td>3</td><td>+ 30% · Global</td><td class="money">R$ 20,15</td><td class="money">R$ 20,15</td><td>30/09/2026</td><td><span class="badge ok">Aprovado</span></td><td><button class="rowaction" onclick="openDrawer()">Revisar →</button></td></tr>
+          <tr><td><span class="code">EXA-002</span><br><strong>Glicemia</strong></td><td>Laboratorial</td><td class="money best">R$ 6,20</td><td>BioLab</td><td>4</td><td>+ 30% · Global</td><td class="money">R$ 8,06</td><td class="money">R$ 8,45</td><td>12/09/2026</td><td><span class="badge warn">Revisão necessária</span></td><td><button class="rowaction" onclick="openDrawer()">Revisar →</button></td></tr>
+          <tr><td><span class="code">TOX-001</span><br><strong>Toxicológico larga janela</strong></td><td>Toxicológico</td><td class="money best">R$ 82,00</td><td>DB Toxicológico</td><td>2</td><td>+ R$ 25 · Item</td><td class="money">R$ 107,00</td><td class="money">R$ 107,00</td><td><span class="badge warn">Sem validade</span></td><td><span class="badge ok">Aprovado</span></td><td><button class="rowaction" onclick="openDrawer()">Revisar →</button></td></tr>
+          <tr><td><span class="code">EXA-017</span><br><strong>Ferritina</strong></td><td>Laboratorial</td><td class="money best">R$ 19,00</td><td>Lab Norte</td><td>2</td><td class="muted">Nenhuma</td><td>—</td><td>—</td><td>30/09/2026</td><td><span class="badge err">Sem regra</span></td><td><button class="rowaction" onclick="openDrawer()">Configurar →</button></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="page" id="tabela">
+        <div class="wiretag">Wireframe 02 · Tabela comercial</div>
+        <div class="head"><div><h1>Tabela de Preços Efetiva</h1><p>Valores aprovados para consulta interna e uso comercial.</p></div><div class="actions"><button class="btn">Exportar futuramente</button></div></div>
+        <div class="toolbar"><input class="search" placeholder="Buscar item..."/><select class="select"><option>Todas as categorias</option></select><select class="select"><option>Status: todos</option></select></div>
+        <div class="tablewrap"><table><thead><tr><th>Código</th><th>Item/Serviço</th><th>Categoria</th><th>Custo referência</th><th>Fornecedor fonte</th><th>Acréscimo</th><th>Preço Efetiva</th><th>Validade</th><th>Status</th><th>Atualizado</th><th></th></tr></thead><tbody>
+          <tr><td><span class="code">EXA-001</span></td><td><strong>Hemograma completo</strong></td><td>Laboratorial</td><td class="money">R$ 15,50</td><td>Lab Norte</td><td>30%</td><td class="money best">R$ 20,15</td><td>30/09/2026</td><td><span class="badge ok">Aprovado</span></td><td>23/08/2026</td><td><button class="rowaction">Ver origem →</button></td></tr>
+          <tr><td><span class="code">EXA-002</span></td><td><strong>Glicemia</strong></td><td>Laboratorial</td><td class="money">R$ 6,50</td><td>Lab Norte</td><td>30%</td><td class="money">R$ 8,45</td><td>12/09/2026</td><td><span class="badge warn">Revisão necessária</span></td><td>08/08/2026</td><td><button class="rowaction" onclick="go('comparacao');openDrawer()">Revisar →</button></td></tr>
+          <tr><td><span class="code">TOX-001</span></td><td><strong>Toxicológico larga janela</strong></td><td>Toxicológico</td><td class="money">R$ 82,00</td><td>DB Toxicológico</td><td>+ R$ 25</td><td class="money best">R$ 107,00</td><td><span class="badge warn">Sem validade</span></td><td><span class="badge ok">Aprovado</span></td><td>20/08/2026</td><td><button class="rowaction">Ver origem →</button></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="page" id="cotacoes">
+        <div class="wiretag">Wireframe 03 · Gestão de cotações</div>
+        <div class="head"><div><h1>Cotações</h1><p>Registre documentos recebidos e acompanhe validade e estado.</p></div><button class="btn primary" onclick="go('nova-cotacao')">+ Nova cotação</button></div>
+        <div class="toolbar"><input class="search" placeholder="Buscar fornecedor ou referência..."/><select class="select"><option>Status: todos</option><option>Rascunho</option><option>Ativa</option><option>Cancelada</option></select><select class="select"><option>Validade: todas</option></select></div>
+        <div class="tablewrap"><table><thead><tr><th>Fornecedor</th><th>Referência</th><th>Recebida</th><th>Validade</th><th>Itens</th><th>Status</th><th>Arquivo</th><th>Atualizado por</th><th></th></tr></thead><tbody>
+          <tr><td><strong>Lab Norte</strong></td><td>COT-5521</td><td>18/08/2026</td><td>30/09/2026</td><td>26</td><td><span class="badge ok">Ativa</span></td><td>PDF</td><td>Rodrigo</td><td><button class="rowaction">Ver →</button></td></tr>
+          <tr><td><strong>BioLab</strong></td><td>PRO-880</td><td>22/08/2026</td><td>22/09/2026</td><td>18</td><td><span class="badge ok">Ativa</span></td><td>—</td><td>Equipe</td><td><button class="rowaction">Ver →</button></td></tr>
+          <tr><td><strong>SegVida</strong></td><td>SV-2026-71</td><td>23/08/2026</td><td>23/09/2026</td><td>11</td><td><span class="badge neutral">Rascunho</span></td><td>PDF</td><td>Equipe</td><td><button class="rowaction" onclick="go('nova-cotacao')">Continuar →</button></td></tr>
+          <tr><td><strong>Antigo Lab</strong></td><td>2026-04</td><td>10/04/2026</td><td>10/05/2026</td><td>14</td><td><span class="badge err">Vencida · histórica</span></td><td>PDF</td><td>Rodrigo</td><td><button class="rowaction">Ver →</button></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="page" id="nova-cotacao">
+        <div class="wiretag">Wireframe 04 · Subfluxo transacional</div>
+        <div class="head"><div><h1>Nova cotação</h1><p>Salve como rascunho, mapeie os itens e só então ative.</p></div><div class="actions"><button class="btn" onclick="go('cotacoes')">Cancelar</button><button class="btn">Salvar rascunho</button><button class="btn primary">Ativar cotação</button></div></div>
+        <div class="grid2"><div class="card"><h3>Dados da cotação</h3><div class="formgrid"><div class="field"><label>Fornecedor *</label><select><option>SegVida</option></select></div><div class="field"><label>Número / referência</label><input value="SV-2026-72"/></div><div class="field"><label>Data recebida *</label><input type="date" value="2026-08-23"/></div><div class="field"><label>Validade</label><input type="date"/></div><div class="field full"><label>Arquivo original</label><input type="file"/><span class="hint">PDF, JPG, PNG ou WEBP. Sem OCR no MVP.</span></div><div class="field full"><label>Observações</label><textarea rows="3" placeholder="Condições gerais da cotação..."></textarea></div></div></div>
+        <div class="card"><h3>Regras antes de ativar</h3><div class="note">Todos os itens devem estar vinculados ao Catálogo Efetiva.</div><p>✓ Fornecedor ativo</p><p>✓ Data recebida informada</p><p>⚠ 2 itens ainda sem mapeamento</p><p>✓ Valores unitários maiores que zero</p><div class="dangerbox note">Enquanto houver item sem catálogo, “Ativar cotação” permanece indisponível.</div></div></div>
+        <div style="height:16px"></div>
+        <div class="tablewrap"><table><thead><tr><th>#</th><th>Item do catálogo *</th><th>Descrição do fornecedor</th><th>Código fornecedor</th><th>Valor unitário *</th><th>Observação</th><th></th></tr></thead><tbody>
+          <tr><td>1</td><td><select class="select"><option>EXA-001 · Hemograma completo</option></select></td><td>HEMOGRAMA C/ PLAQ.</td><td>LAB001</td><td class="money">R$ 16,40</td><td>—</td><td><button class="rowaction">Editar</button></td></tr>
+          <tr><td>2</td><td><select class="select"><option>Selecione...</option></select></td><td>GLICOSE JEJUM</td><td>LAB006</td><td class="money">R$ 6,90</td><td>—</td><td><button class="rowaction">Mapear</button></td></tr>
+          <tr><td>3</td><td><select class="select"><option>Selecione...</option></select></td><td>FERRO SÉRICO</td><td>LAB112</td><td class="money">R$ 13,20</td><td>—</td><td><button class="rowaction">Mapear</button></td></tr>
+        </tbody></table></div>
+        <div class="footer-note">Premissa v1: o valor lançado já deve estar normalizado para a unidade do Catálogo Efetiva. Faixas de quantidade e conversão de unidade não fazem parte do MVP.</div>
+      </section>
+
+      <section class="page" id="fornecedores">
+        <div class="wiretag">Wireframe 05 · Cadastro simples</div>
+        <div class="head"><div><h1>Fornecedores</h1><p>Cadastros leves, sem apagar o histórico das cotações.</p></div><button class="btn primary">+ Novo fornecedor</button></div>
+        <div class="toolbar"><input class="search" placeholder="Buscar fornecedor..."/><select class="select"><option>Status: ativos</option><option>Todos</option></select></div>
+        <div class="tablewrap"><table><thead><tr><th>Fornecedor</th><th>Segmento</th><th>Contato</th><th>WhatsApp</th><th>Cotações</th><th>Última cotação</th><th>Status</th><th></th></tr></thead><tbody>
+          <tr><td><strong>Lab Norte</strong><br><span class="muted">Laboratório Norte Ltda.</span></td><td>Laboratório</td><td>Marina</td><td>(93) 99999-0001</td><td>12</td><td>18/08/2026</td><td><span class="badge ok">Ativo</span></td><td><button class="rowaction">Editar →</button></td></tr>
+          <tr><td><strong>DB Toxicológico</strong></td><td>Toxicológico</td><td>Comercial</td><td>—</td><td>8</td><td>20/08/2026</td><td><span class="badge ok">Ativo</span></td><td><button class="rowaction">Editar →</button></td></tr>
+          <tr><td><strong>Antigo Lab</strong></td><td>Laboratório</td><td>—</td><td>—</td><td>4</td><td>10/04/2026</td><td><span class="badge neutral">Inativo</span></td><td><button class="rowaction">Ver histórico →</button></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="page" id="catalogo">
+        <div class="wiretag">Wireframe 06 · Catálogo canônico</div>
+        <div class="head"><div><h1>Catálogo Efetiva</h1><p>Uma referência única para comparar nomes diferentes de fornecedores.</p></div><div class="actions"><button class="btn">+ Categoria</button><button class="btn primary">+ Novo item</button></div></div>
+        <div class="tabs"><button class="tab active">Todos</button><button class="tab">Laboratoriais</button><button class="tab">Toxicológicos</button><button class="tab">Treinamentos</button><button class="tab">EPI</button></div>
+        <div class="toolbar"><input class="search" placeholder="Buscar código ou nome..."/><select class="select"><option>Status: ativos</option></select></div>
+        <div class="tablewrap"><table><thead><tr><th>Código</th><th>Item/Serviço</th><th>Categoria</th><th>Unidade</th><th>Cotações vinculadas</th><th>Preço aprovado</th><th>Status</th><th></th></tr></thead><tbody>
+          <tr><td><span class="code">EXA-001</span></td><td><strong>Hemograma completo</strong></td><td>Laboratorial</td><td>exame</td><td>7</td><td class="money">R$ 20,15</td><td><span class="badge ok">Ativo</span></td><td><button class="rowaction">Editar →</button></td></tr>
+          <tr><td><span class="code">EXA-002</span></td><td><strong>Glicemia</strong></td><td>Laboratorial</td><td>exame</td><td>8</td><td class="money">R$ 8,45</td><td><span class="badge ok">Ativo</span></td><td><button class="rowaction">Editar →</button></td></tr>
+          <tr><td><span class="code">TOX-001</span></td><td><strong>Toxicológico larga janela</strong></td><td>Toxicológico</td><td>exame</td><td>5</td><td class="money">R$ 107,00</td><td><span class="badge ok">Ativo</span></td><td><button class="rowaction">Editar →</button></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="page" id="regras">
+        <div class="wiretag">Wireframe 07 · Admin</div>
+        <div class="head"><div><h1>Regras de preço</h1><p>Hierarquia automática: Item → Categoria → Global.</p></div><button class="btn primary">+ Nova regra</button></div>
+        <div class="rulehero"><div><small>REGRA GLOBAL ATIVA</small><div class="big">+ 30% sobre custo</div><div class="muted" style="color:#b7c2bc">Usada quando não existe regra específica de item ou categoria.</div></div><button class="btn lime">Editar regra global</button></div>
+        <div class="grid2"><div class="card"><h3>Regras por categoria</h3><div class="tablewrap" style="box-shadow:none"><table style="min-width:0"><thead><tr><th>Categoria</th><th>Regra</th><th>Status</th><th></th></tr></thead><tbody><tr><td>Laboratoriais</td><td>+ 35%</td><td><span class="badge ok">Ativa</span></td><td><button class="rowaction">Editar</button></td></tr><tr><td>Treinamentos</td><td>+ R$ 40,00</td><td><span class="badge ok">Ativa</span></td><td><button class="rowaction">Editar</button></td></tr></tbody></table></div></div>
+        <div class="card"><h3>Regras por item</h3><div class="tablewrap" style="box-shadow:none"><table style="min-width:0"><thead><tr><th>Item</th><th>Regra</th><th>Status</th><th></th></tr></thead><tbody><tr><td>TOX-001</td><td>+ R$ 25,00</td><td><span class="badge ok">Ativa</span></td><td><button class="rowaction">Editar</button></td></tr><tr><td>EXA-039</td><td>+ 45%</td><td><span class="badge ok">Ativa</span></td><td><button class="rowaction">Editar</button></td></tr></tbody></table></div></div></div>
+        <div class="note">Somente uma regra ativa por escopo/objeto. A interface usa “acréscimo sobre custo”, nunca “margem” genérica.</div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="drawerback" id="drawerback" onclick="if(event.target===this)closeDrawer()">
+  <aside class="drawer"><div class="drawerhead"><div><div class="wiretag">Drawer · Revisão de preço</div><h2 style="margin:0">Glicemia <span class="code">EXA-002</span></h2><p class="muted" style="margin:5px 0 0">Compare as fontes e aprove somente após revisar.</p></div><button class="x" onclick="closeDrawer()">×</button></div>
+    <div class="offer selected"><div><strong>BioLab · R$ 6,20</strong><small>Validade 22/09/2026 · menor custo vigente</small></div><span class="badge ok">Selecionada</span></div>
+    <div class="offer"><div><strong>Lab Norte · R$ 6,50</strong><small>Validade 30/09/2026</small></div><button class="btn">Selecionar</button></div>
+    <div class="offer"><div><strong>SegVida · R$ 7,00</strong><small>Validade não informada</small></div><button class="btn">Selecionar</button></div>
+    <div class="card" style="margin-top:16px"><h3>Cálculo</h3><p><span class="muted">Fonte:</span> BioLab · R$ 6,20</p><p><span class="muted">Regra:</span> Global · + 30%</p><p><span class="muted">Preço sugerido:</span> <strong class="best">R$ 8,06</strong></p><p><span class="muted">Preço aprovado atual:</span> <strong>R$ 8,45</strong></p><div class="note">O preço aprovado não muda automaticamente. Esta aprovação substituirá o valor vigente.</div></div>
+    <div class="actions" style="margin-top:16px;justify-content:flex-end"><button class="btn" onclick="closeDrawer()">Cancelar</button><button class="btn primary">Aprovar R$ 8,06</button></div>
+  </aside>
+</div>
+<script>
+const labels={comparacao:'Comparação',tabela:'Tabela de Preços',cotacoes:'Cotações','nova-cotacao':'Cotações / Nova cotação',fornecedores:'Fornecedores',catalogo:'Catálogo',regras:'Regras de preço'};
+function go(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));const el=document.getElementById(id);if(el)el.classList.add('active');document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===id));document.getElementById('crumb').textContent='Motor de Preços / '+(labels[id]||id);window.scrollTo({top:0,behavior:'smooth'});}
+document.querySelectorAll('.navbtn[data-page]').forEach(b=>b.addEventListener('click',()=>{go(b.dataset.page);location.hash=b.dataset.page}));
+if(location.hash && document.getElementById(location.hash.slice(1))) go(location.hash.slice(1));
+function openDrawer(){document.getElementById('drawerback').classList.add('open')}
+function closeDrawer(){document.getElementById('drawerback').classList.remove('open')}
+</script>
+</body></html>
