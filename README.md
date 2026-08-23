@@ -2,6 +2,8 @@
 
 PWA interno de gestao administrativa da Efetiva SST.
 
+Aplicacao: https://efetivaos.pages.dev
+
 ## Sprint atual
 
 Etapa 00: fundacao tecnica com React, Supabase Auth/RLS, App Shell, rota `/pricing`, PWA e Cloudflare Pages. Os CRUDs do Motor de Precos ainda nao fazem parte desta entrega.

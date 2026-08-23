@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Sprint 0 em validacao final de deploy.
+**Status atual:** Sprint 0 concluida; aguardando autorizacao para a Sprint 1.
 
 ---
 
@@ -12,7 +12,7 @@
 
 ### Sprint 0 — Fundação técnica
 
-**Status:** IN_PROGRESS
+**Status:** COMPLETED
 
 Escopo:
 
