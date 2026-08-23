@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Gate 00.1 concluido; aguardando autorizacao explicita para a Sprint 1.
+**Status atual:** Gate 00.2 concluido; aguardando autorizacao explicita para a Sprint 1.
 
 ---
 
@@ -69,6 +69,32 @@ Gate:
 - schema lint sem erros;
 - documentação e handoff atualizados;
 - banco remoto preservado sem aplicação da migration candidata.
+
+---
+
+### Gate 00.2 — Rollout Supabase DEV
+
+**Status:** COMPLETED
+
+Escopo:
+
+- credencial de banco exposta revogada e removida da versão corrente;
+- snapshot lógico pre-migration armazenado fora do Git;
+- migration incremental do Motor de Preços reavaliada para concorrência;
+- migration `20260823000200_create_pricing_schema.sql` aplicada no Supabase DEV;
+- schema, RLS, grants, RPCs, views, triggers e Storage verificados remotamente;
+- testes de Admin, Equipe, anônimo e regras funcionais executados com rollback;
+- nenhum CRUD funcional da Sprint 1 iniciado.
+
+Gate:
+
+- duas auditorias estáticas independentes com resultado GO;
+- dry-run confirmou somente a migration `20260823000200` pendente;
+- 40 testes SQL do Motor de Preços aprovados remotamente;
+- 8 testes SQL de profiles/roles aprovados remotamente;
+- lint remoto sem erros de schema;
+- 7 tabelas protegidas com RLS habilitada e forçada;
+- banco DEV limpo, sem dados funcionais de teste persistidos.
 
 ---
 

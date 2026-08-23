@@ -321,6 +321,23 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-024 — Validação Supabase remote-first sem Docker local
+
+**Data:** 2026-08-23
+**Status:** FECHADA
+
+**Contexto:** O rollout autorizado da migration do Motor de Preços precisava ser validado no projeto Supabase DEV sem iniciar Docker ou a stack Supabase local. O ambiente remoto não possuía snapshot físico concluído nem PITR utilizável no momento do gate.
+
+**Decisão:** Migrations remotas podem seguir um fluxo remote-first quando o uso de Docker local estiver indisponível ou proibido: auditoria estática independente, confirmação do projeto e do histórico remoto, snapshot lógico dos dados afetáveis fora do Git, `db push --dry-run`, aplicação exclusiva das migrations pendentes, testes SQL transacionais com rollback, pós-flight estrutural e `db lint --linked`. Comandos Supabase CLI que criam login temporário devem ser executados sequencialmente.
+
+**Motivo:** Preservar segurança, rastreabilidade e cobertura de validação sem tornar Docker um requisito operacional do gate nem manter dados de teste no DEV.
+
+**Impacto:** As suítes SQL criam pgTAP dentro da própria transação e revertem a extensão junto com os dados de teste. A ausência de backup físico deve ser registrada como finding, e o rollout só prossegue com ponto de retorno lógico adequado ao escopo afetado.
+
+**Validação:** Migration `20260823000200` aplicada no DEV; 40 testes do Motor de Preços, 8 testes de profiles/roles, pós-flight de RLS/grants/Storage e lint remoto aprovados.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema
