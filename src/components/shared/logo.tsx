@@ -1,17 +1,16 @@
+import fullLogo from '../../../assets/logo/full/logo-full-transparent.png'
+import symbolLogo from '../../../assets/logo/symbol/logo-symbol-transparent.png'
+
 import { cn } from '@/lib/utils'
 
 export function Logo({ compact = false, className }: { compact?: boolean; className?: string }) {
   return (
-    <div className={cn('flex items-center gap-3', className)} aria-label="Efetiva OS">
-      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-emerald-800 font-serif text-lg font-bold text-white shadow-sm">
-        EF
-      </span>
-      {!compact && (
-        <span className="leading-tight">
-          <strong className="block font-serif text-lg text-slate-950">Efetiva OS</strong>
-          <span className="text-xs text-slate-500">Gestao administrativa</span>
-        </span>
-      )}
+    <div className={cn('flex items-center', className)} aria-label="Efetiva OS">
+      <img
+        src={compact ? symbolLogo : fullLogo}
+        alt={compact ? 'Símbolo da Efetiva' : 'Efetiva'}
+        className={cn('shrink-0 object-contain', compact ? 'size-11' : 'h-auto w-[120px]')}
+      />
     </div>
   )
 }

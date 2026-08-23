@@ -46,10 +46,10 @@ export default function LoginPage() {
 
   return (
     <main className="grid min-h-dvh bg-[#f4f6f3] lg:grid-cols-[1.05fr_0.95fr]">
-      <section className="relative hidden overflow-hidden bg-emerald-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+      <section className="relative hidden overflow-hidden bg-[#0B6B3A] p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-32 -top-32 size-[34rem] rounded-full border border-white/10" />
         <div className="absolute -right-16 -top-16 size-[24rem] rounded-full border border-lime-300/20" />
-        <Logo className="relative [&_strong]:text-white [&_span_span]:text-emerald-100" />
+        <Logo className="relative w-fit rounded-xl bg-white px-4 py-2.5" />
         <div className="relative max-w-xl pb-12">
           <p className="mb-5 text-xs font-bold uppercase tracking-[0.25em] text-lime-300">Operacao centralizada</p>
           <h1 className="font-serif text-5xl font-semibold leading-[1.08]">Decisoes administrativas com contexto e rastreabilidade.</h1>

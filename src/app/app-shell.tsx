@@ -22,7 +22,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="flex h-20 items-center border-b border-slate-200 px-4">
+      <div className="flex h-28 items-center border-b border-slate-200 px-4">
         <Logo compact={collapsed} />
       </div>
       <nav className="flex-1 space-y-2 p-3" aria-label="Navegacao principal">
@@ -82,6 +82,7 @@ export default function AppShell() {
           <Button variant="outline" size="icon" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Abrir menu">
             <Menu className="size-5" />
           </Button>
+          <Logo compact className="lg:hidden" />
           <div className="relative ml-auto hidden w-full max-w-md sm:block">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
             <input className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm shadow-sm outline-none focus:border-emerald-700" placeholder="Buscar no Efetiva OS..." aria-label="Buscar" disabled />
@@ -91,7 +92,7 @@ export default function AppShell() {
               <p className="text-sm font-semibold capitalize">{displayName}</p>
               <p className="text-xs text-slate-500">{profile?.role === 'admin' ? 'Administrador' : 'Equipe'}</p>
             </div>
-            <div className="grid size-10 place-items-center rounded-full bg-emerald-800 text-sm font-bold uppercase text-white">{displayName.charAt(0)}</div>
+            <div className="grid size-10 place-items-center rounded-full bg-[#0B6B3A] text-sm font-bold uppercase text-white">{displayName.charAt(0)}</div>
             <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Sair">
               <LogOut className="size-4" />
             </Button>

@@ -20,7 +20,7 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ## DEC-001 — Efetiva OS é produto separado do Efetiva Gestão
 
-**Data:** 2026-08-23  
+**Data:** 2026-08-23
 **Status:** FECHADA
 
 **Contexto:** Existe outro ERP denominado Efetiva Gestão.
@@ -286,6 +286,21 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 **Motivo:** Permitir instalação e carregamento do shell sem presumir sincronização de dados comerciais.
 
 **Impacto:** A aplicação exibe aviso persistente offline e operações de dados continuam dependentes de conexão.
+
+---
+
+## DEC-022 — Assets oficiais da identidade Efetiva
+
+**Data:** 2026-08-23
+**Status:** FECHADA
+
+**Contexto:** A fundacao visual utilizava marca e icones temporarios gerados durante o bootstrap.
+
+**Decisão:** Usar exclusivamente os PNGs, favicons, app icons, manifest e browserconfig do pacote oficial Efetiva. A cor principal de tema passa a ser `#0B6B3A`; logo completa em login e cabecalho, simbolo em contextos compactos.
+
+**Motivo:** Preservar consistencia de marca entre interface, navegador e instalacao do PWA sem recriar ou distorcer os assets.
+
+**Impacto:** `assets/logo/` e `public/` tornam-se as fontes versionadas da marca; o Vite nao gera um manifesto concorrente.
 
 ---
 

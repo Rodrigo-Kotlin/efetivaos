@@ -1,11 +1,11 @@
-import { Logo } from '@/components/shared/logo'
+import symbolLogo from '../../../assets/logo/symbol/logo-symbol-transparent.png'
 
 export function LoadingScreen() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-slate-50" aria-busy="true">
+    <main className="grid min-h-dvh place-items-center bg-white" aria-busy="true">
       <div className="flex flex-col items-center gap-5">
-        <Logo />
-        <span className="size-6 animate-spin rounded-full border-2 border-emerald-800 border-t-transparent" />
+        <img src={symbolLogo} alt="Efetiva" className="size-20 object-contain" />
+        <span className="size-6 animate-spin rounded-full border-2 border-[#0B6B3A] border-t-transparent" />
         <span className="sr-only">Carregando aplicacao</span>
       </div>
     </main>
