@@ -24,6 +24,6 @@ enable_signup = false
 minimum_password_length = 8
 
 [auth.email]
-enable_signup = false
+enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true

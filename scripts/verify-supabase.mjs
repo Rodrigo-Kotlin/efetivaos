@@ -53,6 +53,12 @@ const admin = createClient(url, anonKey, { auth: { persistSession: true, storage
 const team = createClient(url, anonKey, { auth: { persistSession: false } })
 const anonymous = createClient(url, anonKey, { auth: { persistSession: false } })
 
+const disabledSignup = await anonymous.auth.signUp({
+  email: `blocked-${randomBytes(6).toString('hex')}@example.com`,
+  password: `Aa1!${randomBytes(18).toString('base64url')}`,
+})
+if (!disabledSignup.error) throw new Error('Public signup was accepted')
+
 const invalidLogin = await anonymous.auth.signInWithPassword({ email: adminEmail, password: 'invalid-password' })
 if (!invalidLogin.error) throw new Error('Invalid login was accepted')
 
@@ -92,4 +98,4 @@ await writeFile(
   { encoding: 'utf8', mode: 0o600 },
 )
 
-console.log('Supabase verification passed: invalid login, persistence, logout, Admin, Equipe and anonymous RLS.')
+console.log('Supabase verification passed: signup block, invalid login, persistence, logout, Admin, Equipe and anonymous RLS.')
