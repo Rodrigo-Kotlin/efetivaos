@@ -76,8 +76,6 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
-## Template para novos registros
-
 ## LL-008 — Artefatos tecnicos esperados estavam ausentes
 
 **Data:** 2026-08-23
@@ -105,6 +103,50 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 **Impacto futuro:** Preserva o pipeline GitHub para builds e deploys automaticos exigido pela arquitetura.
 
 ---
+
+## LL-010 — IF NOT EXISTS não resolve incompatibilidade de contrato
+
+**Data:** 2026-08-23
+
+**Contexto:** O SQL v0.3 declarava `profiles.user_id`, enquanto a migration já aplicada usa `profiles.id`.
+
+**Aprendizado:** `CREATE TABLE IF NOT EXISTS` evita erro de objeto duplicado, mas não adapta colunas, policies, grants, triggers ou funções que dependem de outro contrato.
+
+**Aplicação:** Converter schemas recebidos em migrations incrementais após comparar todos os objetos existentes.
+
+**Impacto futuro:** Todo novo pacote técnico deve ser revisado contra o histórico real de migrations antes de execução.
+
+---
+
+## LL-011 — RLS e grants precisam ser testados em conjunto
+
+**Data:** 2026-08-23
+
+**Contexto:** Um grant amplo de `UPDATE` em `profiles` permitiria que a policy de atualização própria alcançasse a coluna `role`.
+
+**Aprendizado:** Uma policy correta não compensa privilégios de coluna excessivos; o contrato efetivo é a interseção de grants, RLS, triggers e RPCs.
+
+**Aplicação:** Preservar `UPDATE (full_name)` em `profiles`, manter role em `set_user_role()` e testar tentativas reais de autopromoção com o perfil Equipe.
+
+**Impacto futuro:** Testes RLS devem incluir operações negativas e verificar o efeito persistido, não apenas a existência das policies.
+
+---
+
+## LL-012 — Supabase local mínimo melhora a validação no Windows
+
+**Data:** 2026-08-23
+
+**Contexto:** Containers auxiliares de analytics/vector ficaram instáveis durante um reset do Docker Desktop.
+
+**Aprendizado:** Para validar migrations e pgTAP, iniciar somente o banco reduz tempo, consumo e interferência de serviços não relacionados.
+
+**Aplicação:** Usar `supabase start --exclude` com os serviços opcionais quando o objetivo for apenas schema, lint e testes SQL.
+
+**Impacto futuro:** A validação local fica reproduzível mesmo sem subir toda a stack Supabase.
+
+---
+
+## Template para novos registros
 
 ```text
 ## LL-XXX — Título

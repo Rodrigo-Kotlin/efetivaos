@@ -6,6 +6,7 @@ dist/
 .wrangler/
 .supabase/
 supabase/.temp/
+supabase/.branches/
 coverage/
 *.local
 *.log

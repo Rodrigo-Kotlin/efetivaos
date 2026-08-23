@@ -304,6 +304,23 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-023 — Schema do Motor de Preços como migration incremental
+
+**Data:** 2026-08-23
+**Status:** FECHADA
+
+**Contexto:** O SQL monolítico do Projeto Técnico v0.3 foi produzido antes da migration de Sprint 0 já aplicada. A execução direta recriaria contratos incompatíveis de `profiles`, reabriria escrita direta em `price_list` e deixaria lacunas de ciclo de vida e auditoria.
+
+**Decisão:** A baseline executável do Motor de Preços será `supabase/migrations/20260823000200_create_pricing_schema.sql`, dependente da migration de profiles existente. Ela preserva `profiles.id`, `set_user_role()` e grants por coluna; adiciona `active` e auditoria de forma incremental; restringe `price_list` às RPCs; mantém cotação ativa de fornecedor inativado elegível conforme DT-08; protege unidade/categoria históricas; serializa decisões concorrentes de preço; e limita substituição de anexo ao caminho da própria cotação enquanto ela estiver em `draft`.
+
+**Motivo:** Manter compatibilidade com o banco aplicado, cumprir DT-06 e DT-08 e impedir escalada de privilégio, reinterpretação de custo histórico ou troca silenciosa da evidência de uma cotação ativa.
+
+**Validação:** Reset completo no Supabase local, 47 testes pgTAP e `supabase db lint --local --level warning` sem erros.
+
+**Impacto:** O SQL original permanece no pacote histórico. A migration incremental está validada localmente, mas não será aplicada ao projeto remoto durante o Gate 00.1; qualquer aplicação remota exige autorização explícita e plano de rollout.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema
