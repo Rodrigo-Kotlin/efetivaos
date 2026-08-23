@@ -32,12 +32,6 @@ alter table public.profiles
   add column created_by uuid references auth.users(id) on delete set null,
   add column updated_by uuid references auth.users(id) on delete set null;
 
-update public.profiles
-set created_by = id,
-    updated_by = id
-where created_by is null
-   or updated_by is null;
-
 create or replace function public.current_app_role()
 returns public.app_role
 language sql
@@ -132,8 +126,8 @@ begin
 end;
 $$;
 
--- Serializa alteracoes que podem mudar fonte, regra ou estado de uma aprovacao.
--- O lock global e deliberadamente simples para o volume interno previsto no MVP.
+-- Serializa statements que podem mudar fonte, regra ou estado de uma aprovacao.
+-- Os triggers chamadores sao por statement para obter o lock antes dos row locks.
 create or replace function public.lock_pricing_decision_changes()
 returns trigger
 language plpgsql
@@ -141,7 +135,7 @@ set search_path = ''
 as $$
 begin
   perform pg_advisory_xact_lock(hashtextextended('efetiva_os_pricing_decisions', 0));
-  return case when tg_op = 'DELETE' then old else new end;
+  return null;
 end;
 $$;
 
@@ -351,7 +345,11 @@ end $$;
 
 create trigger trg_margin_rules_pricing_lock
 before insert or update or delete on public.margin_rules
-for each row execute function public.lock_pricing_decision_changes();
+for each statement execute function public.lock_pricing_decision_changes();
+
+create trigger trg_catalog_items_pricing_lock
+before update on public.catalog_items
+for each statement execute function public.lock_pricing_decision_changes();
 
 create or replace function public.enforce_catalog_item_history()
 returns trigger
@@ -359,12 +357,6 @@ language plpgsql
 set search_path = ''
 as $$
 begin
-  if new.active is distinct from old.active
-     or new.category_id is distinct from old.category_id
-     or new.unit is distinct from old.unit then
-    perform pg_advisory_xact_lock(hashtextextended('efetiva_os_pricing_decisions', 0));
-  end if;
-
   if (
     new.category_id is distinct from old.category_id
     or new.unit is distinct from old.unit
@@ -426,8 +418,6 @@ begin
 
   -- Cotacao ativa so pode ser cancelada, sem alterar seus dados de origem.
   if old.status = 'active' then
-    perform pg_advisory_xact_lock(hashtextextended('efetiva_os_pricing_decisions', 0));
-
     if new.status <> 'cancelled' then
       raise exception 'Cotacao ativa somente pode ser cancelada.';
     end if;
@@ -455,8 +445,6 @@ begin
 
   -- A partir de draft, so sao aceitos draft, active ou cancelled.
   if old.status = 'draft' and new.status = 'active' then
-    perform pg_advisory_xact_lock(hashtextextended('efetiva_os_pricing_decisions', 0));
-
     select s.active into v_supplier_active
     from public.suppliers s
     where s.id = new.supplier_id;
@@ -497,6 +485,14 @@ begin
 end;
 $$;
 
+create trigger trg_quotations_pricing_lock
+before update on public.quotations
+for each statement execute function public.lock_pricing_decision_changes();
+
+create trigger trg_quotation_items_pricing_lock
+before insert or update or delete on public.quotation_items
+for each statement execute function public.lock_pricing_decision_changes();
+
 drop trigger if exists trg_quotations_lifecycle on public.quotations;
 create trigger trg_quotations_lifecycle
 before insert or update on public.quotations
@@ -508,24 +504,33 @@ language plpgsql
 set search_path = ''
 as $$
 declare
-  v_quotation_id uuid;
-  v_status public.quotation_status;
+  v_quotation_ids uuid[];
+  v_quotation record;
   v_item_active boolean;
 begin
-  v_quotation_id := case when tg_op = 'DELETE' then old.quotation_id else new.quotation_id end;
+  v_quotation_ids := case
+    when tg_op = 'INSERT' then array[new.quotation_id]
+    when tg_op = 'DELETE' then array[old.quotation_id]
+    else array[old.quotation_id, new.quotation_id]
+  end;
 
-  select q.status into v_status
-  from public.quotations q
-  where q.id = v_quotation_id;
-
-  if v_status is distinct from 'draft' then
-    raise exception 'Itens de cotacao somente podem ser alterados enquanto a cotacao estiver em draft.';
-  end if;
+  for v_quotation in
+    select q.id, q.status
+    from public.quotations q
+    where q.id = any(v_quotation_ids)
+    order by q.id
+    for update
+  loop
+    if v_quotation.status is distinct from 'draft' then
+      raise exception 'Itens de cotacao somente podem ser alterados enquanto a cotacao estiver em draft.';
+    end if;
+  end loop;
 
   if tg_op <> 'DELETE' and new.catalog_item_id is not null then
     select ci.active into v_item_active
     from public.catalog_items ci
-    where ci.id = new.catalog_item_id;
+    where ci.id = new.catalog_item_id
+    for share;
 
     if coalesce(v_item_active, false) = false then
       raise exception 'Item de catalogo inativo nao pode ser usado em nova cotacao.';
@@ -540,6 +545,86 @@ drop trigger if exists trg_quotation_items_draft_only on public.quotation_items;
 create trigger trg_quotation_items_draft_only
 before insert or update or delete on public.quotation_items
 for each row execute function public.enforce_quotation_item_draft_only();
+
+create or replace function public.assert_active_quotation_integrity(p_quotation_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_status public.quotation_status;
+  v_total_items integer;
+  v_unmapped_items integer;
+  v_inactive_items integer;
+begin
+  select q.status into v_status
+  from public.quotations q
+  where q.id = p_quotation_id;
+
+  if v_status is distinct from 'active' then
+    return;
+  end if;
+
+  select
+    count(*),
+    count(*) filter (where qi.catalog_item_id is null),
+    count(*) filter (where ci.active = false)
+  into v_total_items, v_unmapped_items, v_inactive_items
+  from public.quotation_items qi
+  left join public.catalog_items ci on ci.id = qi.catalog_item_id
+  where qi.quotation_id = p_quotation_id;
+
+  if v_total_items = 0 then
+    raise exception 'Cotacao ativa deve possuir ao menos um item.';
+  end if;
+
+  if v_unmapped_items > 0 then
+    raise exception 'Cotacao ativa nao pode possuir item sem mapeamento ao Catalogo Efetiva.';
+  end if;
+
+  if v_inactive_items > 0 then
+    raise exception 'Cotacao ativa nao pode possuir item inativo do Catalogo Efetiva.';
+  end if;
+end;
+$$;
+
+create or replace function public.enforce_quotation_integrity_deferred()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_table_name = 'quotation_items' then
+    if tg_op <> 'INSERT' then
+      perform public.assert_active_quotation_integrity(old.quotation_id);
+    end if;
+
+    if tg_op <> 'DELETE'
+       and (tg_op = 'INSERT' or new.quotation_id is distinct from old.quotation_id) then
+      perform public.assert_active_quotation_integrity(new.quotation_id);
+    end if;
+  else
+    perform public.assert_active_quotation_integrity(new.id);
+  end if;
+
+  return null;
+end;
+$$;
+
+create constraint trigger trg_quotations_integrity_deferred
+after insert or update on public.quotations
+deferrable initially deferred
+for each row execute function public.enforce_quotation_integrity_deferred();
+
+create constraint trigger trg_quotation_items_integrity_deferred
+after insert or update or delete on public.quotation_items
+deferrable initially deferred
+for each row execute function public.enforce_quotation_integrity_deferred();
+
+revoke all on function public.assert_active_quotation_integrity(uuid) from public;
+revoke all on function public.enforce_quotation_integrity_deferred() from public;
 
 -- ---------------------------------------------------------------------------
 -- 7. Views de comparacao

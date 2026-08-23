@@ -1,5 +1,7 @@
 begin;
 
+create extension if not exists pgtap with schema extensions;
+
 select plan(8);
 
 select has_type('public', 'app_role', 'app_role enum exists');

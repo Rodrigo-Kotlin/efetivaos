@@ -1,6 +1,8 @@
 begin;
 
-select plan(39);
+create extension if not exists pgtap with schema extensions;
+
+select plan(40);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -311,11 +313,13 @@ select ok(
   'T-DB-11: nova melhor oferta exige revisao sem alterar preco aprovado'
 );
 
+set constraints all immediate;
 alter table public.quotations disable trigger trg_quotations_lifecycle;
 update public.quotations
 set valid_until = current_date - 1
 where id = '00000000-0000-0000-0000-000000000044';
 alter table public.quotations enable trigger trg_quotations_lifecycle;
+set constraints all deferred;
 
 select is(
   (select effective_status from public.pricing_comparison_v where catalog_item_id = '00000000-0000-0000-0000-000000000031'),
@@ -423,6 +427,11 @@ select ok(
       and policyname like 'supplier_quotes_files_%'
   ),
   'T-DB-15b: bucket privado possui matriz de policies aprovada'
+);
+
+select lives_ok(
+  $$ set constraints all immediate $$,
+  'Integridade: constraints diferidas validam o estado final da transacao'
 );
 
 select * from finish();
