@@ -1,0 +1,2 @@
+-- Sprint 0 intentionally has no shared credentials or transactional demo data.
+-- Auth users are provisioned per environment after migrations are applied.
