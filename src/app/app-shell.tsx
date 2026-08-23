@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight, CircleDollarSign, House, LogOut, Menu, Search, Settings, Tag, X } from 'lucide-react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, House, LibraryBig, LogOut, Menu, Search, Settings, Tag, X } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -13,7 +14,9 @@ import { useUiStore } from '@/stores/ui-store'
 
 const navigation = [
   { to: '/', label: 'Inicio', icon: House, end: true },
-  { to: '/pricing', label: 'Motor de Precos', icon: Tag },
+  { to: '/pricing', label: 'Motor de Precos', icon: Tag, end: true },
+  { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },
+  { to: '/pricing/catalog', label: 'Catalogo Efetiva', icon: LibraryBig },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -65,17 +68,18 @@ export default function AppShell() {
         <SidebarContent />
       </aside>
 
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <button className="absolute inset-0 bg-slate-950/45" aria-label="Fechar menu" onClick={() => setMobileOpen(false)} />
-          <aside className="relative flex h-full w-[min(20rem,86vw)] flex-col bg-white shadow-2xl">
-            <button className="absolute right-3 top-5 grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100" onClick={() => setMobileOpen(false)} aria-label="Fechar menu">
+      <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-slate-950/45 lg:hidden" />
+          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex w-[min(20rem,86vw)] flex-col bg-white shadow-2xl outline-none lg:hidden" aria-describedby={undefined}>
+            <Dialog.Title className="sr-only">Navegacao principal</Dialog.Title>
+            <Dialog.Close className="absolute right-3 top-5 z-10 grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700" aria-label="Fechar menu">
               <X className="size-5" />
-            </button>
+            </Dialog.Close>
             <SidebarContent onNavigate={() => setMobileOpen(false)} />
-          </aside>
-        </div>
-      )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       <div className={cn('transition-[padding] lg:pl-64', collapsed && 'lg:pl-[76px]')}>
         <header className="sticky top-0 z-20 flex h-20 items-center gap-4 border-b border-slate-200/80 bg-[#f4f6f3]/90 px-4 backdrop-blur sm:px-6 lg:px-8">
@@ -111,7 +115,7 @@ export default function AppShell() {
         </main>
         <footer className="flex items-center justify-between border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>Efetiva OS</span>
-          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 0</Badge>
+          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 1</Badge>
         </footer>
       </div>
     </div>

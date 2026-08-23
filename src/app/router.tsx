@@ -8,6 +8,8 @@ const AppShell = lazy(() => import('@/app/app-shell'))
 const LoginPage = lazy(() => import('@/features/auth/login-page'))
 const HomePage = lazy(() => import('@/routes/home-page'))
 const PricingPage = lazy(() => import('@/features/pricing/pricing-page'))
+const SuppliersPage = lazy(() => import('@/features/pricing/suppliers/suppliers-page'))
+const CatalogPage = lazy(() => import('@/features/pricing/catalog/catalog-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -22,6 +24,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: pending(<HomePage />) },
           { path: 'pricing', element: pending(<PricingPage />) },
+          { path: 'pricing/suppliers', element: pending(<SuppliersPage />) },
+          { path: 'pricing/catalog', element: pending(<CatalogPage />) },
         ],
       },
     ],

@@ -14,7 +14,7 @@ export async function signOut() {
 export async function getProfile(userId: string): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, role, created_at, updated_at')
+    .select('id, full_name, role, active, created_at, created_by, updated_at, updated_by')
     .eq('id', userId)
     .single()
 
