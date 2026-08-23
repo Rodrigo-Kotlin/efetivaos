@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Gate 00.2 concluido; aguardando autorizacao explicita para a Sprint 1.
+**Status atual:** Sprint 1 concluida; aguardando autorizacao explicita para a ETAPA 02.
 
 ---
 
@@ -100,7 +100,7 @@ Gate:
 
 ### Sprint 1 — Fornecedores + Categorias + Catálogo
 
-**Status:** PLANNED
+**Status:** COMPLETED
 
 Escopo:
 
@@ -117,10 +117,15 @@ Escopo:
 
 Gate:
 
-- fornecedor ativo/inativo funcionando;
-- código de item único;
-- relação item/categoria íntegra;
-- usuário Equipe limitado conforme políticas.
+- fornecedor ativo/inativo funcionando no Supabase DEV;
+- categorias e itens com CRUD logico, busca, filtros e ordenacao;
+- código de item único validado no frontend e no banco;
+- relação item/categoria íntegra e categorias inativas fora de novas selecoes;
+- Admin e Equipe validados remotamente em INSERT/SELECT/UPDATE/inativacao/reativacao;
+- anônimo sem acesso e hard delete sem grant;
+- loading, vazio, erro, drawers, toasts e responsividade basica implementados;
+- 29 testes frontend e 35 testes SQL remotos aprovados;
+- deploy Cloudflare Pages publicado pela integracao Git.
 
 ---
 

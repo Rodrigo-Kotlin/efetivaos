@@ -338,6 +338,21 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-025 — Status de categoria não altera itens automaticamente
+
+**Data:** 2026-08-23
+**Status:** FECHADA
+
+**Contexto:** `catalog_categories` e `catalog_items` possuem status lógico próprio. O contrato da Sprint 1 exige inativar e reativar ambos, mas não define cascata de status entre categoria e itens já cadastrados.
+
+**Decisão:** Inativar uma categoria não inativa nem reativa seus itens automaticamente. Categorias inativas permanecem visíveis em filtros e registros históricos, mas não podem ser selecionadas ao criar um item ou reclassificar um item existente. O status operacional do item continua explícito e independente.
+
+**Motivo:** Evitar alterações silenciosas em vários itens e preservar o histórico, sem inventar uma regra comercial de cascata não prevista no schema ou na especificação.
+
+**Impacto:** A UI filtra categorias ativas nos formulários e identifica categorias históricas inativas. Qualquer futura regra de bloqueio ou cascata exigirá decisão funcional e migration quando aplicável.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema
