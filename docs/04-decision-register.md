@@ -315,7 +315,7 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 **Motivo:** Manter compatibilidade com o banco aplicado, cumprir DT-06 e DT-08 e impedir escalada de privilégio, reinterpretação de custo histórico ou troca silenciosa da evidência de uma cotação ativa.
 
-**Validação:** Reset completo no Supabase local, 47 testes pgTAP e `supabase db lint --local --level warning` sem erros.
+**Validação:** Reset completo no Supabase local, 47 testes pgTAP e `supabase db lint --local --schema public --level warning` sem erros.
 
 **Impacto:** O SQL original permanece no pacote histórico. A migration incremental está validada localmente, mas não será aplicada ao projeto remoto durante o Gate 00.1; qualquer aplicação remota exige autorização explícita e plano de rollout.
 

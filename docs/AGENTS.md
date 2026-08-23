@@ -33,13 +33,14 @@ Antes de iniciar uma tarefa relevante, leia nesta ordem:
 
 1. `AGENTS.md`;
 2. `docs/00-LEIA-PRIMEIRO.md`;
-3. `docs/03-handoff-v0.3.md`;
-4. `docs/02-projeto-tecnico-v0.3.docx`;
-5. `docs/01-especificacao-mvp-v0.2.docx`;
-6. `docs/04-decision-register.md`;
-7. `docs/05-roadmap.md`;
-8. wireframes relacionados à tela ou fluxo em implementação;
-9. migrations e schema existentes em `supabase/`.
+3. `docs/09-handoff-sprint-00.md`;
+4. `docs/03-handoff-v0.3.md`;
+5. `docs/02-projeto-tecnico-v0.3.docx`;
+6. `docs/01-especificacao-mvp-v0.2.docx`;
+7. `docs/04-decision-register.md`;
+8. `docs/05-roadmap.md`;
+9. wireframes relacionados à tela ou fluxo em implementação;
+10. migrations e schema existentes em `supabase/`.
 
 Se algum arquivo ainda não estiver presente no repositório, registre isso no relatório da etapa e não invente seu conteúdo.
 

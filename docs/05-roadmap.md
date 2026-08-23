@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Sprint 0 concluida; aguardando autorizacao para a Sprint 1.
+**Status atual:** Gate 00.1 concluido; aguardando autorizacao explicita para a Sprint 1.
 
 ---
 
@@ -43,6 +43,32 @@ Gate:
 - Admin/Equipe reconhecidos;
 - RLS testado;
 - URL Cloudflare acessível.
+
+---
+
+### Gate 00.1 — Consolidação da baseline
+
+**Status:** COMPLETED
+
+Escopo:
+
+- identidade oficial Efetiva aplicada ao PWA;
+- especificação v0.2 e Projeto Técnico v0.3 em nomes canônicos;
+- handoff v0.3 e wireframes navegáveis versionados;
+- SQL monolítico preservado no pacote histórico;
+- migration incremental do Motor de Preços compatível com a Sprint 0;
+- RLS, RPCs, views, ciclo de vida e Storage revisados;
+- testes T-DB e lint executados no Supabase local;
+- sem CRUD funcional da Sprint 1.
+
+Gate:
+
+- build, lint e testes de frontend aprovados;
+- reset local das migrations aprovado;
+- 47 testes pgTAP aprovados;
+- schema lint sem erros;
+- documentação e handoff atualizados;
+- banco remoto preservado sem aplicação da migration candidata.
 
 ---
 

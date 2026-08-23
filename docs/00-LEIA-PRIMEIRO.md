@@ -37,6 +37,9 @@ docs/
 ├── 05-roadmap.md
 ├── 06-learning-log.md
 ├── 07-sprint-checklist.md
+├── 08-handoff-template.md
+├── 09-handoff-sprint-00.md
+├── archive/
 └── wireframes/
 ```
 
