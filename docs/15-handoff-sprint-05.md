@@ -24,7 +24,8 @@ Commits técnicos:
 
 - `980fd10 feat: protect commercial price approvals with CAS`;
 - `814f02c feat: implement commercial price decisions and table`;
-- `94eb2db test: cover commercial price approval flows`.
+- `94eb2db test: cover commercial price approval flows`;
+- `d6c8152 docs: close Sprint 5 commercial pricing`.
 
 ## Banco/Supabase
 
@@ -117,6 +118,15 @@ Frontend e E2E:
 | Comparação lazy | 32,30 kB / 7,31 kB gzip | 29,36 kB / 6,78 kB gzip | -2,94 kB / -0,53 kB gzip |
 
 O aviso do Vite para o chunk principal acima de 500 kB permanece não bloqueante.
+
+## Deploy
+
+- Integração: GitHub `main` para Cloudflare Pages;
+- URL canônica: https://efetivaos.pages.dev;
+- deployment validado: `7ef95297-123b-49d3-a9a5-f795957a7827`;
+- source: `d6c8152`;
+- URL imutável: https://7ef95297.efetivaos.pages.dev;
+- `/pricing`, `/pricing/comparison` e `/pricing/prices` retornaram HTTP 200 na URL canônica; `/pricing/prices` também retornou HTTP 200 na URL imutável após propagação.
 
 ## Decisões e aprendizados
 
