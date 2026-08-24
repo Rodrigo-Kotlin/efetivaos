@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { comparisonKeys } from '@/features/pricing/comparison/comparison-queries'
+
 import {
   createCatalogCategory,
   createCatalogItem,
@@ -28,14 +30,20 @@ export function useCatalogCategories() {
 
 export function useCreateCatalogItem() {
   const client = useQueryClient()
-  return useMutation({ mutationFn: createCatalogItem, onSuccess: () => client.invalidateQueries({ queryKey: catalogKeys.items() }) })
+  return useMutation({ mutationFn: createCatalogItem, onSuccess: () => Promise.all([
+    client.invalidateQueries({ queryKey: catalogKeys.items() }),
+    client.invalidateQueries({ queryKey: comparisonKeys.all }),
+  ]) })
 }
 
 export function useUpdateCatalogItem() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: CatalogItemInput }) => updateCatalogItem(id, input),
-    onSuccess: () => client.invalidateQueries({ queryKey: catalogKeys.items() }),
+    onSuccess: () => Promise.all([
+      client.invalidateQueries({ queryKey: catalogKeys.items() }),
+      client.invalidateQueries({ queryKey: comparisonKeys.all }),
+    ]),
   })
 }
 
@@ -43,7 +51,10 @@ export function useSetCatalogItemStatus() {
   const client = useQueryClient()
   return useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => setCatalogItemStatus(id, active),
-    onSuccess: () => client.invalidateQueries({ queryKey: catalogKeys.items() }),
+    onSuccess: () => Promise.all([
+      client.invalidateQueries({ queryKey: catalogKeys.items() }),
+      client.invalidateQueries({ queryKey: comparisonKeys.all }),
+    ]),
   })
 }
 
@@ -52,6 +63,7 @@ function useInvalidateCategories() {
   return () => Promise.all([
     client.invalidateQueries({ queryKey: catalogKeys.categories() }),
     client.invalidateQueries({ queryKey: catalogKeys.items() }),
+    client.invalidateQueries({ queryKey: comparisonKeys.all }),
   ])
 }
 

@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { LoadingScreen } from '@/components/shared/loading-screen'
-import { ProtectedRoute } from '@/features/auth/protected-route'
+import { AdminRoute, ProtectedRoute } from '@/features/auth/protected-route'
 
 const AppShell = lazy(() => import('@/app/app-shell'))
 const LoginPage = lazy(() => import('@/features/auth/login-page'))
@@ -33,7 +33,10 @@ export const router = createBrowserRouter([
           { path: 'pricing/catalog', element: pending(<CatalogPage />) },
           { path: 'pricing/comparison', element: pending(<ComparisonPage />) },
           { path: 'pricing/prices', element: pending(<PriceListPage />) },
-          { path: 'pricing/rules', element: pending(<RulesPage />) },
+          {
+            element: <AdminRoute />,
+            children: [{ path: 'pricing/rules', element: pending(<RulesPage />) }],
+          },
           { path: 'pricing/quotations', element: pending(<QuotationsPage />) },
           { path: 'pricing/quotations/new', element: pending(<QuotationEditorPage />) },
           { path: 'pricing/quotations/:quotationId', element: pending(<QuotationEditorPage />) },

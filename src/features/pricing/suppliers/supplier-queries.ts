@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { comparisonKeys } from '@/features/pricing/comparison/comparison-queries'
+
 import { createSupplier, listSuppliers, setSupplierStatus, updateSupplier } from './suppliers-api'
 
 export const supplierKeys = {
@@ -13,7 +15,10 @@ export function useSuppliers() {
 
 function useInvalidateSupplierLists() {
   const queryClient = useQueryClient()
-  return () => queryClient.invalidateQueries({ queryKey: supplierKeys.lists() })
+  return () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: supplierKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: comparisonKeys.all }),
+  ])
 }
 
 export function useCreateSupplier() {

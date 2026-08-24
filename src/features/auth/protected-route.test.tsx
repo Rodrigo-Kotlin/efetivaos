@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import { AuthContext, type AuthContextValue } from '@/features/auth/auth-context'
-import { ProtectedRoute } from '@/features/auth/protected-route'
+import { AdminRoute, ProtectedRoute } from '@/features/auth/protected-route'
 import type { Profile } from '@/types/database'
 
 const activeProfile: Profile = {
@@ -60,5 +60,33 @@ describe('ProtectedRoute', () => {
     })
     expect(screen.getByRole('heading', { name: 'Acesso inativo' })).toBeInTheDocument()
     expect(screen.queryByText('Conteudo protegido')).not.toBeInTheDocument()
+  })
+})
+
+describe('AdminRoute', () => {
+  function renderAdminRoute(profile: Profile) {
+    return render(
+      <AuthContext.Provider value={{ ...baseAuth, profile }}>
+        <MemoryRouter initialEntries={['/pricing/rules']}>
+          <Routes>
+            <Route path="/pricing" element={<p>Dashboard de precos</p>} />
+            <Route element={<AdminRoute />}>
+              <Route path="/pricing/rules" element={<p>Regras comerciais</p>} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    )
+  }
+
+  it('libera a rota de regras para Admin', () => {
+    renderAdminRoute({ ...activeProfile, role: 'admin' })
+    expect(screen.getByText('Regras comerciais')).toBeInTheDocument()
+  })
+
+  it('redireciona Equipe para o dashboard de precos', () => {
+    renderAdminRoute(activeProfile)
+    expect(screen.getByText('Dashboard de precos')).toBeInTheDocument()
+    expect(screen.queryByText('Regras comerciais')).not.toBeInTheDocument()
   })
 })

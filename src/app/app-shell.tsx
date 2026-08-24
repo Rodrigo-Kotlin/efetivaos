@@ -17,7 +17,7 @@ const navigation = [
   { to: '/pricing', label: 'Motor de Precos', icon: Tag, end: true },
   { to: '/pricing/comparison', label: 'Comparacao', icon: CircleDollarSign },
   { to: '/pricing/prices', label: 'Tabela de Precos', icon: ListTree },
-  { to: '/pricing/rules', label: 'Regras de preco', icon: Scale },
+  { to: '/pricing/rules', label: 'Regras de preco', icon: Scale, adminOnly: true },
   { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },
   { to: '/pricing/catalog', label: 'Catalogo Efetiva', icon: LibraryBig },
   { to: '/pricing/quotations', label: 'Cotacoes', icon: ClipboardList },
@@ -26,6 +26,7 @@ const navigation = [
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const collapsed = useUiStore((state) => state.sidebarCollapsed)
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
+  const { profile } = useAuth()
 
   return (
     <>
@@ -33,7 +34,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <Logo compact={collapsed} />
       </div>
       <nav className="flex-1 space-y-2 p-3" aria-label="Navegacao principal">
-        {navigation.map(({ to, label, icon: Icon, end }) => (
+        {navigation.filter((item) => !item.adminOnly || profile?.role === 'admin').map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end} onClick={onNavigate} className={({ isActive }) => cn('flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors', isActive ? 'bg-emerald-50 text-emerald-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950', collapsed && 'justify-center px-0')} title={collapsed ? label : undefined}>
             <Icon className="size-5 shrink-0" />
             {!collapsed && <span>{label}</span>}
@@ -119,7 +120,7 @@ export default function AppShell() {
         </main>
         <footer className="flex items-center justify-between border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>Efetiva OS</span>
-          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 5</Badge>
+          <Badge variant="outline"><CircleDollarSign className="size-3" /> Motor de Preços</Badge>
         </footer>
       </div>
     </div>

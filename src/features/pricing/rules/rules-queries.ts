@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { comparisonKeys } from '@/features/pricing/comparison/comparison-queries'
+
 import { createRule, listRules, setRuleActive, updateRule } from './rules-api'
 import type { RuleInput } from './rules-types'
 
@@ -16,7 +18,7 @@ function useInvalidateRules() {
   const client = useQueryClient()
   return () => Promise.all([
     client.invalidateQueries({ queryKey: ruleKeys.list() }),
-    client.invalidateQueries({ queryKey: ['comparison'] }),
+    client.invalidateQueries({ queryKey: comparisonKeys.all }),
   ])
 }
 

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { comparisonKeys } from '@/features/pricing/comparison/comparison-queries'
+
 import { activateQuotation, cancelQuotation, discardPendingQuotationAttachment, getQuotation, listQuotations, saveQuotationDraft } from './quotation.service'
 
 export const quotationKeys = {
@@ -18,9 +20,10 @@ export function useQuotation(id?: string) {
 
 function useInvalidateQuotations() {
   const client = useQueryClient()
-  return (id?: string) => Promise.all([
+  return (id?: string, affectsComparison = false) => Promise.all([
     client.invalidateQueries({ queryKey: quotationKeys.lists() }),
     ...(id ? [client.invalidateQueries({ queryKey: quotationKeys.detail(id) })] : []),
+    ...(affectsComparison ? [client.invalidateQueries({ queryKey: comparisonKeys.all })] : []),
   ])
 }
 
@@ -31,12 +34,12 @@ export function useSaveQuotationDraft() {
 
 export function useActivateQuotation() {
   const invalidate = useInvalidateQuotations()
-  return useMutation({ mutationFn: activateQuotation, onSuccess: (quotation) => invalidate(quotation.id) })
+  return useMutation({ mutationFn: activateQuotation, onSuccess: (quotation) => invalidate(quotation.id, true) })
 }
 
 export function useCancelQuotation() {
   const invalidate = useInvalidateQuotations()
-  return useMutation({ mutationFn: cancelQuotation, onSuccess: (quotation) => { void invalidate(quotation.id) } })
+  return useMutation({ mutationFn: cancelQuotation, onSuccess: (quotation) => invalidate(quotation.id, true) })
 }
 
 export function useDiscardPendingQuotationAttachment() {

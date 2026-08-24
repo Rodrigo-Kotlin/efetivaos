@@ -27,3 +27,11 @@ export function ProtectedRoute() {
   }
   return <Outlet />
 }
+
+export function AdminRoute() {
+  const { profile, loading } = useAuth()
+
+  if (loading) return <LoadingScreen />
+  if (profile?.role !== 'admin') return <Navigate to="/pricing" replace />
+  return <Outlet />
+}

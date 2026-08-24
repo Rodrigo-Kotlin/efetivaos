@@ -5,10 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/features/auth/auth-context'
 
 const modules = [
-  { title: 'Motor de Precos', description: 'Cotacoes, comparacao e formacao de precos comerciais.', icon: Tag, to: '/pricing', status: 'Fundacao ativa', active: true },
+  { title: 'Motor de Precos', description: 'Cotacoes, comparacao e formacao de precos comerciais.', icon: Tag, to: '/pricing', status: 'MVP concluido', active: true },
   { title: 'CRM leve', description: 'Clientes e contratos da operacao.', icon: Building2, status: 'Proxima fase' },
   { title: 'Financeiro', description: 'Entradas, saidas e fluxo de caixa.', icon: CircleDollarSign, status: 'Planejado' },
-  { title: 'Dashboard', description: 'Indicadores e alertas operacionais.', icon: LayoutDashboard, status: 'Planejado' },
+  { title: 'Dashboard', description: 'Indicadores e alertas operacionais.', icon: LayoutDashboard, status: 'No Motor de Precos' },
 ]
 
 export default function HomePage() {
@@ -21,7 +21,7 @@ export default function HomePage() {
         <div>
           <Badge className="mb-4">Ambiente conectado</Badge>
           <h1 className="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">Bom dia, <span className="capitalize">{firstName}</span>.</h1>
-          <p className="mt-3 max-w-2xl text-base text-slate-600">A fundacao do Efetiva OS esta pronta para validar acesso, navegacao e perfil.</p>
+          <p className="mt-3 max-w-2xl text-base text-slate-600">Acesse os modulos operacionais disponiveis e acompanhe as proximas entregas do Efetiva OS.</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm">
           <span className="text-slate-500">Perfil atual</span>
@@ -52,8 +52,8 @@ export default function HomePage() {
         <div className="grid gap-8 p-7 md:grid-cols-[1fr_auto] md:items-center md:p-9">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-lime-300">Motor de Precos</p>
-            <h2 className="mt-3 font-serif text-2xl font-semibold">Fundacao pronta para a validacao da Sprint 0</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-100/75">Auth, perfil, protecao de rotas e conexao com Supabase estao visiveis na pagina provisoria do modulo.</p>
+            <h2 className="mt-3 font-serif text-2xl font-semibold">Fluxo comercial completo e rastreavel</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-100/75">Fornecedores, cotacoes, comparacao, regras de acrescimo, aprovacao e tabela comercial reunidos em um unico modulo.</p>
           </div>
           <Link to="/pricing" className="inline-flex h-11 items-center justify-center rounded-lg bg-lime-300 px-5 text-sm font-bold text-emerald-950 hover:bg-lime-200">Abrir modulo <ArrowUpRight className="ml-2 size-4" /></Link>
         </div>
