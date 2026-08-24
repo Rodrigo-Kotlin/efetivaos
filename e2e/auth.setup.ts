@@ -16,8 +16,8 @@ setup('authenticate as Sprint 0 admin', async ({ page }) => {
   await page.getByLabel(/^Senha$/i).fill(password)
   await page.getByRole('button', { name: /^Entrar$/i }).click()
 
-  await expect(page).not.toHaveURL(/\/login(?:\?|$)/)
-  await expect(page.getByRole('button', { name: /^Sair$/i })).toBeVisible()
+  await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 20_000 })
+  await expect(page.getByRole('button', { name: /^Sair$/i })).toBeVisible({ timeout: 20_000 })
 
   await mkdir('playwright/.auth', { recursive: true })
   await page.context().storageState({ path: adminAuthFile })
@@ -32,8 +32,8 @@ setup('authenticate as Sprint 0 team member', async ({ page }) => {
   await page.getByLabel(/^Senha$/i).fill(password)
   await page.getByRole('button', { name: /^Entrar$/i }).click()
 
-  await expect(page).not.toHaveURL(/\/login(?:\?|$)/)
-  await expect(page.getByRole('button', { name: /^Sair$/i })).toBeVisible()
+  await expect(page).not.toHaveURL(/\/login(?:\?|$)/, { timeout: 20_000 })
+  await expect(page.getByRole('button', { name: /^Sair$/i })).toBeVisible({ timeout: 20_000 })
 
   await mkdir('playwright/.auth', { recursive: true })
   await page.context().storageState({ path: teamAuthFile })

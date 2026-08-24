@@ -24,6 +24,24 @@ export interface FixtureState {
   attachmentExpected?: boolean
   quotationId?: string
   quotationReference: string
+  priceApproval: {
+    categoryId?: string
+    categoryName: string
+    catalogItemId?: string
+    catalogItemCode: string
+    catalogItemName: string
+    bestSupplierId?: string
+    bestSupplierName: string
+    alternativeSupplierId?: string
+    alternativeSupplierName: string
+    bestQuotationId?: string
+    bestQuotationItemId?: string
+    bestQuotationReference: string
+    alternativeQuotationId?: string
+    alternativeQuotationItemId?: string
+    alternativeQuotationReference: string
+    marginRuleId?: string
+  }
 }
 
 export function createFixtureState(): FixtureState {
@@ -37,6 +55,15 @@ export function createFixtureState(): FixtureState {
     catalogItemCode: `${prefix}_ITEM`,
     catalogItemName: `${prefix}_CATALOG_ITEM`,
     quotationReference: `${prefix}_QUOTE`,
+    priceApproval: {
+      categoryName: `${prefix}_PRICE_CATEGORY`,
+      catalogItemCode: `${prefix}_PRICE_ITEM`,
+      catalogItemName: `${prefix}_PRICE_APPROVAL_ITEM`,
+      bestSupplierName: `${prefix}_PRICE_SUPPLIER_BEST`,
+      alternativeSupplierName: `${prefix}_PRICE_SUPPLIER_ALTERNATIVE`,
+      bestQuotationReference: `${prefix}_PRICE_QUOTE_BEST`,
+      alternativeQuotationReference: `${prefix}_PRICE_QUOTE_ALTERNATIVE`,
+    },
   }
 }
 
@@ -106,16 +133,43 @@ export async function cleanupFixtures(client: SupabaseClient, state: FixtureStat
 
   }
 
+  const catalogItemId = state.catalogItemId ?? '00000000-0000-0000-0000-000000000000'
+  const priceCatalogItemId = state.priceApproval.catalogItemId ?? '00000000-0000-0000-0000-000000000000'
+  const categoryId = state.categoryId ?? '00000000-0000-0000-0000-000000000000'
+  const priceCategoryId = state.priceApproval.categoryId ?? '00000000-0000-0000-0000-000000000000'
+  const supplierId = state.supplierId ?? '00000000-0000-0000-0000-000000000000'
+  const bestSupplierId = state.priceApproval.bestSupplierId ?? '00000000-0000-0000-0000-000000000000'
+  const alternativeSupplierId = state.priceApproval.alternativeSupplierId ?? '00000000-0000-0000-0000-000000000000'
+
   const sql = `begin;
 set local session_replication_role = replica;
+delete from public.price_list where catalog_item_id in (
+  ${sqlLiteral(catalogItemId)}::uuid,
+  ${sqlLiteral(priceCatalogItemId)}::uuid
+) or source_quotation_item_id in (
+  select qi.id from public.quotation_items qi
+  join public.quotations q on q.id = qi.quotation_id
+  where left(q.reference_number, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
+) or margin_rule_id in (
+  select id from public.margin_rules
+  where left(notes, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
+);
 delete from public.margin_rules where left(notes, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
 delete from public.quotation_items where quotation_id in (
   select id from public.quotations where left(reference_number, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
 );
 delete from public.quotations where left(reference_number, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
-delete from public.catalog_items where id = ${sqlLiteral(state.catalogItemId ?? '00000000-0000-0000-0000-000000000000')} and code = ${sqlLiteral(state.catalogItemCode)};
-delete from public.catalog_categories where id = ${sqlLiteral(state.categoryId ?? '00000000-0000-0000-0000-000000000000')} and name = ${sqlLiteral(state.categoryName)};
-delete from public.suppliers where id = ${sqlLiteral(state.supplierId ?? '00000000-0000-0000-0000-000000000000')} and name = ${sqlLiteral(state.supplierName)};
+delete from public.catalog_items
+where (id = ${sqlLiteral(catalogItemId)}::uuid and code = ${sqlLiteral(state.catalogItemCode)})
+   or (id = ${sqlLiteral(priceCatalogItemId)}::uuid and code = ${sqlLiteral(state.priceApproval.catalogItemCode)});
+delete from public.catalog_categories
+where (id = ${sqlLiteral(categoryId)}::uuid and name = ${sqlLiteral(state.categoryName)})
+   or (id = ${sqlLiteral(priceCategoryId)}::uuid and name = ${sqlLiteral(state.priceApproval.categoryName)});
+delete from public.suppliers
+where ((id = ${sqlLiteral(supplierId)}::uuid and name = ${sqlLiteral(state.supplierName)})
+    or (id = ${sqlLiteral(bestSupplierId)}::uuid and name = ${sqlLiteral(state.priceApproval.bestSupplierName)})
+    or (id = ${sqlLiteral(alternativeSupplierId)}::uuid and name = ${sqlLiteral(state.priceApproval.alternativeSupplierName)}))
+  and left(coalesce(notes, ''), length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
 commit;
 `
 
