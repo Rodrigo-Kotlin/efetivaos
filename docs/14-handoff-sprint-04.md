@@ -169,7 +169,8 @@ O aviso de chunk > 500 kB do Vite permanece não bloqueante.
 - Integração: GitHub `main` → Cloudflare Pages;
 - URL canônica: https://efetivaos.pages.dev;
 - Rotas publicadas: `/pricing` (launcher), `/pricing/comparison`, `/pricing/rules` (novo), `/pricing/suppliers`, `/pricing/catalog`, `/pricing/quotations`, `/pricing/quotations/new`, `/pricing/quotations/:id`;
-- Deploy deve ser confirmado após o merge dos commits técnicos desta sprint; o hash de fechamento entra no relatório final do agente.
+- Deploy de produção validado: `098d08dc-bf08-4bee-8c76-2ef44203fd42`, source `c092858`, URL imutável https://098d08dc.efetivaos.pages.dev;
+- `/pricing`, `/pricing/comparison` e `/pricing/rules` retornaram HTTP 200 na URL canônica; o manifesto de chunks da implantação inclui `rules-page` e `comparison-page`.
 
 ## Arquivos principais alterados / criados
 
@@ -180,7 +181,7 @@ O aviso de chunk > 500 kB do Vite permanece não bloqueante.
 - `src/types/database.ts` com `PricingComparisonRow` e `MarginRule`;
 - `src/app/router.tsx` com a nova rota `/pricing/rules`;
 - `src/app/app-shell.tsx` com item de menu "Regras de preço" e badge "Sprint 4";
-- E2E: `e2e/pricing-rules-flow.spec.ts` e ajuste em `playwright.config.ts`;
+- E2E: `e2e/pricing-rules-flow.spec.ts`, `e2e/pricing-rules-team.spec.ts`, autenticação Admin/Equipe, teardown remoto seguro e ajustes nos seletores legados de comparação/cotações;
 - Documentação: `docs/04-decision-register.md`, `docs/05-roadmap.md`, `docs/06-learning-log.md` e este handoff.
 
 ## Decisões registradas
