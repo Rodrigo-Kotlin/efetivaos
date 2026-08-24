@@ -71,23 +71,44 @@ export async function cleanupFixtures(client: SupabaseClient, state: FixtureStat
 
   const { data: quotations, error: quotationLookupError } = await client
     .from('quotations')
-    .select('id, reference_number')
+    .select('id, reference_number, source_file_path, source_file_pending')
     .eq('reference_number', state.quotationReference)
 
   if (quotationLookupError) throw new Error(`Failed to find E2E quotations for cleanup: ${quotationLookupError.message}`)
-  const quotationIds = (quotations ?? [])
-    .filter((quotation) => quotation.reference_number === state.quotationReference && quotation.reference_number.startsWith(state.prefix))
+
+  // Tambem localiza cotacoes adicionais da mesma fixture por prefixo,
+  // cobrindo o caso de Sprint 3 (multiplas cotacoes por fixture).
+  const { data: prefixQuotations, error: prefixError } = await client
+    .from('quotations')
+    .select('id, reference_number, source_file_path, source_file_pending')
+    .like('reference_number', `${state.prefix}%`)
+
+  if (prefixError) throw new Error(`Failed to find prefixed E2E quotations for cleanup: ${prefixError.message}`)
+
+  const seen = new Set<string>()
+  const allQuotations = [...(quotations ?? []), ...(prefixQuotations ?? [])]
+    .filter((quotation) => {
+      if (seen.has(quotation.id)) return false
+      seen.add(quotation.id)
+      return Boolean(quotation.reference_number?.startsWith(state.prefix))
+    })
+
+  const quotationIds = allQuotations.map((quotation) => quotation.id)
+  const attachedIds = allQuotations
+    .filter((quotation) => Boolean(quotation.source_file_path) && !quotation.source_file_pending)
     .map((quotation) => quotation.id)
 
   if (quotationIds.length) {
     if (state.attachmentExpected) {
-      const { data: objects, error: listError } = await client.storage.from('supplier-quotes').list(quotationIds[0], { search: 'original' })
+      const { data: objects, error: listError } = await client.storage.from('supplier-quotes').list(attachedIds[0] ?? quotationIds[0], { search: 'original' })
       if (listError) throw new Error(`Failed to verify E2E quotation attachment: ${listError.message}`)
       if (!(objects ?? []).some((object) => object.name === 'original')) throw new Error('Expected E2E quotation attachment was not persisted')
     }
 
-    const { error: storageError } = await client.storage.from('supplier-quotes').remove(quotationIds.map((id) => `${id}/original`))
-    if (storageError) throw new Error(`Failed to clean E2E quotation attachments: ${storageError.message}`)
+    if (attachedIds.length) {
+      const { error: storageError } = await client.storage.from('supplier-quotes').remove(attachedIds.map((id) => `${id}/original`))
+      if (storageError) throw new Error(`Failed to clean E2E quotation attachments: ${storageError.message}`)
+    }
 
     const { error: itemError } = await client.from('quotation_items').delete().in('quotation_id', quotationIds)
     if (itemError) throw new Error(`Failed to clean E2E quotation items: ${itemError.message}`)

@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      testMatch: /quotation-draft\.spec\.ts/,
+      testMatch: /(quotation-draft|comparison-flow)\.spec\.ts/,
       dependencies: ['authenticate'],
       use: {
         ...devices['Desktop Chrome'],
