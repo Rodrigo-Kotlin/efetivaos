@@ -116,7 +116,12 @@ update public.margin_rules set active = false where id = '00000000-0000-0000-000
 set local role authenticated;
 
 select throws_ok(
-  $$ select public.approve_price('00000000-0000-0000-0000-000000000032') $$,
+  $$
+    select public.approve_price(
+      '00000000-0000-0000-0000-000000000032',
+      public.price_decision_token('00000000-0000-0000-0000-000000000032')
+    )
+  $$,
   'P0001',
   'Defina uma regra de acrescimo antes de aprovar este preco.',
   'T-DB-05: aprovacao falha claramente quando nao ha regra'
@@ -127,7 +132,12 @@ update public.margin_rules set active = true where id = '00000000-0000-0000-0000
 set local role authenticated;
 
 select lives_ok(
-  $$ select public.approve_price('00000000-0000-0000-0000-000000000031') $$,
+  $$
+    select public.approve_price(
+      '00000000-0000-0000-0000-000000000031',
+      public.price_decision_token('00000000-0000-0000-0000-000000000031')
+    )
+  $$,
   'T-DB-06a: aprovacao percentual e calculada no servidor'
 );
 select is(
@@ -136,7 +146,12 @@ select is(
   'T-DB-06b: custo 100 mais 30 por cento resulta em 130'
 );
 select lives_ok(
-  $$ select public.approve_price('00000000-0000-0000-0000-000000000030') $$,
+  $$
+    select public.approve_price(
+      '00000000-0000-0000-0000-000000000030',
+      public.price_decision_token('00000000-0000-0000-0000-000000000030')
+    )
+  $$,
   'T-DB-06c: aprovacao por acrescimo fixo e calculada no servidor'
 );
 select is(
@@ -180,13 +195,23 @@ select throws_ok(
   'T-DB-07e: Equipe nao altera role pela RPC administrativa'
 );
 select throws_ok(
-  $$ select public.approve_price('00000000-0000-0000-0000-000000000031') $$,
+  $$
+    select public.approve_price(
+      '00000000-0000-0000-0000-000000000031',
+      public.price_decision_token('00000000-0000-0000-0000-000000000031')
+    )
+  $$,
   'P0001',
   'Apenas Admin pode aprovar ou atualizar preco comercial.',
   'T-DB-07f: Equipe nao executa aprovacao comercial'
 );
 select throws_ok(
-  $$ select public.inactivate_price('00000000-0000-0000-0000-000000000031') $$,
+  $$
+    select public.inactivate_price(
+      '00000000-0000-0000-0000-000000000031',
+      public.price_decision_token('00000000-0000-0000-0000-000000000031')
+    )
+  $$,
   'P0001',
   'Apenas Admin pode inativar preco comercial.',
   'T-DB-07g: Equipe nao inativa preco comercial'
@@ -278,6 +303,7 @@ select lives_ok(
   $$
     select public.approve_price(
       '00000000-0000-0000-0000-000000000030',
+      public.price_decision_token('00000000-0000-0000-0000-000000000030'),
       '00000000-0000-0000-0000-000000000050'
     )
   $$,
