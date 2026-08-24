@@ -404,6 +404,23 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-029 — Token CAS para decisões comerciais de preço
+
+**Data:** 2026-08-24
+**Status:** FECHADA
+
+**Contexto:** O advisory lock global existente serializava alterações de ofertas, regras e aprovações, mas não distinguia a intenção lida por uma tela antiga. Uma aprovação iniciada antes de outra sessão alterar a melhor oferta, a regra ou o preço corrente poderia aguardar o lock e depois aprovar silenciosamente o novo contexto.
+
+**Decisão:** `pricing_comparison_v` passa a expor `decision_token`, calculado por `price_decision_token(catalog_item_id)` sobre o item, a melhor oferta elegível, a regra resolvida e a linha comercial atual. `approve_price(uuid, text, uuid)` e `inactivate_price(uuid, text)` exigem esse token e o revalidam somente depois de adquirir o advisory lock. Token nulo, forjado, reutilizado ou anterior a qualquer mudança relevante gera conflito e recarga obrigatória. O token não é credencial e não transporta custo, regra ou preço; todos os valores continuam selecionados, validados, calculados e gravados pelo banco. A reativação ocorre exclusivamente por nova chamada de aprovação com token fresco, nunca por troca direta de status.
+
+**Motivo:** Serialização impede sobreposição física, mas CAS é necessário para rejeitar intenção obsoleta. Um token composto evita adicionar histórico analítico ou coluna de revisão à tabela comercial corrente e cobre tanto a primeira aprovação quanto atualizações posteriores.
+
+**Impacto:** As assinaturas antigas não consumidas pela aplicação foram removidas. Clientes devem ler e reenviar `decision_token`, tratar conflito como recarga e nunca calcular `final_price` como dado autoritativo. `price_list` continua com uma linha corrente por `catalog_item_id`, preservando snapshots sem criar histórico versionado.
+
+**Validação:** Migrations `20260824000100_add_price_approval_cas.sql` e `20260824000110_harden_price_traceability.sql` aplicadas no Supabase DEV; 48 testes pgTAP da Etapa 05 aprovados; teste com duas conexões remotas confirmou que a sessão A lê o token, a sessão B altera e confirma a regra, e a aprovação antiga da sessão A é rejeitada; lint remoto sem erros; E2E Admin/Equipe aprovado.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

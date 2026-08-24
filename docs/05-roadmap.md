@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Sprint 2 concluida; aguardando autorizacao explicita para a ETAPA 03.
+**Status atual:** Sprint 5 concluida; aguardando autorizacao explicita para a ETAPA 06.
 
 ---
 
@@ -228,7 +228,7 @@ Findings:
 
 ### Sprint 5 — Tabela comercial + aprovação
 
-**Status:** PLANNED
+**Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
@@ -244,9 +244,16 @@ Escopo:
 
 Gate:
 
-- nova cotação não altera preço aprovado;
-- revisão necessária funciona;
-- origem rastreável até fornecedor/cotação/item.
+- migrations `20260824000100_add_price_approval_cas.sql` e `20260824000110_harden_price_traceability.sql` aplicadas no Supabase DEV, preservando `price_list` como registro comercial corrente por item e exigindo token CAS nas RPCs de aprovação/inativação;
+- nova cotação, alteração de regra ou perda de elegibilidade não sobrescreve snapshots nem preço aprovado; a view deriva `review_required` e motivo estruturado;
+- Admin seleciona somente fonte elegível automática ou alternativa, aprova explicitamente e inativa; reativação exige nova aprovação com token fresco;
+- Equipe visualiza comparação, Tabela de Preços e rastreabilidade, sem controles comerciais e com mutações rejeitadas no banco; anônimo sem acesso;
+- `/pricing/comparison` distingue menor custo, sugestão e preço aprovado; `/pricing/prices` lista somente itens com registro comercial, com busca, filtros, status, origem e detalhe responsivo;
+- 48 testes SQL remotos da Etapa 05, 40 testes SQL de regressão do schema e 28 da Sprint 4 aprovados; concorrência validada em duas conexões remotas reais;
+- 142 testes frontend, E2E remoto 10/10, ESLint, build e lint remoto do schema aprovados;
+- teardown remoto remove `price_list` antes das dependências e confirmou fixtures transitórias removidas;
+- bundle principal em 563,35 kB / 164,72 kB gzip; chunks lazy `price-list-page` em 11,26 kB / 3,12 kB gzip e `review-drawer` em 10,78 kB / 3,21 kB gzip;
+- finding aceito: chunk principal compartilhado permanece acima do aviso de 500 kB; snapshot físico remoto continua não habilitado.
 
 ---
 

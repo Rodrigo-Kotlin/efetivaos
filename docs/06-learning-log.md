@@ -280,6 +280,20 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
+## LL-024 — Lock serializa a escrita, mas não protege a intenção lida
+
+**Data:** 2026-08-24
+
+**Contexto:** `approve_price` já adquiria o mesmo advisory lock usado pelos triggers de ofertas e regras. Ainda assim, uma tela poderia ler uma sugestão, aguardar outra transação alterar a regra e aprovar depois usando uma intenção antiga.
+
+**Aprendizado:** Exclusão mútua garante ordem de execução, não que o cliente concorda com o estado executado. Para uma decisão explícita, o servidor precisa comparar uma expectativa lida antes da ação com o contexto atual depois de adquirir o lock. O token deve incluir dependências derivadas e estado persistido, mas não precisa ser segredo nem aceitar valores comerciais do cliente.
+
+**Aplicação:** `price_decision_token` resume melhor oferta, regra resolvida e aprovação corrente. As RPCs revalidam o token dentro do lock e rejeitam qualquer divergência. Um teste com duas conexões remotas manteve o token na sessão A, alterou a regra e confirmou na sessão B, e comprovou a rejeição da aprovação obsoleta em A.
+
+**Impacto futuro:** Operações que representam confirmação humana devem combinar serialização com CAS. Locks isolados continuam adequados para integridade física, mas não substituem a detecção de tela obsoleta.
+
+---
+
 ## Template para novos registros
 
 ```text
