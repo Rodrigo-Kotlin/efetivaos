@@ -387,6 +387,23 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-028 — `pricing_comparison_v` reusada como fonte autoritativa da Etapa 04
+
+**Data:** 2026-08-24
+**Status:** FECHADA
+
+**Contexto:** A Etapa 04 precisa expor na tela de comparacao o menor custo, a regra de acrescimo aplicada, a origem e o preco sugerido. A view `pricing_comparison_v` (criada na Etapa 02) ja entrega todos esses campos via `best_cost`, `best_supplier_*`, `resolved_margin_rule_id`, `resolved_rule_scope`, `resolved_adjustment_type`, `resolved_adjustment_value` e `suggested_price`. Uma nova view dedicada a Etapa 04 duplicaria o JOIN canonico por `catalog_item_id` e o calculo de arredondamento.
+
+**Decisão:** A Etapa 04 consome `pricing_comparison_v` diretamente, sem criar nova view. A Etapa 03 havia recomendado essa reauditoria antes de qualquer reuso, e a auditoria concluiu: `security_invoker = true` (a view respeita RLS do caller); `resolve_margin_rule` continua `SECURITY DEFINER` com `set search_path = ''`, `is_internal_user()` e `limit 1`; a unica dependencia nova seria o consumidor, e ela apenas le os campos Sprint 3/4 e ignora os campos `price_list`/`approved_*`/`effective_status`/`review_reason` que pertencem a Etapa 05; o calculo `round(..., 2)` e deterministico e ja foi exercitado pela suite da Etapa 02.
+
+**Motivo:** Manter a fonte autoritativa no banco, evitar duplicacao da logica de elegibilidade e desempate ja consolidada, e impedir acoplamento prematuro entre as camadas Sprint 4 e Sprint 5. O time-to-valor de uma view nova era maior do que o risco residual, e a auditoria nao encontrou desvio.
+
+**Impacto:** A UI de comparacao passou a ler `pricing_comparison_v` em vez de `comparison_current_v`; o tipo `ComparisonRow` foi atualizado com os novos campos (`best_cost`, `resolved_*`, `suggested_price`); a suite de testes da Etapa 03 foi preservada apos ajustes de identificadores. Equipe continua visualizando o preco sugerido aplicado, e Admin ganha o caminho `/pricing/rules` para gerenciar as regras. Nenhuma migration nova foi necessaria.
+
+**Validação:** 28 testes pgTAP remotos cobrindo os 16 cenarios da Etapa 04 (resolucao por hierarquia, 0% vs sem regra, R$ 6,70 + 30% = R$ 8,71, RLS Admin/Equipe/anon, indices parciais de unicidade e grants); 123 testes frontend (eram 102 na Sprint 3); 1 cenario E2E autenticado. Lint remoto do schema sem erros; pos-flight confirmou zero fixtures e zero extensao pgTAP remanescentes.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

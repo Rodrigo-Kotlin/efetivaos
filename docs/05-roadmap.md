@@ -197,29 +197,32 @@ Findings:
 
 ---
 
-### Sprint 4 — Regras de preço + cálculo + revisão
+### Sprint 4 — Regras de acréscimo e cálculo do preço sugerido
 
-**Status:** PLANNED
+**Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
-- `margin_rules`;
-- regra global;
-- regra por categoria;
-- regra por item;
-- percentual;
-- valor fixo;
-- hierarquia item → categoria → global;
-- preço sugerido;
-- drawer de revisão;
-- seleção manual de fonte para Admin.
+- gestão de regras em `/pricing/rules` (Admin): global, categoria, item; percentual ou fixo; conflito de regra ativa impedido por índice parcial; inativação e reativação;
+- hierarquia canônica `item > categoria > global` aplicada pela função `resolve_margin_rule` (SECURITY DEFINER, `search_path = ''`, `is_internal_user()`);
+- cálculo autoritativo do preço sugerido em `pricing_comparison_v` (`round(unit_price * (1 + value / 100), 2)` ou `round(unit_price + value, 2)`);
+- tela de comparação ampliada com colunas Regra, Preço sugerido e Origem; filtro `Regra` (Com regra / Sem regra); drawer de revisão do cálculo;
+- Equipe visualiza o cálculo aplicado, sem permissão de criar/editar/inativar regras (RLS `margin_rules_*_admin`).
 
 Gate:
 
-- cálculo correto;
-- sem regra = sem aprovação;
-- seleção manual rastreada;
-- Equipe sem permissão para alterar regra.
+- 28 testes pgTAP remotos cobrindo os 16 cenários da Etapa 04 (R$ 6,70 + 30% = R$ 8,71, arredondamento determinístico);
+- 123 testes frontend aprovados (eram 102 na Sprint 3, +21);
+- 1 cenário E2E autenticado cobrindo: criar cotação ativa, criar regra global, criar regra de item, validar promoção, inativar regra de item e validar fallback para global;
+- ESLint, TypeScript build, lint remoto do schema e pós-flight aprovados;
+- nenhuma migration nova aplicada: o schema da Etapa 02 já entregava `margin_rules`, índices parciais de unicidade, função `resolve_margin_rule` e a view `pricing_comparison_v`; a Etapa 04 apenas reusou a infraestrutura existente.
+
+Findings:
+
+- chunk principal cresceu de 562,66 kB para 563,00 kB (+0,34 kB); o chunk `rules-page` (20,07 kB / 6,09 kB gzip) e o `comparison-page` (32,31 kB / 7,30 kB gzip) ficaram isolados via code-splitting por rota;
+- `pricing_comparison_v` foi reusada com auditoria prévia em vez de criar nova view, preservando o agrupamento canônico por `catalog_item_id` e evitando duplicação da lógica de menor custo e cálculo;
+- nenhum teste real de duas sessões concorrentes foi executado; concorrência simultânea continua como finding conhecido de DEC-024;
+- snapshot físico do banco remoto não habilitado; ponto de retorno continua sendo o snapshot lógico externo da Etapa 00.2.
 
 ---
 

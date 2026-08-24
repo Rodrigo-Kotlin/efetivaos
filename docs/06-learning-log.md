@@ -250,6 +250,26 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
+## LL-021 — Reuso de `pricing_comparison_v` apos auditoria explicita
+
+**Data:** 2026-08-24
+**Contexto:** A Etapa 04 precisava do calculo autoritativo de preco sugerido, regra aplicada e origem. A Etapa 03 havia desencorajado o reuso cego da view consolidada por carregar conceitos das Etapas 04/05. A nova view dedicada a Etapa 03 (`comparison_current_v`) nao entrega os campos de regra.
+**Aprendizado:** Reauditoria explicita de uma view com multiplos consumidores potenciais antes de reusar: confirmar `security_invoker` vs `security_definer` (e o owner), grants, `search_path` de funcoes SECURITY DEFINER referenciadas, dependencias carregadas, e quais colunas serao realmente consumidas. Quando a view e a unica fonte possivel para os dados necessarios e a auditoria nao encontra desvio, reusar evita duplicacao e acoplamento.
+**Aplicação:** A Etapa 04 consumiu `pricing_comparison_v` para a listagem e o detalhe, ignorando os campos `price_list` e `approved_*` que pertencem a Etapa 05. Migracao nova foi desnecessaria. Foi registrada DEC-028 documentando a auditoria.
+**Impacto futuro:** Antes de criar uma view dedicada em uma nova sprint, sempre reauditar as views ja existentes com o mesmo escopo. A reauditoria deve ser obrigatoria quando a sprint anterior explicitamente desencorajou o reuso.
+
+---
+
+## LL-022 — Inativacao de cotacao preserva items e exige nova cotacao
+
+**Data:** 2026-08-24
+**Contexto:** O cenario 12 da suite da Etapa 04 tentava reativar uma cotacao cancelada e atualizar o menor custo via `update ... where id = cotacao`. O trigger `enforce_quotation_lifecycle` proibiu a operacao porque cotacoes ativas sao imutaveis e canceladas sao terminais.
+**Aprendizado:** Cotacoes canceladas nao podem ser reabertas; cotacoes ativas nao podem ter dados de origem alterados. Para recalcular o menor custo em um teste, e necessario criar uma cotacao adicional, nao atualizar uma existente. O schema da Etapa 02 protege o historico contra alteracoes silenciosas.
+**Aplicação:** O cenario 12 foi reescrito para criar uma nova cotacao ativa com custo menor (50,00) e validar que o preco sugerido recalcula automaticamente. O cenario 12a foi adicionado para validar que o cancelamento da unica cotacao leva ao estado `no_offer`.
+**Impacto futuro:** Suites SQL de comparacao devem sempre criar cotacoes adicionais para alterar o melhor custo, em vez de tentar UPDATE em cotacoes ativas. A mesma logica se aplica a mutacoes reais da aplicacao: para um novo preco, registre uma nova cotacao.
+
+---
+
 ## Template para novos registros
 
 ```text
