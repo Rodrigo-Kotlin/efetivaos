@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { listComparison, listOffersForItem, translateError } from './comparison-api'
+import { approvePrice, inactivatePrice, listComparison, listOffersForItem, translateError, translatePriceDecisionError } from './comparison-api'
 
 const serviceMocks = vi.hoisted(() => ({
   operations: [] as Array<{ method: string; args: unknown[] }>,
@@ -9,6 +9,10 @@ const serviceMocks = vi.hoisted(() => ({
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
+    rpc(name: string, args: unknown) {
+      serviceMocks.operations.push({ method: `rpc.${name}`, args: [args] })
+      return Promise.resolve(serviceMocks.responses.shift())
+    },
     from(table: string) {
       const chain: Record<string, unknown> = {
         select(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.select`, args }); return chain },
@@ -57,6 +61,16 @@ describe('translateError', () => {
   })
 })
 
+describe('translatePriceDecisionError', () => {
+  it('traduz conflito de tela obsoleta para recarga obrigatoria', () => {
+    expect(translatePriceDecisionError({ message: 'Decisao de preco desatualizada: ofertas mudaram.' }).message).toMatch(/desatualizada.*recarregados/i)
+  })
+
+  it('traduz restricao de Admin', () => {
+    expect(translatePriceDecisionError({ message: 'Apenas Admin pode aprovar' }).message).toContain('Apenas Admin')
+  })
+})
+
 describe('listComparison', () => {
   beforeEach(() => {
     serviceMocks.operations.length = 0
@@ -68,6 +82,8 @@ describe('listComparison', () => {
     const result = await listComparison()
     expect(result).toEqual([comparisonRow])
     expect(serviceMocks.operations[0]).toEqual({ method: 'pricing_comparison_v.select', args: [expect.any(String)] })
+    expect(serviceMocks.operations[0]?.args[0]).toEqual(expect.stringContaining('catalog_item_active'))
+    expect(serviceMocks.operations[0]?.args[0]).toEqual(expect.stringContaining('approved_quotation_reference'))
     expect(serviceMocks.operations[1]).toEqual({ method: 'pricing_comparison_v.order', args: ['code', { ascending: true }] })
   })
 
@@ -94,5 +110,24 @@ describe('listOffersForItem', () => {
   it('lança erro traduzido em falha de RLS', async () => {
     serviceMocks.responses.push({ data: null, error: { message: 'permission denied' } })
     await expect(listOffersForItem('item-1')).rejects.toThrow('permiss')
+  })
+})
+
+describe('price decisions', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.responses.length = 0
+  })
+
+  it('aprova pela RPC com token e fonte opcional', async () => {
+    serviceMocks.responses.push({ data: { id: 'price-1', final_price: '18.60' }, error: null })
+    await approvePrice({ catalogItemId: 'item-1', decisionToken: 'token-1', sourceQuotationItemId: 'qi-2' })
+    expect(serviceMocks.operations[0]).toEqual({ method: 'rpc.approve_price', args: [{ p_catalog_item_id: 'item-1', p_expected_decision_token: 'token-1', p_source_quotation_item_id: 'qi-2' }] })
+  })
+
+  it('inativa pela RPC com token de decisao', async () => {
+    serviceMocks.responses.push({ data: { id: 'price-1', status: 'inactive' }, error: null })
+    await inactivatePrice({ catalogItemId: 'item-1', decisionToken: 'token-2' })
+    expect(serviceMocks.operations[0]).toEqual({ method: 'rpc.inactivate_price', args: [{ p_catalog_item_id: 'item-1', p_expected_decision_token: 'token-2' }] })
   })
 })

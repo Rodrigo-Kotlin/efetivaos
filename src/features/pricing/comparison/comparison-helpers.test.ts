@@ -14,6 +14,7 @@ import type { ComparisonRow } from './comparison-types'
 
 const row: ComparisonRow = {
   catalog_item_id: 'item-1',
+  catalog_item_active: true,
   code: 'EXA-001',
   item_name: 'Hemograma completo',
   unit: 'exame',
@@ -31,7 +32,27 @@ const row: ComparisonRow = {
   resolved_adjustment_type: 'percentage',
   resolved_adjustment_value: '20.00',
   suggested_price: '22.20',
+  price_list_id: null,
+  approved_cost_price: null,
+  approved_final_price: null,
+  approved_adjustment_type: null,
+  approved_adjustment_value: null,
+  manual_source: null,
+  approved_at: null,
+  approved_by: null,
+  approved_source_quotation_item_id: null,
+  approved_quotation_id: null,
+  approved_quotation_reference: null,
+  approved_supplier_id: null,
+  approved_supplier_name: null,
+  approved_source_valid_until: null,
   effective_status: 'suggestion_available',
+  review_reason: null,
+  persisted_status: null,
+  approved_margin_rule_id: null,
+  best_quotation_item_id_at_approval: null,
+  best_cost_at_approval: null,
+  decision_token: 'token-1',
 }
 
 describe('comparison-helpers', () => {
@@ -45,6 +66,7 @@ describe('comparison-helpers', () => {
 
   it('formata data no fuso UTC para evitar offset', () => {
     expect(formatComparisonDate('2026-08-24')).toBe('24/08/2026')
+    expect(formatComparisonDate('2026-08-24T12:00:00Z')).toBe('24/08/2026')
   })
 
   it('busca ignora caixa e acentos', () => {

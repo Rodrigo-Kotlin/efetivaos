@@ -1,4 +1,4 @@
-import { ArrowRight, ClipboardList, LibraryBig, Scale, Tag } from 'lucide-react'
+import { ArrowRight, ClipboardList, LibraryBig, ListTree, Scale, Tag } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -15,6 +15,7 @@ import { useOnlineStatus } from '@/hooks/use-online-status'
 
 const sections = [
   { to: '/pricing/comparison', label: 'Comparação de custos', description: 'Veja o menor custo vigente e abra o histórico de ofertas por item do Catálogo Efetiva.', icon: Scale, primary: true },
+  { to: '/pricing/prices', label: 'Tabela de Preços', description: 'Consulte os preços comerciais aprovados, status e origem de cada decisão.', icon: ListTree },
   { to: '/pricing/quotations', label: 'Cotações', description: 'Registre documentos de fornecedores e ative ou cancele cada cotação.', icon: ClipboardList },
   { to: '/pricing/catalog', label: 'Catálogo Efetiva', description: 'Mantenha a referência canônica de itens e categorias usadas na comparação.', icon: LibraryBig },
 ]
@@ -26,7 +27,7 @@ export default function PricingPage() {
   const quotationsQuery = useQuotations()
   const categoriesQuery = useCatalogCategories()
 
-  const comparison = useMemo(() => comparisonQuery.data ?? [], [comparisonQuery.data])
+  const comparison = useMemo(() => (comparisonQuery.data ?? []).filter((row) => row.catalog_item_active), [comparisonQuery.data])
   const itemsWithOffer = useMemo(() => comparison.filter((row) => row.best_cost !== null).length, [comparison])
   const itemsWithoutOffer = comparison.length - itemsWithOffer
   const expiringSoon = useMemo(
@@ -113,7 +114,7 @@ export default function PricingPage() {
         </aside>
       </section>
 
-      <section className="mb-6 grid gap-4 md:grid-cols-3" aria-label="Áreas do Motor de Preços">
+      <section className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Áreas do Motor de Preços">
         {sections.map(({ to, label, description, icon: Icon, primary }) => (
           <Link
             key={to}

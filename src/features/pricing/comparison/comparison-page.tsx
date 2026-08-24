@@ -16,6 +16,8 @@ import { ComparisonTable } from './comparison-table'
 import { formatComparisonCurrency, formatComparisonDate } from './comparison-helpers'
 import { OffersDrawer } from './offers-drawer'
 import { ReviewDrawer } from './review-drawer'
+import { CommercialStatusBadge } from './commercial-status'
+import { reviewReasonLabel } from './commercial-status-helpers'
 import { useComparison } from './comparison-queries'
 import type { ComparisonRow, OfferFilter, ComparisonSortKey } from './comparison-types'
 
@@ -36,6 +38,14 @@ function ComparisonCard({ row, onOpen, onReview, isAdmin }: { row: ComparisonRow
         <div className="flex items-baseline justify-between">
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Menor custo</dt>
           <dd className="font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_cost)}</dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preco aprovado</dt>
+          <dd className="text-right font-serif text-lg font-bold text-emerald-950">{row.approved_final_price === null ? 'Ainda nao aprovado' : formatComparisonCurrency(row.approved_final_price)}</dd>
+        </div>
+        <div className="flex items-start justify-between gap-3">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status comercial</dt>
+          <dd className="text-right"><CommercialStatusBadge status={row.effective_status} />{row.review_reason && <p className="mt-1 max-w-48 text-xs text-amber-800">{reviewReasonLabel(row.review_reason)}</p>}</dd>
         </div>
         <div className="flex items-baseline justify-between">
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fornecedor</dt>
@@ -78,8 +88,8 @@ function ComparisonCard({ row, onOpen, onReview, isAdmin }: { row: ComparisonRow
       </dl>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button className="flex-1" type="button" variant="outline" onClick={() => onOpen(row)}>Ver ofertas</Button>
-        {row.suggested_price !== null && (
-          <Button className="flex-1" type="button" variant="ghost" onClick={() => onReview(row)}>Revisar calculo</Button>
+        {(row.suggested_price !== null || row.price_list_id !== null) && (
+          <Button className="flex-1" type="button" variant="ghost" onClick={() => onReview(row)}>{isAdmin ? 'Decidir preco' : 'Ver detalhes'}</Button>
         )}
         {!isAdmin && !hasRule && hasOffer && (
           <span className="text-xs text-amber-800">Sem regra de acrescimo.</span>
@@ -106,7 +116,7 @@ export default function ComparisonPage() {
   const [reviewItemId, setReviewItemId] = useState<string | null>(null)
 
   const isAdmin = profile?.role === 'admin'
-  const rows = useMemo(() => query.data ?? [], [query.data])
+  const rows = useMemo(() => (query.data ?? []).filter((row) => row.catalog_item_active), [query.data])
   const drawerRow = useMemo(() => rows.find((row) => row.catalog_item_id === drawerItemId) ?? null, [rows, drawerItemId])
   const reviewRow = useMemo(() => rows.find((row) => row.catalog_item_id === reviewItemId) ?? null, [rows, reviewItemId])
 
@@ -135,6 +145,7 @@ export default function ComparisonPage() {
         if (offer === 'validity_not_informed') return Boolean(row.best_validity_not_informed) || row.best_valid_until === null
         if (offer === 'with_rule') return row.best_cost !== null && row.resolved_margin_rule_id !== null
         if (offer === 'without_rule') return row.best_cost !== null && row.resolved_margin_rule_id === null
+        if (offer === 'approved' || offer === 'review_required' || offer === 'inactive') return row.effective_status === offer
         return true
       })()
       return matchesSearch && matchesCategory && matchesSupplier && matchesOffer
@@ -168,6 +179,8 @@ export default function ComparisonPage() {
 
   const itemsWithOffer = rows.filter((row) => row.best_cost !== null).length
   const itemsWithoutOffer = rows.length - itemsWithOffer
+  const approvedItems = rows.filter((row) => row.effective_status === 'approved').length
+  const reviewItems = rows.filter((row) => row.effective_status === 'review_required').length
   const expiringSoon = (quotationsQuery.data ?? []).filter((quotation) => {
     if (quotation.status !== 'active' || !quotation.valid_until) return false
     if (isExpired(quotation.valid_until)) return false
@@ -216,19 +229,20 @@ export default function ComparisonPage() {
         </div>
       )}
 
-      <section className="mb-5 grid gap-3 sm:grid-cols-3" aria-label="Indicadores de comparacao">
+      <section className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores de comparacao">
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Itens com oferta</p>
           <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{itemsWithOffer}</p>
         </article>
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Itens sem oferta</p>
-          <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{itemsWithoutOffer}</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Precos aprovados</p>
+          <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{approvedItems}</p>
         </article>
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Cotacoes vencendo (7 dias)</p>
-          <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{expiringSoon.length}</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Revisao necessaria</p>
+          <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{reviewItems}</p>
         </article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">Sem oferta / vencendo 7 dias</p><p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{itemsWithoutOffer} / {expiringSoon.length}</p></article>
       </section>
 
       <div className="mb-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_repeat(3,14rem)_12rem]">
@@ -260,6 +274,9 @@ export default function ComparisonPage() {
             <option value="validity_not_informed">Validade nao informada</option>
             <option value="with_rule">Com regra</option>
             <option value="without_rule">Sem regra</option>
+            <option value="approved">Preco aprovado</option>
+            <option value="review_required">Revisao necessaria</option>
+            <option value="inactive">Preco inativo</option>
           </select>
         </label>
         <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Ordenar por">
@@ -322,6 +339,7 @@ export default function ComparisonPage() {
               onOpenOffers={(row) => setDrawerItemId(row.catalog_item_id)}
               onOpenReview={(row) => setReviewItemId(row.catalog_item_id)}
               canEditRules={isAdmin}
+              isAdmin={isAdmin}
               onEditRule={() => navigate('/pricing/rules')}
             />
           </div>
@@ -343,7 +361,8 @@ export default function ComparisonPage() {
 
       <ReviewDrawer
         row={reviewRow}
-        canEditRules={isAdmin}
+        isAdmin={isAdmin}
+        online={online}
         onOpenChange={(open) => {
           if (!open) setReviewItemId(null)
         }}

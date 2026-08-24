@@ -87,6 +87,7 @@ export type ComparisonCurrentRow = {
 
 export type PricingComparisonRow = {
   catalog_item_id: string
+  catalog_item_active: boolean
   code: string
   item_name: string
   unit: string
@@ -104,11 +105,34 @@ export type PricingComparisonRow = {
   resolved_adjustment_type: 'percentage' | 'fixed' | null
   resolved_adjustment_value: string | null
   suggested_price: string | null
-  effective_status: string | null
+  price_list_id: string | null
+  approved_cost_price: string | null
+  approved_final_price: string | null
+  approved_adjustment_type: AdjustmentType | null
+  approved_adjustment_value: string | null
+  manual_source: boolean | null
+  approved_at: string | null
+  approved_by: string | null
+  approved_source_quotation_item_id: string | null
+  approved_quotation_id: string | null
+  approved_quotation_reference: string | null
+  approved_supplier_id: string | null
+  approved_supplier_name: string | null
+  approved_source_valid_until: string | null
+  effective_status: PriceEffectiveStatus
+  review_reason: PriceReviewReason | null
+  persisted_status: PriceStatus | null
+  approved_margin_rule_id: string | null
+  best_quotation_item_id_at_approval: string | null
+  best_cost_at_approval: string | null
+  decision_token: string
 }
 
 export type MarginScope = 'global' | 'category' | 'item'
 export type AdjustmentType = 'percentage' | 'fixed'
+export type PriceStatus = 'approved' | 'review_required' | 'inactive'
+export type PriceEffectiveStatus = 'no_cost' | 'no_rule' | 'suggestion_available' | PriceStatus
+export type PriceReviewReason = 'manual_review_required' | 'approved_source_ineligible' | 'best_cost_reference_changed' | 'no_active_rule' | 'pricing_rule_changed'
 
 export type MarginRule = AuditFields & {
   id: string
@@ -119,6 +143,24 @@ export type MarginRule = AuditFields & {
   value: string
   active: boolean
   notes: string | null
+}
+
+export type PriceList = AuditFields & {
+  id: string
+  catalog_item_id: string
+  source_quotation_item_id: string
+  margin_rule_id: string
+  cost_price: string
+  adjustment_type: AdjustmentType
+  adjustment_value: string
+  final_price: string
+  source_valid_until: string | null
+  best_quotation_item_id_at_approval: string | null
+  best_cost_at_approval: string | null
+  manual_source: boolean
+  status: PriceStatus
+  approved_at: string
+  approved_by: string
 }
 
 export type QuotationOfferCandidateRow = {
@@ -273,6 +315,12 @@ export type Database = {
         }>
         Relationships: []
       }
+      price_list: {
+        Row: PriceList
+        Insert: never
+        Update: never
+        Relationships: []
+      }
       quotations: {
         Row: Quotation
         Insert: {
@@ -388,6 +436,22 @@ export type Database = {
         Returns: Quotation
       }
       is_admin: { Args: never; Returns: boolean }
+      approve_price: {
+        Args: {
+          p_catalog_item_id: string
+          p_expected_decision_token: string
+          p_source_quotation_item_id?: string | null
+        }
+        Returns: PriceList
+      }
+      inactivate_price: {
+        Args: {
+          p_catalog_item_id: string
+          p_expected_decision_token: string
+        }
+        Returns: PriceList
+      }
+      price_decision_token: { Args: { p_catalog_item_id: string }; Returns: string }
       save_quotation_draft: {
         Args: {
           p_quotation_id: string | null
@@ -418,7 +482,7 @@ export type Database = {
       app_role: AppRole
       adjustment_type: 'percentage' | 'fixed'
       margin_scope_type: 'global' | 'category' | 'item'
-      price_status: 'approved' | 'review_required' | 'inactive'
+      price_status: PriceStatus
       quotation_status: QuotationStatus
     }
     CompositeTypes: Record<string, never>

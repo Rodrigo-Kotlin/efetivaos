@@ -1,5 +1,5 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, type ColumnDef, type SortingState } from '@tanstack/react-table'
-import { ArrowUpDown, ListChecks, Star } from 'lucide-react'
+import { ArrowUpDown, ListChecks } from 'lucide-react'
 import { useMemo } from 'react'
 
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +9,8 @@ import { TableShell } from '@/features/pricing/components/operational-ui'
 import { formatComparisonCurrency, formatComparisonDate, formatRuleScope, formatRuleValue } from './comparison-helpers'
 import { ComparisonStatusBadge } from './comparison-status'
 import type { ComparisonRow, ComparisonStatus } from './comparison-types'
+import { CommercialStatusBadge } from './commercial-status'
+import { reviewReasonLabel } from './commercial-status-helpers'
 
 import { cn } from '@/lib/utils'
 
@@ -20,6 +22,7 @@ type ComparisonTableProps = {
   onOpenOffers: (row: ComparisonRow) => void
   onOpenReview: (row: ComparisonRow) => void
   canEditRules: boolean
+  isAdmin: boolean
   onEditRule: () => void
 }
 
@@ -35,16 +38,24 @@ function responsiveClass(id: string) {
   if (id === 'unit') return 'hidden md:table-cell'
   if (id === 'category' || id === 'validity') return 'hidden lg:table-cell'
   if (id === 'other_offers' || id === 'rule') return 'hidden md:table-cell'
-  if (id === 'suggested_price') return 'hidden lg:table-cell'
+  if (id === 'suggested_price' || id === 'approved_price') return 'hidden lg:table-cell'
   return ''
 }
 
-export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, onOpenOffers, onOpenReview, canEditRules, onEditRule }: ComparisonTableProps) {
+export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, onOpenOffers, onOpenReview, canEditRules, isAdmin, onEditRule }: ComparisonTableProps) {
   const columns = useMemo<ColumnDef<ComparisonRow>[]>(() => [
     { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
     { id: 'item', accessorFn: (row) => row.item_name, header: 'Item / servico', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
     { id: 'category', accessorFn: (row) => row.category_name, header: 'Categoria', cell: ({ row }) => row.original.category_name },
     { id: 'unit', accessorKey: 'unit', header: 'Unidade' },
+    {
+      id: 'approved_price',
+      accessorFn: (row) => (row.approved_final_price === null ? Number.POSITIVE_INFINITY : Number(row.approved_final_price)),
+      header: 'Preco aprovado',
+      cell: ({ row }) => row.original.approved_final_price === null
+        ? <span className="text-xs text-slate-500">Ainda nao aprovado</span>
+        : <div><p className="font-serif text-base font-bold text-emerald-950">{formatComparisonCurrency(row.original.approved_final_price)}</p><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Valor comercial</p></div>,
+    },
     {
       id: 'best_cost',
       accessorFn: (row) => (row.best_cost === null ? Number.POSITIVE_INFINITY : Number(row.best_cost)),
@@ -94,10 +105,10 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
             type="button"
             className="text-left"
             onClick={() => onOpenReview(item)}
-            aria-label={`Revisar calculo de preco sugerido para ${item.item_name}`}
+            aria-label={`${isAdmin ? 'Revisar calculo' : 'Ver detalhes'} de preco sugerido para ${item.item_name}`}
           >
             <p className="font-serif text-base font-bold text-slate-950">{formatComparisonCurrency(item.suggested_price)}</p>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-800">Revisar calculo</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-800">{isAdmin ? 'Revisar calculo' : 'Ver detalhes'}</p>
           </button>
         )
       },
@@ -117,17 +128,12 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
     },
     {
       id: 'status',
-      header: 'Status',
+      header: 'Status comercial',
       cell: ({ row }) => {
-        const status = statusForRow(row.original)
-        if (status === 'suggestion_available' || status === 'with_offer') {
-          return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-900">
-              <Star className="size-3.5" /> Sugestao disponivel
-            </span>
-          )
-        }
-        return <ComparisonStatusBadge status={status} />
+        const item = row.original
+        const reason = reviewReasonLabel(item.review_reason)
+        if (item.effective_status) return <div className="space-y-1"><CommercialStatusBadge status={item.effective_status} />{reason && <p className="max-w-40 text-xs text-amber-800">{reason}</p>}</div>
+        return <ComparisonStatusBadge status={statusForRow(item)} />
       },
     },
     {
@@ -152,13 +158,13 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
           <Button type="button" size="sm" variant="ghost" onClick={() => onOpenOffers(row.original)} aria-label={`Abrir ofertas de ${row.original.item_name}`}>
             Ofertas
           </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={() => onOpenReview(row.original)} aria-label={`Revisar calculo de preco sugerido para ${row.original.item_name}`}>
-            Revisar
+          <Button type="button" size="sm" variant="ghost" onClick={() => onOpenReview(row.original)} aria-label={`${isAdmin ? 'Revisar calculo' : 'Ver detalhes'} de preco sugerido para ${row.original.item_name}`}>
+            {isAdmin ? 'Decidir' : 'Detalhes'}
           </Button>
         </div>
       ),
     },
-  ], [onOpenOffers, onOpenReview, canEditRules, onEditRule])
+  ], [onOpenOffers, onOpenReview, canEditRules, isAdmin, onEditRule])
 
   // TanStack Table intentionally exposes non-memoizable functions.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -187,7 +193,7 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
 
   return (
     <TableShell>
-      <table className="w-full min-w-[1200px] text-left text-sm" aria-label="Comparacao de precos">
+      <table className="w-full min-w-[1360px] text-left text-sm" aria-label="Comparacao de precos">
         <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
           {table.getHeaderGroups().map((group) => (
             <tr key={group.id}>

@@ -25,7 +25,8 @@ export function formatRuleScope(scope: 'global' | 'category' | 'item' | null, ta
 
 export function formatComparisonDate(value: string | null) {
   if (!value) return 'Não informada'
-  return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
+  const normalized = value.includes('T') ? value : `${value}T00:00:00Z`
+  return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(normalized))
 }
 
 export function matchComparisonSearch(term: string, row: { code: string; item_name: string; category_name: string; best_supplier_name: string | null }): boolean {
@@ -37,13 +38,14 @@ export function matchComparisonSearch(term: string, row: { code: string; item_na
 
 export function matchOfferFilter(
   filter: OfferFilter,
-  row: { best_cost: string | null; best_validity_not_informed: boolean | null; best_valid_until: string | null; resolved_margin_rule_id: string | null },
+  row: { best_cost: string | null; best_validity_not_informed: boolean | null; best_valid_until: string | null; resolved_margin_rule_id: string | null; effective_status?: string },
 ): boolean {
   if (filter === 'all') return true
   if (filter === 'with_offer') return row.best_cost !== null
   if (filter === 'no_offer') return row.best_cost === null
   if (filter === 'with_rule') return row.best_cost !== null && row.resolved_margin_rule_id !== null
   if (filter === 'without_rule') return row.best_cost !== null && row.resolved_margin_rule_id === null
+  if (filter === 'approved' || filter === 'review_required' || filter === 'inactive') return row.effective_status === filter
   return Boolean(row.best_validity_not_informed) || row.best_valid_until === null
 }
 

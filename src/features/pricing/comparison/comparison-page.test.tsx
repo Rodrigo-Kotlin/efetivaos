@@ -11,7 +11,33 @@ import { useComparison } from './comparison-queries'
 vi.mock('./comparison-queries', () => ({
   useComparison: vi.fn(),
   useComparisonOffers: vi.fn(() => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() })),
+  useApprovePrice: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
+  useInactivatePrice: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
 }))
+
+const commercialDefaults = {
+  catalog_item_active: true,
+  price_list_id: null,
+  approved_cost_price: null,
+  approved_final_price: null,
+  approved_adjustment_type: null,
+  approved_adjustment_value: null,
+  manual_source: null,
+  approved_at: null,
+  approved_by: null,
+  approved_source_quotation_item_id: null,
+  approved_quotation_id: null,
+  approved_quotation_reference: null,
+  approved_supplier_id: null,
+  approved_supplier_name: null,
+  approved_source_valid_until: null,
+  review_reason: null,
+  persisted_status: null,
+  approved_margin_rule_id: null,
+  best_quotation_item_id_at_approval: null,
+  best_cost_at_approval: null,
+  decision_token: 'decision-token',
+}
 
 vi.mock('@/features/pricing/catalog/catalog.queries', () => ({
   useCatalogCategories: vi.fn(),
@@ -27,6 +53,7 @@ vi.mock('@/features/auth/auth-context', () => ({
 
 const baseComparison = [
   {
+    ...commercialDefaults,
     catalog_item_id: 'item-1',
     code: 'EXA-001',
     item_name: 'Hemograma',
@@ -48,6 +75,7 @@ const baseComparison = [
     effective_status: 'suggestion_available',
   },
   {
+    ...commercialDefaults,
     catalog_item_id: 'item-2',
     code: 'EXA-002',
     item_name: 'Glicemia',
@@ -69,6 +97,7 @@ const baseComparison = [
     effective_status: 'no_cost',
   },
   {
+    ...commercialDefaults,
     catalog_item_id: 'item-3',
     code: 'EXA-003',
     item_name: 'Colesterol sem validade',
@@ -145,6 +174,19 @@ describe('ComparisonPage', () => {
     expect(table.getAllByText('Sugestao disponivel').length).toBeGreaterThan(0)
     expect(table.getAllByText('Sem oferta vigente').length).toBeGreaterThan(0)
     expect(table.getAllByText('Validade nao informada').length).toBeGreaterThan(0)
+  })
+
+  it('oculta itens inativos do catalogo na comparacao', () => {
+    vi.mocked(useComparison).mockReturnValue({ data: [...baseComparison, { ...baseComparison[0], catalog_item_id: 'inactive-item', code: 'INA-001', item_name: 'Item inativo', catalog_item_active: false }], isLoading: false, isError: false, refetch } as unknown as ReturnType<typeof useComparison>)
+    renderPage()
+    expect(screen.queryByText('Item inativo')).not.toBeInTheDocument()
+  })
+
+  it('permite abrir detalhes no cartao mobile de um registro aprovado sem preco sugerido', async () => {
+    vi.mocked(useComparison).mockReturnValue({ data: [{ ...baseComparison[1], price_list_id: 'price-2', approved_final_price: '19.00', effective_status: 'review_required' }], isLoading: false, isError: false, refetch } as unknown as ReturnType<typeof useComparison>)
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: 'Decidir preco' }))
+    expect(screen.getByRole('dialog', { name: /EXA-002/i })).toBeInTheDocument()
   })
 
   it('abre o drawer de ofertas ao clicar em "3 ofertas"', async () => {

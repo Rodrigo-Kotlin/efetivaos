@@ -1,4 +1,4 @@
-import type { PricingComparisonRow } from '@/types/database'
+import type { PriceEffectiveStatus, PriceReviewReason, PricingComparisonRow } from '@/types/database'
 
 export type ComparisonRow = PricingComparisonRow
 
@@ -22,8 +22,13 @@ export type ComparisonOffer = {
 
 export type ComparisonStatus = 'with_offer' | 'no_offer' | 'validity_not_informed' | 'no_rule' | 'suggestion_available'
 
-export type OfferFilter = 'all' | 'with_offer' | 'no_offer' | 'validity_not_informed' | 'with_rule' | 'without_rule'
+export type OfferFilter = 'all' | 'with_offer' | 'no_offer' | 'validity_not_informed' | 'with_rule' | 'without_rule' | 'approved' | 'review_required' | 'inactive'
 
 export type ComparisonSortKey = 'item' | 'best_cost' | 'category' | 'validity' | 'suggested_price'
 
 export type OfferGroup = 'eligible' | 'historical'
+
+export type CommercialStatusFilter = 'all' | PriceEffectiveStatus
+export type CommercialSourceFilter = 'all' | 'automatic' | 'manual'
+
+export type { PriceEffectiveStatus, PriceReviewReason }

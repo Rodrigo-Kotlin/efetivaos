@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, House, LibraryBig, LogOut, Menu, Scale, Search, Settings, Tag, X } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, X } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -16,6 +16,7 @@ const navigation = [
   { to: '/', label: 'Inicio', icon: House, end: true },
   { to: '/pricing', label: 'Motor de Precos', icon: Tag, end: true },
   { to: '/pricing/comparison', label: 'Comparacao', icon: CircleDollarSign },
+  { to: '/pricing/prices', label: 'Tabela de Precos', icon: ListTree },
   { to: '/pricing/rules', label: 'Regras de preco', icon: Scale },
   { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },
   { to: '/pricing/catalog', label: 'Catalogo Efetiva', icon: LibraryBig },
@@ -118,7 +119,7 @@ export default function AppShell() {
         </main>
         <footer className="flex items-center justify-between border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>Efetiva OS</span>
-          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 4</Badge>
+          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 5</Badge>
         </footer>
       </div>
     </div>
