@@ -61,6 +61,16 @@ Nenhuma tabela, view, RPC ou regra funcional foi criada. A única alteração es
 - Chunk principal: 563,70 kB / 164,89 kB gzip.
 - Dashboard lazy: 9,25 kB / 2,86 kB gzip.
 
+## Deploy
+
+- Integração: GitHub `main` para Cloudflare Pages.
+- URL canônica: https://efetivaos.pages.dev.
+- Deployment validado: `c917edfc-c362-47a4-b2cd-8849bcdb4637`.
+- Source: `7043914`.
+- URL imutável: https://c917edfc.efetivaos.pages.dev.
+- `/pricing`, `/pricing/comparison` e `/pricing/prices` responderam na URL canônica; `/pricing` também respondeu na URL imutável.
+- `site.webmanifest` e `sw.js` publicados e acessíveis.
+
 ## Arquivos principais alterados
 
 - `src/features/pricing/pricing-page.tsx`
