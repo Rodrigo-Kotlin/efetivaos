@@ -353,6 +353,23 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-026 — Persistencia atomica do rascunho e recuperacao tecnica de anexo
+
+**Data:** 2026-08-23
+**Status:** FECHADA
+
+**Contexto:** A Sprint 2 introduziu edicao concorrente do cabecalho e dos itens de uma cotacao, alem do envio de evidencia para Storage privado. O timestamp de atualizacao isolado nao distingue de forma confiavel todas as revisoes e o Storage nao participa da mesma transacao PostgreSQL.
+
+**Decisão:** O salvamento final do rascunho passa pela RPC atomica `save_quotation_draft`, que exige o timestamp esperado e uma revisao `bigint` autoritativa, aplica CAS ao ciclo de vida e atualiza a revisao do pai quando seus itens mudam. Anexos usam estado pendente protegido por CAS, atualizacao compensatoria e recuperacao explicita por `discard_pending_quotation_attachment` quando a operacao entre Storage e banco nao puder ser concluida.
+
+**Motivo:** Impedir perda silenciosa de atualizacoes concorrentes, evitar persistencia parcial entre cabecalho e itens e tornar falhas de anexo detectaveis e recuperaveis sem fingir atomicidade entre PostgreSQL e Storage.
+
+**Impacto:** Clientes devem reenviar a revisao e o timestamp recebidos do servidor, tratar conflito como recarga obrigatoria e executar a recuperacao explicita de anexo pendente. O arquivo continua sendo apenas evidencia privada, sem OCR/IA, e uma interrupcao durante a recuperacao concorrente ainda pode exigir limpeza operacional de objeto orfao.
+
+**Validação:** Migration `20260823000300_add_save_quotation_draft_rpc.sql` aplicada no Supabase DEV; suites frontend, SQL remota e E2E da Sprint 2 aprovadas.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

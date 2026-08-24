@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Sprint 1 concluida; aguardando autorizacao explicita para a ETAPA 02.
+**Status atual:** Sprint 2 concluida; aguardando autorizacao explicita para a ETAPA 03.
 
 ---
 
@@ -131,7 +131,7 @@ Gate:
 
 ### Sprint 2 — Cotações + Itens
 
-**Status:** PLANNED
+**Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
@@ -148,9 +148,19 @@ Escopo:
 
 Gate:
 
-- cotação em rascunho não participa da comparação;
-- cotação só ativa com requisitos mínimos válidos;
-- itens mapeados corretamente.
+- migration `20260823000300_add_save_quotation_draft_rpc.sql` aplicada no Supabase DEV;
+- persistencia final do rascunho atomica, com timestamp esperado, revisao `bigint` autoritativa, CAS de ciclo de vida e toque da revisao do pai por alteracao de item;
+- cotacao em `draft` nao participa da comparacao; vencimento permanece derivado e os estados persistidos sao `draft`, `active` e `cancelled`;
+- ativacao exige checklist valido e todos os itens mapeados ao catalogo; historico ativo/cancelado permanece somente leitura;
+- anexos privados PDF, JPEG, PNG ou WEBP de ate 10 MB usam `<quotationId>/original`, estado pendente com CAS, atualizacao compensatoria e recuperacao explicita; sem OCR;
+- rotas de lista, nova cotacao e detalhe aprovadas em desktop e mobile, com tabela/cards, busca, filtros, ordenacao, itens inline, guards offline e acessibilidade;
+- 80 testes frontend e 155 testes SQL remotos aprovados; SQL executado em transacao com rollback;
+- lint, build e lint de banco aprovados;
+- E2E 3/3 aprovado em desktop/mobile, cobrindo login, upload e URL assinada;
+- pos-flight confirmou zero fixtures e zero objetos persistidos;
+- bundle principal em 562,15 kB / 164,29 kB gzip; aviso acima de 500 kB nao bloqueante;
+- nenhum comportamento da Sprint 3 implementado;
+- findings aceitos no fechamento: chunk principal compartilhado acima de 500 kB e possibilidade residual de objeto orfao se a recuperacao concorrente de anexo for interrompida;
 
 ---
 
