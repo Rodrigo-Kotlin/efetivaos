@@ -68,6 +68,41 @@ export type QuotationItem = AuditFields & {
   notes: string | null
 }
 
+export type ComparisonCurrentRow = {
+  catalog_item_id: string
+  code: string
+  item_name: string
+  unit: string
+  category_id: string
+  category_name: string
+  best_quotation_item_id: string | null
+  best_supplier_id: string | null
+  best_supplier_name: string | null
+  best_unit_price: string | null
+  best_valid_until: string | null
+  best_received_at: string | null
+  best_validity_not_informed: boolean | null
+  eligible_offer_count: number
+}
+
+export type QuotationOfferCandidateRow = {
+  quotation_item_id: string
+  quotation_id: string
+  catalog_item_id: string | null
+  unit_price: string
+  supplier_description: string | null
+  supplier_item_code: string | null
+  supplier_id: string
+  supplier_name: string
+  reference_number: string | null
+  received_at: string
+  valid_until: string | null
+  quotation_status: QuotationStatus
+  is_expired: boolean
+  validity_not_informed: boolean
+  is_eligible: boolean
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -263,7 +298,24 @@ export type Database = {
         ]
       }
     }
-    Views: Record<string, never>
+    Views: {
+      comparison_current_v: {
+        Row: ComparisonCurrentRow
+        Relationships: []
+      }
+      quotation_item_candidates_v: {
+        Row: QuotationOfferCandidateRow
+        Relationships: []
+      }
+      best_quote_per_item_v: {
+        Row: QuotationOfferCandidateRow
+        Relationships: []
+      }
+      ranked_quotation_items_v: {
+        Row: QuotationOfferCandidateRow & { offer_rank: number; eligible_offer_count: number }
+        Relationships: []
+      }
+    }
     Functions: {
       discard_pending_quotation_attachment: {
         Args: {

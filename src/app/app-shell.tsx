@@ -15,6 +15,7 @@ import { useUiStore } from '@/stores/ui-store'
 const navigation = [
   { to: '/', label: 'Inicio', icon: House, end: true },
   { to: '/pricing', label: 'Motor de Precos', icon: Tag, end: true },
+  { to: '/pricing/comparison', label: 'Comparacao', icon: CircleDollarSign },
   { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },
   { to: '/pricing/catalog', label: 'Catalogo Efetiva', icon: LibraryBig },
   { to: '/pricing/quotations', label: 'Cotacoes', icon: ClipboardList },
@@ -116,7 +117,7 @@ export default function AppShell() {
         </main>
         <footer className="flex items-center justify-between border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>Efetiva OS</span>
-          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 2</Badge>
+          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 3</Badge>
         </footer>
       </div>
     </div>
