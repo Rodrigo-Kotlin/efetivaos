@@ -11,6 +11,7 @@ const PricingPage = lazy(() => import('@/features/pricing/pricing-page'))
 const SuppliersPage = lazy(() => import('@/features/pricing/suppliers/suppliers-page'))
 const CatalogPage = lazy(() => import('@/features/pricing/catalog/catalog-page'))
 const ComparisonPage = lazy(() => import('@/features/pricing/comparison/comparison-page'))
+const RulesPage = lazy(() => import('@/features/pricing/rules/rules-page'))
 const QuotationsPage = lazy(() => import('@/features/pricing/quotations/quotations-page'))
 const QuotationEditorPage = lazy(() => import('@/features/pricing/quotations/quotation-editor-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
           { path: 'pricing/suppliers', element: pending(<SuppliersPage />) },
           { path: 'pricing/catalog', element: pending(<CatalogPage />) },
           { path: 'pricing/comparison', element: pending(<ComparisonPage />) },
+          { path: 'pricing/rules', element: pending(<RulesPage />) },
           { path: 'pricing/quotations', element: pending(<QuotationsPage />) },
           { path: 'pricing/quotations/new', element: pending(<QuotationEditorPage />) },
           { path: 'pricing/quotations/:quotationId', element: pending(<QuotationEditorPage />) },

@@ -27,7 +27,7 @@ export default function PricingPage() {
   const categoriesQuery = useCatalogCategories()
 
   const comparison = useMemo(() => comparisonQuery.data ?? [], [comparisonQuery.data])
-  const itemsWithOffer = useMemo(() => comparison.filter((row) => row.best_unit_price !== null).length, [comparison])
+  const itemsWithOffer = useMemo(() => comparison.filter((row) => row.best_cost !== null).length, [comparison])
   const itemsWithoutOffer = comparison.length - itemsWithOffer
   const expiringSoon = useMemo(
     () => (quotationsQuery.data ?? []).filter((quotation) => {
@@ -41,7 +41,7 @@ export default function PricingPage() {
   )
   const topOffers = useMemo(
     () => comparison
-      .filter((row) => row.best_unit_price !== null)
+      .filter((row) => row.best_cost !== null)
       .slice(0, 5),
     [comparison],
   )
@@ -157,7 +157,7 @@ export default function PricingPage() {
                   <p className="text-xs text-slate-500">{row.category_name} · {row.best_supplier_name}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_unit_price)}</p>
+                  <p className="font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_cost)}</p>
                   <p className="text-xs text-slate-500">{row.eligible_offer_count} {row.eligible_offer_count === 1 ? 'oferta' : 'ofertas'}</p>
                 </div>
               </li>

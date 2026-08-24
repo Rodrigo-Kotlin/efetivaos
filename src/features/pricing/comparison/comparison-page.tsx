@@ -1,6 +1,6 @@
 import { ArrowUpDown, ListChecks, Search, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,16 +9,19 @@ import { EmptyState, ErrorState, PageHeader, selectClassName, TableSkeleton } fr
 import { useCatalogCategories } from '@/features/pricing/catalog/catalog.queries'
 import { useQuotations } from '@/features/pricing/quotations/quotation.queries'
 import { isExpired } from '@/features/pricing/quotations/quotation.helpers'
+import { useAuth } from '@/features/auth/auth-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 
 import { ComparisonTable } from './comparison-table'
 import { formatComparisonCurrency, formatComparisonDate } from './comparison-helpers'
 import { OffersDrawer } from './offers-drawer'
+import { ReviewDrawer } from './review-drawer'
 import { useComparison } from './comparison-queries'
 import type { ComparisonRow, OfferFilter, ComparisonSortKey } from './comparison-types'
 
-function ComparisonCard({ row, onOpen }: { row: ComparisonRow; onOpen: (row: ComparisonRow) => void }) {
-  const hasOffer = row.best_unit_price !== null
+function ComparisonCard({ row, onOpen, onReview, isAdmin }: { row: ComparisonRow; onOpen: (row: ComparisonRow) => void; onReview: (row: ComparisonRow) => void; isAdmin: boolean }) {
+  const hasOffer = row.best_cost !== null
+  const hasRule = row.resolved_margin_rule_id !== null
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
@@ -32,7 +35,7 @@ function ComparisonCard({ row, onOpen }: { row: ComparisonRow; onOpen: (row: Com
       <dl className="mt-4 space-y-2 text-sm">
         <div className="flex items-baseline justify-between">
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Menor custo</dt>
-          <dd className="font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_unit_price)}</dd>
+          <dd className="font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_cost)}</dd>
         </div>
         <div className="flex items-baseline justify-between">
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fornecedor</dt>
@@ -42,8 +45,22 @@ function ComparisonCard({ row, onOpen }: { row: ComparisonRow; onOpen: (row: Com
           <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Validade</dt>
           <dd className="text-sm font-medium text-slate-800">
             {row.best_validity_not_informed || row.best_valid_until === null
-              ? <span className="text-amber-800">Validade não informada</span>
+              ? <span className="text-amber-800">Validade nao informada</span>
               : formatComparisonDate(row.best_valid_until)}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Regra</dt>
+          <dd className="text-sm font-medium text-slate-800">
+            {hasOffer ? (hasRule ? 'Aplicada' : <span className="text-amber-800">Sem regra</span>) : '—'}
+          </dd>
+        </div>
+        <div className="flex items-baseline justify-between">
+          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preco sugerido</dt>
+          <dd>
+            {row.suggested_price === null
+              ? <span className="text-sm font-medium text-amber-800">Sem regra</span>
+              : <button type="button" className="font-serif text-lg font-bold text-emerald-900 hover:underline" onClick={() => onReview(row)}>{formatComparisonCurrency(row.suggested_price)}</button>}
           </dd>
         </div>
         <div className="flex items-baseline justify-between">
@@ -59,13 +76,23 @@ function ComparisonCard({ row, onOpen }: { row: ComparisonRow; onOpen: (row: Com
           </dd>
         </div>
       </dl>
-      <Button className="mt-4 w-full" type="button" variant="outline" onClick={() => onOpen(row)}>Ver ofertas</Button>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button className="flex-1" type="button" variant="outline" onClick={() => onOpen(row)}>Ver ofertas</Button>
+        {row.suggested_price !== null && (
+          <Button className="flex-1" type="button" variant="ghost" onClick={() => onReview(row)}>Revisar calculo</Button>
+        )}
+        {!isAdmin && !hasRule && hasOffer && (
+          <span className="text-xs text-amber-800">Sem regra de acrescimo.</span>
+        )}
+      </div>
     </article>
   )
 }
 
 export default function ComparisonPage() {
+  const { profile } = useAuth()
   const online = useOnlineStatus()
+  const navigate = useNavigate()
   const query = useComparison()
   const categoriesQuery = useCatalogCategories()
   const quotationsQuery = useQuotations()
@@ -76,9 +103,12 @@ export default function ComparisonPage() {
   const [sortKey, setSortKey] = useState<ComparisonSortKey>('item')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
   const [drawerItemId, setDrawerItemId] = useState<string | null>(null)
+  const [reviewItemId, setReviewItemId] = useState<string | null>(null)
 
+  const isAdmin = profile?.role === 'admin'
   const rows = useMemo(() => query.data ?? [], [query.data])
   const drawerRow = useMemo(() => rows.find((row) => row.catalog_item_id === drawerItemId) ?? null, [rows, drawerItemId])
+  const reviewRow = useMemo(() => rows.find((row) => row.catalog_item_id === reviewItemId) ?? null, [rows, reviewItemId])
 
   const suppliers = useMemo(() => {
     const set = new Map<string, string>()
@@ -100,9 +130,12 @@ export default function ComparisonPage() {
       const matchesSupplier = supplier === 'all' || row.best_supplier_id === supplier
       const matchesOffer = (() => {
         if (offer === 'all') return true
-        if (offer === 'with_offer') return row.best_unit_price !== null
-        if (offer === 'no_offer') return row.best_unit_price === null
-        return Boolean(row.best_validity_not_informed) || row.best_valid_until === null
+        if (offer === 'with_offer') return row.best_cost !== null
+        if (offer === 'no_offer') return row.best_cost === null
+        if (offer === 'validity_not_informed') return Boolean(row.best_validity_not_informed) || row.best_valid_until === null
+        if (offer === 'with_rule') return row.best_cost !== null && row.resolved_margin_rule_id !== null
+        if (offer === 'without_rule') return row.best_cost !== null && row.resolved_margin_rule_id === null
+        return true
       })()
       return matchesSearch && matchesCategory && matchesSupplier && matchesOffer
     })
@@ -110,8 +143,13 @@ export default function ComparisonPage() {
     return [...filtered].sort((a, b) => {
       switch (sortKey) {
         case 'best_cost': {
-          const an = a.best_unit_price === null ? Number.POSITIVE_INFINITY : Number(a.best_unit_price)
-          const bn = b.best_unit_price === null ? Number.POSITIVE_INFINITY : Number(b.best_unit_price)
+          const an = a.best_cost === null ? Number.POSITIVE_INFINITY : Number(a.best_cost)
+          const bn = b.best_cost === null ? Number.POSITIVE_INFINITY : Number(b.best_cost)
+          return (an - bn) * direction
+        }
+        case 'suggested_price': {
+          const an = a.suggested_price === null ? Number.POSITIVE_INFINITY : Number(a.suggested_price)
+          const bn = b.suggested_price === null ? Number.POSITIVE_INFINITY : Number(b.suggested_price)
           return (an - bn) * direction
         }
         case 'category':
@@ -128,7 +166,7 @@ export default function ComparisonPage() {
     })
   }, [rows, search, category, supplier, offer, sortKey, sortDir])
 
-  const itemsWithOffer = rows.filter((row) => row.best_unit_price !== null).length
+  const itemsWithOffer = rows.filter((row) => row.best_cost !== null).length
   const itemsWithoutOffer = rows.length - itemsWithOffer
   const expiringSoon = (quotationsQuery.data ?? []).filter((quotation) => {
     if (quotation.status !== 'active' || !quotation.valid_until) return false
@@ -150,7 +188,7 @@ export default function ComparisonPage() {
       setSortDir((current) => (current === 'asc' ? 'desc' : 'asc'))
     } else {
       setSortKey(key)
-      setSortDir(key === 'best_cost' || key === 'validity' ? 'asc' : 'asc')
+      setSortDir('asc')
     }
   }
 
@@ -160,24 +198,25 @@ export default function ComparisonPage() {
   return (
     <div className="mx-auto max-w-[1480px]">
       <PageHeader
-        eyebrow="Motor de Preços"
-        title="Comparação de custos"
-        description="Acompanhe o menor custo vigente por item do Catálogo Efetiva e abra o histórico de ofertas."
+        eyebrow="Motor de Precos"
+        title="Comparacao de precos"
+        description="Acompanhe o menor custo vigente, a regra aplicada e o preco sugerido por item do Catalogo Efetiva."
         actions={
           <>
-            <Button asChild variant="outline"><Link to="/pricing/quotations">Cotações</Link></Button>
-            <Button asChild><Link to="/pricing/quotations/new">Nova cotação</Link></Button>
+            <Button asChild variant="outline"><Link to="/pricing/quotations">Cotacoes</Link></Button>
+            {isAdmin && <Button asChild variant="outline"><Link to="/pricing/rules">Regras de preco</Link></Button>}
+            <Button asChild><Link to="/pricing/quotations/new">Nova cotacao</Link></Button>
           </>
         }
       />
 
       {!online && (
         <div className="mb-5 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="status">
-          Você está sem conexão. A comparação pode exibir dados já carregados, mas novas ações exigem reconexão.
+          Voce esta sem conexao. A comparacao pode exibir dados ja carregados, mas novas acoes exigem reconexao.
         </div>
       )}
 
-      <section className="mb-5 grid gap-3 sm:grid-cols-3" aria-label="Indicadores de comparação">
+      <section className="mb-5 grid gap-3 sm:grid-cols-3" aria-label="Indicadores de comparacao">
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Itens com oferta</p>
           <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{itemsWithOffer}</p>
@@ -187,7 +226,7 @@ export default function ComparisonPage() {
           <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{itemsWithoutOffer}</p>
         </article>
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Cotações vencendo (7 dias)</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Cotacoes vencendo (7 dias)</p>
           <p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{expiringSoon.length}</p>
         </article>
       </section>
@@ -215,16 +254,19 @@ export default function ComparisonPage() {
         <label>
           <span className="sr-only">Filtrar por situação da oferta</span>
           <select className={`${selectClassName} w-full`} value={offer} onChange={(event) => setOffer(event.target.value as OfferFilter)}>
-            <option value="all">Situação: todas</option>
+            <option value="all">Situacao: todas</option>
             <option value="with_offer">Com oferta vigente</option>
             <option value="no_offer">Sem oferta vigente</option>
-            <option value="validity_not_informed">Validade não informada</option>
+            <option value="validity_not_informed">Validade nao informada</option>
+            <option value="with_rule">Com regra</option>
+            <option value="without_rule">Sem regra</option>
           </select>
         </label>
         <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Ordenar por">
           {([
             ['item', 'Item'],
             ['best_cost', 'Menor custo'],
+            ['suggested_price', 'Preco sugerido'],
             ['category', 'Categoria'],
             ['validity', 'Validade'],
           ] as Array<[ComparisonSortKey, string]>).map(([key, label]) => {
@@ -246,27 +288,25 @@ export default function ComparisonPage() {
       </div>
 
       {query.isLoading || categoriesQuery.isLoading ? (
-        <TableSkeleton columns={9} />
+        <TableSkeleton columns={10} />
       ) : query.isError || categoriesQuery.isError ? (
         <ErrorState onRetry={() => { void query.refetch(); void categoriesQuery.refetch() }} />
       ) : rows.length === 0 ? (
         <EmptyState
           title="Ainda não há itens no Catálogo Efetiva"
-          description="Cadastre itens e cotações para iniciar a comparação de custos."
+          description="Cadastre itens e cotações para iniciar a comparação de preços."
           action={<Button asChild><Link to="/pricing/catalog">Ir para o Catálogo</Link></Button>}
         />
       ) : sorted.length === 0 ? (
-        <div className="space-y-4">
-          <EmptyState
-            title="Nenhum item encontrado"
-            description="Ajuste a busca ou os filtros para ver outros itens."
-            action={<Button variant="outline" onClick={clearFilters}><X className="size-4" /> Limpar filtros</Button>}
-          />
-        </div>
+        <EmptyState
+          title="Nenhum item encontrado"
+          description="Ajuste a busca ou os filtros para ver outros itens."
+          action={<Button variant="outline" onClick={clearFilters}><X className="size-4" /> Limpar filtros</Button>}
+        />
       ) : (
         <>
-          <div className="space-y-3 md:hidden" aria-label="Comparação em cartões">
-            {sorted.map((row) => <ComparisonCard key={row.catalog_item_id} row={row} onOpen={(item) => setDrawerItemId(item.catalog_item_id)} />)}
+          <div className="space-y-3 md:hidden" aria-label="Comparacao em cartoes">
+            {sorted.map((row) => <ComparisonCard key={row.catalog_item_id} row={row} onOpen={(item) => setDrawerItemId(item.catalog_item_id)} onReview={(item) => setReviewItemId(item.catalog_item_id)} isAdmin={isAdmin} />)}
           </div>
           <div className="hidden md:block">
             <ComparisonTable
@@ -280,13 +320,16 @@ export default function ComparisonPage() {
               }}
               globalFilter={search}
               onOpenOffers={(row) => setDrawerItemId(row.catalog_item_id)}
+              onOpenReview={(row) => setReviewItemId(row.catalog_item_id)}
+              canEditRules={isAdmin}
+              onEditRule={() => navigate('/pricing/rules')}
             />
           </div>
         </>
       )}
 
-      <p className="mt-3 text-xs text-slate-500 md:hidden" aria-label="Ordenar comparação no celular">
-        Ordenação atual: {mobileSortValue}
+      <p className="mt-3 text-xs text-slate-500 md:hidden" aria-label="Ordenar comparacao no celular">
+        Ordenacao atual: {mobileSortValue}
       </p>
 
       <OffersDrawer
@@ -296,6 +339,15 @@ export default function ComparisonPage() {
         onOpenChange={(open) => {
           if (!open) setDrawerItemId(null)
         }}
+      />
+
+      <ReviewDrawer
+        row={reviewRow}
+        canEditRules={isAdmin}
+        onOpenChange={(open) => {
+          if (!open) setReviewItemId(null)
+        }}
+        onConfigureRule={() => navigate('/pricing/rules')}
       />
     </div>
   )

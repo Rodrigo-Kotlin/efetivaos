@@ -85,6 +85,42 @@ export type ComparisonCurrentRow = {
   eligible_offer_count: number
 }
 
+export type PricingComparisonRow = {
+  catalog_item_id: string
+  code: string
+  item_name: string
+  unit: string
+  category_id: string
+  category_name: string
+  best_quotation_item_id: string | null
+  best_cost: string | null
+  best_supplier_id: string | null
+  best_supplier_name: string | null
+  best_valid_until: string | null
+  best_validity_not_informed: boolean | null
+  eligible_offer_count: number
+  resolved_margin_rule_id: string | null
+  resolved_rule_scope: 'global' | 'category' | 'item' | null
+  resolved_adjustment_type: 'percentage' | 'fixed' | null
+  resolved_adjustment_value: string | null
+  suggested_price: string | null
+  effective_status: string | null
+}
+
+export type MarginScope = 'global' | 'category' | 'item'
+export type AdjustmentType = 'percentage' | 'fixed'
+
+export type MarginRule = AuditFields & {
+  id: string
+  scope_type: MarginScope
+  category_id: string | null
+  catalog_item_id: string | null
+  calculation_type: AdjustmentType
+  value: string
+  active: boolean
+  notes: string | null
+}
+
 export type QuotationOfferCandidateRow = {
   quotation_item_id: string
   quotation_id: string
@@ -202,7 +238,7 @@ export type Database = {
           description: string | null
           active: boolean
           updated_at: string
-          updated_by: string | null
+          updated_by?: string | null
         }>
         Relationships: [
           {
@@ -213,6 +249,29 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      margin_rules: {
+        Row: MarginRule
+        Insert: {
+          id?: string
+          scope_type: MarginScope
+          category_id?: string | null
+          catalog_item_id?: string | null
+          calculation_type: AdjustmentType
+          value: string | number
+          active?: boolean
+          notes?: string | null
+        }
+        Update: Partial<{
+          scope_type: MarginScope
+          category_id: string | null
+          catalog_item_id: string | null
+          calculation_type: AdjustmentType
+          value: string | number
+          active: boolean
+          notes: string | null
+        }>
+        Relationships: []
       }
       quotations: {
         Row: Quotation
@@ -301,6 +360,10 @@ export type Database = {
     Views: {
       comparison_current_v: {
         Row: ComparisonCurrentRow
+        Relationships: []
+      }
+      pricing_comparison_v: {
+        Row: PricingComparisonRow
         Relationships: []
       }
       quotation_item_candidates_v: {

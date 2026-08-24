@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import ComparisonPage from './comparison-page'
 import { useCatalogCategories } from '@/features/pricing/catalog/catalog.queries'
 import { useQuotations } from '@/features/pricing/quotations/quotation.queries'
+import { useAuth } from '@/features/auth/auth-context'
 import { useComparison } from './comparison-queries'
 
 vi.mock('./comparison-queries', () => ({
@@ -20,6 +21,10 @@ vi.mock('@/features/pricing/quotations/quotation.queries', () => ({
   useQuotations: vi.fn(),
 }))
 
+vi.mock('@/features/auth/auth-context', () => ({
+  useAuth: vi.fn(),
+}))
+
 const baseComparison = [
   {
     catalog_item_id: 'item-1',
@@ -29,13 +34,18 @@ const baseComparison = [
     category_id: 'cat-laboratoriais',
     category_name: 'Laboratoriais',
     best_quotation_item_id: 'qi-1',
+    best_cost: '15.50',
     best_supplier_id: 'sup-norte',
     best_supplier_name: 'Lab Norte',
-    best_unit_price: '15.50',
     best_valid_until: '2026-12-31',
-    best_received_at: '2026-08-21',
     best_validity_not_informed: false,
     eligible_offer_count: 3,
+    resolved_margin_rule_id: 'rule-1',
+    resolved_rule_scope: 'global' as const,
+    resolved_adjustment_type: 'percentage' as const,
+    resolved_adjustment_value: '20.00',
+    suggested_price: '18.60',
+    effective_status: 'suggestion_available',
   },
   {
     catalog_item_id: 'item-2',
@@ -45,13 +55,18 @@ const baseComparison = [
     category_id: 'cat-laboratoriais',
     category_name: 'Laboratoriais',
     best_quotation_item_id: null,
+    best_cost: null,
     best_supplier_id: null,
     best_supplier_name: null,
-    best_unit_price: null,
     best_valid_until: null,
-    best_received_at: null,
     best_validity_not_informed: null,
     eligible_offer_count: 0,
+    resolved_margin_rule_id: null,
+    resolved_rule_scope: null,
+    resolved_adjustment_type: null,
+    resolved_adjustment_value: null,
+    suggested_price: null,
+    effective_status: 'no_cost',
   },
   {
     catalog_item_id: 'item-3',
@@ -61,13 +76,18 @@ const baseComparison = [
     category_id: 'cat-bioquimica',
     category_name: 'Bioquimica',
     best_quotation_item_id: 'qi-3',
+    best_cost: '20.00',
     best_supplier_id: 'sup-sul',
     best_supplier_name: 'Clinica Sul',
-    best_unit_price: '20.00',
     best_valid_until: null,
-    best_received_at: '2026-08-22',
     best_validity_not_informed: true,
     eligible_offer_count: 1,
+    resolved_margin_rule_id: 'rule-1',
+    resolved_rule_scope: 'global' as const,
+    resolved_adjustment_type: 'percentage' as const,
+    resolved_adjustment_value: '20.00',
+    suggested_price: '24.00',
+    effective_status: 'suggestion_available',
   },
 ]
 
@@ -93,6 +113,7 @@ describe('ComparisonPage', () => {
     vi.mocked(useComparison).mockReturnValue({ data: baseComparison, isLoading: false, isError: false, refetch } as unknown as ReturnType<typeof useComparison>)
     vi.mocked(useCatalogCategories).mockReturnValue({ data: baseCategories, isLoading: false, isError: false, refetch: refetchCategories } as unknown as ReturnType<typeof useCatalogCategories>)
     vi.mocked(useQuotations).mockReturnValue({ data: baseQuotations, isLoading: false, isError: false, refetch: refetchQuotations } as unknown as ReturnType<typeof useQuotations>)
+    vi.mocked(useAuth).mockReturnValue({ profile: { id: 'admin', full_name: 'Admin', role: 'admin', active: true, created_at: '', created_by: null, updated_at: '', updated_by: null }, user: null, session: null, loading: false, profileError: null, refreshProfile: vi.fn() } as unknown as ReturnType<typeof useAuth>)
   })
 
   afterEach(() => vi.restoreAllMocks())
@@ -120,10 +141,10 @@ describe('ComparisonPage', () => {
 
   it('renderiza o menor custo com destaque, sem oferta, e alerta de validade', () => {
     renderPage()
-    const table = within(screen.getByRole('table', { name: 'Comparação de custos' }))
-    expect(table.getAllByText('Melhor custo').length).toBeGreaterThan(0)
+    const table = within(screen.getByRole('table', { name: 'Comparacao de precos' }))
+    expect(table.getAllByText('Sugestao disponivel').length).toBeGreaterThan(0)
     expect(table.getAllByText('Sem oferta vigente').length).toBeGreaterThan(0)
-    expect(table.getAllByText('Validade não informada').length).toBeGreaterThan(0)
+    expect(table.getAllByText('Validade nao informada').length).toBeGreaterThan(0)
   })
 
   it('abre o drawer de ofertas ao clicar em "3 ofertas"', async () => {
@@ -138,7 +159,7 @@ describe('ComparisonPage', () => {
     const user = userEvent.setup()
     renderPage()
     await user.selectOptions(screen.getByLabelText('Filtrar por categoria'), 'cat-bioquimica')
-    const table = within(screen.getByRole('table', { name: 'Comparação de custos' }))
+    const table = within(screen.getByRole('table', { name: 'Comparacao de precos' }))
     expect(table.queryByText('Hemograma')).not.toBeInTheDocument()
     expect(table.getByText('Colesterol sem validade')).toBeInTheDocument()
 

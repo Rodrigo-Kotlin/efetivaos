@@ -31,13 +31,18 @@ const comparisonRow = {
   category_id: 'cat-1',
   category_name: 'Laboratoriais',
   best_quotation_item_id: 'qi-1',
+  best_cost: '15.50',
   best_supplier_id: 'sup-1',
   best_supplier_name: 'Lab Norte',
-  best_unit_price: '15.50',
   best_valid_until: '2026-12-31',
-  best_received_at: '2026-08-21',
   best_validity_not_informed: false,
   eligible_offer_count: 2,
+  resolved_margin_rule_id: 'rule-1',
+  resolved_rule_scope: 'global',
+  resolved_adjustment_type: 'percentage',
+  resolved_adjustment_value: '20.00',
+  suggested_price: '18.60',
+  effective_status: 'suggestion_available',
 }
 
 describe('translateError', () => {
@@ -48,7 +53,7 @@ describe('translateError', () => {
   ])('traduz erros de banco %#', (source, expected) => expect(translateError(source).message).toContain(expected))
 
   it('cai no generico para erros nao mapeados', () => {
-    expect(translateError({ message: 'algo inesperado' }).message).toMatch(/comparação de custos/)
+    expect(translateError({ message: 'algo inesperado' }).message).toMatch(/comparacao de custos/)
   })
 })
 
@@ -58,12 +63,12 @@ describe('listComparison', () => {
     serviceMocks.responses.length = 0
   })
 
-  it('consulta a view comparison_current_v e devolve as linhas', async () => {
+  it('consulta a view pricing_comparison_v e devolve as linhas', async () => {
     serviceMocks.responses.push({ data: [comparisonRow], error: null })
     const result = await listComparison()
     expect(result).toEqual([comparisonRow])
-    expect(serviceMocks.operations[0]).toEqual({ method: 'comparison_current_v.select', args: [expect.any(String)] })
-    expect(serviceMocks.operations[1]).toEqual({ method: 'comparison_current_v.order', args: ['code', { ascending: true }] })
+    expect(serviceMocks.operations[0]).toEqual({ method: 'pricing_comparison_v.select', args: [expect.any(String)] })
+    expect(serviceMocks.operations[1]).toEqual({ method: 'pricing_comparison_v.order', args: ['code', { ascending: true }] })
   })
 
   it('lança erro traduzido quando o backend recusa', async () => {

@@ -6,6 +6,23 @@ export function formatComparisonCurrency(value: string | null) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))
 }
 
+export function formatRuleValue(calculationType: 'percentage' | 'fixed' | null, value: string | null): string {
+  if (calculationType === null || value === null) return '—'
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric)) return '—'
+  if (calculationType === 'percentage') {
+    return `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 4 }).format(numeric)}%`
+  }
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(numeric)
+}
+
+export function formatRuleScope(scope: 'global' | 'category' | 'item' | null, target?: { category_name?: string; item_name?: string } | null): string {
+  if (scope === null) return 'Sem regra'
+  if (scope === 'global') return 'Global'
+  if (scope === 'category') return `Categoria${target?.category_name ? ` — ${target.category_name}` : ''}`
+  return `Item${target?.item_name ? ` — ${target.item_name}` : ''}`
+}
+
 export function formatComparisonDate(value: string | null) {
   if (!value) return 'Não informada'
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC' }).format(new Date(`${value}T00:00:00Z`))
@@ -20,11 +37,13 @@ export function matchComparisonSearch(term: string, row: { code: string; item_na
 
 export function matchOfferFilter(
   filter: OfferFilter,
-  row: { best_unit_price: string | null; best_validity_not_informed: boolean | null; best_valid_until: string | null },
+  row: { best_cost: string | null; best_validity_not_informed: boolean | null; best_valid_until: string | null; resolved_margin_rule_id: string | null },
 ): boolean {
   if (filter === 'all') return true
-  if (filter === 'with_offer') return row.best_unit_price !== null
-  if (filter === 'no_offer') return row.best_unit_price === null
+  if (filter === 'with_offer') return row.best_cost !== null
+  if (filter === 'no_offer') return row.best_cost === null
+  if (filter === 'with_rule') return row.best_cost !== null && row.resolved_margin_rule_id !== null
+  if (filter === 'without_rule') return row.best_cost !== null && row.resolved_margin_rule_id === null
   return Boolean(row.best_validity_not_informed) || row.best_valid_until === null
 }
 

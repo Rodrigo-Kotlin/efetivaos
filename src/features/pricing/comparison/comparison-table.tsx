@@ -5,7 +5,8 @@ import { useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TableShell } from '@/features/pricing/components/operational-ui'
-import { formatComparisonCurrency, formatComparisonDate } from './comparison-helpers'
+
+import { formatComparisonCurrency, formatComparisonDate, formatRuleScope, formatRuleValue } from './comparison-helpers'
 import { ComparisonStatusBadge } from './comparison-status'
 import type { ComparisonRow, ComparisonStatus } from './comparison-types'
 
@@ -17,51 +18,117 @@ type ComparisonTableProps = {
   onSortingChange: (state: SortingState) => void
   globalFilter: string
   onOpenOffers: (row: ComparisonRow) => void
+  onOpenReview: (row: ComparisonRow) => void
+  canEditRules: boolean
+  onEditRule: () => void
 }
 
 function statusForRow(row: ComparisonRow): ComparisonStatus {
-  if (row.best_unit_price === null) return 'no_offer'
+  if (row.best_cost === null) return 'no_offer'
+  if (row.resolved_margin_rule_id === null) return 'no_rule'
   if (row.best_validity_not_informed) return 'validity_not_informed'
-  return 'with_offer'
+  return 'suggestion_available'
 }
 
 function responsiveClass(id: string) {
   if (id === 'actions') return 'sticky right-0 bg-white shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)]'
   if (id === 'unit') return 'hidden md:table-cell'
   if (id === 'category_name' || id === 'validity') return 'hidden lg:table-cell'
-  if (id === 'other_offers') return 'hidden md:table-cell'
+  if (id === 'other_offers' || id === 'rule') return 'hidden md:table-cell'
+  if (id === 'suggested_price') return 'hidden lg:table-cell'
   return ''
 }
 
-export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, onOpenOffers }: ComparisonTableProps) {
+export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, onOpenOffers, onOpenReview, canEditRules, onEditRule }: ComparisonTableProps) {
   const columns = useMemo<ColumnDef<ComparisonRow>[]>(() => [
-    { accessorKey: 'code', header: 'Código', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
-    { id: 'item_name', accessorFn: (row) => row.item_name, header: 'Item / serviço', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
+    { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
+    { id: 'item_name', accessorFn: (row) => row.item_name, header: 'Item / servico', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
     { id: 'category_name', accessorFn: (row) => row.category_name, header: 'Categoria', cell: ({ row }) => row.original.category_name },
     { id: 'unit', accessorKey: 'unit', header: 'Unidade' },
     {
       id: 'best_cost',
-      accessorFn: (row) => (row.best_unit_price === null ? Number.POSITIVE_INFINITY : Number(row.best_unit_price)),
-      header: 'Menor custo vigente',
+      accessorFn: (row) => (row.best_cost === null ? Number.POSITIVE_INFINITY : Number(row.best_cost)),
+      header: 'Menor custo',
       cell: ({ row }) => {
         const item = row.original
-        const status = statusForRow(item)
-        if (status === 'no_offer') {
+        if (item.best_cost === null) {
           return <span className="text-sm text-slate-500">Sem oferta vigente</span>
         }
         return (
-          <div className="space-y-1">
-            <p className="font-serif text-base font-bold text-slate-950">{formatComparisonCurrency(item.best_unit_price)}</p>
+          <div className="space-y-0.5">
+            <p className="font-serif text-base font-bold text-slate-950">{formatComparisonCurrency(item.best_cost)}</p>
             <p className="text-xs font-semibold text-slate-600">{item.best_supplier_name}</p>
           </div>
         )
       },
     },
     {
-      id: 'best_supplier',
-      accessorFn: (row) => row.best_supplier_name,
-      header: 'Fornecedor',
-      cell: ({ row }) => row.original.best_supplier_name ?? '—',
+      id: 'rule',
+      header: 'Regra',
+      cell: ({ row }) => {
+        const item = row.original
+        if (item.best_cost === null) return <span className="text-xs text-slate-500">—</span>
+        if (item.resolved_margin_rule_id === null) {
+          return canEditRules
+            ? <Button type="button" size="sm" variant="ghost" onClick={onEditRule}><span className="font-semibold text-amber-800">Sem regra</span></Button>
+            : <Badge variant="warning">Sem regra</Badge>
+        }
+        return (
+          <div className="space-y-0.5">
+            <p className="text-sm font-semibold text-slate-800">{formatRuleValue(item.resolved_adjustment_type, item.resolved_adjustment_value)}</p>
+            <p className="text-xs text-slate-500">{formatRuleScope(item.resolved_rule_scope, { category_name: item.category_name, item_name: item.item_name })}</p>
+          </div>
+        )
+      },
+    },
+    {
+      id: 'suggested_price',
+      accessorFn: (row) => (row.suggested_price === null ? Number.POSITIVE_INFINITY : Number(row.suggested_price)),
+      header: 'Preco sugerido',
+      cell: ({ row }) => {
+        const item = row.original
+        if (item.best_cost === null) return <span className="text-xs text-slate-500">—</span>
+        if (item.suggested_price === null) return <span className="text-xs text-amber-800">Sem regra</span>
+        return (
+          <button
+            type="button"
+            className="text-left"
+            onClick={() => onOpenReview(item)}
+            aria-label={`Revisar calculo de preco sugerido para ${item.item_name}`}
+          >
+            <p className="font-serif text-base font-bold text-slate-950">{formatComparisonCurrency(item.suggested_price)}</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-800">Revisar calculo</p>
+          </button>
+        )
+      },
+    },
+    {
+      id: 'validity',
+      accessorFn: (row) => row.best_valid_until ?? '9999-12-31',
+      header: 'Validade',
+      cell: ({ row }) => {
+        const item = row.original
+        if (item.best_cost === null) return <span className="text-xs text-slate-500">—</span>
+        if (item.best_validity_not_informed || item.best_valid_until === null) {
+          return <Badge variant="outline" className="border-amber-300 text-amber-800">Validade nao informada</Badge>
+        }
+        return <span className="text-sm text-slate-700">{formatComparisonDate(item.best_valid_until)}</span>
+      },
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const status = statusForRow(row.original)
+        if (status === 'suggestion_available' || status === 'with_offer') {
+          return (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-900">
+              <Star className="size-3.5" /> Sugestao disponivel
+            </span>
+          )
+        }
+        return <ComparisonStatusBadge status={status} />
+      },
     },
     {
       id: 'other_offers',
@@ -77,44 +144,21 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
       },
     },
     {
-      id: 'validity',
-      accessorFn: (row) => row.best_valid_until ?? '9999-12-31',
-      header: 'Validade',
-      cell: ({ row }) => {
-        const item = row.original
-        if (item.best_unit_price === null) return <span className="text-xs text-slate-500">—</span>
-        if (item.best_validity_not_informed || item.best_valid_until === null) {
-          return <Badge variant="outline" className="border-amber-300 text-amber-800">Validade não informada</Badge>
-        }
-        return <span className="text-sm text-slate-700">{formatComparisonDate(item.best_valid_until)}</span>
-      },
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const status = statusForRow(row.original)
-        if (status === 'with_offer') {
-          return (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-900">
-              <Star className="size-3.5" /> Melhor custo
-            </span>
-          )
-        }
-        return <ComparisonStatusBadge status={status} />
-      },
-    },
-    {
       id: 'actions',
       enableSorting: false,
-      header: () => <span className="sr-only">Ações</span>,
+      header: () => <span className="sr-only">Acoes</span>,
       cell: ({ row }) => (
-        <Button type="button" size="sm" variant="ghost" onClick={() => onOpenOffers(row.original)} aria-label={`Abrir ofertas de ${row.original.item_name}`}>
-          Ver ofertas
-        </Button>
+        <div className="flex justify-end gap-1">
+          <Button type="button" size="sm" variant="ghost" onClick={() => onOpenOffers(row.original)} aria-label={`Abrir ofertas de ${row.original.item_name}`}>
+            Ofertas
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => onOpenReview(row.original)} aria-label={`Revisar calculo de preco sugerido para ${row.original.item_name}`}>
+            Revisar
+          </Button>
+        </div>
       ),
     },
-  ], [onOpenOffers])
+  ], [onOpenOffers, onOpenReview, canEditRules, onEditRule])
 
   // TanStack Table intentionally exposes non-memoizable functions.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -143,7 +187,7 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
 
   return (
     <TableShell>
-      <table className="w-full min-w-[1080px] text-left text-sm" aria-label="Comparação de custos">
+      <table className="w-full min-w-[1200px] text-left text-sm" aria-label="Comparacao de precos">
         <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
           {table.getHeaderGroups().map((group) => (
             <tr key={group.id}>
