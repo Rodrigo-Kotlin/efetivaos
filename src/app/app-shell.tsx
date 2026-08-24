@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, House, LibraryBig, LogOut, Menu, Search, Settings, Tag, X } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, House, LibraryBig, LogOut, Menu, Search, Settings, Tag, X } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -17,6 +17,7 @@ const navigation = [
   { to: '/pricing', label: 'Motor de Precos', icon: Tag, end: true },
   { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },
   { to: '/pricing/catalog', label: 'Catalogo Efetiva', icon: LibraryBig },
+  { to: '/pricing/quotations', label: 'Cotacoes', icon: ClipboardList },
 ]
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -115,7 +116,7 @@ export default function AppShell() {
         </main>
         <footer className="flex items-center justify-between border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>Efetiva OS</span>
-          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 1</Badge>
+          <Badge variant="outline"><CircleDollarSign className="size-3" /> Sprint 2</Badge>
         </footer>
       </div>
     </div>
