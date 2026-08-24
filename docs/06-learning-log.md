@@ -230,6 +230,26 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
+## LL-019 — View com `security_invoker` ainda recebe GRANT em cascata
+
+**Data:** 2026-08-24
+**Contexto:** A migration 004 da Etapa 03 criou `public.comparison_current_v` com `security_invoker = true` e concedeu `GRANT SELECT` apenas a `authenticated`. O `supabase db query --linked` ainda assim conseguiu executar a view com `set local role anon` ate colidir com `permission denied` na view de base.
+**Aprendizado:** `GRANT SELECT` em uma view para um role nao autenticado e propagado implicitamente em algumas cadeias de PostgREST/CLI mesmo quando o caller nao consegue completar a consulta. Defense in depth exige revogar explicitamente `anon` e `public` na nova view, alem do `GRANT` positivo para `authenticated`.
+**Aplicação:** Migration 00410 revoga `anon` e `public` da nova view. Suas verificacoes locais (`has_table_privilege`) e o teste pgTAP especifico (`anon nao possui SELECT em comparison_current_v`) cobrem a ausencia do grant antes do rollout.
+**Impacto futuro:** Novas views `security_invoker` criadas em gates remotos devem ser acompanhadas de revogacao explicita de `anon` e `public` para que o controle dependa apenas de RLS, sem depender de falhas em cadeia.
+
+---
+
+## LL-020 — `pg_views.definition` nao expoe `WITH (security_invoker)`
+
+**Data:** 2026-08-24
+**Contexto:** A suite pgTAP da Etapa 03 tentava confirmar o uso de `security_invoker` em `comparison_current_v` via `pg_views.definition like '%security_invoker%'`. Os testes sempre falhavam mesmo com a opcao presente.
+**Aprendizado:** O conteudo de `pg_views.definition` representa apenas o `SELECT` canonico. As opcoes de storage (`WITH (...)`) ficam em `pg_class.reloptions` e nao aparecem ali. Verificacoes sobre `security_invoker`, `security_barrier` e opcoes similares precisam olhar `reloptions`.
+**Aplicação:** Testes pgTAP passaram a consultar `pg_class.reloptions` para validar o atributo. Essa pratica sera mantida para futuras views com opcoes de storage.
+**Impacto futuro:** Auditorias de schema que dependem de `pg_views.definition` estao incompletas; expandir a verificacao para `pg_class.reloptions` em qualquer checagem de propriedades da view.
+
+---
+
 ## Template para novos registros
 
 ```text

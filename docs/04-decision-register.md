@@ -370,6 +370,23 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-027 — Fonte autoritativa da comparação na Etapa 03
+
+**Data:** 2026-08-24
+**Status:** FECHADA
+
+**Contexto:** A Etapa 03 introduz a tela de comparação de custos. O schema ja entrega `quotation_item_candidates_v`, `ranked_quotation_items_v` e `best_quote_per_item_v` com toda a regra de elegibilidade e desempate canonica (menor valor unitario, depois maior `valid_until` conhecida, depois `received_at` mais recente), mas nenhuma dessas views lista itens do catalogo sem oferta ativa.
+
+**Decisão:** A tela `/pricing/comparison` consome `public.comparison_current_v`, uma view incremental e dedicada a Etapa 03. Ela lista todos os itens ativos do Catalogo Efetiva, faz `LEFT JOIN` com `best_quote_per_item_v` e expoe apenas colunas necessarias a listagem (codigo, item, unidade, categoria, melhor oferta, fornecedor, validade, contagem de ofertas elegiveis). A view usa `security_invoker = true` e recebeu `GRANT SELECT` somente para `authenticated`; `anon` e `public` foram explicitamente revogados em migration posterior.
+
+**Motivo:** Manter a logica central em SQL, nao duplicar regras no TypeScript, evitar a dependencia prematura de `pricing_comparison_v` (que carrega regras de acrescimo, snapshots e `effective_status` das Etapas 04/05) e prevenir leitura indevida por usuarios nao autenticados atraves de grants em cascata.
+
+**Impacto:** Drawer de ofertas consome `quotation_item_candidates_v` filtrado por `catalog_item_id` para preservar o historico (canceladas, vencidas, rascunhos) com ordenacao consistente. Itens inativos do catalogo sao ocultos por padrao; futuras flags de "inativos" no filtro de Catalogo podem reativa-los sem mudar o schema. A view e referenciada como fonte autoritativa de qualquer melhoria futura na tela ate a entrada da Etapa 04.
+
+**Validação:** Migrations `20260823000400_create_comparison_current_view.sql` e `20260823000410_revoke_anon_from_comparison_view.sql` aplicadas no Supabase DEV. 33 testes pgTAP remotos cobrindo os 10 cenarios da Etapa 03 + RLS Admin/Equipe/anon + grants + estrutura. Pos-flight confirmou zero fixtures e zero extensao pgTAP remanescentes.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

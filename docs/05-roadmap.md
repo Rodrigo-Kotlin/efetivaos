@@ -166,25 +166,34 @@ Gate:
 
 ### Sprint 3 — Comparação automática
 
-**Status:** PLANNED
+**Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
-- menor custo vigente;
-- tratamento de validade;
-- cotações sem validade com alerta;
-- desempate;
-- filtros;
-- detalhe de ofertas;
-- fonte sugerida;
-- visual table-first.
+- view autoritativa `public.comparison_current_v` (uma única adicao ao schema);
+- tela `/pricing/comparison` com tabela table-first, busca por codigo/item/fornecedor, filtros por categoria, fornecedor e situacao da oferta, ordenacao por item/menor custo/categoria/validade, drawer lateral de ofertas com elegiveis e historico;
+- destaque do menor custo vigente via badge textual "Melhor custo" (nao apenas cor);
+- semaforo de "Validade nao informada" mantido nas ofertas sem `valid_until`;
+- atualizacao automatica apos invalidation de cotacoes (ativar, cancelar, nova cotacao, vencimento por data);
+- sem persistencia de estado novo: menor custo e derivado de views ja existentes;
+- sem implementacao de regras de acrescimo, aprovacao, price_list, CRM, Financeiro ou Dashboard.
 
 Gate:
 
-- menor custo calculado corretamente;
-- vencidas excluídas da disputa;
-- histórico preservado;
-- empate tratado conforme regra.
+- 33 testes pgTAP remotos aprovados em transacao com rollback (cobre os 10 cenarios da Etapa 03 + RLS + grants + estrutura);
+- 102 testes frontend aprovados (vitest);
+- 1 cenario E2E autenticado (desktop) cobrindo criacao de 2 cotacoes, comparacao, identificacao do menor custo, drawer, cancelamento da melhor e promocao da proxima;
+- ESLint, TypeScript build e bundle aprovados;
+- lint remoto do schema sem erros;
+- pos-flight confirmou zero fixtures remanescentes;
+- anon sem SELECT em `comparison_current_v` por defense in depth;
+- deploy Cloudflare Pages publicado pela integracao Git.
+
+Findings:
+
+- chunk principal compartilhado segue em 562,66 kB / 164,49 kB gzip (+0,51 kB bruto vs Sprint 2); a diferenca ficou dentro do ruido da minificacao e o aviso do Vite permanece nao bloqueante;
+- view `pricing_comparison_v` ja existente nao foi reaproveitada por carregar o estado consolidado de Sprint 4/5 (sugestao de preco, snapshots, status de revisao), o que manteria o Motor de Precos com logica dupla; a nova `comparison_current_v` evita esse acoplamento ate a entrada da Etapa 04;
+- defesa em profundidade: `comparison_current_v` foi explicitamente revogada de `anon`/`public` alem de depender de RLS via `security_invoker = true`.
 
 ---
 
