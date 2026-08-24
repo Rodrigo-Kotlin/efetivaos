@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(40);
+select plan(46);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -416,6 +416,65 @@ select ok(
 );
 
 set local role postgres;
+
+update public.profiles
+set active = false
+where id = '00000000-0000-0000-0000-000000000002';
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', true);
+
+select is(
+  public.current_app_role(),
+  null::public.app_role,
+  'Perfil inativo: role efetiva deixa de ser concedida'
+);
+
+select is(
+  public.is_internal_user(),
+  false,
+  'Perfil inativo: helper de acesso interno nega autorizacao'
+);
+
+select is(
+  (select count(*) from public.suppliers),
+  0::bigint,
+  'Perfil inativo: RLS nao permite ler dados do Motor de Precos'
+);
+
+set local role postgres;
+
+select ok(
+  (
+    select count(*) > 0
+      and bool_and(pg_get_userbyid(p.proowner) = 'postgres')
+      and bool_and(coalesce(p.proconfig, '{}'::text[]) @> array['search_path=""'])
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.prosecdef
+  ),
+  'Security definer: todas as funcoes public possuem owner postgres e search_path vazio'
+);
+
+select ok(
+  (
+    select count(*) > 0
+      and not bool_or(has_function_privilege('anon', p.oid, 'EXECUTE'))
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.prosecdef
+  ),
+  'Security definer: anon nao executa nenhuma funcao public privilegiada'
+);
+
+select ok(
+  not has_function_privilege('authenticated', 'public.handle_new_user()', 'EXECUTE')
+    and not has_function_privilege('authenticated', 'public.assert_active_quotation_integrity(uuid)', 'EXECUTE')
+    and not has_function_privilege('authenticated', 'public.enforce_quotation_integrity_deferred()', 'EXECUTE'),
+  'Security definer: authenticated nao executa helpers reservados a triggers'
+);
 
 select ok(
   not has_table_privilege('anon', 'public.suppliers', 'select')
