@@ -400,7 +400,7 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 **Impacto:** A UI de comparacao passou a ler `pricing_comparison_v` em vez de `comparison_current_v`; o tipo `ComparisonRow` foi atualizado com os novos campos (`best_cost`, `resolved_*`, `suggested_price`); a suite de testes da Etapa 03 foi preservada apos ajustes de identificadores. Equipe continua visualizando o preco sugerido aplicado, e Admin ganha o caminho `/pricing/rules` para gerenciar as regras. Nenhuma migration nova foi necessaria.
 
-**Validação:** 28 testes pgTAP remotos cobrindo os 16 cenarios da Etapa 04 (resolucao por hierarquia, 0% vs sem regra, R$ 6,70 + 30% = R$ 8,71, RLS Admin/Equipe/anon, indices parciais de unicidade e grants); 123 testes frontend (eram 102 na Sprint 3); 1 cenario E2E autenticado. Lint remoto do schema sem erros; pos-flight confirmou zero fixtures e zero extensao pgTAP remanescentes.
+**Validação:** 28 testes pgTAP remotos cobrindo os 16 cenarios da Etapa 04 (resolucao por hierarquia, 0% vs sem regra, R$ 6,70 + 30% = R$ 8,71, recalculo do menor custo, RLS Admin/Equipe/anon, indices parciais de unicidade e grants); 123 testes frontend (eram 102 na Sprint 3); suite E2E completa 7/7, incluindo os fluxos autenticados de Admin e Equipe. Lint remoto do schema sem erros; pos-flight confirmou zero fixtures e zero extensao pgTAP remanescentes.
 
 ---
 

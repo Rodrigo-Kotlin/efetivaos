@@ -18,15 +18,13 @@ COMPLETED_WITH_FINDINGS
 
 Branch: `main`
 
-Commits técnicos (a serem registrados no fechamento):
+Commits técnicos:
 
-- `feat: implement pricing adjustment rules`
-- `feat: add authoritative suggested price calculation`
-- `feat: integrate pricing rules into comparison`
-- `test: cover pricing rule precedence and calculations`
-- `test: cover rules admin lifecycle`
-- `test: add authenticated pricing rules e2e`
-- `docs: close Sprint 4 comparison`
+- `08fb8b7 test: cover pricing rule precedence and calculations`
+- `1a981d5 feat: implement pricing adjustment rules and integrate suggested price`
+- `245c9df test: add authenticated pricing rules e2e`
+- `f7ff4ed docs: close Sprint 4 pricing rules`
+- `facec55 fix: harden Sprint 4 verification gates`
 
 ## Banco/Supabase
 
@@ -137,7 +135,10 @@ Frontend (`vitest run`):
 
 E2E (`playwright test`):
 
-- 1 cenário novo em `e2e/pricing-rules-flow.spec.ts` (Desktop Chrome): Admin cria cotação ativa, cria regra global de 20%, valida preço sugerido R$ 120,00 na comparação, cria regra de item de 35%, valida promoção para R$ 135,00, inativa regra de item via `/pricing/rules`, valida fallback para global (R$ 120,00). Limpeza final remove regras criadas durante o teste.
+- suíte completa 7/7: dois setups de autenticação (Admin/Equipe), comparação legada, regras Admin, rascunho desktop, rascunho mobile e regras Equipe;
+- `e2e/pricing-rules-flow.spec.ts`: Admin cria cotação ativa, aplica regra global de 20% (R$ 120,00), categoria de 30% (R$ 130,00) e item de 35% (R$ 135,00), inativa a regra de item e valida fallback para categoria (R$ 130,00);
+- `e2e/pricing-rules-team.spec.ts`: Equipe visualiza o cálculo por categoria, não vê `Nova regra` e recebe código `42501` ao tentar INSERT direto com sessão autenticada;
+- teardown valida o prefixo `E2E_S2_*`, limpa anexo privado e usa SQL remoto transacional para remover somente a fixture, inclusive cotações em estados imutáveis. Pós-flight: zero fixtures.
 
 ## UI/UX
 
@@ -155,7 +156,7 @@ E2E (`playwright test`):
 | --- | --- | --- | --- |
 | Chunk principal | 562,66 kB / 164,49 kB gzip | 563,00 kB / 164,60 kB gzip | +0,34 kB / +0,11 kB gzip |
 | Regras de preço lazy (novo) | — | 20,07 kB / 6,09 kB gzip | — |
-| Comparação lazy | 23,85 kB / 6,04 kB gzip | 32,31 kB / 7,30 kB gzip | +8,46 kB / +1,26 kB gzip |
+| Comparação lazy | 23,85 kB / 6,04 kB gzip | 32,30 kB / 7,31 kB gzip | +8,45 kB / +1,27 kB gzip |
 | Cotações listagem | 9,90 kB / 3,02 kB gzip | 9,94 kB / 3,03 kB gzip | +0,04 kB |
 | Editor de cotação | 30,90 kB / 8,73 kB gzip | 30,81 kB / 8,69 kB gzip | −0,09 kB |
 | Catálogo lazy | 19,37 kB / 5,28 kB gzip | 19,28 kB / 5,23 kB gzip | −0,09 kB |
@@ -188,7 +189,7 @@ O aviso de chunk > 500 kB do Vite permanece não bloqueante.
 
 ## Findings
 
-- Chunk principal cresceu 0,34 kB no principal; o novo chunk `rules-page` (20,07 kB / 6,09 kB gzip) e o `comparison-page` (32,31 kB / 7,30 kB gzip) ficaram isolados via code-splitting por rota. A Etapa 05 deve reusar `/pricing/rules` e o drawer de revisão para evitar novo crescimento de bundle.
+- Chunk principal cresceu 0,34 kB no principal; o novo chunk `rules-page` (20,07 kB / 6,09 kB gzip) e o `comparison-page` (32,30 kB / 7,31 kB gzip) ficaram isolados via code-splitting por rota. A Etapa 05 deve reusar `/pricing/rules` e o drawer de revisão para evitar novo crescimento de bundle.
 - `pricing_comparison_v` foi reusada com auditoria prévia em vez de criar nova view, preservando o agrupamento canônico por `catalog_item_id` e evitando duplicação da lógica de menor custo e cálculo.
 - Nenhum teste real de duas sessões concorrentes foi executado; concorrência simultânea continua como finding conhecido de DEC-024.
 - Snapshot físico do banco remoto não habilitado; ponto de retorno continua sendo o snapshot lógico externo da Etapa 00.2.

@@ -265,8 +265,18 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 **Data:** 2026-08-24
 **Contexto:** O cenario 12 da suite da Etapa 04 tentava reativar uma cotacao cancelada e atualizar o menor custo via `update ... where id = cotacao`. O trigger `enforce_quotation_lifecycle` proibiu a operacao porque cotacoes ativas sao imutaveis e canceladas sao terminais.
 **Aprendizado:** Cotacoes canceladas nao podem ser reabertas; cotacoes ativas nao podem ter dados de origem alterados. Para recalcular o menor custo em um teste, e necessario criar uma cotacao adicional, nao atualizar uma existente. O schema da Etapa 02 protege o historico contra alteracoes silenciosas.
-**Aplicação:** O cenario 12 foi reescrito para criar uma nova cotacao ativa com custo menor (50,00) e validar que o preco sugerido recalcula automaticamente. O cenario 12a foi adicionado para validar que o cancelamento da unica cotacao leva ao estado `no_offer`.
+**Aplicação:** O cenario 12 foi reescrito para criar uma nova cotacao ativa com custo menor (5,00 diante do custo anterior de 6,70) e validar que o preco sugerido recalcula automaticamente para 6,50. O plano pgTAP tambem foi corrigido de 36 para as 28 assercoes realmente emitidas.
 **Impacto futuro:** Suites SQL de comparacao devem sempre criar cotacoes adicionais para alterar o melhor custo, em vez de tentar UPDATE em cotacoes ativas. A mesma logica se aplica a mutacoes reais da aplicacao: para um novo preco, registre uma nova cotacao.
+
+---
+
+## LL-023 — Teardown E2E precisa respeitar a imutabilidade fora do fluxo normal
+
+**Data:** 2026-08-24
+**Contexto:** O teardown E2E tentava remover `quotation_items` de cotacoes ativas/canceladas pela API com `service_role`, mas `enforce_quotation_lifecycle` bloqueia a operacao independentemente de RLS. Isso deixava fixtures remotas e impedia remover catalogo, categoria e fornecedor pelas FKs restritivas.
+**Aprendizado:** `service_role` ignora RLS, nao triggers de integridade. Testes que exercitam estados historicos imutaveis precisam de um canal de limpeza separado, estritamente limitado a fixtures identificaveis, sem criar uma RPC de producao capaz de contornar o historico.
+**Aplicação:** O teardown valida o prefixo aleatorio `E2E_S2_<timestamp>_<uuid>`, remove o anexo privado pela API e executa um SQL transacional temporario pelo Supabase CLI vinculado, com `session_replication_role = replica` apenas na transacao de limpeza e predicados exatos de prefixo/ID. O pos-flight confirmou zero fixtures e zero extensao pgTAP.
+**Impacto futuro:** Qualquer E2E remoto que leve registros a estados terminais deve reutilizar essa limpeza controlada. Nunca ampliar o bypass para dados sem prefixo E2E nem disponibiliza-lo como RPC da aplicacao.
 
 ---
 
