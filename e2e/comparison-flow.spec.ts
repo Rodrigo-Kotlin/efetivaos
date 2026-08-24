@@ -47,6 +47,7 @@ async function createAndActivateQuotation(
   await expect(page).toHaveURL(/\/pricing\/quotations\/[0-9a-f-]+\/?$/i)
   await page.getByRole('button', { name: /^Ativar$/i }).click()
   await expect(page.getByText('Cotação ativada com sucesso.', { exact: true })).toBeVisible()
+  return page.url()
 }
 
 async function cancelCurrentQuotation(page: Page) {
@@ -62,16 +63,16 @@ test('admin compara custos, identifica o menor e valida a promocao apos cancelam
   const receivedAt = '2026-08-23'
 
   await createAndActivateQuotation(page, fixture.supplierName, fixture.catalogItemName, referenceA, receivedAt, '180.00')
-  await createAndActivateQuotation(page, fixture.supplierName, fixture.catalogItemName, referenceB, receivedAt, '150.00')
+  const quotationBUrl = await createAndActivateQuotation(page, fixture.supplierName, fixture.catalogItemName, referenceB, receivedAt, '150.00')
 
   await page.goto('/pricing/comparison')
-  await expect(page.getByRole('heading', { name: /Compara(?:ç|c)(?:ã|a)o de custos/i })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Compara(?:ç|c)(?:ã|a)o de pre(?:ç|c)os/i })).toBeVisible()
 
-  const table = page.getByRole('table', { name: /Compara(?:ç|c)(?:ã|a)o de custos/i })
+  const table = page.getByRole('table', { name: /Compara(?:ç|c)(?:ã|a)o de pre(?:ç|c)os/i })
   const itemRow = table.getByRole('row').filter({ hasText: fixture.catalogItemCode })
   await expect(itemRow).toBeVisible()
   await expect(itemRow).toContainText('R$ 150,00')
-  await expect(itemRow).toContainText('Melhor custo')
+  await expect(itemRow).toContainText(fixture.supplierName)
 
   await page.getByRole('button', { name: new RegExp(`Ver 2 ofertas de ${fixture.catalogItemName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i') }).click()
   const drawer = page.getByRole('dialog', { name: new RegExp(fixture.catalogItemName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i') })
@@ -81,14 +82,12 @@ test('admin compara custos, identifica o menor e valida a promocao apos cancelam
   await page.keyboard.press('Escape')
   await expect(drawer).not.toBeVisible()
 
-  await page.goto('/pricing/quotations')
-  const rowB = page.getByRole('row').filter({ hasText: referenceB })
-  await rowB.getByRole('link', { name: /Ver detalhes/i }).first().click()
+  await page.goto(quotationBUrl)
   await cancelCurrentQuotation(page)
 
   await page.goto('/pricing/comparison')
-  const promotedTable = page.getByRole('table', { name: /Compara(?:ç|c)(?:ã|a)o de custos/i })
+  const promotedTable = page.getByRole('table', { name: /Compara(?:ç|c)(?:ã|a)o de pre(?:ç|c)os/i })
   const promotedRow = promotedTable.getByRole('row').filter({ hasText: fixture.catalogItemCode })
   await expect(promotedRow).toContainText('R$ 180,00')
-  await expect(promotedRow).toContainText('Melhor custo')
+  await expect(promotedRow).toContainText(fixture.supplierName)
 })

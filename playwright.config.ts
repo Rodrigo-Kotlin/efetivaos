@@ -53,6 +53,15 @@ export default defineConfig({
         storageState: 'playwright/.auth/admin.json',
       },
     },
+    {
+      name: 'team-chromium',
+      testMatch: /pricing-rules-team\.spec\.ts/,
+      dependencies: ['chromium'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/team.json',
+      },
+    },
   ],
   webServer: isLocal
     ? {

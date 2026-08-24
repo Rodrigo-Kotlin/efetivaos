@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test'
 
-import { serviceClient, readFixtureState } from './fixtures'
+import { readFixtureState } from './fixtures'
 
 async function chooseOption(control: Locator, optionName: string) {
   await expect(control).toBeVisible()
@@ -45,30 +45,24 @@ async function createActiveQuotation(
   await expect(page.getByText('Cotação ativada com sucesso.', { exact: true })).toBeVisible()
 }
 
-async function createGlobalRule(page: Page, value: string) {
+async function createRule(
+  page: Page,
+  scope: 'Global' | 'Categoria' | 'Item',
+  value: string,
+  notes: string,
+  target?: string,
+) {
   await page.goto('/pricing/rules')
   await expect(page.getByRole('heading', { name: /Regras de acrescimo/i })).toBeVisible()
   await page.getByRole('button', { name: /Nova regra/i }).first().click()
   const drawer = page.getByRole('dialog', { name: /Nova regra/i })
   await expect(drawer).toBeVisible()
-  await drawer.getByRole('radio', { name: 'Global' }).click()
+  await drawer.getByRole('radio', { name: scope }).click()
+  if (scope === 'Categoria') await chooseOption(drawer.getByLabel('Categoria alvo'), target ?? '')
+  if (scope === 'Item') await chooseOption(drawer.getByLabel('Item alvo'), target ?? '')
   await drawer.getByRole('radio', { name: 'Percentual sobre custo' }).click()
   await drawer.getByLabel('Valor da regra').fill(value)
-  await drawer.getByRole('button', { name: 'Criar regra' }).click()
-  await expect(page.getByText('Regra criada com sucesso.', { exact: true })).toBeVisible()
-}
-
-async function createItemRule(page: Page, catalogItemLabel: string, value: string) {
-  await page.goto('/pricing/rules')
-  await expect(page.getByRole('heading', { name: /Regras de acrescimo/i })).toBeVisible()
-  await page.getByRole('button', { name: /Nova regra/i }).first().click()
-  const drawer = page.getByRole('dialog', { name: /Nova regra/i })
-  await expect(drawer).toBeVisible()
-  await drawer.getByRole('radio', { name: 'Item' }).click()
-  const itemSelect = drawer.getByLabel('Item alvo')
-  await chooseOption(itemSelect, catalogItemLabel)
-  await drawer.getByRole('radio', { name: 'Percentual sobre custo' }).click()
-  await drawer.getByLabel('Valor da regra').fill(value)
+  await drawer.getByLabel('Observacao').fill(notes)
   await drawer.getByRole('button', { name: 'Criar regra' }).click()
   await expect(page.getByText('Regra criada com sucesso.', { exact: true })).toBeVisible()
 }
@@ -81,36 +75,40 @@ test('Admin gerencia regras e a comparacao reflete o calculo autoritativo', asyn
   const catalogItemLabel = `${fixture.catalogItemCode} - ${fixture.catalogItemName}`
 
   await createActiveQuotation(page, fixture.supplierName, fixture.catalogItemName, reference, receivedAt, unitPrice)
-  await createGlobalRule(page, '20')
+  await createRule(page, 'Global', '20', `${fixture.prefix}_RULE_GLOBAL`)
   await page.goto('/pricing/comparison')
   const table = page.getByRole('table', { name: /Compara(?:ç|c)(?:ã|a)o de pre(?:ç|c)os/i })
   const itemRow = table.getByRole('row').filter({ hasText: fixture.catalogItemCode })
   await expect(itemRow).toBeVisible()
   await expect(itemRow).toContainText('R$ 100,00')
   await expect(itemRow).toContainText('R$ 120,00')
-  await expect(itemRow).toContainText('20% · Global')
+  await expect(itemRow).toContainText('20%')
+  await expect(itemRow).toContainText('Global')
 
-  await createItemRule(page, catalogItemLabel, '35')
+  await createRule(page, 'Categoria', '30', `${fixture.prefix}_RULE_CATEGORY`, fixture.categoryName)
+  await page.goto('/pricing/comparison')
+  const itemRowAfterCategory = table.getByRole('row').filter({ hasText: fixture.catalogItemCode })
+  await expect(itemRowAfterCategory).toContainText('R$ 130,00')
+  await expect(itemRowAfterCategory).toContainText('30%')
+  await expect(itemRowAfterCategory).toContainText(`Categoria — ${fixture.categoryName}`)
+
+  await createRule(page, 'Item', '35', `${fixture.prefix}_RULE_ITEM`, catalogItemLabel)
   await page.goto('/pricing/comparison')
   const itemRowAfterItem = table.getByRole('row').filter({ hasText: fixture.catalogItemCode })
   await expect(itemRowAfterItem).toContainText('R$ 135,00')
-  await expect(itemRowAfterItem).toContainText('35% · Item')
+  await expect(itemRowAfterItem).toContainText('35%')
+  await expect(itemRowAfterItem).toContainText(`Item — ${fixture.catalogItemName}`)
 
   await page.goto('/pricing/rules')
   const rulesTable = page.getByRole('table', { name: /Regras de acrescimo/i })
-  const itemRuleRow = rulesTable.getByRole('row').filter({ hasText: 'Item' })
+  const itemRuleRow = rulesTable.getByRole('row').filter({ hasText: fixture.catalogItemCode })
   const deactivateButton = itemRuleRow.getByRole('button', { name: /Inativar regra/ })
   await deactivateButton.click()
   await expect(page.getByText('Regra inativada.', { exact: true })).toBeVisible()
 
   await page.goto('/pricing/comparison')
   const itemRowAfterDeactivate = table.getByRole('row').filter({ hasText: fixture.catalogItemCode })
-  await expect(itemRowAfterDeactivate).toContainText('R$ 120,00')
-  await expect(itemRowAfterDeactivate).toContainText('20% · Global')
-
-  // Limpeza das regras criadas para nao interferir em outros testes
-  const client = serviceClient()
-  await client.from('margin_rules').delete().like('notes', `${fixture.prefix}%`)
-  await client.from('margin_rules').delete().eq('value', '20.0000').eq('scope_type', 'global').is('notes', null)
-  await client.from('margin_rules').delete().eq('value', '35.0000').eq('scope_type', 'item').is('notes', null)
+  await expect(itemRowAfterDeactivate).toContainText('R$ 130,00')
+  await expect(itemRowAfterDeactivate).toContainText('30%')
+  await expect(itemRowAfterDeactivate).toContainText(`Categoria — ${fixture.categoryName}`)
 })

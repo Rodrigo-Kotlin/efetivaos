@@ -33,7 +33,7 @@ function statusForRow(row: ComparisonRow): ComparisonStatus {
 function responsiveClass(id: string) {
   if (id === 'actions') return 'sticky right-0 bg-white shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)]'
   if (id === 'unit') return 'hidden md:table-cell'
-  if (id === 'category_name' || id === 'validity') return 'hidden lg:table-cell'
+  if (id === 'category' || id === 'validity') return 'hidden lg:table-cell'
   if (id === 'other_offers' || id === 'rule') return 'hidden md:table-cell'
   if (id === 'suggested_price') return 'hidden lg:table-cell'
   return ''
@@ -42,8 +42,8 @@ function responsiveClass(id: string) {
 export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, onOpenOffers, onOpenReview, canEditRules, onEditRule }: ComparisonTableProps) {
   const columns = useMemo<ColumnDef<ComparisonRow>[]>(() => [
     { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
-    { id: 'item_name', accessorFn: (row) => row.item_name, header: 'Item / servico', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
-    { id: 'category_name', accessorFn: (row) => row.category_name, header: 'Categoria', cell: ({ row }) => row.original.category_name },
+    { id: 'item', accessorFn: (row) => row.item_name, header: 'Item / servico', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
+    { id: 'category', accessorFn: (row) => row.category_name, header: 'Categoria', cell: ({ row }) => row.original.category_name },
     { id: 'unit', accessorKey: 'unit', header: 'Unidade' },
     {
       id: 'best_cost',

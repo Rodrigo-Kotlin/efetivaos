@@ -6,6 +6,8 @@ export default async function globalSetup() {
   requiredEnv('VITE_SUPABASE_ANON_KEY')
   requiredEnv('SPRINT0_ADMIN_EMAIL')
   requiredEnv('SPRINT0_ADMIN_PASSWORD')
+  requiredEnv('SPRINT0_EQUIPE_EMAIL')
+  requiredEnv('SPRINT0_EQUIPE_PASSWORD')
   assertRemoteMutationAllowed()
 
   const client = serviceClient()

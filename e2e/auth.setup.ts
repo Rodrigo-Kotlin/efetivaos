@@ -4,7 +4,8 @@ import { expect, test as setup } from '@playwright/test'
 
 import { requiredEnv } from './env'
 
-const authFile = 'playwright/.auth/admin.json'
+const adminAuthFile = 'playwright/.auth/admin.json'
+const teamAuthFile = 'playwright/.auth/team.json'
 
 setup('authenticate as Sprint 0 admin', async ({ page }) => {
   const email = requiredEnv('SPRINT0_ADMIN_EMAIL')
@@ -19,5 +20,21 @@ setup('authenticate as Sprint 0 admin', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^Sair$/i })).toBeVisible()
 
   await mkdir('playwright/.auth', { recursive: true })
-  await page.context().storageState({ path: authFile })
+  await page.context().storageState({ path: adminAuthFile })
+})
+
+setup('authenticate as Sprint 0 team member', async ({ page }) => {
+  const email = requiredEnv('SPRINT0_EQUIPE_EMAIL')
+  const password = requiredEnv('SPRINT0_EQUIPE_PASSWORD')
+
+  await page.goto('/login')
+  await page.getByLabel(/^E-mail$/i).fill(email)
+  await page.getByLabel(/^Senha$/i).fill(password)
+  await page.getByRole('button', { name: /^Entrar$/i }).click()
+
+  await expect(page).not.toHaveURL(/\/login(?:\?|$)/)
+  await expect(page.getByRole('button', { name: /^Sair$/i })).toBeVisible()
+
+  await mkdir('playwright/.auth', { recursive: true })
+  await page.context().storageState({ path: teamAuthFile })
 })

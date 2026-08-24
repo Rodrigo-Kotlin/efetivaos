@@ -1,12 +1,16 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { promisify } from 'node:util'
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 import { assertRemoteMutationAllowed, requiredEnv } from './env'
 
 export const fixtureStatePath = 'test-results/e2e-fixture-state.json'
+const cleanupSqlPath = 'test-results/e2e-cleanup.sql'
+const execFileAsync = promisify(execFile)
 
 export interface FixtureState {
   prefix: string
@@ -52,22 +56,12 @@ export async function readFixtureState() {
   return JSON.parse(await readFile(fixtureStatePath, 'utf8')) as FixtureState
 }
 
-async function deleteOwnedById(client: SupabaseClient, table: string, id: string | undefined, ownershipColumn: string, expectedValue: string) {
-  if (!id) return
-  const { data, error: lookupError } = await client.from(table).select(`id, ${ownershipColumn}`).eq('id', id).maybeSingle()
-  if (lookupError) throw new Error(`Failed to verify E2E ownership in ${table}: ${lookupError.message}`)
-  if (!data) return
-  const ownedRow = data as unknown as Record<string, unknown>
-  if (ownedRow[ownershipColumn] !== expectedValue || !expectedValue.startsWith('E2E_S2_')) {
-    throw new Error(`Refusing to clean a non-E2E row from ${table}`)
-  }
-
-  const { error } = await client.from(table).delete().eq('id', id).eq(ownershipColumn, expectedValue)
-  if (error) throw new Error(`Failed to clean E2E table ${table}: ${error.message}`)
+function sqlLiteral(value: string) {
+  return `'${value.replaceAll("'", "''")}'`
 }
 
 export async function cleanupFixtures(client: SupabaseClient, state: FixtureState) {
-  if (!state.prefix.startsWith('E2E_S2_')) throw new Error('Refusing cleanup for a non-E2E fixture prefix')
+  if (!/^E2E_S2_\d+_[0-9a-f]{8}$/.test(state.prefix)) throw new Error('Refusing cleanup for an invalid E2E fixture prefix')
 
   const { data: quotations, error: quotationLookupError } = await client
     .from('quotations')
@@ -110,14 +104,33 @@ export async function cleanupFixtures(client: SupabaseClient, state: FixtureStat
       if (storageError) throw new Error(`Failed to clean E2E quotation attachments: ${storageError.message}`)
     }
 
-    const { error: itemError } = await client.from('quotation_items').delete().in('quotation_id', quotationIds)
-    if (itemError) throw new Error(`Failed to clean E2E quotation items: ${itemError.message}`)
-
-    const { error: quotationError } = await client.from('quotations').delete().in('id', quotationIds)
-    if (quotationError) throw new Error(`Failed to clean E2E quotations: ${quotationError.message}`)
   }
 
-  await deleteOwnedById(client, 'catalog_items', state.catalogItemId, 'code', state.catalogItemCode)
-  await deleteOwnedById(client, 'catalog_categories', state.categoryId, 'name', state.categoryName)
-  await deleteOwnedById(client, 'suppliers', state.supplierId, 'name', state.supplierName)
+  const sql = `begin;
+set local session_replication_role = replica;
+delete from public.margin_rules where left(notes, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
+delete from public.quotation_items where quotation_id in (
+  select id from public.quotations where left(reference_number, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
+);
+delete from public.quotations where left(reference_number, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
+delete from public.catalog_items where id = ${sqlLiteral(state.catalogItemId ?? '00000000-0000-0000-0000-000000000000')} and code = ${sqlLiteral(state.catalogItemCode)};
+delete from public.catalog_categories where id = ${sqlLiteral(state.categoryId ?? '00000000-0000-0000-0000-000000000000')} and name = ${sqlLiteral(state.categoryName)};
+delete from public.suppliers where id = ${sqlLiteral(state.supplierId ?? '00000000-0000-0000-0000-000000000000')} and name = ${sqlLiteral(state.supplierName)};
+commit;
+`
+
+  await mkdir(dirname(cleanupSqlPath), { recursive: true })
+  await writeFile(cleanupSqlPath, sql, { encoding: 'utf8', mode: 0o600 })
+  try {
+    if (process.platform === 'win32') {
+      await execFileAsync(process.env.ComSpec ?? 'cmd.exe', ['/d', '/s', '/c', `supabase db query --linked --file ${cleanupSqlPath}`], { windowsHide: true })
+    } else {
+      await execFileAsync('supabase', ['db', 'query', '--linked', '--file', cleanupSqlPath])
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to clean E2E relational fixtures through Supabase CLI: ${detail}`)
+  } finally {
+    await rm(cleanupSqlPath, { force: true })
+  }
 }

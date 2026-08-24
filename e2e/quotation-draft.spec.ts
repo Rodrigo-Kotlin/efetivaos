@@ -69,7 +69,7 @@ test('admin saves and reopens an isolated quotation draft', async ({ page }) => 
   await saveFixtureState(fixture)
 
   await openQuotations(page)
-  const row = page.getByRole('row').filter({ hasText: fixture.quotationReference })
+  const row = page.getByRole('row').filter({ has: page.getByText(fixture.quotationReference, { exact: true }) })
   await expect(row).toBeVisible()
   await page.goto(draftUrl)
 

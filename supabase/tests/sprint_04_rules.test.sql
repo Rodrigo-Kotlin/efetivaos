@@ -11,7 +11,7 @@ grant insert, select on pg_temp.tap_results to authenticated, anon;
 grant usage, select on sequence pg_temp.tap_results_seq_seq to authenticated, anon;
 
 insert into pg_temp.tap_results (result)
-select plan(36);
+select plan(28);
 
 -- ----------------------------------------------------------------------------
 -- Fixtures: 1 admin + 1 equipe user created inside the transaction
@@ -318,23 +318,23 @@ select ok(
 
 -- ============================================================================
 -- Cenario 12: alteracao do menor custo recalcula
--- Criar uma nova cotacao ativa para item 033 com custo 50 (menor que 6,70)
+-- Criar uma nova cotacao ativa para item 033 com custo 5,00 (menor que 6,70)
 -- e verificar que o preco sugerido recalcula.
 -- ============================================================================
 insert into public.quotations (id, supplier_id, received_at, valid_until, status)
 values ('40000000-0000-0000-0000-000000000044', '40000000-0000-0000-0000-000000000011', '2026-08-24', '2099-12-31', 'draft');
 
 insert into public.quotation_items (id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price)
-values ('40000000-0000-0000-0000-000000000054', '40000000-0000-0000-0000-000000000044', '40000000-0000-0000-0000-000000000033', 'C2', 'C2', 50.00);
+values ('40000000-0000-0000-0000-000000000054', '40000000-0000-0000-0000-000000000044', '40000000-0000-0000-0000-000000000033', 'C2', 'C2', 5.00);
 
 update public.quotations set status = 'active' where id = '40000000-0000-0000-0000-000000000044';
 
 insert into pg_temp.tap_results (result)
 select ok(
-  (select best_cost = 6.70::numeric and suggested_price = 8.71::numeric
+  (select best_cost = 5.00::numeric and suggested_price = 6.50::numeric
    from public.pricing_comparison_v
    where catalog_item_id = '40000000-0000-0000-0000-000000000033'),
-  'Cenario 12: nova cotacao ativa recalcula o melhor custo (6,70 * 1,30 = 8,71)'
+  'Cenario 12: nova cotacao ativa recalcula o melhor custo (5,00 * 1,30 = 6,50)'
 );
 
 -- ============================================================================

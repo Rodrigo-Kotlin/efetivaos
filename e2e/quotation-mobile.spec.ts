@@ -8,7 +8,7 @@ test('mobile admin opens the persisted quotation draft', async ({ page }) => {
   await page.goto('/pricing/quotations')
   await expect(page.getByRole('heading', { name: /^Cota(?:ç|c)(?:õ|o)es$/i })).toBeVisible()
 
-  const card = page.locator('article').filter({ hasText: fixture.quotationReference })
+  const card = page.locator('article').filter({ has: page.getByText(fixture.quotationReference, { exact: true }) })
   await expect(card).toBeVisible()
   await expect(card).toContainText('Rascunho')
   await expect(card.getByRole('link', { name: /Editar cota(?:ç|c)(?:ã|a)o/i })).toBeVisible()
