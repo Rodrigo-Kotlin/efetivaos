@@ -4,9 +4,19 @@ PWA interno de gestao administrativa da Efetiva SST.
 
 Aplicacao: https://efetivaos.pages.dev
 
-## Sprint atual
+## Estado atual
 
-Etapa 00: fundacao tecnica com React, Supabase Auth/RLS, App Shell, rota `/pricing`, PWA e Cloudflare Pages. Os CRUDs do Motor de Precos ainda nao fazem parte desta entrega.
+Motor de Precos MVP concluido: fornecedores, catalogo, cotacoes, comparacao, regras de acrescimo sobre custo, aprovacao comercial, tabela de precos e dashboard operacional. O PWA usa Supabase Auth/RLS e permanece dependente de conexao para dados transacionais.
+
+Rotas principais:
+
+- `/pricing`: dashboard do Motor de Precos;
+- `/pricing/suppliers`: fornecedores;
+- `/pricing/catalog`: Catalogo Efetiva;
+- `/pricing/quotations`: cotacoes;
+- `/pricing/comparison`: comparacao e decisao comercial;
+- `/pricing/rules`: regras comerciais, somente Admin;
+- `/pricing/prices`: tabela comercial.
 
 ## Requisitos
 
@@ -29,10 +39,11 @@ Nunca use uma chave `service_role` no frontend.
 - `npm run build`: TypeScript e build de producao.
 - `npm run lint`: analise estatica.
 - `npm test`: testes automatizados.
+- `npm run test:e2e`: Playwright remoto; exige as confirmacoes e credenciais descritas em `e2e/env.ts` e nunca deve registrar `service_role`.
 
 ## Banco
 
-As alteracoes estruturais ficam em `supabase/migrations`. Para ambiente local, use `supabase start` e `supabase db reset` com Docker ativo.
+As alteracoes estruturais ficam em `supabase/migrations`. O projeto tambem suporta validacao remote-first no Supabase DEV conforme `DEC-024`, sem tornar Docker obrigatorio para o gate remoto.
 
 ## Deploy
 

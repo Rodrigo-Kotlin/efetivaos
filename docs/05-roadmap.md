@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Sprint 5 concluida; aguardando autorizacao explicita para a ETAPA 06.
+**Status atual:** Motor de Precos MVP concluido na Sprint 6; aguardando definicao e autorizacao do proximo modulo.
 
 ---
 
@@ -259,7 +259,7 @@ Gate:
 
 ### Sprint 6 — Dashboard básico + QA + PWA
 
-**Status:** PLANNED
+**Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
@@ -275,11 +275,22 @@ Escopo:
 
 Gate:
 
-- fluxo ponta a ponta validado;
-- critérios de aceite concluídos;
-- PWA instalável;
-- RLS validado;
-- documentação atualizada.
+- dashboard `/pricing` usa dados autoritativos para preços aprovados, revisão, itens sem regra, itens sem oferta vigente e cotações vencendo em 7 dias, sem exibir zeros falsos em loading/erro;
+- atalhos e rota de regras respeitam Admin/Equipe, com autorização de banco preservada;
+- invalidações atualizam comparação, tabela e dashboard após alterações relevantes em catálogo, fornecedores, cotações, regras e decisões comerciais;
+- PWA instalável mantém somente precache estático, aviso offline e atualização por confirmação explícita;
+- responsividade validada sem overflow em 1440, 1280, 1024, 768, 390 e 360 px; deep-links e console validados;
+- 147 testes frontend e Playwright remoto 11/11 aprovados;
+- SQL remoto aprovado: schema 46/46, Sprint 5 48/48, Sprint 4 28/28 e profiles 8/8;
+- migration `20260824000120_harden_security_definer_grants.sql` aplicada no DEV após inventário final de funções privilegiadas;
+- lint frontend, build, lint remoto e pós-flight sem fixtures aprovados;
+- documentação e handoff final atualizados.
+
+Findings:
+
+- chunk principal compartilhado em 563,70 kB / 164,89 kB gzip, acima do aviso de 500 kB;
+- Supabase DEV continua sem snapshot físico/PITR habilitado;
+- possibilidade residual conhecida de objeto privado órfão se a recuperação concorrente de anexo for interrompida.
 
 ---
 

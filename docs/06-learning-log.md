@@ -294,6 +294,20 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
+## LL-025 — Revogar `public` não substitui inventário efetivo de grants
+
+**Data:** 2026-08-24
+
+**Contexto:** As migrations revogavam `public` de helpers `SECURITY DEFINER`, mas o banco remoto apresentava grants diretos posteriores para `anon` e `authenticated`.
+
+**Aprendizado:** Auditoria estática do SQL de criação não comprova o ACL efetivo. O fechamento precisa consultar `pg_proc.proacl`, `prosecdef`, owner, `proconfig` e `has_function_privilege` para cada assinatura instalada.
+
+**Aplicação:** A Etapa 06 adicionou inventário executável e migration de revogação explícita por role e assinatura, mantendo somente os contratos públicos necessários.
+
+**Impacto futuro:** Toda função privilegiada nova deve receber grants explícitos e entrar no inventário remoto antes do fechamento do gate.
+
+---
+
 ## Template para novos registros
 
 ```text

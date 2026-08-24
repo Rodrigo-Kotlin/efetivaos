@@ -421,6 +421,38 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-030 — Atualização do PWA exige confirmação explícita
+
+**Data:** 2026-08-24
+**Status:** FECHADA
+
+**Contexto:** A ativação automática de uma nova versão do service worker podia recarregar o PWA durante a edição de uma cotação ou outra operação ainda não salva.
+
+**Decisão:** O registro do service worker usa estratégia `prompt`. Quando uma versão fica disponível, a aplicação pergunta se o usuário deseja atualizar e informa que alterações não salvas serão descartadas. A nova versão só é ativada após confirmação.
+
+**Motivo:** Preservar o modelo instalável e o cache estático aprovado sem interromper silenciosamente formulários transacionais.
+
+**Impacto:** Não há fila offline nem cache de dados Supabase. Adiar a atualização mantém a versão corrente até uma nova navegação/reabertura ou futura confirmação.
+
+---
+
+## DEC-031 — Grants explícitos para funções privilegiadas
+
+**Data:** 2026-08-24
+**Status:** FECHADA
+
+**Contexto:** O inventário final encontrou grants diretos de `EXECUTE` para `anon` em sete funções `SECURITY DEFINER`, apesar das revogações de `public` presentes nas migrations de origem. Três helpers reservados a triggers também estavam executáveis por `authenticated`.
+
+**Decisão:** A migration `20260824000120_harden_security_definer_grants.sql` revoga explicitamente `public` e `anon` de todas as funções privilegiadas do Motor e remove `authenticated` de `handle_new_user`, `assert_active_quotation_integrity` e `enforce_quotation_integrity_deferred`. Os contratos necessários permanecem executáveis por `authenticated` e continuam autorizando a ação no banco.
+
+**Motivo:** Reduzir superfície privilegiada e impedir chamadas diretas a helpers internos, sem depender de grants padrão ou apenas das validações internas das funções.
+
+**Impacto:** Inventário remoto passa a exigir owner `postgres`, `search_path` vazio, zero função privilegiada executável por `anon` e zero helper de trigger executável por `authenticated`.
+
+**Validação:** Schema 46/46, Sprint 5 48/48, Sprint 4 28/28, profiles 8/8, lint remoto sem erros e pós-flight limpo.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema
