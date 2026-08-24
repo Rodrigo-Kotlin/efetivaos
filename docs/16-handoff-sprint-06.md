@@ -20,7 +20,12 @@ COMPLETED_WITH_FINDINGS
 
 Branch: `main`.
 
-Os commits e o source final do deploy são registrados no relatório de fechamento após publicação.
+Commits da etapa:
+
+- `4871151 feat: complete pricing operations dashboard`;
+- `35bf437 fix: restrict privileged database function grants`;
+- `ccbf561 test: cover final pricing dashboard flows`;
+- `0c86188 docs: close pricing MVP Sprint 6`.
 
 ## Banco/Supabase
 
