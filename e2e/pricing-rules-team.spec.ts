@@ -15,7 +15,9 @@ test('Equipe visualiza o calculo e nao pode gerenciar regras', async ({ page }) 
   await expect(itemRow).toContainText(`Categoria — ${fixture.categoryName}`)
 
   await page.goto('/pricing/rules')
-  await expect(page.getByText('Acesso restrito', { exact: true })).toBeVisible()
+  await expect(page).toHaveURL(/\/pricing$/)
+  await expect(page.getByRole('heading', { name: 'Visão operacional' })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Regras de preco/i })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /Nova regra/i })).toHaveCount(0)
 
   const client = createClient(requiredEnv('VITE_SUPABASE_URL'), requiredEnv('VITE_SUPABASE_ANON_KEY'), {
