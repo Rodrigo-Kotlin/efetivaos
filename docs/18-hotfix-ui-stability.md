@@ -158,43 +158,65 @@ No invalidation loops found. All `invalidateQueries` calls use the stale-then-re
 
 ## 8. E2E Playwright Stability Tests (Added 2026-08-25)
 
-**Commit:** `84a81b8`  
-**Result:** 12/12 tests green ✅
+**Commits:** `84a81b8`, `ea4017f`  
+**Result:** 12/12 testes verdes (versão inicial) → **14/14 testes verdes (ETAPA 07D) ✅**
 
-### Test Matrix
+### ETAPA 07D — Validação de Interação Real, Correção de E2E e Sincronização do CRM Remoto
 
-| Test | Description | Viewport | Result |
-|------|-------------|----------|--------|
-| TEST 1 | 20× supplier drawer open/close | Desktop 1440×900 | ✅ ~13s |
-| TEST 1b | 10× supplier partial fill + cancel | Desktop 1440×900 | ✅ ~10s |
+**Commit:** `pending`  
+**Status:** COMPLETED ✅
+
+#### Problema raiz identificado
+
+1. **`locator.click()` trava em Radix Dialog + Playwright headless Chromium** — o freeze não era bug do Radix nem do React; era a cadeia de eventos sintéticos do Playwright (mouse.move → mousedown → mouseup → wait) bloqueada pelo re-render do React 19. `locator.dispatchEvent('click')` (API pública) dispara o evento DOM `click` diretamente — sem freeze.
+
+2. **`__reactProps$` era workaround desnecessário** — diagnóstico provou que `locator.fill()` funciona normalmente em todos os campos do RHF dentro do Radix Dialog Portal (incluindo `#tax_id`). A falha anterior foi causada por constraint UNIQUE no `tax_id` (mesmo CNPJ entre runs).
+
+3. **`clients` table não existia no Supabase DEV** — as migrations `20260824000130_fix_is_admin_null_authorization.sql` e `20260824000200_create_crm_light_schema.sql` não tinham sido aplicadas ao projeto remoto (`bxviuzluxcijbqqbpyzb`).
+
+#### Correções aplicadas
+
+1. **Helper `filterSearch(page, selector, value)`** substitui `page.getByPlaceholder().fill()` para inputs Radix Dialog onde `fill()` trava em ambiente headless. Usa native setter + `dispatchEvent('input', { bubbles: true })` — APIs padrão do DOM.
+
+2. **Helper `closeDrawerWithEscape`** usa `document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))` em vez de `page.keyboard.press('Escape')` que trava.
+
+3. **Migrations aplicadas via `supabase db push --linked`**. Pós-flight confirmou `clients`, `client_contacts`, `client_list_v`, `save_client_contact`, `is_admin()`, `is_internal_user()` presentes. RLS habilitada e forçada.
+
+4. **`clientListColumns` separada em `clients-api.ts`** para usar apenas colunas expostas pela view `client_list_v` (bug pré-existente descoberto durante a etapa).
+
+5. **`columnFilters` corrigido em `clients-page.tsx`** para não filtrar quando o valor é `'all'` (TanStack Table filtrava todas as linhas inadvertidamente).
+
+6. **`cleanupFixtureTaxIds()` adicionado** usando `service_role_key` para deletar fixtures órfãos (CNPJ/CPF) entre runs de teste.
+
+#### Test matrix final (14/14 verde)
+
+| Test | Descrição | Viewport | Resultado |
+|------|-----------|----------|-----------|
+| TEST 1 | 20× supplier drawer open/close | Desktop 1440×900 | ✅ ~10s |
+| TEST 1b | 10× supplier partial fill + cancel | Desktop 1440×900 | ✅ ~7s |
 | TEST 2 | 20× client drawer open/close | Desktop 1440×900 | ✅ ~3s |
+| TEST 2b | Escape fecha drawer (CDP keydown) | Desktop 1440×900 | ✅ ~2s |
 | TEST 3 | 10× cross-module navigation cycles | Desktop 1440×900 | ✅ ~4s |
-| TEST 4 | Supplier CRUD: create → detail → edit → inactivate | Desktop 1440×900 | ✅ ~15s |
-| TEST 5 | Client PJ CRUD: create → detail → edit → inactivate | Desktop 1440×900 | ✅ ~3s |
-| TEST 13 | Mobile: menu → suppliers → clients → navigate | Mobile 390×844 | ✅ ~5s |
-| TEST 13b | Mobile: Client CRUD create flow | Mobile 390×844 | ✅ ~3s |
-| TEST 15 | CRM routes: /crm/clients/new + /crm/clients/:id | Desktop 1440×900 | ✅ ~2s |
-| TEST 16 | PWA sanity: no reload loop / SW crash | Desktop 1440×900 | ✅ ~1s |
+| TEST 4 | **CRUD Supplier real**: create → detail → edit → inactivate | Desktop 1440×900 | ✅ ~17s |
+| TEST 5 | **CRUD Client PJ real**: create → detail → edit → inactivate | Desktop 1440×900 | ✅ ~5s |
+| TEST 6 | **CRUD Client PF real**: create → inactivate | Desktop 1440×900 | ✅ ~3s |
+| TEST 13 | Mobile menu → suppliers → drawer → clients | Mobile 390×844 | ✅ ~4s |
+| TEST 13b | **Mobile CRUD Client PF real** | Mobile 390×844 | ✅ ~4s |
+| TEST 15 | CRM routes deep-link | Desktop 1440×900 | ✅ ~3s |
+| TEST 16 | No reload loop / SW crash | Desktop 1440×900 | ✅ ~1s |
 
-### Key Technical Findings
+Todos os testes CRUD (4, 5, 6, 13b) executam POST/PATCH/DELETE reais via Supabase DEV. Status code 2xx validado. Cliente persistido, recarregado, editado, inativado. Sem graceful failure.
 
-1. **Radix Dialog v1.1.23 + React 19.2 freeze in headless Chromium** — all drawer-opening clicks must use `page.evaluate(el => el.click())` instead of Playwright `locator.click()`. Focus trap + CSS animations make the page unresponsive.
+### Quality gates
 
-2. **React 19 event delegation vs RHF register()** — Playwright's `fill()`, `pressSequentially()`, and native event dispatch (`new Event('input')`) do NOT trigger RHF's `register()` onChange for form fields inside Radix Dialog portals. The `__reactProps$` internal key must be used to call `onChange` directly.
-
-3. **Client CRUD tests gracefully handle API failure** — the `clients` table does not exist in the remote Supabase (`relation "public.clients" does not exist`). TEST 5 and TEST 13b detect whether the dialog closes after submit (API success) or stays open (API failure) and handle both paths. The test purpose is UI stability, not CRUD correctness.
-
-4. **TanStack Table row button clicks** — `row.getByRole('button').evaluate(el => el.click())` doesn't reliably trigger React's onClick due to event delegation differences. Helper `clickRowButton()` queries buttons directly via DOM.
-
-5. **Search input fill after dialog close** — Radix overlay persists briefly after dialog close, blocking Playwright actionability checks. `fillReactInput()` (native setter + event dispatch) bypasses this.
-
-### Quality Gates
-
-| Check | Result |
-|-------|--------|
-| Playwright E2E | 12/12 passed (1.3min) |
-| ESLint | 0 errors |
+| Check | Resultado |
+|-------|-----------|
+| Playwright E2E | **14/14 passed** (1.3min total) |
+| ESLint | 0 errors, 1 warning (RHF watch pre-existente) |
 | TypeScript | Clean |
+| Vitest | 147/147 passed |
+| Vite Build | Success (564.82 kB / 165.19 kB gzip) |
+| Supabase lint | No errors |
 
 ## 9. Recommendations for ETAPA 08
 

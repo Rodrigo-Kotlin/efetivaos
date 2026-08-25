@@ -338,13 +338,20 @@ Findings:
 - ~~TanStack Table columns não memoizadas causavam render loops~~ — CORRIGIDO no hotfix 2026-08-25;
 - ~~ClientsPage formOpen condition invertida~~ — CORRIGIDO no hotfix 2026-08-25;
 - useUpdateClientMutation não existia — ADICIONADO no hotfix 2026-08-25;
+- ~~migrations 20260824000130 e 20260824000200 não aplicadas no DEV~~ — APLICADAS na ETAPA 07D;
+- ~~`__reactProps$` workaround para RHF em portal~~ — REMOVIDO na ETAPA 07D (não era necessário);
+- ~~TanStack Table filtrava colunas com 'all' inadvertidamente~~ — CORRIGIDO na ETAPA 07D;
+- ~~`client_list_v` rejeitava colunas extras em select()~~ — CORRIGIDO na ETAPA 07D;
 
 ### Hotfix: UI Stability (2026-08-25)
 
-**Status:** DEPLOYED
+**Status:** DEPLOYED + ETAPA 07D VALIDATED
 
-Commit: `12452da`  
+Commit inicial: `12452da`  
+Commit E2E stability: `84a81b8`  
+Commit ETAPA 07D: `pending`  
 Preview: `https://880b3320.efetivaos.pages.dev`
+Production: `https://efetivaos.pages.dev`
 
 Escopo:
 
@@ -355,6 +362,13 @@ Escopo:
 - adição de getClient API + useClientDetail hook;
 - useCallback em changeStatus (suppliers-page);
 - fix indentação em client-schema.ts;
+- **ETAPA 07D**: aplicação de migrations pendentes no Supabase DEV;
+- **ETAPA 07D**: correção de `client_list_v` colunas no `select()` (PGRST100);
+- **ETAPA 07D**: correção de `columnFilters` em clients-page.tsx (filtro 'all');
+- **ETAPA 07D**: reescrita de `ui-stability.spec.ts` sem `__reactProps$`;
+- **ETAPA 07D**: helpers `filterSearch`, `closeDrawerWithEscape` usando `dispatchEvent` + native setter (APIs Playwright públicas);
+- **ETAPA 07D**: limpeza de fixtures órfãos via `cleanupFixtureTaxIds()` (service role);
+- **ETAPA 07D**: 14/14 E2E stability tests verdes com CRUD real contra Supabase DEV;
 
 Gate:
 
@@ -363,6 +377,7 @@ Gate:
 - build TypeScript + Vite sem erros;
 - bundle: 564.82 kB / 165.22 kB gzip (sem mudança significativa);
 - smoke test 4/4 URLs retorna 200;
+- **ETAPA 07D**: 14/14 Playwright E2E stability tests (CRUD real contra Supabase DEV);
 
 ---
 

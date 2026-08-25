@@ -364,49 +364,82 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
-## LL-030 — Radix Dialog + React 19: Playwright headless freeze
+## LL-030 — Playwright headless Chromium trava em simulações de mouse e teclado
 
-**Data:** 2026-08-25
+**Data:** 2026-08-25 (ETAPA 07D)
 
-**Contexto:** Playwright E2E tests que abrem/fecham drawers Radix Dialog v1.1.23 com React 19.2 congelavam no Chromium headless.
+**Contexto:** Diagnóstico da ETAPA 07D descobriu que `locator.click()`, `page.mouse.click()` e `page.keyboard.press()` travam indefinidamente em Playwright headless Chromium 1.62.1 quando interagem com elementos que disparam mudanças de estado em React 19.2 (especialmente Radix Dialog).
 
-**Aprendido:** O focus trap do Radix Dialog + CSS animations causam freeze na página quando Playwright usa `locator.click()` ou `page.keyboard.press()`. O `page.evaluate(el => el.click())` bypassa o event loop do Playwright e funciona normalmente.
+**Aprendido:** A simulação de mouse do Playwright (move → mousedown → mouseup → wait for stable) e a simulação de teclado (keydown → keypress → keyup) executam uma cadeia de eventos que fica bloqueada quando o React re-renderiza entre eventos. O elemento é "visible, enabled and stable" mas "performing click action" trava indefinidamente. O mesmo ocorre com `page.keyboard.press('Escape')` em dialogs. **Não é bug do Radix Dialog nem do React Hook Form** — é a cadeia de eventos sintéticos do Playwright que trava no event loop.
 
-**Aplicação:** Todo botão que abre/fecha Radix Dialog em testes E2E deve usar `evaluate((el) => (el as HTMLButtonElement).click())`. Form submits devem usar `requestSubmit()` ou `button[type="submit"].evaluate(el => el.click())`.
+**Aplicação:** Para esses casos, usar `locator.dispatchEvent('click')` (API pública do Playwright) que dispara diretamente o evento DOM `click` — o mesmo evento que um clique de usuário geraria. O React handler recebe o evento normalmente. Para keyboard, usar `page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', ... })))`.
 
-**Impacto futuro:** Qualquer novo componente Radix Dialog no projeto requer o mesmo padrão de click via evaluate nos testes E2E.
-
----
-
-## LL-031 — React 19 event delegation vs RHF register() em Portals
-
-**Data:** 2026-08-25
-
-**Contexto:** Playwright `fill()`, `pressSequentially()` e `new Event('input')` não disparam o `onChange` do `register()` do React Hook Form para inputs dentro de Radix Dialog portals.
-
-**Aprendido:** O React 19 usa event delegation no root da árvore React. Portais do Radix Dialog renderizam fora do DOM tree normal, e os eventos nativos dispatchados por Playwright não chegam ao `onChange` do RHF. A solução é acessar `__reactProps$` no elemento DOM e chamar `props.onChange()` diretamente.
-
-**Aplicação:** Para forms dentro de drawers/dialogs, usar helper `setRHFValue(page, inputId, value)` que faz:
-1. `nativeSetter.call(input, value)` para setar o DOM value
-2. `props.onChange({target: input})` para notificar o RHF
-
-Para inputs controlados por `useState` (search bars), usar `fillReactInput()` com native setter + `new Event('input', {bubbles: true})`.
-
-**Impacto futuro:** Se o projeto migrar de Radix Dialog para outro provider de dialog, reavaliar se o workaround ainda é necessário.
+**Impacto futuro:** O freeze foi observado no ambiente Playwright + headless Chromium + React 19 do projeto Efetiva OS. Pode se manifestar em outros projetos com o mesmo stack.
 
 ---
 
-## LL-032 — clients table ausente no Supabase remote impede E2E CRUD
+## LL-031 — React Hook Form `register()` em Radix Dialog portals recebe eventos normalmente
 
-**Data:** 2026-08-25
+**Data:** 2026-08-25 (ETAPA 07D)
 
-**Contexto:** Testes E2E de CRUD de clients falhavam porque `relation "public.clients" does not exist` no Supabase remote.
+**Contexto:** LL-031 anterior afirmava que `fill()` e `pressSequentially()` não disparavam `onChange` do RHF em portals e que era necessário acessar `__reactProps$` (API interna do React).
 
-**Aprendido:** O Supabase remote não possui a tabela `clients`. A mutation `createClientMutation` falha silenciosamente (error catch → toast → drawer fica aberto). A tabela `suppliers` existe e funciona normalmente.
+**Aprendido:** **Diagnóstico da ETAPA 07D provou que `locator.fill()` funciona normalmente** em todos os campos do `ClientForm` dentro do Radix Dialog Portal — incluindo `#tax_id` (CNPJ/CPF). O fill de 11 dígitos em CPF e 14 dígitos em CNPJ funciona, o form submete corretamente e a API retorna 201. O `_inativo anterior` foi baseado em falha causada por outro motivo (constraint UNIQUE no `tax_id` quando o mesmo CNPJ era reutilizado entre runs). A correção real foi `cleanupFixtureTaxIds()` que deleta fixtures órfãos via service role.
 
-**Aplicação:** TEST 5 e TEST 13b detectam se o dialog fechou (API sucesso) ou ficou aberto (API falha) e tratam ambos os caminhos. O propósito do teste é estabilidade de UI, não correção de CRUD.
+**Aplicação:** **`__reactProps$` foi removido do fluxo canônico.** Helpers que dependiam dessa API interna foram excluídos. Para preencher inputs, usar `locator.fill()` ou `locator.pressSequentially()`. Para inputs Radix Dialog que travam em `fill()` (em ambiente headless), usar `filterSearch()` que usa native setter + `dispatchEvent('input', { bubbles: true })`.
 
-**Impacto futuro:** Antes de habilitar CRUD completo nos testes, aplicar migrations pendentes no Supabase remote ou configurar banco de dados de teste dedicado.
+**Impacto futuro:** `__reactProps$` continua sendo API interna do React e pode mudar entre versões. A aplicação deve depender apenas de APIs públicas (Playwright `Locator`, React events).
+
+---
+
+## LL-032 — migrations 20260824000130 e 20260824000200 não estavam aplicadas no Supabase DEV
+
+**Data:** 2026-08-25 (ETAPA 07D)
+
+**Contexto:** Os testes E2E de CRM falhavam com `relation "public.clients" does not exist` no Supabase DEV.
+
+**Aprendido:** O Supabase DEV (projeto `bxviuzluxcijbqqbpyzb` / `efetivaos`) tinha aplicadas apenas 8 migrations (até `20260824000120`), mas as migrations `20260824000130_fix_is_admin_null_authorization.sql` e `20260824000200_create_crm_light_schema.sql` não tinham sido aplicadas após o Gate 00.2 e antes da ETAPA 07. O handoff Sprint 07 (`docs/17-handoff-sprint-07.md`) declarava que os testes estavam prontos — mas o schema real não estava sincronizado.
+
+**Aplicação:** Migrations aplicadas via `supabase db push --linked` (dry-run seguido de apply). Pós-flight confirmou `clients`, `client_contacts`, `client_list_v`, `save_client_contact`, `is_admin()`, `is_internal_user()` presentes. RLS habilitada e forçada em ambas as tabelas.
+
+**Impacto futuro:** Antes de declarar testes E2E como prontos, validar o schema remoto contra as migrations locais via `supabase db remote inspect` ou queries equivalentes. Incluir `supabase db lint --linked --schema public --level warning` no gate de aceitação.
+
+---
+
+## LL-033 — client_list_v não aceita colunas da tabela base (website, zip_code, etc.)
+
+**Data:** 2026-08-25 (ETAPA 07D)
+
+**Contexto:** O `listClients()` usava `clientColumns` (que inclui website, zip_code, street, number, complement, district, country, notes, created_at, created_by, updated_at, updated_by) em `select()` sobre a view `client_list_v`. A view só expõe: id, legal_name, trade_name, tax_id, client_type, status, email, phone, city, state, updated_at, primary_contact_*, contact_count, active_contact_count.
+
+**Aprendido:** PostgREST retorna 400 Bad Request quando o `select()` referencia colunas inexistentes na view. O erro `PGRST100` quebrava `useClientLists` e a UI mostrava "Nao foi possivel carregar os dados". Bug pré-existente descoberto quando a tabela clients foi aplicada.
+
+**Aplicação:** `clientListColumns` separada em `clients-api.ts` para a view, com apenas as colunas expostas.
+
+**Impacto futuro:** Sempre que criar uma view, validar que o `select()` do PostgREST usa apenas colunas expostas.
+
+---
+
+## LL-034 — TanStack Table filtra colunas com valor `'all'` inadvertidamente
+
+**Data:** 2026-08-25 (ETAPA 07D)
+
+**Contexto:** `clients-page.tsx` definia `columnFilters: [{ id: 'status', value: status }, { id: 'type', value: type }]` sempre. Quando `status === 'all'` ou `type === 'all'`, o filtro era aplicado com valor `'all'`, e TanStack Table usa o filterFn default `auto`/`includesString`. `'active'.includes('all')` é `false`, então todos os rows eram filtrados para zero.
+
+**Aprendido:** Não passar columnFilters quando o valor é "todos" — apenas quando há valor de filtro real. Diagnosticado quando os testes mostravam GETs retornando o cliente mas a UI mostrava "Nenhum cliente encontrado" com tabela contendo 0 `<tr>` em `<tbody>`.
+
+**Aplicação:** `columnFilters` agora é construído condicionalmente:
+```ts
+const columnFilters = useMemo(
+  () => [
+    ...(status !== 'all' ? [{ id: 'status' as const, value: status }] : []),
+    ...(type !== 'all' ? [{ id: 'type' as const, value: type }] : []),
+  ],
+  [status, type],
+)
+```
+
+**Impacto futuro:** Sempre que adicionar filtros de coluna em TanStack Table, considerar o valor default (ex: 'todos' / 'all' / 'none') e omitir o filtro quando o valor default estiver ativo.
 
 ```text
 ## LL-XXX — Título

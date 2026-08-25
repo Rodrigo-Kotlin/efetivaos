@@ -57,6 +57,14 @@ export default function ClientsPage() {
   const isFormOpen = drawer?.mode === 'create' || drawer?.mode === 'edit'
   const editingClient = drawer && drawer.mode !== 'create' ? drawer.client : undefined
 
+  const columnFilters = useMemo(
+    () => [
+      ...(status !== 'all' ? [{ id: 'status' as const, value: status }] : []),
+      ...(type !== 'all' ? [{ id: 'type' as const, value: type }] : []),
+    ],
+    [status, type],
+  )
+
   const columns = useMemo<ColumnDef<ClientListRow>[]>(() => [
       {
         accessorKey: 'legal_name',
@@ -128,7 +136,7 @@ export default function ClientsPage() {
   const table = useReactTable({
     data: clients,
     columns,
-    state: { globalFilter: search, columnFilters: [{ id: 'status', value: status }, { id: 'type', value: type }], sorting },
+    state: { globalFilter: search, columnFilters, sorting },
     onGlobalFilterChange: setSearch,
     onSortingChange: setSorting,
     globalFilterFn: clientSearch,

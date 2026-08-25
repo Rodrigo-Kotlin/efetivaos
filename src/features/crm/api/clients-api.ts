@@ -5,6 +5,8 @@ import type { Database, Client, ClientListRow } from '@/types/database'
 
 const clientColumns = 'id, legal_name, trade_name, tax_id, client_type, status, email, phone, website, zip_code, street, number, complement, district, city, state, country, notes, created_at, created_by, updated_at, updated_by'
 
+const clientListColumns = 'id, legal_name, trade_name, tax_id, client_type, status, email, phone, city, state, updated_at, primary_contact_id, primary_contact_name, primary_contact_email, primary_contact_phone, contact_count, active_contact_count'
+
 function clientError(error: PostgrestError, operation: string): Error {
   if (error.code === '23505') return new Error('Já existe um cliente cadastrado com este CPF/CNPJ.')
   if (error.code === '23503') return new Error('O cliente possui vínculos e não pode ser alterado dessa forma.')
@@ -18,7 +20,7 @@ export async function listClients(filters?: {
   type?: 'company' | 'individual'
   status?: 'active' | 'inactive'
 }): Promise<{ data: ClientListRow[]; error?: Error }> {
-  let query = supabase.from('client_list_v').select(clientColumns)
+  let query = supabase.from('client_list_v').select(clientListColumns)
 
   if (filters?.search) {
     const term = filters.search.toLocaleLowerCase('pt-BR')
@@ -41,7 +43,7 @@ export async function listClients(filters?: {
 }
 
 export async function getClient(id: string): Promise<{ data: ClientListRow; error?: Error }> {
-  const { data, error } = await supabase.from('client_list_v').select(clientColumns).eq('id', id).single()
+  const { data, error } = await supabase.from('client_list_v').select(clientListColumns).eq('id', id).single()
   if (error) throw clientError(error, 'buscar')
   return { data: data as ClientListRow, error: undefined }
 }
