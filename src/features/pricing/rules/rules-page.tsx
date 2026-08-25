@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/components/shared/operational-ui'
 import { useAuth } from '@/features/auth/auth-context'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 

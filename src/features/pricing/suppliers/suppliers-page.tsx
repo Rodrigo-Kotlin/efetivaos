@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
-import { EmptyState, ErrorState, PageHeader, selectClassName, StatusBadge, TableShell, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { EmptyState, ErrorState, PageHeader, selectClassName, StatusBadge, TableShell, TableSkeleton } from '@/components/shared/operational-ui'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import type { Supplier } from '@/types/database'
 

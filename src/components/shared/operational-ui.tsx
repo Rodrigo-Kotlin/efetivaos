@@ -22,22 +22,14 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow: 
 }
 
 export function StatusBadge({ active }: { active: boolean }) {
-  return active ? (
-    <Badge><CheckCircle2 className="size-3.5" /> Ativo</Badge>
-  ) : (
-    <Badge variant="secondary"><AlertCircle className="size-3.5" /> Inativo</Badge>
-  )
+  return active ? <Badge><CheckCircle2 className="size-3.5" /> Ativo</Badge> : <Badge variant="secondary"><AlertCircle className="size-3.5" /> Inativo</Badge>
 }
 
 export function TableSkeleton({ columns = 6 }: { columns?: number }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white" aria-label="Carregando registros" role="status">
       <div className="h-12 animate-pulse border-b border-slate-200 bg-slate-100" />
-      {[0, 1, 2, 3, 4].map((row) => (
-        <div key={row} className="grid gap-4 border-b border-slate-100 px-5 py-4 last:border-0" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
-          {Array.from({ length: columns }, (_, column) => <span key={column} className="h-4 animate-pulse rounded bg-slate-100" />)}
-        </div>
-      ))}
+      {[0, 1, 2, 3, 4].map((row) => <div key={row} className="grid gap-4 border-b border-slate-100 px-5 py-4 last:border-0" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>{Array.from({ length: columns }, (_, column) => <span key={column} className="h-4 animate-pulse rounded bg-slate-100" />)}</div>)}
       <span className="sr-only">Carregando...</span>
     </div>
   )
@@ -54,12 +46,12 @@ export function EmptyState({ title, description, action }: { title: string; desc
   )
 }
 
-export function ErrorState({ onRetry }: { onRetry: () => void }) {
+export function ErrorState({ onRetry, title = 'Nao foi possivel carregar os dados', message = 'Verifique sua conexao e tente novamente.' }: { onRetry: () => void; title?: string; message?: string }) {
   return (
     <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-12 text-center" role="alert">
       <AlertCircle className="mx-auto size-7 text-red-700" />
-      <h2 className="mt-3 text-lg font-bold text-red-950">Nao foi possivel carregar os dados</h2>
-      <p className="mt-1 text-sm text-red-800">Verifique sua conexao e tente novamente.</p>
+      <h2 className="mt-3 text-lg font-bold text-red-950">{title}</h2>
+      <p className="mt-1 text-sm text-red-800">{message}</p>
       <Button className="mt-5" variant="outline" onClick={onRetry}><RotateCw className="size-4" /> Tentar novamente</Button>
     </div>
   )

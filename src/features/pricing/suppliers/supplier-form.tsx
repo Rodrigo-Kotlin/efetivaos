@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FieldError, textareaClassName } from '@/features/pricing/components/operational-ui'
+import { FieldError, textareaClassName } from '@/components/shared/operational-ui'
 import type { Supplier } from '@/types/database'
 
 import { supplierFormDefaults, type SupplierFormValues, type SupplierInput, supplierSchema, toSupplierInput } from './supplier-schema'

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { EmptyState, ErrorState, PageHeader, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { EmptyState, ErrorState, PageHeader, TableSkeleton } from '@/components/shared/operational-ui'
 import { useQuotations } from '@/features/pricing/quotations/quotation.queries'
 import { isExpired } from '@/features/pricing/quotations/quotation.helpers'
 import { useComparison } from '@/features/pricing/comparison/comparison-queries'

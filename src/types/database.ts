@@ -181,6 +181,53 @@ export type QuotationOfferCandidateRow = {
   is_eligible: boolean
 }
 
+export type ClientType = 'company' | 'individual'
+export type ClientStatus = 'active' | 'inactive'
+
+export type Client = AuditFields & {
+  id: string
+  legal_name: string
+  trade_name: string | null
+  tax_id: string
+  client_type: ClientType
+  status: ClientStatus
+  email: string | null
+  phone: string | null
+  website: string | null
+  zip_code: string | null
+  street: string | null
+  number: string | null
+  complement: string | null
+  district: string | null
+  city: string | null
+  state: string | null
+  country: string
+  notes: string | null
+}
+
+export type ClientContact = AuditFields & {
+  id: string
+  client_id: string
+  name: string
+  role: string | null
+  department: string | null
+  email: string | null
+  phone: string | null
+  whatsapp: string | null
+  is_primary: boolean
+  notes: string | null
+  status: ClientStatus
+}
+
+export type ClientListRow = Client & {
+  primary_contact_id: string | null
+  primary_contact_name: string | null
+  primary_contact_email: string | null
+  primary_contact_phone: string | null
+  contact_count: number
+  active_contact_count: number
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -404,8 +451,104 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: Client
+        Insert: {
+          id?: string
+          legal_name: string
+          trade_name?: string | null
+          tax_id: string
+          client_type: ClientType
+          status?: ClientStatus
+          email?: string | null
+          phone?: string | null
+          website?: string | null
+          zip_code?: string | null
+          street?: string | null
+          number?: string | null
+          complement?: string | null
+          district?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string
+          notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: Partial<{
+          legal_name: string
+          trade_name: string | null
+          tax_id: string
+          client_type: ClientType
+          status: ClientStatus
+          email: string | null
+          phone: string | null
+          website: string | null
+          zip_code: string | null
+          street: string | null
+          number: string | null
+          complement: string | null
+          district: string | null
+          city: string | null
+          state: string | null
+          country: string
+          notes: string | null
+          updated_at: string
+          updated_by: string | null
+        }>
+        Relationships: []
+      }
+      client_contacts: {
+        Row: ClientContact
+        Insert: {
+          id?: string
+          client_id: string
+          name: string
+          role?: string | null
+          department?: string | null
+          email?: string | null
+          phone?: string | null
+          whatsapp?: string | null
+          is_primary?: boolean
+          notes?: string | null
+          status?: ClientStatus
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: Partial<{
+          client_id: string
+          name: string
+          role: string | null
+          department: string | null
+          email: string | null
+          phone: string | null
+          whatsapp: string | null
+          is_primary: boolean
+          notes: string | null
+          status: ClientStatus
+          updated_at: string
+          updated_by: string | null
+        }>
+        Relationships: [
+          {
+            foreignKeyName: 'client_contacts_client_id_fkey'
+            columns: ['client_id']
+            isOneToOne: false
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
+      client_list_v: {
+        Row: ClientListRow
+        Relationships: []
+      }
       comparison_current_v: {
         Row: ComparisonCurrentRow
         Relationships: []
@@ -428,6 +571,22 @@ export type Database = {
       }
     }
     Functions: {
+      save_client_contact: {
+        Args: {
+          p_contact_id: string | null
+          p_client_id: string
+          p_name: string
+          p_role: string | null
+          p_department: string | null
+          p_email: string | null
+          p_phone: string | null
+          p_whatsapp: string | null
+          p_is_primary: boolean
+          p_notes: string | null
+          p_status: ClientStatus
+        }
+        Returns: ClientContact
+      }
       discard_pending_quotation_attachment: {
         Args: {
           p_quotation_id: string
@@ -480,6 +639,8 @@ export type Database = {
     }
     Enums: {
       app_role: AppRole
+      client_status: ClientStatus
+      client_type: ClientType
       adjustment_type: 'percentage' | 'fixed'
       margin_scope_type: 'global' | 'category' | 'item'
       price_status: PriceStatus

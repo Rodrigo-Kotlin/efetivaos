@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, X } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -21,10 +21,13 @@ const navigation = [
   { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },
   { to: '/pricing/catalog', label: 'Catalogo Efetiva', icon: LibraryBig },
   { to: '/pricing/quotations', label: 'Cotacoes', icon: ClipboardList },
+  { to: '/crm', label: 'CRM', icon: ContactRound, end: true },
+  { to: '/crm/clients', label: 'Clientes', icon: UsersRound },
 ]
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const collapsed = useUiStore((state) => state.sidebarCollapsed)
+function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: () => void; forceExpanded?: boolean }) {
+  const storedCollapsed = useUiStore((state) => state.sidebarCollapsed)
+  const collapsed = forceExpanded ? false : storedCollapsed
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
   const { profile } = useAuth()
 
@@ -35,7 +38,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
       <nav className="flex-1 space-y-2 p-3" aria-label="Navegacao principal">
         {navigation.filter((item) => !item.adminOnly || profile?.role === 'admin').map(({ to, label, icon: Icon, end }) => (
-          <NavLink key={to} to={to} end={end} onClick={onNavigate} className={({ isActive }) => cn('flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors', isActive ? 'bg-emerald-50 text-emerald-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950', collapsed && 'justify-center px-0')} title={collapsed ? label : undefined}>
+          <NavLink key={to} to={to} end={end} onClick={onNavigate} aria-label={collapsed ? label : undefined} className={({ isActive }) => cn('flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors', isActive ? 'bg-emerald-50 text-emerald-900' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950', collapsed && 'justify-center px-0')} title={collapsed ? label : undefined}>
             <Icon className="size-5 shrink-0" />
             {!collapsed && <span>{label}</span>}
           </NavLink>
@@ -81,7 +84,7 @@ export default function AppShell() {
             <Dialog.Close className="absolute right-3 top-5 z-10 grid size-10 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700" aria-label="Fechar menu">
               <X className="size-5" />
             </Dialog.Close>
-            <SidebarContent onNavigate={() => setMobileOpen(false)} />
+            <SidebarContent forceExpanded onNavigate={() => setMobileOpen(false)} />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
@@ -120,7 +123,7 @@ export default function AppShell() {
         </main>
         <footer className="flex items-center justify-between border-t border-slate-200 px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
           <span>Efetiva OS</span>
-          <Badge variant="outline"><CircleDollarSign className="size-3" /> Motor de Preços</Badge>
+          <Badge variant="outline">Ambiente operacional</Badge>
         </footer>
       </div>
     </div>

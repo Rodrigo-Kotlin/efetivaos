@@ -3,7 +3,7 @@ import { ArrowUpDown, Pencil, Power, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { StatusBadge, TableShell } from '@/features/pricing/components/operational-ui'
+import { StatusBadge, TableShell } from '@/components/shared/operational-ui'
 import { cn } from '@/lib/utils'
 
 import type { CatalogCategoryRow, CatalogItemRow } from './catalog.types'

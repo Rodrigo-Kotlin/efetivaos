@@ -453,6 +453,51 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-032 — CRM Light: Unicidade CPF/CNPJ é global
+
+**Data:** 2026-08-25
+**Status:** FECHADA
+
+**Contexto:** Definir se a unicidade de CPF/CNPJ deve ser verificada apenas entre clientes ativos ou globalmente.
+
+**Decisão:** Unicidade global via `UNIQUE (tax_id)` na tabela `clients`.
+
+**Motivo:** Simplificar a lógica de negócio, evitar ambiguidade na regra, e preservar integridade dos dados mesmo com inativação/reativação.
+
+**Impacto:** Um CPF/CNPJ inativado não pode ser reutilizado para um novo cadastro. Reativação do registro original é a única forma de restaurar o vínculo.
+
+---
+
+## DEC-033 — CRM Light: Contato principal é no máximo um ativo
+
+**Data:** 2026-08-25
+**Status:** FECHADA
+
+**Contexto:** Definir regra de contato principal.
+
+**Decisão:** No máximo um contato principal ativo por cliente. Cliente pode ter zero contatos principais.
+
+**Motivo:** Flexibilidade operacional — nem todo cliente tem contato definido. A restrição de "máximo um" é enforced por partial unique index.
+
+**Impacto:** `uq_client_contacts_active_primary` previne dois contatos principais ativos. Troca é atômica via `save_client_contact()`. Contato inativado automaticamente perde status de principal.
+
+---
+
+## DEC-034 — CRM Light: Equipe possui CRUD idêntico ao Admin
+
+**Data:** 2026-08-25
+**Status:** FECHADA
+
+**Contexto:** Definir restrições de Equipe no CRM Light.
+
+**Decisão:** Equipe possui mesmas permissões de CRUD que Admin em `clients`, `client_contacts`, `client_list_v` e `save_client_contact`.
+
+**Motivo:** Na fase de base cadastral, ambos os perfis precisam cadastrar e gerenciar clientes e contatos. Restrições comerciais (aprovação de preço, regras) já são controladas no Motor de Preços.
+
+**Impacto:** Policies atuais não distinguem Admin de Equipe. Qualquer restrição futura deve ser registrada como nova migration e decisão.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

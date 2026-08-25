@@ -1,7 +1,7 @@
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 
 import { Input } from '@/components/ui/input'
-import { FieldError, selectClassName, textareaClassName } from '@/features/pricing/components/operational-ui'
+import { FieldError, selectClassName, textareaClassName } from '@/components/shared/operational-ui'
 import type { Supplier } from '@/types/database'
 
 import type { QuotationFormValues } from './quotation.schemas'

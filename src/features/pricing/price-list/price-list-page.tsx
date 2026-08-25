@@ -13,7 +13,7 @@ import { formatComparisonCurrency, formatComparisonDate, formatRuleValue } from 
 import { useComparison } from '@/features/pricing/comparison/comparison-queries'
 import { ReviewDrawer } from '@/features/pricing/comparison/review-drawer'
 import type { CommercialSourceFilter, CommercialStatusFilter, ComparisonRow } from '@/features/pricing/comparison/comparison-types'
-import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/components/shared/operational-ui'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 import { isExpired } from '@/features/pricing/quotations/quotation.helpers'
 

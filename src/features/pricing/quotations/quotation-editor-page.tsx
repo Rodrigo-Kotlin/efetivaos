@@ -7,7 +7,7 @@ import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { ErrorState, PageHeader, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { ErrorState, PageHeader, TableSkeleton } from '@/components/shared/operational-ui'
 import { useCatalogItems } from '@/features/pricing/catalog/catalog.queries'
 import type { CatalogItemRow } from '@/features/pricing/catalog/catalog.types'
 import { useSuppliers } from '@/features/pricing/suppliers/supplier-queries'

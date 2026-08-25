@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
-import { ErrorState, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { ErrorState, TableSkeleton } from '@/components/shared/operational-ui'
 
 import { CommercialStatusBadge } from './commercial-status'
 import { reviewReasonLabel } from './commercial-status-helpers'

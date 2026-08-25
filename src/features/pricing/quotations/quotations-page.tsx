@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/components/shared/operational-ui'
 
 import { formatDate, formatDateTime, matchesValidity, type ValidityFilter } from './quotation.helpers'
 import { useQuotations } from './quotation.queries'

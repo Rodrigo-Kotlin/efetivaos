@@ -4,7 +4,7 @@ import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FieldError, selectClassName, textareaClassName } from '@/features/pricing/components/operational-ui'
+import { FieldError, selectClassName, textareaClassName } from '@/components/shared/operational-ui'
 
 import { catalogItemSchema, type CatalogItemFormData } from './catalog.schemas'
 import type { CatalogCategoryRow, CatalogItemInput } from './catalog.types'

@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      testMatch: /(quotation-draft|comparison-flow|pricing-rules-flow|price-approval-admin|pricing-dashboard)\.spec\.ts/,
+      testMatch: /(quotation-draft|comparison-flow|pricing-rules-flow|price-approval-admin|pricing-dashboard|crm-admin)\.spec\.ts/,
       dependencies: ['authenticate'],
       use: {
         ...devices['Desktop Chrome'],
@@ -46,7 +46,7 @@ export default defineConfig({
     },
     {
       name: 'mobile-chromium',
-      testMatch: /(quotation-mobile|price-list-mobile)\.spec\.ts/,
+      testMatch: /(quotation-mobile|price-list-mobile|crm-mobile)\.spec\.ts/,
       dependencies: ['chromium'],
       use: {
         ...devices['Pixel 7'],
@@ -55,7 +55,7 @@ export default defineConfig({
     },
     {
       name: 'team-chromium',
-      testMatch: /(pricing-rules-team|price-approval-team)\.spec\.ts/,
+      testMatch: /(pricing-rules-team|price-approval-team|crm-team)\.spec\.ts/,
       dependencies: ['chromium'],
       use: {
         ...devices['Desktop Chrome'],

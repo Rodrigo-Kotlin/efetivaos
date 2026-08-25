@@ -15,6 +15,10 @@ const PriceListPage = lazy(() => import('@/features/pricing/price-list/price-lis
 const RulesPage = lazy(() => import('@/features/pricing/rules/rules-page'))
 const QuotationsPage = lazy(() => import('@/features/pricing/quotations/quotations-page'))
 const QuotationEditorPage = lazy(() => import('@/features/pricing/quotations/quotation-editor-page'))
+const CrmPage = lazy(() => import('@/features/crm/pages/crm-page'))
+const ClientsPage = lazy(() => import('@/features/crm/pages/clients-page'))
+const ClientFormPage = lazy(() => import('@/features/crm/pages/client-form-page'))
+const ClientDetailPage = lazy(() => import('@/features/crm/pages/client-detail-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -40,6 +44,11 @@ export const router = createBrowserRouter([
           { path: 'pricing/quotations', element: pending(<QuotationsPage />) },
           { path: 'pricing/quotations/new', element: pending(<QuotationEditorPage />) },
           { path: 'pricing/quotations/:quotationId', element: pending(<QuotationEditorPage />) },
+          { path: 'crm', element: pending(<CrmPage />) },
+          { path: 'crm/clients', element: pending(<ClientsPage />) },
+          { path: 'crm/clients/new', element: pending(<ClientFormPage />) },
+          { path: 'crm/clients/:clientId', element: pending(<ClientDetailPage />) },
+          { path: 'crm/clients/:clientId/edit', element: pending(<ClientFormPage />) },
         ],
       },
     ],

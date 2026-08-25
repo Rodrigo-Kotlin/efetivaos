@@ -4,12 +4,12 @@ import { useMemo, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Drawer } from '@/components/ui/drawer'
-import { TableShell } from '@/features/pricing/components/operational-ui'
+import { TableShell } from '@/components/shared/operational-ui'
 import { formatComparisonCurrency, formatComparisonDate, isOfferStillValid } from './comparison-helpers'
 import { useComparisonOffers } from './comparison-queries'
 import type { ComparisonOffer } from './comparison-types'
 
-import { TableSkeleton, ErrorState } from '@/features/pricing/components/operational-ui'
+import { TableSkeleton, ErrorState } from '@/components/shared/operational-ui'
 
 type OffersDrawerProps = {
   catalogItemId: string | null

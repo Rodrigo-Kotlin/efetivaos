@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { TableShell } from '@/features/pricing/components/operational-ui'
+import { TableShell } from '@/components/shared/operational-ui'
 
 import { formatComparisonCurrency, formatComparisonDate, formatRuleScope, formatRuleValue } from './comparison-helpers'
 import { ComparisonStatusBadge } from './comparison-status'

@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
-import { textareaClassName } from '@/features/pricing/components/operational-ui'
+import { textareaClassName } from '@/components/shared/operational-ui'
 import { useCatalogCategories } from '@/features/pricing/catalog/catalog.queries'
 import { useCatalogItems } from '@/features/pricing/catalog/catalog.queries'
 

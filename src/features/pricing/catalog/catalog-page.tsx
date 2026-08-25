@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Drawer } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
-import { EmptyState, ErrorState, PageHeader, selectClassName, TableSkeleton } from '@/features/pricing/components/operational-ui'
+import { EmptyState, ErrorState, PageHeader, selectClassName, TableSkeleton } from '@/components/shared/operational-ui'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 
 import { CatalogCategoryForm } from './catalog-category-form'

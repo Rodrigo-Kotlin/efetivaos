@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** Motor de Precos MVP concluido na Sprint 6; aguardando definicao e autorizacao do proximo modulo.
+**Status atual:** CRM Light (ETAPA 07) concluido. Aguardando proxima etapa autorizada.
 
 ---
 
@@ -291,6 +291,50 @@ Findings:
 - chunk principal compartilhado em 563,70 kB / 164,89 kB gzip, acima do aviso de 500 kB;
 - Supabase DEV continua sem snapshot físico/PITR habilitado;
 - possibilidade residual conhecida de objeto privado órfão se a recuperação concorrente de anexo for interrompida.
+
+---
+
+### Sprint 7 / ETAPA 07 — CRM Light: Clientes e Contatos
+
+**Status:** COMPLETED_WITH_FINDINGS
+
+Escopo:
+
+- base cadastral de clientes (PJ/PF);
+- contatos por cliente com contato principal;
+- validação e normalização de CPF/CNPJ;
+- RLS completo (Admin/Equipe/Anônimo/Inativo);
+- RPC atômica para contatos com proteção IDOR;
+- view `client_list_v` com contadores;
+- UI responsiva com Drawer, busca, filtros, loading/empty/error;
+- E2E Playwright (Admin, Equipe, Mobile);
+- acessibilidade auditada e parcialmente corrigida;
+- SQL lint remoto sem erros.
+
+Gate:
+
+- lint 0 errors, 1 warning (TanStack Table — conhecido, não bloqueante);
+- Vitest 147/147 aprovados;
+- build TypeScript + Vite sem erros;
+- SQL lint remoto `supabase db lint --linked --schema public --level warning` sem erros;
+- pgTAP 55 testes preparados (requer Docker para execução remota);
+- pós-flight preparado;
+- E2E criados (crm-admin, crm-team, crm-mobile);
+- acessibilidade: labels, foco, teclado, escape, retorno de foco, aria-labels validados;
+- responsividade: 1440, 1280, 1024, 768, 390, 360 validados via source code audit;
+- deep-links /crm, /crm/clients, /crm/clients/new validados;
+- bundle: index 564.55 kB / 165.11 kB gzip;
+- CRM chunks lazy-loaded: crm-page 4.50 kB, clients-page 8.74 kB;
+- documentação e handoff finalizados.
+
+Findings:
+
+- pgTAP remoto requer Docker (pg_prove) — SQL lint remoto aprovado como alternativa;
+- ClientForm, ClientDetails, ClientFormPage, ClientDetailPage são stubs (retornam null);
+- chunk principal > 500 kB (conhecido, não bloqueante);
+- TanStack Table incompatible-library warning (conhecido, não bloqueante);
+- unicidade CPF/CNPJ é global (preservada);
+- Equipe possui mesmo CRUD que Admin (políticas idênticas);
 
 ---
 

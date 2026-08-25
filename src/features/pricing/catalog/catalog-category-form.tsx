@@ -3,7 +3,7 @@ import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FieldError, selectClassName } from '@/features/pricing/components/operational-ui'
+import { FieldError, selectClassName } from '@/components/shared/operational-ui'
 
 import { catalogCategorySchema, type CatalogCategoryFormData } from './catalog.schemas'
 import type { CatalogCategoryInput } from './catalog.types'

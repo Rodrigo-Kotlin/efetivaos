@@ -4,7 +4,7 @@ import type { FieldArrayWithId, FieldErrors, UseFormRegister } from 'react-hook-
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FieldError, selectClassName, textareaClassName } from '@/features/pricing/components/operational-ui'
+import { FieldError, selectClassName, textareaClassName } from '@/components/shared/operational-ui'
 
 import type { CatalogItemRow } from '../catalog/catalog.types'
 import type { QuotationFormValues } from './quotation.schemas'

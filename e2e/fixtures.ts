@@ -24,6 +24,14 @@ export interface FixtureState {
   attachmentExpected?: boolean
   quotationId?: string
   quotationReference: string
+  crm: {
+    pjClientId?: string
+    pjClientName: string
+    pjTaxId: string
+    pfClientId?: string
+    pfClientName: string
+    pfTaxId: string
+  }
   priceApproval: {
     categoryId?: string
     categoryName: string
@@ -55,6 +63,12 @@ export function createFixtureState(): FixtureState {
     catalogItemCode: `${prefix}_ITEM`,
     catalogItemName: `${prefix}_CATALOG_ITEM`,
     quotationReference: `${prefix}_QUOTE`,
+    crm: {
+      pjClientName: `${prefix}_PJ_CLIENT`,
+      pjTaxId: '11222333000181',
+      pfClientName: `${prefix}_PF_CLIENT`,
+      pfTaxId: '52998224725',
+    },
     priceApproval: {
       categoryName: `${prefix}_PRICE_CATEGORY`,
       catalogItemCode: `${prefix}_PRICE_ITEM`,
@@ -170,6 +184,10 @@ where ((id = ${sqlLiteral(supplierId)}::uuid and name = ${sqlLiteral(state.suppl
     or (id = ${sqlLiteral(bestSupplierId)}::uuid and name = ${sqlLiteral(state.priceApproval.bestSupplierName)})
     or (id = ${sqlLiteral(alternativeSupplierId)}::uuid and name = ${sqlLiteral(state.priceApproval.alternativeSupplierName)}))
   and left(coalesce(notes, ''), length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
+delete from public.client_contacts where client_id in (
+  select id from public.clients where left(legal_name, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
+);
+delete from public.clients where left(legal_name, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
 commit;
 `
 

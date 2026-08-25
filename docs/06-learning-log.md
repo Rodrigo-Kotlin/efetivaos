@@ -308,6 +308,34 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
+## LL-026 — React Compiler impureza: Date.now() em render
+
+**Data:** 2026-08-25
+
+**Contexto:** eslint-plugin-react-hooks v7+ inclui a regra `react-hooks/purity` que bloqueia `Date.now()` durante render, mesmo dentro de `useMemo` ou `useRef`.
+
+**Aprendizado:** `Date.now()` é classificada como função impure pelo React Compiler. Não pode ser chamada diretamente no corpo do componente nem dentro de callbacks de `useMemo`/`useRef`. O padrão aceito é `useState(() => Date.now() - offset)` para capturar um timestamp estável na inicialização懒.
+
+**Aplicação:** Substituímos `Date.now()` direto no JSX por `const [cutoff] = useState(() => Date.now() - 30 * 24 * 60 * 60 * 1000)` que roda uma única vez na inicialização.
+
+**Impacto futuro:** Qualquer cálculo temporal em render deve usar lazy initializer do `useState` ou ser extraído para fora do componente.
+
+---
+
+## LL-027 — @typescript-eslint/no-unused-vars e padrão de stub components
+
+**Data:** 2026-08-25
+
+**Contexto:** Componentes stub (que retornam null) com props tipadas geram `no-unused-vars` quando as props são desestruturadas.
+
+**Aprendizado:** O padrão `_prop` (prefixo underscore) para ignorar variáveis não utilizadas requer configuração explícita no eslint: `argsIgnorePattern: '^_'`. Sem isso, tanto `prop` quanto `_prop` são flagrados como erros.
+
+**Aplicação:** Adicionamos `argsIgnorePattern: '^_'` e `varsIgnorePattern: '^_'` à configuração do eslint para alinhar com a convenção TypeScript padrão.
+
+**Impacto futuro:** Todo novo componente stub pode usar `_` prefix sem erros de lint.
+
+---
+
 ## Template para novos registros
 
 ```text
