@@ -40,6 +40,12 @@ export async function listClients(filters?: {
   return { data: data as ClientListRow[], error: undefined }
 }
 
+export async function getClient(id: string): Promise<{ data: ClientListRow; error?: Error }> {
+  const { data, error } = await supabase.from('client_list_v').select(clientColumns).eq('id', id).single()
+  if (error) throw clientError(error, 'buscar')
+  return { data: data as ClientListRow, error: undefined }
+}
+
 export async function createClient(input: {
   legal_name: string
   trade_name: string | null

@@ -1,6 +1,6 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, type ColumnDef, type FilterFn, type SortingState } from '@tanstack/react-table'
 import { ArrowUpDown, Eye, Pencil, Plus, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
@@ -45,7 +45,7 @@ export default function QuotationsPage() {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'received_at', desc: true }])
   const suppliers = Array.from(new Map(quotations.map((quotation) => [quotation.supplier.id, quotation.supplier])).values()).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
 
-  const columns: ColumnDef<QuotationListRow>[] = [
+  const columns = useMemo<ColumnDef<QuotationListRow>[]>(() => [
     { accessorKey: 'reference_number', header: 'Referência', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.reference_number || 'Sem referência'}</strong> },
     { id: 'supplier', accessorFn: (row) => row.supplier.name, header: 'Fornecedor', filterFn: (row, _id, value) => value === 'all' || row.original.supplier.id === value },
     { accessorKey: 'received_at', header: 'Recebida', cell: ({ getValue }) => formatDate(getValue<string>()) },
@@ -61,7 +61,7 @@ export default function QuotationsPage() {
       id: 'actions', header: () => <span className="sr-only">Ações</span>, enableSorting: false,
       cell: ({ row }) => <Button asChild variant="ghost" size="sm"><Link aria-label={`${row.original.status === 'draft' ? 'Editar' : 'Ver'} cotação ${row.original.reference_number || 'sem referência'}`} to={`/pricing/quotations/${row.original.id}`}>{row.original.status === 'draft' ? <Pencil className="size-4" /> : <Eye className="size-4" />}<span className="hidden xl:inline">{row.original.status === 'draft' ? 'Editar' : 'Detalhes'}</span></Link></Button>,
     },
-  ]
+  ], [])
 
   // TanStack Table intentionally exposes non-memoizable functions.
   // eslint-disable-next-line react-hooks/incompatible-library

@@ -1,6 +1,6 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, type ColumnDef, type FilterFn, type SortingState } from '@tanstack/react-table'
 import { ArrowUpDown, Building2, Eye, Pencil, Plus, Power, PowerOff, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -81,7 +81,21 @@ export default function SuppliersPage() {
   const statusMutation = useSetSupplierStatus()
   const suppliers = suppliersQuery.data ?? []
 
-  const columns: ColumnDef<Supplier>[] = [
+  const changeStatus = useCallback(async (supplier: Supplier) => {
+    if (!online) {
+      toast.error('Sem conexao. Reconecte para alterar o fornecedor.')
+      return
+    }
+    if (supplier.active && !confirmInactivation(supplier)) return
+    try {
+      await statusMutation.mutateAsync({ id: supplier.id, active: !supplier.active })
+      toast.success(supplier.active ? 'Fornecedor inativado.' : 'Fornecedor reativado.')
+    } catch (error) {
+      toast.error(errorMessage(error))
+    }
+  }, [online, statusMutation])
+
+  const columns = useMemo<ColumnDef<Supplier>[]>(() => [
     {
       accessorKey: 'name',
       header: 'Fornecedor',
@@ -118,7 +132,7 @@ export default function SuppliersPage() {
         </div>
       ),
     },
-  ]
+  ], [statusMutation.isPending, changeStatus])
 
   // TanStack Table intentionally exposes non-memoizable functions.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -149,20 +163,6 @@ export default function SuppliersPage() {
         toast.success('Fornecedor cadastrado com sucesso.')
       }
       setDrawer(null)
-    } catch (error) {
-      toast.error(errorMessage(error))
-    }
-  }
-
-  async function changeStatus(supplier: Supplier) {
-    if (!online) {
-      toast.error('Sem conexao. Reconecte para alterar o fornecedor.')
-      return
-    }
-    if (supplier.active && !confirmInactivation(supplier)) return
-    try {
-      await statusMutation.mutateAsync({ id: supplier.id, active: !supplier.active })
-      toast.success(supplier.active ? 'Fornecedor inativado.' : 'Fornecedor reativado.')
     } catch (error) {
       toast.error(errorMessage(error))
     }

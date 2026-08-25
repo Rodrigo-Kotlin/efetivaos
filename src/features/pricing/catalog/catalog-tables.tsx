@@ -1,6 +1,6 @@
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef, type SortingState } from '@tanstack/react-table'
 import { ArrowUpDown, Pencil, Power, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { StatusBadge, TableShell } from '@/components/shared/operational-ui'
@@ -51,7 +51,7 @@ function DataTable<T>({ data, columns, label }: { data: T[]; columns: ColumnDef<
 }
 
 export function CatalogItemsTable({ items, statusPending, onEdit, onStatus }: { items: CatalogItemRow[]; statusPending: boolean; onEdit: (item: CatalogItemRow) => void; onStatus: (item: CatalogItemRow) => void }) {
-  const columns: ColumnDef<CatalogItemRow>[] = [
+  const columns = useMemo<ColumnDef<CatalogItemRow>[]>(() => [
     { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
     { accessorKey: 'name', header: 'Item / servico', cell: ({ row }) => <div><strong className="font-semibold text-slate-950">{row.original.name}</strong>{row.original.description && <p className="mt-0.5 max-w-sm truncate text-xs text-slate-500">{row.original.description}</p>}</div> },
     { id: 'category', header: 'Categoria', cell: ({ row }) => <span>{row.original.category.name}{!row.original.category.active && <span className="ml-1 text-xs text-slate-500">(inativa)</span>}</span> },
@@ -70,12 +70,12 @@ export function CatalogItemsTable({ items, statusPending, onEdit, onStatus }: { 
         </div>
       ),
     },
-  ]
+  ], [statusPending, onEdit, onStatus])
   return <DataTable data={items} columns={columns} label="Itens do catalogo" />
 }
 
 export function CatalogCategoriesTable({ categories, statusPending, onEdit, onStatus }: { categories: CatalogCategoryRow[]; statusPending: boolean; onEdit: (category: CatalogCategoryRow) => void; onStatus: (category: CatalogCategoryRow) => void }) {
-  const columns: ColumnDef<CatalogCategoryRow>[] = [
+  const columns = useMemo<ColumnDef<CatalogCategoryRow>[]>(() => [
     { accessorKey: 'name', header: 'Categoria', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.name}</strong> },
     { accessorKey: 'active', header: 'Status', cell: ({ row }) => <StatusBadge active={row.original.active} /> },
     {
@@ -91,6 +91,6 @@ export function CatalogCategoriesTable({ categories, statusPending, onEdit, onSt
         </div>
       ),
     },
-  ]
+  ], [statusPending, onEdit, onStatus])
   return <DataTable data={categories} columns={columns} label="Categorias do catalogo" />
 }

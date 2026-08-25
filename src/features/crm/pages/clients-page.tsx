@@ -1,6 +1,6 @@
-import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, type FilterFn, type SortingState } from '@tanstack/react-table'
+import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, type ColumnDef, type FilterFn, type SortingState } from '@tanstack/react-table'
 import { ArrowUpDown, Eye, Pencil, Plus, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import ClientForm from '@/features/crm/pages/ClientForm'
 import ClientDetails from '@/features/crm/pages/ClientDetails'
 
 import { useOnlineStatus } from '@/hooks/use-online-status'
-import { useClientLists, useCreateClientMutation, useSetClientStatusMutation } from '@/features/crm/queries/client-queries'
+import { useClientLists, useCreateClientMutation, useSetClientStatusMutation, useUpdateClientMutation } from '@/features/crm/queries/client-queries'
 import type { ClientListRow } from '@/types/database'
 
 type StatusFilter = 'all' | 'active' | 'inactive'
@@ -51,13 +51,13 @@ export default function ClientsPage() {
 
   const clients = clientsQuery.data ?? []
   const createClientMutation = useCreateClientMutation()
+  const updateClientMutation = useUpdateClientMutation()
   const setClientStatusMutation = useSetClientStatusMutation()
 
-  const formOpen = drawer?.mode !== 'create' && drawer ? drawer.client : undefined
+  const isFormOpen = drawer?.mode === 'create' || drawer?.mode === 'edit'
+  const editingClient = drawer && drawer.mode !== 'create' ? drawer.client : undefined
 
-  const table = useReactTable({
-    data: clients,
-    columns: [
+  const columns = useMemo<ColumnDef<ClientListRow>[]>(() => [
       {
         accessorKey: 'legal_name',
         header: 'Cliente',
@@ -119,9 +119,15 @@ export default function ClientsPage() {
               </Button>
             </div>
           )
-        },
       },
-    ],
+    },
+  ], [setClientStatusMutation, online])
+
+  // TanStack Table intentionally exposes non-memoizable functions.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data: clients,
+    columns,
     state: { globalFilter: search, columnFilters: [{ id: 'status', value: status }, { id: 'type', value: type }], sorting },
     onGlobalFilterChange: setSearch,
     onSortingChange: setSorting,
@@ -160,11 +166,16 @@ export default function ClientsPage() {
       return
     }
     try {
-      await createClientMutation.mutateAsync(input)
-      toast.success('Cliente cadastrado com sucesso.')
+      if (drawer?.mode === 'edit' && drawer.client) {
+        await updateClientMutation.mutateAsync({ id: drawer.client.id, input })
+        toast.success('Cliente atualizado com sucesso.')
+      } else {
+        await createClientMutation.mutateAsync(input)
+        toast.success('Cliente cadastrado com sucesso.')
+      }
       setDrawer(null)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Não foi possível cadastrar o cliente.')
+      toast.error(error instanceof Error ? error.message : 'Não foi possível salvar o cliente.')
     }
   }
 
@@ -263,15 +274,16 @@ export default function ClientsPage() {
         title={drawer?.mode === 'create' ? 'Novo cliente' : drawer?.mode === 'edit' ? 'Editar cliente' : drawer?.client?.legal_name ?? 'Cliente'}
         description={drawer?.mode === 'detail' ? 'Visualizar dados completos do cliente.' : 'Preencha os dados cadastrais. A Razão Social / Nome completo é obrigatória.'}
       >
-        {formOpen ? (
+        {isFormOpen ? (
           <ClientForm
             key={`${drawer?.mode ?? 'create'}-${drawer?.client?.id ?? 'new'}`}
-            client={drawer?.client}
+            client={editingClient}
+            pending={createClientMutation.isPending || updateClientMutation.isPending}
             onCancel={() => setDrawer(null)}
             onSubmit={submitClientInput}
           />
-        ) : drawer?.client ? (
-          <ClientDetails client={drawer.client} onEdit={() => setDrawer({ mode: 'edit', client: drawer.client })} />
+        ) : editingClient ? (
+          <ClientDetails client={editingClient} onEdit={() => setDrawer({ mode: 'edit', client: editingClient })} />
         ) : null}
       </Drawer>
     </div>

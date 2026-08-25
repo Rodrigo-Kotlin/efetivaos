@@ -57,7 +57,7 @@ export function clientFormDefaults(): ClientFormValues {
     trade_name: '',
     client_type: 'individual',
     tax_id: '',
-email: '',
+    email: '',
     phone: '',
     website: '',
     zip_code: '',
