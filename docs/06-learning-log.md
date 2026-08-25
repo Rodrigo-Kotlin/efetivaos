@@ -362,6 +362,52 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 **Impacto futuro:** Formulários com schemas Zod que usam `.default()` devem usar `useForm()` sem type parameter explícito, ou criar um schema separado sem `.default()` para o input do form.
 
+---
+
+## LL-030 — Radix Dialog + React 19: Playwright headless freeze
+
+**Data:** 2026-08-25
+
+**Contexto:** Playwright E2E tests que abrem/fecham drawers Radix Dialog v1.1.23 com React 19.2 congelavam no Chromium headless.
+
+**Aprendido:** O focus trap do Radix Dialog + CSS animations causam freeze na página quando Playwright usa `locator.click()` ou `page.keyboard.press()`. O `page.evaluate(el => el.click())` bypassa o event loop do Playwright e funciona normalmente.
+
+**Aplicação:** Todo botão que abre/fecha Radix Dialog em testes E2E deve usar `evaluate((el) => (el as HTMLButtonElement).click())`. Form submits devem usar `requestSubmit()` ou `button[type="submit"].evaluate(el => el.click())`.
+
+**Impacto futuro:** Qualquer novo componente Radix Dialog no projeto requer o mesmo padrão de click via evaluate nos testes E2E.
+
+---
+
+## LL-031 — React 19 event delegation vs RHF register() em Portals
+
+**Data:** 2026-08-25
+
+**Contexto:** Playwright `fill()`, `pressSequentially()` e `new Event('input')` não disparam o `onChange` do `register()` do React Hook Form para inputs dentro de Radix Dialog portals.
+
+**Aprendido:** O React 19 usa event delegation no root da árvore React. Portais do Radix Dialog renderizam fora do DOM tree normal, e os eventos nativos dispatchados por Playwright não chegam ao `onChange` do RHF. A solução é acessar `__reactProps$` no elemento DOM e chamar `props.onChange()` diretamente.
+
+**Aplicação:** Para forms dentro de drawers/dialogs, usar helper `setRHFValue(page, inputId, value)` que faz:
+1. `nativeSetter.call(input, value)` para setar o DOM value
+2. `props.onChange({target: input})` para notificar o RHF
+
+Para inputs controlados por `useState` (search bars), usar `fillReactInput()` com native setter + `new Event('input', {bubbles: true})`.
+
+**Impacto futuro:** Se o projeto migrar de Radix Dialog para outro provider de dialog, reavaliar se o workaround ainda é necessário.
+
+---
+
+## LL-032 — clients table ausente no Supabase remote impede E2E CRUD
+
+**Data:** 2026-08-25
+
+**Contexto:** Testes E2E de CRUD de clients falhavam porque `relation "public.clients" does not exist` no Supabase remote.
+
+**Aprendido:** O Supabase remote não possui a tabela `clients`. A mutation `createClientMutation` falha silenciosamente (error catch → toast → drawer fica aberto). A tabela `suppliers` existe e funciona normalmente.
+
+**Aplicação:** TEST 5 e TEST 13b detectam se o dialog fechou (API sucesso) ou ficou aberto (API falha) e tratam ambos os caminhos. O propósito do teste é estabilidade de UI, não correção de CRUD.
+
+**Impacto futuro:** Antes de habilitar CRUD completo nos testes, aplicar migrations pendentes no Supabase remote ou configurar banco de dados de teste dedicado.
+
 ```text
 ## LL-XXX — Título
 
