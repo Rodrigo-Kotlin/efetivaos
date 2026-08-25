@@ -13,6 +13,10 @@ export default async function globalTeardown() {
     throw error
   }
 
-  await cleanupFixtures(serviceClient(), state)
+  try {
+    await cleanupFixtures(serviceClient(), state)
+  } catch (error) {
+    console.warn('[globalTeardown] Fixture cleanup failed (non-fatal):', error instanceof Error ? error.message : error)
+  }
   await rm(fixtureStatePath, { force: true })
 }

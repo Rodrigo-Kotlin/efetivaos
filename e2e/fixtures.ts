@@ -184,9 +184,12 @@ where ((id = ${sqlLiteral(supplierId)}::uuid and name = ${sqlLiteral(state.suppl
     or (id = ${sqlLiteral(bestSupplierId)}::uuid and name = ${sqlLiteral(state.priceApproval.bestSupplierName)})
     or (id = ${sqlLiteral(alternativeSupplierId)}::uuid and name = ${sqlLiteral(state.priceApproval.alternativeSupplierName)}))
   and left(coalesce(notes, ''), length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
-delete from public.client_contacts where client_id in (
-  select id from public.clients where left(legal_name, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
-);
+DO $$ BEGIN
+  DELETE FROM public.client_contacts WHERE client_id IN (
+    SELECT id FROM public.clients WHERE left(legal_name, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)}
+  );
+EXCEPTION WHEN undefined_table THEN NULL;
+END $$;
 delete from public.clients where left(legal_name, length(${sqlLiteral(state.prefix)})) = ${sqlLiteral(state.prefix)};
 commit;
 `
