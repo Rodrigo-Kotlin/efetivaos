@@ -498,6 +498,21 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-035 — UI Stability: TanStack Table columns must use useMemo
+
+**Data:** 2026-08-25
+**Status:** FECHADA
+
+**Contexto:** Pages com TanStack Table apresentavam freezes intermitentes causados por referências instáveis de `columns` e `data`.
+
+**Decisão:** Todos os `useReactTable` devem receber `columns` via `useMemo<ColumnDef<T>[]>(...)` com dependency array correto. Data que pode ser `undefined` deve usar `useMemo` ou constante estável, nunca `?? []` inline.
+
+**Motivo:** TanStack Table detecta mudança de referência em `columns` e `data` e re-renderiza toda a tabela. Quando esses objetos são criados inline no corpo do componente, cada render cria novas referências, causando ciclos de re-renderização infinitos.
+
+**Impacto:** Todos os 7 call sites de `useReactTable` foram auditados. 4 precisaram de correção (suppliers, clients, quotations, catalog). 3 já estavam corretos (rules, comparison, offers-drawer).
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

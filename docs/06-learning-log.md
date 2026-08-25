@@ -336,7 +336,31 @@ Este arquivo não substitui o Decision Register. Use-o para registrar descoberta
 
 ---
 
-## Template para novos registros
+## LL-028 — TanStack Table render loops from unstable column references
+
+**Data:** 2026-08-25
+
+**Contexto:** Usuários reportaram freezes intermitentes na UI, especialmente em páginas com tabelas. Análise de código identificou que `columns` definidas como `const` inline (sem `useMemo`) causavam novas referências a cada render.
+
+**Aprendizado:** TanStack Table compara referências de `data` e `columns` para decidir se precisa re-renderizar. Três padrões anti-devem ser evitados: (1) `data ?? []` que cria novo array a cada render quando `data` é undefined; (2) `columns` definidas como array literal inline dentro de `useReactTable()`; (3) callbacks/state não-memoizados usados dentro de column definitions.
+
+**Aplicação:** Aplicamos `useMemo<ColumnDef<T>[]>(...)` com dependency array correto em todos os 4 call sites afetados. Para callbacks usados dentro das columns (como `changeStatus`), envolvemos em `useCallback` antes do `useMemo` de columns.
+
+**Impacto futuro:** Todo novo componente que use `useReactTable` deve seguir o padrão: columns via `useMemo`, data como referência estável, callbacks via `useCallback`.
+
+---
+
+## LL-029 — React Hook Form zodResolver type mismatch with .default()
+
+**Data:** 2026-08-25
+
+**Contexto:** `zodResolver(clientSchema)` causava erro TypeScript porque o schema usava `.default()` e `.optional()`, tornando o tipo de input diferente do tipo de output (`ClientFormValues`).
+
+**Aprendizado:** Quando um schema Zod usa `.default()`, o tipo inferido de input tem campos opcionais (porque o valor pode ser ausente e será preenchido pelo default). Mas `useForm<ClientFormValues>` usa o tipo de output (campos required). Isso causa incompatibilidade com `zodResolver`.
+
+**Aplicação:** Removemos o type parameter explícito de `useForm()` e deixamos o TypeScript inferir a partir do resolver. Isso preserva type safety nos campos do form sem conflito de tipos.
+
+**Impacto futuro:** Formulários com schemas Zod que usam `.default()` devem usar `useForm()` sem type parameter explícito, ou criar um schema separado sem `.default()` para o input do form.
 
 ```text
 ## LL-XXX — Título

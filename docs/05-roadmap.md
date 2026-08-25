@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** CRM Light (ETAPA 07) concluido. Aguardando proxima etapa autorizada.
+**Status atual:** UI Stability Hotfix (hotfix 2026-08-25) concluido. CRM stubs implementados. TanStack Table columns memoizados.
 
 ---
 
@@ -330,11 +330,39 @@ Gate:
 Findings:
 
 - pgTAP remoto requer Docker (pg_prove) — SQL lint remoto aprovado como alternativa;
-- ClientForm, ClientDetails, ClientFormPage, ClientDetailPage são stubs (retornam null);
+- ~~ClientForm, ClientDetails, ClientFormPage, ClientDetailPage são stubs (retornam null)~~ — CORRIGIDO no hotfix 2026-08-25;
 - chunk principal > 500 kB (conhecido, não bloqueante);
 - TanStack Table incompatible-library warning (conhecido, não bloqueante);
 - unicidade CPF/CNPJ é global (preservada);
 - Equipe possui mesmo CRUD que Admin (políticas idênticas);
+- ~~TanStack Table columns não memoizadas causavam render loops~~ — CORRIGIDO no hotfix 2026-08-25;
+- ~~ClientsPage formOpen condition invertida~~ — CORRIGIDO no hotfix 2026-08-25;
+- useUpdateClientMutation não existia — ADICIONADO no hotfix 2026-08-25;
+
+### Hotfix: UI Stability (2026-08-25)
+
+**Status:** DEPLOYED
+
+Commit: `12452da`  
+Preview: `https://880b3320.efetivaos.pages.dev`
+
+Escopo:
+
+- useMemo em columns de todos os 7 call sites de useReactTable (4 corrigidos, 3 já estavam OK);
+- fix ClientsPage formOpen condition (inverted → correct);
+- implementação de ClientForm, ClientDetails, ClientFormPage, ClientDetailPage (stubs → real);
+- adição de useUpdateClientMutation;
+- adição de getClient API + useClientDetail hook;
+- useCallback em changeStatus (suppliers-page);
+- fix indentação em client-schema.ts;
+
+Gate:
+
+- lint 0 errors, 1 warning (React Hook Form watch — conhecido);
+- Vitest 147/147 aprovados;
+- build TypeScript + Vite sem erros;
+- bundle: 564.82 kB / 165.22 kB gzip (sem mudança significativa);
+- smoke test 4/4 URLs retorna 200;
 
 ---
 
