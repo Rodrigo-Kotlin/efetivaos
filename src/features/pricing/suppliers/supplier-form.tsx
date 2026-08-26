@@ -30,7 +30,7 @@ export function SupplierForm({ supplier, pending = false, onCancel, onSubmit }: 
     <form className="space-y-5" onSubmit={handleSubmit((values) => onSubmit(toSupplierInput(values)))} noValidate>
       <div>
         <label className="text-sm font-semibold text-slate-800" htmlFor="name">Nome / Nome fantasia *</label>
-        <Input id="name" autoFocus {...register('name')} {...field('name')} />
+        <Input id="name" {...register('name')} {...field('name')} />
         <FieldError id="name-error">{errors.name?.message}</FieldError>
       </div>
       <div>

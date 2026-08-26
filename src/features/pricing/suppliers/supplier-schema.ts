@@ -11,7 +11,7 @@ export const supplierSchema = z.object({
   category: optionalText(100),
   contact_name: optionalText(160),
   email: z.string().trim().max(254, 'Use no maximo 254 caracteres.').refine(
-    (value) => value === '' || z.email().safeParse(value).success,
+    (value) => value === '' || z.string().email().safeParse(value).success,
     'Informe um e-mail valido.',
   ),
   phone: optionalText(32),

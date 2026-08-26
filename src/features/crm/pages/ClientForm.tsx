@@ -56,7 +56,7 @@ export default function ClientForm({ client, pending = false, onCancel, onSubmit
         <label className="text-sm font-semibold text-slate-800" htmlFor="legal_name">
           {clientType === 'company' ? 'Razão Social *' : 'Nome completo *'}
         </label>
-        <Input id="legal_name" autoFocus {...register('legal_name')} {...field('legal_name')} />
+        <Input id="legal_name" {...register('legal_name')} {...field('legal_name')} />
         <FieldError id="legal_name-error">{errors.legal_name?.message}</FieldError>
       </div>
 
