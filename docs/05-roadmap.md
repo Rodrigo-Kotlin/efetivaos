@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** UI Stability Hotfix (hotfix 2026-08-25) concluido. CRM stubs implementados. TanStack Table columns memoizados.
+**Status atual:** ETAPA 08A Fundação Contábil-Gerencial concluído. Financeiro 360 módulo inicial disponível.
 
 ---
 
@@ -390,6 +390,41 @@ Gate:
 - **ETAPA 07E**: production deploy verified (commit `1dbb140`, deploy `72db5c42`);
 - **ETAPA 07E**: 33/34 E2E tests green (1 pre-existing);
 - **ETAPA 07E**: production route smoke 10/10 HTTP 200;
+
+---
+
+### ETAPA 08A — Fundação Contábil-Gerencial
+
+**Status:** COMPLETED
+
+Escopo:
+
+- Plano de Contas (6 classes, ~80 contas semente);
+- Centros de Custo (8 centros semente);
+- Linhas de Serviço (7 linhas semente);
+- Categorias Financeiras (30+ categorias com mapeamento contábil);
+- Contas Financeiras (caixa/banco);
+- Formas de Pagamento (8 meios semente);
+- RLS completo (Admin CRUD, Equipe RU);
+- UI: launcher + 6 páginas CRUD com drawer, busca e filtros;
+- 6 rotas lazy-loaded.
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- `npm run lint` sem erros;
+- `supabase db push --linked` migration aplicada com sucesso;
+- types definidos em `database.ts` (inline);
+- handoff `docs/19-handoff-sprint-08a.md` criado;
+- `docs/04-decision-register.md` atualizado com DEC-011;
+- `docs/05-roadmap.md` atualizado.
+
+Findings:
+
+- import em database.ts de módulo externo quebrava inferência TS — corrigido com tipos inline;
+- `presentation_sign` DB tipo `int4`, app `1 | -1` — cast explícito;
+- period_locks sem overlap constraint (aplicação);
+- chunk finance lazy-loaded isolados.
 
 ---
 

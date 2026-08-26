@@ -7,6 +7,8 @@ type AuditFields = {
   updated_by: string | null
 }
 
+type FinanceAuditFields = AuditFields
+
 export type Profile = AuditFields & {
   id: string
   full_name: string | null
@@ -226,6 +228,44 @@ export type ClientListRow = Client & {
   primary_contact_phone: string | null
   contact_count: number
   active_contact_count: number
+}
+
+export type FinancialAccountClass = 'ATIVO' | 'PASSIVO' | 'PL' | 'RECEITA' | 'CUSTO' | 'DESPESA'
+export type FinancialNature = 'DEBITO' | 'CREDITO'
+export type FinancialCurrentClass = 'CIRCULANTE' | 'NAO_CIRCULANTE'
+export type FinancialDfcClass = 'OPERACIONAL' | 'INVESTIMENTO' | 'FINANCIAMENTO' | 'NAO_CAIXA' | 'TRANSFERENCIA'
+export type FinancialMovementType = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA' | 'EMPRESTIMO_RECEBIDO' | 'EMPRESTIMO_PAGO' | 'APORTE' | 'RETIRADA' | 'IMOBILIZADO' | 'SALDO_INICIAL' | 'AJUSTE'
+export type FinancialAccountType = 'CAIXA' | 'CONTA_CORRENTE' | 'POUPANCA' | 'CARTAO' | 'INVESTIMENTO' | 'OUTRO'
+
+export type ChartAccount = FinanceAuditFields & {
+  id: string; code: string; name: string; class: FinancialAccountClass; nature: FinancialNature; posting: boolean; active: boolean; current_class: FinancialCurrentClass | null; bp_group: string; dre_class: string; dfc_default: FinancialDfcClass; dva_class: string; is_cash: boolean; presentation_sign: number
+}
+export type CostCenter = FinanceAuditFields & {
+  id: string; code: string | null; name: string; active: boolean; description: string | null
+}
+export type ServiceLine = FinanceAuditFields & {
+  id: string; name: string; active: boolean; description: string | null
+}
+export type FinancialCategory = FinanceAuditFields & {
+  id: string; name: string; movement_type: FinancialMovementType; counter_account_id: string | null; cost_center_id: string | null; service_line_id: string | null; cash_flow_class: FinancialDfcClass; active: boolean
+}
+export type FinancialCategoryList = FinancialCategory & {
+  counter_account_code: string | null; counter_account_name: string | null; cost_center_name: string | null; service_line_name: string | null
+}
+export type FinancialAccount = FinanceAuditFields & {
+  id: string; name: string; chart_account_id: string; institution: string | null; account_type: FinancialAccountType; active: boolean; opening_date: string | null; notes: string | null
+}
+export type FinancialAccountList = FinancialAccount & {
+  chart_account_code: string | null; chart_account_name: string | null
+}
+export type PaymentMethod = FinanceAuditFields & {
+  id: string; name: string; active: boolean
+}
+export type FinancialParty = FinanceAuditFields & {
+  id: string; name: string; party_type: string; document: string | null; email: string | null; phone: string | null; client_id: string | null; supplier_id: string | null; active: boolean; notes: string | null
+}
+export type PeriodLock = {
+  id: string; period_start: string; period_end: string; locked_at: string; locked_by: string | null; reason: string | null; created_at: string
 }
 
 export type Database = {
@@ -543,8 +583,177 @@ export type Database = {
           },
         ]
       }
+      financial_chart_accounts: {
+        Row: ChartAccount
+        Insert: {
+          id?: string
+          code: string
+          name: string
+          class: FinancialAccountClass
+          nature: FinancialNature
+          posting?: boolean
+          active?: boolean
+          current_class?: FinancialCurrentClass | null
+          bp_group: string
+          dre_class: string
+          dfc_default?: FinancialDfcClass
+          dva_class: string
+          is_cash?: boolean
+          presentation_sign?: number
+        }
+        Update: Partial<Omit<ChartAccount, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: []
+      }
+      financial_cost_centers: {
+        Row: CostCenter
+        Insert: {
+          id?: string
+          code?: string | null
+          name: string
+          active?: boolean
+          description?: string | null
+        }
+        Update: Partial<Omit<CostCenter, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: []
+      }
+      financial_service_lines: {
+        Row: ServiceLine
+        Insert: {
+          id?: string
+          name: string
+          active?: boolean
+          description?: string | null
+        }
+        Update: Partial<Omit<ServiceLine, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: []
+      }
+      financial_categories: {
+        Row: FinancialCategory
+        Insert: {
+          id?: string
+          name: string
+          movement_type: FinancialMovementType
+          counter_account_id?: string | null
+          cost_center_id?: string | null
+          service_line_id?: string | null
+          cash_flow_class?: FinancialDfcClass
+          active?: boolean
+        }
+        Update: Partial<Omit<FinancialCategory, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: [
+          {
+            foreignKeyName: 'financial_categories_counter_account_id_fkey'
+            columns: ['counter_account_id']
+            isOneToOne: false
+            referencedRelation: 'financial_chart_accounts'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'financial_categories_cost_center_id_fkey'
+            columns: ['cost_center_id']
+            isOneToOne: false
+            referencedRelation: 'financial_cost_centers'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'financial_categories_service_line_id_fkey'
+            columns: ['service_line_id']
+            isOneToOne: false
+            referencedRelation: 'financial_service_lines'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      financial_accounts: {
+        Row: FinancialAccount
+        Insert: {
+          id?: string
+          name: string
+          chart_account_id: string
+          institution?: string | null
+          account_type?: FinancialAccountType
+          active?: boolean
+          opening_date?: string | null
+          notes?: string | null
+        }
+        Update: Partial<Omit<FinancialAccount, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: [
+          {
+            foreignKeyName: 'financial_accounts_chart_account_id_fkey'
+            columns: ['chart_account_id']
+            isOneToOne: false
+            referencedRelation: 'financial_chart_accounts'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      financial_payment_methods: {
+        Row: PaymentMethod
+        Insert: {
+          id?: string
+          name: string
+          active?: boolean
+        }
+        Update: Partial<Omit<PaymentMethod, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: []
+      }
+      financial_parties: {
+        Row: FinancialParty
+        Insert: {
+          id?: string
+          name: string
+          party_type: string
+          document?: string | null
+          email?: string | null
+          phone?: string | null
+          client_id?: string | null
+          supplier_id?: string | null
+          active?: boolean
+          notes?: string | null
+        }
+        Update: Partial<Omit<FinancialParty, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: [
+          {
+            foreignKeyName: 'financial_parties_client_id_fkey'
+            columns: ['client_id']
+            isOneToOne: false
+            referencedRelation: 'clients'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'financial_parties_supplier_id_fkey'
+            columns: ['supplier_id']
+            isOneToOne: false
+            referencedRelation: 'suppliers'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      financial_period_locks: {
+        Row: PeriodLock
+        Insert: {
+          id?: string
+          period_start: string
+          period_end: string
+          reason?: string | null
+        }
+        Update: never
+        Relationships: []
+      }
     }
     Views: {
+      financial_chart_accounts_list_v: {
+        Row: ChartAccount
+        Relationships: []
+      }
+      financial_categories_list_v: {
+        Row: FinancialCategoryList
+        Relationships: []
+      }
+      financial_accounts_list_v: {
+        Row: FinancialAccountList
+        Relationships: []
+      }
       client_list_v: {
         Row: ClientListRow
         Relationships: []
@@ -645,6 +854,12 @@ export type Database = {
       margin_scope_type: 'global' | 'category' | 'item'
       price_status: PriceStatus
       quotation_status: QuotationStatus
+      financial_account_class: FinancialAccountClass
+      financial_nature: FinancialNature
+      financial_current_class: FinancialCurrentClass
+      financial_dfc_class: FinancialDfcClass
+      financial_movement_type: FinancialMovementType
+      financial_account_type: FinancialAccountType
     }
     CompositeTypes: Record<string, never>
   }

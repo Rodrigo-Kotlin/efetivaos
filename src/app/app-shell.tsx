@@ -23,6 +23,12 @@ const navigation = [
   { to: '/pricing/quotations', label: 'Cotacoes', icon: ClipboardList },
   { to: '/crm', label: 'CRM', icon: ContactRound, end: true },
   { to: '/crm/clients', label: 'Clientes', icon: UsersRound },
+  { to: '/finance', label: 'Financeiro', icon: CircleDollarSign, end: true },
+  { to: '/finance/chart-accounts', label: 'Plano de Contas', icon: LibraryBig },
+  { to: '/finance/cost-centers', label: 'Centros de Custo', icon: Building2 },
+  { to: '/finance/service-lines', label: 'Linhas de Servico', icon: ListTree },
+  { to: '/finance/categories', label: 'Categorias', icon: ClipboardList },
+  { to: '/finance/accounts', label: 'Contas', icon: Settings },
 ]
 
 function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: () => void; forceExpanded?: boolean }) {

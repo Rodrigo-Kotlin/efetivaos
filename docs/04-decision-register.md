@@ -513,6 +513,21 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-011 — Finance types definidos inline em database.ts
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** A migration de financeiro criou 8 tabelas. O Supabase client TypeScript depende da definição do tipo `Database` em `database.ts` para inferir tipos das tabelas.
+
+**Decisão:** Os tipos financeiros (ChartAccount, CostCenter, ServiceLine, FinancialCategory, FinancialAccount, PaymentMethod, FinancialParty, PeriodLock) e seus enums são definidos inline em `database.ts` e re-exportados via `src/features/finance/types/finance-types.ts`.
+
+**Motivo:** Um `import type` de módulo externo (finance-types.ts) posicionado entre definições de tipo e a definição de `Database` quebrava a inferência de tipos do Supabase client, causando `never` em todas as tabelas.
+
+**Impacto:** `database.ts` contém a única fonte de verdade para tipos de tabela. `finance-types.ts` é apenas re-export. Ao adicionar novas tabelas futuras, definir os tipos em `database.ts` primeiro.
+
+---
+
 ## Pendências ainda abertas
 
 ### PEND-001 — Nome definitivo do sistema

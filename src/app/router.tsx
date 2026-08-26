@@ -19,6 +19,12 @@ const CrmPage = lazy(() => import('@/features/crm/pages/crm-page'))
 const ClientsPage = lazy(() => import('@/features/crm/pages/clients-page'))
 const ClientFormPage = lazy(() => import('@/features/crm/pages/client-form-page'))
 const ClientDetailPage = lazy(() => import('@/features/crm/pages/client-detail-page'))
+const FinancePage = lazy(() => import('@/features/finance/pages/finance-page'))
+const ChartAccountsPage = lazy(() => import('@/features/finance/pages/chart-accounts-page'))
+const CostCentersPage = lazy(() => import('@/features/finance/pages/cost-centers-page'))
+const ServiceLinesPage = lazy(() => import('@/features/finance/pages/service-lines-page'))
+const CategoriesPage = lazy(() => import('@/features/finance/pages/categories-page'))
+const AccountsPage = lazy(() => import('@/features/finance/pages/accounts-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -49,6 +55,12 @@ export const router = createBrowserRouter([
           { path: 'crm/clients/new', element: pending(<ClientFormPage />) },
           { path: 'crm/clients/:clientId', element: pending(<ClientDetailPage />) },
           { path: 'crm/clients/:clientId/edit', element: pending(<ClientFormPage />) },
+          { path: 'finance', element: pending(<FinancePage />) },
+          { path: 'finance/chart-accounts', element: pending(<ChartAccountsPage />) },
+          { path: 'finance/cost-centers', element: pending(<CostCentersPage />) },
+          { path: 'finance/service-lines', element: pending(<ServiceLinesPage />) },
+          { path: 'finance/categories', element: pending(<CategoriesPage />) },
+          { path: 'finance/accounts', element: pending(<AccountsPage />) },
         ],
       },
     ],
