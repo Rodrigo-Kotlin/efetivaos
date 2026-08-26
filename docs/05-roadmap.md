@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08D COMPLETED.
+**Status atual:** ETAPA 08D COMPLETED (MICROGATE 08D.1 PASSED).
 
 ---
 
