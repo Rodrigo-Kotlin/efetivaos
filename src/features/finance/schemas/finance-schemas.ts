@@ -69,3 +69,77 @@ export const paymentMethodSchema = z.object({
 })
 
 export type PaymentMethodFormValues = z.infer<typeof paymentMethodSchema>
+
+// ---------------------------------------------------------------------------
+// Transaction schemas (Motor de Lançamentos 08B)
+// ---------------------------------------------------------------------------
+
+const MOVEMENT_TYPES = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL', 'AJUSTE'] as const
+
+export const transactionBaseSchema = z.object({
+  description: z.string().min(3, 'Descricao deve ter ao menos 3 caracteres').max(500),
+  transaction_date: z.string().min(1, 'Data da transacao e obrigatoria'),
+  competence_date: z.string().min(1, 'Data de competencia e obrigatoria'),
+  movement_type: z.enum(MOVEMENT_TYPES),
+  amount: z.coerce.number().positive('Valor deve ser maior que zero'),
+  origin_account_id: z.string().nullable().default(null),
+  destination_account_id: z.string().nullable().default(null),
+  category_id: z.string().nullable().default(null),
+  party_id: z.string().nullable().default(null),
+  cost_center_id: z.string().nullable().default(null),
+  service_line_id: z.string().nullable().default(null),
+  payment_method_id: z.string().nullable().default(null),
+  due_date: z.string().nullable().default(null),
+  payment_date: z.string().nullable().default(null),
+  notes: z.string().max(1000).nullable().default(null),
+  principal_amount: z.coerce.number().nullable().default(null),
+  interest_amount: z.coerce.number().nullable().default(null),
+})
+
+export type TransactionBaseFormValues = z.infer<typeof transactionBaseSchema>
+
+export const transactionSchema = transactionBaseSchema.refine(
+  (data) => {
+    switch (data.movement_type) {
+      case 'RECEITA':
+      case 'DESPESA':
+      case 'APORTE':
+      case 'RETIRADA':
+        return !!data.category_id
+      case 'TRANSFERENCIA':
+      case 'IMOBILIZADO':
+      case 'SALDO_INICIAL':
+        return !!data.origin_account_id || !!data.destination_account_id
+      case 'EMPRESTIMO_RECEBIDO':
+        return !!data.destination_account_id
+      case 'EMPRESTIMO_PAGO':
+        return !!data.origin_account_id
+      case 'AJUSTE':
+        return !!data.category_id
+      default:
+        return true
+    }
+  },
+  { message: 'Preencha os campos obrigatorios para o tipo de movimento', path: ['movement_type'] },
+)
+
+export type TransactionFormValues = z.infer<typeof transactionSchema>
+
+export const MOVEMENT_TYPE_LABELS: Record<string, string> = {
+  RECEITA: 'Receita',
+  DESPESA: 'Despesa',
+  TRANSFERENCIA: 'Transferencia',
+  EMPRESTIMO_RECEBIDO: 'Emprestimo Recebido',
+  EMPRESTIMO_PAGO: 'Emprestimo Pago',
+  APORTE: 'Aporte',
+  RETIRADA: 'Retirada',
+  IMOBILIZADO: 'Imobilizado',
+  SALDO_INICIAL: 'Saldo Inicial',
+  AJUSTE: 'Ajuste',
+}
+
+export const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pendente',
+  settled: 'Liquidado',
+  cancelled: 'Cancelado',
+}

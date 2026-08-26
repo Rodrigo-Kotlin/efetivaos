@@ -268,6 +268,29 @@ export type PeriodLock = {
   id: string; period_start: string; period_end: string; locked_at: string; locked_by: string | null; reason: string | null; created_at: string
 }
 
+export type FinancialTransactionStatus = 'pending' | 'settled' | 'cancelled'
+
+export type FinancialTransaction = FinanceAuditFields & {
+  id: string; description: string; transaction_date: string; competence_date: string; movement_type: FinancialMovementType; amount: string; status: FinancialTransactionStatus; category_id: string | null; origin_account_id: string | null; destination_account_id: string | null; party_id: string | null; cost_center_id: string | null; service_line_id: string | null; payment_method_id: string | null; due_date: string | null; payment_date: string | null; notes: string | null; review_required: boolean; version: number
+}
+export type FinancialTransactionList = FinancialTransaction & {
+  category_name: string | null; origin_account_name: string | null; destination_account_name: string | null; party_name: string | null; cost_center_name: string | null; service_line_name: string | null; payment_method_name: string | null; journal_entry_count: number; total_debit: string; total_credit: string
+}
+
+export type FinancialJournalEntry = {
+  id: string; transaction_id: string; entry_type: string; entry_date: string; competence_date: string; description: string; status: FinancialTransactionStatus; review_required: boolean; created_at: string; created_by: string | null
+}
+export type FinancialJournalEntryList = FinancialJournalEntry & {
+  total_debit: string; total_credit: string
+}
+
+export type FinancialJournalLine = {
+  id: string; entry_id: string; chart_account_id: string; debit: string; credit: string; description: string | null; created_at: string
+}
+export type FinancialJournalLineList = FinancialJournalLine & {
+  chart_account_code: string | null; chart_account_name: string | null; chart_account_class: FinancialAccountClass | null
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -740,6 +763,73 @@ export type Database = {
         Update: never
         Relationships: []
       }
+      financial_transactions: {
+        Row: FinancialTransaction
+        Insert: {
+          id?: string
+          description: string
+          transaction_date?: string
+          competence_date?: string
+          movement_type: FinancialMovementType
+          amount: number | string
+          status?: FinancialTransactionStatus
+          category_id?: string | null
+          origin_account_id?: string | null
+          destination_account_id?: string | null
+          party_id?: string | null
+          cost_center_id?: string | null
+          service_line_id?: string | null
+          payment_method_id?: string | null
+          due_date?: string | null
+          payment_date?: string | null
+          notes?: string | null
+          review_required?: boolean
+          version?: number
+        }
+        Update: Partial<Omit<FinancialTransaction, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: [
+          { foreignKeyName: 'ft_category_id_fkey'; columns: ['category_id']; isOneToOne: false; referencedRelation: 'financial_categories'; referencedColumns: ['id'] },
+          { foreignKeyName: 'ft_origin_account_id_fkey'; columns: ['origin_account_id']; isOneToOne: false; referencedRelation: 'financial_accounts'; referencedColumns: ['id'] },
+          { foreignKeyName: 'ft_destination_account_id_fkey'; columns: ['destination_account_id']; isOneToOne: false; referencedRelation: 'financial_accounts'; referencedColumns: ['id'] },
+          { foreignKeyName: 'ft_party_id_fkey'; columns: ['party_id']; isOneToOne: false; referencedRelation: 'financial_parties'; referencedColumns: ['id'] },
+          { foreignKeyName: 'ft_cost_center_id_fkey'; columns: ['cost_center_id']; isOneToOne: false; referencedRelation: 'financial_cost_centers'; referencedColumns: ['id'] },
+          { foreignKeyName: 'ft_service_line_id_fkey'; columns: ['service_line_id']; isOneToOne: false; referencedRelation: 'financial_service_lines'; referencedColumns: ['id'] },
+          { foreignKeyName: 'ft_payment_method_id_fkey'; columns: ['payment_method_id']; isOneToOne: false; referencedRelation: 'financial_payment_methods'; referencedColumns: ['id'] },
+        ]
+      }
+      financial_journal_entries: {
+        Row: FinancialJournalEntry
+        Insert: {
+          id?: string
+          transaction_id: string
+          entry_type?: string
+          entry_date?: string
+          competence_date?: string
+          description: string
+          status?: FinancialTransactionStatus
+          review_required?: boolean
+        }
+        Update: Partial<Omit<FinancialJournalEntry, 'id' | 'created_at' | 'created_by'>>
+        Relationships: [
+          { foreignKeyName: 'fje_transaction_id_fkey'; columns: ['transaction_id']; isOneToOne: false; referencedRelation: 'financial_transactions'; referencedColumns: ['id'] },
+        ]
+      }
+      financial_journal_lines: {
+        Row: FinancialJournalLine
+        Insert: {
+          id?: string
+          entry_id: string
+          chart_account_id: string
+          debit?: number | string
+          credit?: number | string
+          description?: string | null
+        }
+        Update: Partial<Omit<FinancialJournalLine, 'id' | 'created_at'>>
+        Relationships: [
+          { foreignKeyName: 'fjl_entry_id_fkey'; columns: ['entry_id']; isOneToOne: false; referencedRelation: 'financial_journal_entries'; referencedColumns: ['id'] },
+          { foreignKeyName: 'fjl_chart_account_id_fkey'; columns: ['chart_account_id']; isOneToOne: false; referencedRelation: 'financial_chart_accounts'; referencedColumns: ['id'] },
+        ]
+      }
     }
     Views: {
       financial_chart_accounts_list_v: {
@@ -752,6 +842,18 @@ export type Database = {
       }
       financial_accounts_list_v: {
         Row: FinancialAccountList
+        Relationships: []
+      }
+      financial_transactions_list_v: {
+        Row: FinancialTransactionList
+        Relationships: []
+      }
+      financial_journal_entries_list_v: {
+        Row: FinancialJournalEntryList
+        Relationships: []
+      }
+      financial_journal_lines_list_v: {
+        Row: FinancialJournalLineList
         Relationships: []
       }
       client_list_v: {
@@ -845,6 +947,42 @@ export type Database = {
         Args: { target_user_id: string; new_role: AppRole }
         Returns: undefined
       }
+      create_financial_transaction: {
+        Args: {
+          p_description: string; p_transaction_date: string; p_competence_date: string
+          p_movement_type: FinancialMovementType; p_amount: number | string
+          p_category_id?: string | null; p_origin_account_id?: string | null
+          p_destination_account_id?: string | null; p_party_id?: string | null
+          p_cost_center_id?: string | null; p_service_line_id?: string | null
+          p_payment_method_id?: string | null; p_due_date?: string | null
+          p_payment_date?: string | null; p_notes?: string | null
+          p_principal_amount?: number | string | null; p_interest_amount?: number | string | null
+        }
+        Returns: string
+      }
+      settle_financial_transaction: {
+        Args: { p_transaction_id: string; p_payment_date: string; p_payment_method_id?: string | null }
+        Returns: undefined
+      }
+      cancel_financial_transaction: {
+        Args: { p_transaction_id: string; p_reason?: string | null }
+        Returns: undefined
+      }
+      update_financial_transaction: {
+        Args: {
+          p_transaction_id: string; p_description?: string | null
+          p_transaction_date?: string | null; p_competence_date?: string | null
+          p_movement_type?: FinancialMovementType | null; p_amount?: number | string | null
+          p_category_id?: string | null; p_origin_account_id?: string | null
+          p_destination_account_id?: string | null; p_party_id?: string | null
+          p_cost_center_id?: string | null; p_service_line_id?: string | null
+          p_payment_method_id?: string | null; p_due_date?: string | null
+          p_payment_date?: string | null; p_notes?: string | null
+          p_principal_amount?: number | string | null; p_interest_amount?: number | string | null
+          p_expected_version?: number | null
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: AppRole
@@ -860,6 +998,7 @@ export type Database = {
       financial_dfc_class: FinancialDfcClass
       financial_movement_type: FinancialMovementType
       financial_account_type: FinancialAccountType
+      financial_transaction_status: FinancialTransactionStatus
     }
     CompositeTypes: Record<string, never>
   }

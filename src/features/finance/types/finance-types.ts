@@ -5,6 +5,7 @@ export type {
   FinancialDfcClass,
   FinancialMovementType,
   FinancialAccountType,
+  FinancialTransactionStatus,
   ChartAccount,
   CostCenter,
   ServiceLine,
@@ -15,4 +16,10 @@ export type {
   PaymentMethod,
   FinancialParty,
   PeriodLock,
+  FinancialTransaction,
+  FinancialTransactionList,
+  FinancialJournalEntry,
+  FinancialJournalEntryList,
+  FinancialJournalLine,
+  FinancialJournalLineList,
 } from '@/types/database'

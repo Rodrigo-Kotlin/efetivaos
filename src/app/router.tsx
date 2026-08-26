@@ -25,6 +25,7 @@ const CostCentersPage = lazy(() => import('@/features/finance/pages/cost-centers
 const ServiceLinesPage = lazy(() => import('@/features/finance/pages/service-lines-page'))
 const CategoriesPage = lazy(() => import('@/features/finance/pages/categories-page'))
 const AccountsPage = lazy(() => import('@/features/finance/pages/accounts-page'))
+const TransactionsPage = lazy(() => import('@/features/finance/pages/transactions-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
           { path: 'finance/service-lines', element: pending(<ServiceLinesPage />) },
           { path: 'finance/categories', element: pending(<CategoriesPage />) },
           { path: 'finance/accounts', element: pending(<AccountsPage />) },
+          { path: 'finance/transactions', element: pending(<TransactionsPage />) },
         ],
       },
     ],

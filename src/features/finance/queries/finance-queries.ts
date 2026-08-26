@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import * as api from '../api/finance-api'
-import type { ChartAccountFormValues, CostCenterFormValues, ServiceLineFormValues, CategoryFormValues, FinancialAccountFormValues } from '../schemas/finance-schemas'
+import type { ChartAccountFormValues, CostCenterFormValues, ServiceLineFormValues, CategoryFormValues, FinancialAccountFormValues, TransactionBaseFormValues } from '../schemas/finance-schemas'
 
 // ---------------------------------------------------------------------------
 // Chart Accounts
@@ -144,6 +144,17 @@ export function useUpdateFinancialAccount() {
 }
 
 // ---------------------------------------------------------------------------
+// Parties (Pessoas)
+// ---------------------------------------------------------------------------
+
+export function useParties() {
+  return useQuery({
+    queryKey: ['finance', 'parties'],
+    queryFn: api.fetchParties,
+  })
+}
+
+// ---------------------------------------------------------------------------
 // Payment Methods
 // ---------------------------------------------------------------------------
 
@@ -168,5 +179,91 @@ export function useUpdatePaymentMethod() {
     mutationFn: ({ id, values }: { id: string; values: { name: string; active: boolean } }) =>
       api.updatePaymentMethod(id, values),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['finance', 'payment-methods'] }),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Transactions (Motor de Lançamentos 08B)
+// ---------------------------------------------------------------------------
+
+const TX_KEYS = {
+  all: ['finance', 'transactions'] as const,
+  list: () => [...TX_KEYS.all, 'list'] as const,
+  detail: (id: string) => [...TX_KEYS.all, 'detail', id] as const,
+  journal: (txId: string) => [...TX_KEYS.all, 'journal', txId] as const,
+}
+
+export function useTransactions() {
+  return useQuery({
+    queryKey: TX_KEYS.list(),
+    queryFn: api.fetchTransactions,
+  })
+}
+
+export function useTransactionDetail(id: string | null) {
+  return useQuery({
+    queryKey: TX_KEYS.detail(id ?? ''),
+    queryFn: () => api.fetchTransactionById(id!),
+    enabled: !!id,
+  })
+}
+
+export function useJournalEntries(transactionId: string | null) {
+  return useQuery({
+    queryKey: TX_KEYS.journal(transactionId ?? ''),
+    queryFn: () => api.fetchJournalEntriesByTransaction(transactionId!),
+    enabled: !!transactionId,
+  })
+}
+
+export function useJournalLines(entryId: string | null) {
+  return useQuery({
+    queryKey: [...TX_KEYS.all, 'lines', entryId ?? ''],
+    queryFn: () => api.fetchJournalLinesByEntry(entryId!),
+    enabled: !!entryId,
+  })
+}
+
+export function useCreateTransaction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (values: TransactionBaseFormValues) => api.createTransaction({
+      description: values.description,
+      transactionDate: values.transaction_date,
+      competenceDate: values.competence_date,
+      movementType: values.movement_type,
+      amount: values.amount,
+      categoryId: values.category_id,
+      originAccountId: values.origin_account_id,
+      destinationAccountId: values.destination_account_id,
+      partyId: values.party_id,
+      costCenterId: values.cost_center_id,
+      serviceLineId: values.service_line_id,
+      paymentMethodId: values.payment_method_id,
+      dueDate: values.due_date,
+      paymentDate: values.payment_date,
+      notes: values.notes,
+      principalAmount: values.principal_amount,
+      interestAmount: values.interest_amount,
+    }),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
+  })
+}
+
+export function useSettleTransaction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, paymentDate, paymentMethodId }: { id: string; paymentDate: string; paymentMethodId?: string | null }) =>
+      api.settleTransaction(id, paymentDate, paymentMethodId),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
+  })
+}
+
+export function useCancelTransaction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string | null }) =>
+      api.cancelTransaction(id, reason),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
   })
 }

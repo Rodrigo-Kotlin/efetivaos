@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08A Fundação Contábil-Gerencial concluído. Financeiro 360 módulo inicial disponível.
+**Status atual:** ETAPA 08B Motor de Lancamentos e Partidas Dobradas concluido. Financeiro 360 com camada transacional ativa.
 
 ---
 
@@ -425,6 +425,42 @@ Findings:
 - `presentation_sign` DB tipo `int4`, app `1 | -1` — cast explícito;
 - period_locks sem overlap constraint (aplicação);
 - chunk finance lazy-loaded isolados.
+
+---
+
+### ETAPA 08B — Motor de Lancamentos e Partidas Dobradas
+
+**Status:** COMPLETED
+
+Escopo:
+
+- 3 tabelas transacionais: financial_transactions, financial_journal_entries, financial_journal_lines;
+- 4 RPCs atomicas: create/settle/cancel/update_financial_transaction;
+- Motor de lancamentos contabeis automaticos (10 tipos de movimento);
+- Partidas dobradas com validacao de saldo (SUM(debit) = SUM(credit));
+- Estorno por reversao (swap debit/credit);
+- Views de lista com resolucao de nomes;
+- RLS completo (authenticated SELECT/INSERT/UPDATE, no DELETE);
+- UI: lista de transacoes, formulario dinamico por tipo, drawer de detalhes com partidas;
+- 55 testes SQL remotos (microgate 08B.1);
+- 48 testes frontend existentes (regression);
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- 55/55 SQL tests pass via `supabase db query --linked`;
+- 48/48 frontend tests pass;
+- handoff `docs/20-handoff-sprint-08b.md` criado;
+- `docs/04-decision-register.md` atualizado;
+- `docs/05-roadmap.md` atualizado.
+
+Findings:
+
+- balance trigger AFTER trigger: a soma ja inclui a nova linha, nao somar novamente;
+- reversal: swap debit/credit (nao negativo) por causa de CHECK constraint debit >= 0, credit >= 0;
+- settle/cancel substituem entries (delete+regenerate), nao adicionam;
+- `auth.uid()` retorna NULL em testes SQL via CLI (created_by nullable);
+- categorias 08A precisam de counter_account_id para o motor;
 
 ---
 

@@ -68,14 +68,14 @@ describe('Chart Accounts API', () => {
   it('createChartAccount insere e retorna o registro', async () => {
     const row = { id: 'ca-2', code: '2.1.01', name: 'Banco', presentation_sign: -1 }
     serviceMocks.tableResults.push({ data: row, error: null })
-    const result = await createChartAccount({ code: '2.1.01', name: 'Banco', class: 'PASSIVO', nature: 'CREDITO' })
+    const result = await createChartAccount({ code: '2.1.01', name: 'Banco', class: 'PASSIVO', nature: 'CREDITO', bp_group: '', dre_class: '', dva_class: '' })
     expect(result).toEqual({ ...row, presentation_sign: -1 })
     expect(serviceMocks.operations.find(op => op.method === 'financial_chart_accounts.insert')).toBeTruthy()
   })
 
   it('createChartAccount propaga erro do banco', async () => {
     serviceMocks.tableResults.push({ data: null, error: { message: 'duplicate key' } })
-    await expect(createChartAccount({ code: '2.1.01', name: 'Banco', class: 'PASSIVO', nature: 'CREDITO' })).rejects.toThrow()
+    await expect(createChartAccount({ code: '2.1.01', name: 'Banco', class: 'PASSIVO', nature: 'CREDITO', bp_group: '', dre_class: '', dva_class: '' })).rejects.toThrow()
   })
 
   it('updateChartAccount atualiza pelo id', async () => {

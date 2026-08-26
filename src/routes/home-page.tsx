@@ -1,4 +1,4 @@
-import { ArrowUpRight, Building2, CircleDollarSign, LayoutDashboard, Tag } from 'lucide-react'
+import { ArrowUpRight, Building2, CircleDollarSign, LayoutDashboard, Tag, ArrowLeftRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,7 @@ const modules = [
   { title: 'Motor de Precos', description: 'Cotacoes, comparacao e formacao de precos comerciais.', icon: Tag, to: '/pricing', status: 'MVP concluido', active: true },
   { title: 'CRM leve', description: 'Clientes e contatos da operacao.', icon: Building2, to: '/crm', status: 'Disponivel', active: true },
   { title: 'Financeiro', description: 'Plano de contas, centros de custo e categorias.', icon: CircleDollarSign, to: '/finance', status: 'ETAPA 08A', active: true },
+  { title: 'Transacoes', description: 'Motor de lancamentos e partidas dobradas.', icon: ArrowLeftRight, to: '/finance/transactions', status: 'ETAPA 08B', active: true },
   { title: 'Dashboard', description: 'Indicadores e alertas operacionais.', icon: LayoutDashboard, status: 'No Motor de Precos' },
 ]
 
