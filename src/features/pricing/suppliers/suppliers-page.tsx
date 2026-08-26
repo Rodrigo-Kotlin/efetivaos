@@ -1,6 +1,6 @@
 import { flexRender, getCoreRowModel, getFilteredRowModel, getSortedRowModel, useReactTable, type ColumnDef, type FilterFn, type SortingState } from '@tanstack/react-table'
 import { ArrowUpDown, Building2, Eye, Pencil, Plus, Power, PowerOff, Search } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -81,6 +81,9 @@ export default function SuppliersPage() {
   const statusMutation = useSetSupplierStatus()
   const suppliers = suppliersQuery.data ?? []
 
+  const statusMutationRef = useRef(statusMutation)
+  statusMutationRef.current = statusMutation
+
   const changeStatus = useCallback(async (supplier: Supplier) => {
     if (!online) {
       toast.error('Sem conexao. Reconecte para alterar o fornecedor.')
@@ -88,12 +91,14 @@ export default function SuppliersPage() {
     }
     if (supplier.active && !confirmInactivation(supplier)) return
     try {
-      await statusMutation.mutateAsync({ id: supplier.id, active: !supplier.active })
+      await statusMutationRef.current.mutateAsync({ id: supplier.id, active: !supplier.active })
       toast.success(supplier.active ? 'Fornecedor inativado.' : 'Fornecedor reativado.')
     } catch (error) {
       toast.error(errorMessage(error))
     }
-  }, [online, statusMutation])
+  }, [online])
+
+  const isStatusPending = statusMutation.isPending
 
   const columns = useMemo<ColumnDef<Supplier>[]>(() => [
     {
@@ -123,7 +128,7 @@ export default function SuppliersPage() {
             aria-label={`${row.original.active ? 'Inativar' : 'Reativar'} ${row.original.name}`}
             size="sm"
             variant="ghost"
-            disabled={statusMutation.isPending}
+            disabled={isStatusPending}
             onClick={() => void changeStatus(row.original)}
           >
             {row.original.active ? <PowerOff className="size-4" /> : <Power className="size-4" />}
@@ -132,21 +137,7 @@ export default function SuppliersPage() {
         </div>
       ),
     },
-  ], [statusMutation.isPending, changeStatus])
-
-  // TanStack Table intentionally exposes non-memoizable functions.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
-    data: suppliers,
-    columns,
-    state: { globalFilter: search, columnFilters: [{ id: 'active', value: status }], sorting },
-    onGlobalFilterChange: setSearch,
-    onSortingChange: setSorting,
-    globalFilterFn: supplierSearch,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
+  ], [isStatusPending, changeStatus])
 
   async function submitSupplier(input: SupplierInput) {
     if (!online) {
@@ -168,6 +159,24 @@ export default function SuppliersPage() {
     }
   }
 
+  const columnFilters = useMemo(() => [{ id: 'active' as const, value: status }], [status])
+  const coreRowModel = useMemo(getCoreRowModel, [])
+  const filteredRowModel = useMemo(getFilteredRowModel, [])
+  const sortedRowModel = useMemo(getSortedRowModel, [])
+
+  // TanStack Table intentionally exposes non-memoizable functions.
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const table = useReactTable({
+    data: suppliers,
+    columns,
+    state: { globalFilter: search, columnFilters, sorting },
+    onGlobalFilterChange: setSearch,
+    onSortingChange: setSorting,
+    globalFilterFn: supplierSearch,
+    getCoreRowModel: coreRowModel,
+    getFilteredRowModel: filteredRowModel,
+    getSortedRowModel: sortedRowModel,
+  })
   const rows = table.getRowModel().rows
   const editingSupplier = drawer && drawer.mode !== 'create' ? drawer.supplier : undefined
   const formOpen = drawer?.mode === 'create' || drawer?.mode === 'edit'
