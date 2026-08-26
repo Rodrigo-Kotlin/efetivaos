@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { CalendarDays, ArrowDownToLine, ArrowUpFromLine, Wallet, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import { ArrowDownToLine, ArrowUpFromLine, Wallet, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useCashflowRealized, useCashflowForecast, useCashflow13Weeks } from '../queries/finance-queries'
+import { useCashflowRealized, useCashflowForecast, useCashflow13Weeks, useCashflowSummary } from '../queries/finance-queries'
 import type { CashflowFilters } from '../api/finance-api'
 import { useFinancialAccounts, useCostCenters, useServiceLines } from '../queries/finance-queries'
 
@@ -29,28 +29,10 @@ export default function CashflowPage() {
     to: dateTo || null,
   }), [filters, dateFrom, dateTo])
 
+  const { data: summary, isLoading: lSummary, isError: eSummary } = useCashflowSummary(effectiveFilters)
   const { data: realized, isLoading: lRealized } = useCashflowRealized(effectiveFilters)
   const { data: forecast, isLoading: lForecast } = useCashflowForecast(effectiveFilters)
   const { data: weeks, isLoading: lWeeks } = useCashflow13Weeks(dateFrom || null)
-
-  const summary = useMemo(() => {
-    if (!realized) return { inflows: 0, outflows: 0, opening: 0, closing: 0 }
-    const inflows = realized.filter(r => r.direction === 'INFLOW').reduce((s, r) => s + Number(r.amount), 0)
-    const outflows = realized.filter(r => r.direction === 'OUTFLOW').reduce((s, r) => s + Number(r.amount), 0)
-    const firstEntry = realized[0]
-    const opening = firstEntry ? Number(firstEntry.cash_effect) - (firstEntry.direction === 'INFLOW' ? Number(firstEntry.amount) : -Number(firstEntry.amount)) : 0
-    return { inflows, outflows, opening: 0, closing: inflows - outflows }
-  }, [realized])
-
-  const forecastSummary = useMemo(() => {
-    if (!forecast) return { projectedIn: 0, projectedOut: 0 }
-    return {
-      projectedIn: forecast.reduce((s, r) => s + Number(r.projected_inflow), 0),
-      projectedOut: forecast.reduce((s, r) => s + Number(r.projected_outflow), 0),
-    }
-  }, [forecast])
-
-  const projectedBalance = summary.closing + forecastSummary.projectedIn - forecastSummary.projectedOut
 
   const applyFilter = (key: keyof CashflowFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value || null }))
@@ -120,16 +102,59 @@ export default function CashflowPage() {
         </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
-        <KpiCard icon={<Wallet className="h-4 w-4" />} label="Saldo Inicial" value={fmt(summary.opening)} />
-        <KpiCard icon={<ArrowDownToLine className="h-4 w-4 text-emerald-600" />} label="Entradas Realizadas" value={fmt(summary.inflows)} positive />
-        <KpiCard icon={<ArrowUpFromLine className="h-4 w-4 text-red-600" />} label="Saidas Realizadas" value={fmt(summary.outflows)} />
-        <KpiCard icon={<TrendingUp className="h-4 w-4" />} label="Saldo Final" value={fmt(summary.closing)} highlight={summary.closing >= 0} />
-        <KpiCard icon={<TrendingUp className="h-4 w-4 text-emerald-600" />} label="Entradas Previstas" value={fmt(forecastSummary.projectedIn)} positive />
-        <KpiCard icon={<TrendingDown className="h-4 w-4 text-red-600" />} label="Saidas Previstas" value={fmt(forecastSummary.projectedOut)} />
-        <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Saldo Projetado" value={fmt(projectedBalance)} highlight={projectedBalance >= 0} />
-      </div>
+      {/* KPI Cards — all values from backend summary */}
+      {eSummary ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          Erro ao carregar resumo do fluxo de caixa.
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <KpiCard
+            icon={<Wallet className="h-4 w-4" />}
+            label="Saldo Inicial"
+            value={lSummary ? null : fmt(summary?.opening_balance ?? 0)}
+            loading={lSummary}
+          />
+          <KpiCard
+            icon={<ArrowDownToLine className="h-4 w-4 text-emerald-600" />}
+            label="Entradas Realizadas"
+            value={lSummary ? null : fmt(summary?.realized_inflows ?? 0)}
+            loading={lSummary}
+          />
+          <KpiCard
+            icon={<ArrowUpFromLine className="h-4 w-4 text-red-600" />}
+            label="Saidas Realizadas"
+            value={lSummary ? null : fmt(summary?.realized_outflows ?? 0)}
+            loading={lSummary}
+          />
+          <KpiCard
+            icon={<TrendingUp className="h-4 w-4" />}
+            label="Saldo Final"
+            value={lSummary ? null : fmt(summary?.closing_balance ?? 0)}
+            loading={lSummary}
+            highlight={Number(summary?.closing_balance ?? 0) >= 0}
+          />
+          <KpiCard
+            icon={<TrendingUp className="h-4 w-4 text-emerald-600" />}
+            label="Entradas Previstas"
+            value={lSummary ? null : fmt(summary?.projected_inflows ?? 0)}
+            loading={lSummary}
+          />
+          <KpiCard
+            icon={<TrendingDown className="h-4 w-4 text-red-600" />}
+            label="Saidas Previstas"
+            value={lSummary ? null : fmt(summary?.projected_outflows ?? 0)}
+            loading={lSummary}
+          />
+          <KpiCard
+            icon={<BarChart3 className="h-4 w-4" />}
+            label="Saldo Projetado"
+            value={lSummary ? null : fmt(summary?.projected_balance ?? 0)}
+            loading={lSummary}
+            highlight={Number(summary?.projected_balance ?? 0) >= 0}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1">
@@ -164,17 +189,21 @@ export default function CashflowPage() {
 // KPI Card
 // ---------------------------------------------------------------------------
 
-function KpiCard({ icon, label, value, positive, highlight }: {
-  icon: React.ReactNode; label: string; value: string; positive?: boolean; highlight?: boolean
+function KpiCard({ icon, label, value, highlight, loading }: {
+  icon: React.ReactNode; label: string; value: string | null; highlight?: boolean; loading?: boolean
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-3">
       <div className="flex items-center gap-1.5 text-xs text-slate-500">
         {icon}{label}
       </div>
-      <p className={`mt-1 text-lg font-semibold ${highlight === false ? 'text-red-600' : highlight ? 'text-emerald-600' : ''}`}>
-        {value}
-      </p>
+      {loading ? (
+        <div className="mt-1 h-6 w-20 animate-pulse rounded bg-slate-100" />
+      ) : (
+        <p className={`mt-1 text-lg font-semibold ${highlight === false ? 'text-red-600' : highlight ? 'text-emerald-600' : ''}`}>
+          {value ?? '-'}
+        </p>
+      )}
     </div>
   )
 }
@@ -184,6 +213,16 @@ function KpiCard({ icon, label, value, positive, highlight }: {
 // ---------------------------------------------------------------------------
 
 function RealizedTable({ data, loading }: { data: { entry_date: string; direction: string; dfc_class: string; entry_description: string; party_name: string | null; cash_accounts: string; amount: string; cash_effect: string }[]; loading: boolean }) {
+  const runningBalances = useMemo(() => {
+    const balances: number[] = []
+    let acc = 0
+    for (const r of data) {
+      acc = acc + Number(r.cash_effect)
+      balances.push(acc)
+    }
+    return balances
+  }, [data])
+
   if (loading) {
     return <div className="space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100" />)}</div>
   }
@@ -194,8 +233,6 @@ function RealizedTable({ data, loading }: { data: { entry_date: string; directio
       </div>
     )
   }
-
-  let running = 0
 
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
@@ -214,7 +251,7 @@ function RealizedTable({ data, loading }: { data: { entry_date: string; directio
         </thead>
         <tbody>
           {data.map((r, i) => {
-            running += Number(r.cash_effect)
+            const running = runningBalances[i]
             return (
               <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
                 <td className="px-4 py-2 whitespace-nowrap">{fmtDate(r.entry_date)}</td>

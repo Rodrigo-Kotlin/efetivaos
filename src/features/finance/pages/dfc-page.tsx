@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { ArrowRightLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ArrowRightLeft, TrendingUp, TrendingDown } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useCashflowStatement } from '../queries/finance-queries'
+import type { CashflowFilters } from '../api/finance-api'
+import { useCostCenters, useServiceLines } from '../queries/finance-queries'
 
 const fmt = (v: string | number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
 
@@ -23,8 +24,20 @@ const CLASS_COLORS: Record<string, string> = {
 export default function DfcPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [costCenterId, setCostCenterId] = useState('')
+  const [serviceLineId, setServiceLineId] = useState('')
 
-  const { data: statement, isLoading } = useCashflowStatement()
+  const { data: costCenters } = useCostCenters()
+  const { data: serviceLines } = useServiceLines()
+
+  const filters: CashflowFilters = useMemo(() => ({
+    from: dateFrom || null,
+    to: dateTo || null,
+    costCenterId: costCenterId || null,
+    serviceLineId: serviceLineId || null,
+  }), [dateFrom, dateTo, costCenterId, serviceLineId])
+
+  const { data: statement, isLoading } = useCashflowStatement(filters)
 
   const saldoInicial = statement?.find(r => r.dfc_class === 'SALDO_INICIAL')
   const variacao = statement?.find(r => r.dfc_class === 'VARIACAO')
@@ -53,7 +66,29 @@ export default function DfcPage() {
           <label className="text-xs font-medium text-slate-500">Ate</label>
           <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-[150px]" />
         </div>
-        <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo('') }}>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-slate-500">Centro de Custo</label>
+          <select
+            className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm"
+            value={costCenterId}
+            onChange={e => setCostCenterId(e.target.value)}
+          >
+            <option value="">Todos</option>
+            {costCenters?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-slate-500">Linha de Servico</label>
+          <select
+            className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm"
+            value={serviceLineId}
+            onChange={e => setServiceLineId(e.target.value)}
+          >
+            <option value="">Todas</option>
+            {serviceLines?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); setCostCenterId(''); setServiceLineId('') }}>
           Limpar
         </Button>
       </div>

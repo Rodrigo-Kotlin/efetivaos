@@ -304,7 +304,7 @@ export type CashflowRealizedRow = {
   service_line_id: string | null; service_line_name: string | null
   party_id: string | null; party_name: string | null
   payment_method_id: string | null; payment_method_name: string | null
-  cash_accounts: string; cash_effect: string
+  cash_accounts: string; cash_effect: string; chart_account_ids: string[]
   direction: 'INFLOW' | 'OUTFLOW'; dfc_class: FinancialDfcClass; amount: string
 }
 
@@ -331,6 +331,12 @@ export type Cashflow13WeekRow = {
   week_number: number; week_start: string; week_end: string
   week_label: string; opening_balance: string
   inflows: string; outflows: string; closing_balance: string
+}
+
+export type CashflowSummaryRow = {
+  opening_balance: string; realized_inflows: string; realized_outflows: string
+  closing_balance: string; projected_inflows: string; projected_outflows: string
+  projected_balance: string
 }
 
 export type Database = {
@@ -1042,6 +1048,18 @@ export type Database = {
       cashflow_13_week_projection: {
         Args: { p_from?: string | null }
         Returns: Cashflow13WeekRow[]
+      }
+      cashflow_opening_balance: {
+        Args: { p_date?: string; p_account_id?: string | null }
+        Returns: { opening_balance: string }[]
+      }
+      get_cash_flow_statement: {
+        Args: { p_from?: string | null; p_to?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
+        Returns: CashflowStatementRow[]
+      }
+      cashflow_summary: {
+        Args: { p_from?: string | null; p_to?: string | null; p_account_id?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
+        Returns: CashflowSummaryRow[]
       }
     }
     Enums: {

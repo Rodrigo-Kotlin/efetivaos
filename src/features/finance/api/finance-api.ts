@@ -14,11 +14,11 @@ import type {
   FinancialJournalEntryList,
   FinancialJournalLineList,
   FinancialMovementType,
-  FinancialTransactionStatus,
   CashflowRealizedRow,
   CashflowForecastRow,
   CashflowStatementRow,
   Cashflow13WeekRow,
+  CashflowSummaryRow,
 } from '@/types/database'
 
 type FinanceTables = Database['public']['Tables']
@@ -407,7 +407,7 @@ export async function fetchJournalLinesByEntry(entryId: string): Promise<Financi
 }
 
 // ---------------------------------------------------------------------------
-// Cash Flow / DFC (ETAPA 08D)
+// Cash Flow / DFC (ETAPA 08D + 08D.1 corrections)
 // ---------------------------------------------------------------------------
 
 export interface CashflowFilters {
@@ -418,11 +418,35 @@ export interface CashflowFilters {
   serviceLineId?: string | null
 }
 
+export async function fetchCashflowOpeningBalance(date: string, accountId?: string | null): Promise<number> {
+  const { data, error } = await supabase.rpc('cashflow_opening_balance', {
+    p_date: date,
+    p_account_id: accountId ?? null,
+  })
+  if (error) throw error
+  return Number(data ?? 0)
+}
+
+export async function fetchCashflowSummary(filters: CashflowFilters = {}): Promise<CashflowSummaryRow> {
+  const { data, error } = await supabase.rpc('cashflow_summary', {
+    p_from: filters.from ?? null,
+    p_to: filters.to ?? null,
+    p_account_id: filters.accountId ?? null,
+    p_cost_center_id: filters.costCenterId ?? null,
+    p_service_line_id: filters.serviceLineId ?? null,
+  })
+  if (error) throw error
+  return (data as unknown as CashflowSummaryRow) ?? {
+    opening_balance: '0', realized_inflows: '0', realized_outflows: '0',
+    closing_balance: '0', projected_inflows: '0', projected_outflows: '0', projected_balance: '0',
+  }
+}
+
 export async function fetchCashflowRealized(filters: CashflowFilters = {}): Promise<CashflowRealizedRow[]> {
   let q = supabase.from('financial_cashflow_realized_v').select('*')
   if (filters.from) q = q.gte('entry_date', filters.from)
   if (filters.to) q = q.lte('entry_date', filters.to)
-  if (filters.accountId) q = q.eq('cash_accounts', filters.accountId)
+  if (filters.accountId) q = q.contains('chart_account_ids', [filters.accountId])
   if (filters.costCenterId) q = q.eq('cost_center_id', filters.costCenterId)
   if (filters.serviceLineId) q = q.eq('service_line_id', filters.serviceLineId)
   q = q.order('entry_date', { ascending: true }).order('created_at', { ascending: true })
@@ -444,10 +468,12 @@ export async function fetchCashflowForecast(filters: CashflowFilters = {}): Prom
 }
 
 export async function fetchCashflowStatement(filters: CashflowFilters = {}): Promise<CashflowStatementRow[]> {
-  const { data, error } = await supabase
-    .from('financial_cashflow_statement_v')
-    .select('*')
-    .order('sort_order', { ascending: true })
+  const { data, error } = await supabase.rpc('get_cash_flow_statement', {
+    p_from: filters.from ?? null,
+    p_to: filters.to ?? null,
+    p_cost_center_id: filters.costCenterId ?? null,
+    p_service_line_id: filters.serviceLineId ?? null,
+  })
   if (error) throw error
   return (data ?? []) as CashflowStatementRow[]
 }

@@ -247,7 +247,10 @@ export function useCreateTransaction() {
       interestAmount: values.interest_amount,
       idempotencyKey: values.idempotency_key,
     }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: TX_KEYS.all })
+      void qc.invalidateQueries({ queryKey: CF_KEYS.all })
+    },
   })
 }
 
@@ -256,7 +259,10 @@ export function useSettleTransaction() {
   return useMutation({
     mutationFn: ({ id, paymentDate, paymentMethodId }: { id: string; paymentDate: string; paymentMethodId?: string | null }) =>
       api.settleTransaction(id, paymentDate, paymentMethodId),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: TX_KEYS.all })
+      void qc.invalidateQueries({ queryKey: CF_KEYS.all })
+    },
   })
 }
 
@@ -265,7 +271,10 @@ export function useCancelTransaction() {
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason?: string | null }) =>
       api.cancelTransaction(id, reason),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: TX_KEYS.all })
+      void qc.invalidateQueries({ queryKey: CF_KEYS.all })
+    },
   })
 }
 
@@ -277,8 +286,16 @@ const CF_KEYS = {
   all: ['finance', 'cashflow'] as const,
   realized: (filters: api.CashflowFilters) => [...CF_KEYS.all, 'realized', filters] as const,
   forecast: (filters: api.CashflowFilters) => [...CF_KEYS.all, 'forecast', filters] as const,
-  statement: () => [...CF_KEYS.all, 'statement'] as const,
+  statement: (filters: api.CashflowFilters) => [...CF_KEYS.all, 'statement', filters] as const,
+  summary: (filters: api.CashflowFilters) => [...CF_KEYS.all, 'summary', filters] as const,
   weeks13: (from?: string | null) => [...CF_KEYS.all, 'weeks13', from ?? ''] as const,
+}
+
+export function useCashflowSummary(filters: api.CashflowFilters = {}) {
+  return useQuery({
+    queryKey: CF_KEYS.summary(filters),
+    queryFn: () => api.fetchCashflowSummary(filters),
+  })
 }
 
 export function useCashflowRealized(filters: api.CashflowFilters = {}) {
@@ -295,10 +312,10 @@ export function useCashflowForecast(filters: api.CashflowFilters = {}) {
   })
 }
 
-export function useCashflowStatement() {
+export function useCashflowStatement(filters: api.CashflowFilters = {}) {
   return useQuery({
-    queryKey: CF_KEYS.statement(),
-    queryFn: () => api.fetchCashflowStatement(),
+    queryKey: CF_KEYS.statement(filters),
+    queryFn: () => api.fetchCashflowStatement(filters),
   })
 }
 

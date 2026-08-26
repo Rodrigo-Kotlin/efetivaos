@@ -26,4 +26,5 @@ export type {
   CashflowForecastRow,
   CashflowStatementRow,
   Cashflow13WeekRow,
+  CashflowSummaryRow,
 } from '@/types/database'
