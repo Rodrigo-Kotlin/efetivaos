@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08C COMPLETED.
+**Status atual:** ETAPA 08D COMPLETED.
 
 ---
 
@@ -464,6 +464,52 @@ Findings:
 - `auth.uid()` retorna NULL em testes SQL via CLI — is_admin() guard bypass quando auth.uid() IS NULL;
 - categorias 08A precisam de counter_account_id para o motor;
 - migration re-executavel requer DROP TRIGGER IF EXISTS para triggers;
+
+---
+
+### ETAPA 08C — Contas a Receber e Contas a Pagar
+
+**Status:** COMPLETED
+
+Escopo:
+
+- Views `financial_receivables_v` e `financial_payables_v` sobre o ledger append-only;
+- Funcoes `update_*_status()` para gerenciamento de status;
+- UI: listas de recebiveis e pagaveis com filtros, busca, badges e status;
+- 08C.1 microgate validado;
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- 206/206 frontend tests pass;
+- handoff `docs/21-handoff-sprint-08c.md`;
+- microgate `docs/23-microgate-08c-1-validation.md` (commit `a30e082`).
+
+---
+
+### ETAPA 08D — Fluxo de Caixa e DFC
+
+**Status:** COMPLETED
+
+Escopo:
+
+- Views `financial_cashflow_realized_v` (movimentacoes realizadas) e `financial_cashflow_forecast_v` (compromissos pendentes);
+- View `financial_cashflow_statement_v` (DFC: OPERACIONAL/INVESTIMENTO/FINANCIAMENTO);
+- Funcao `cashflow_13_week_projection(date)` (projecao 13 semanas, SRF, Semana-Feria);
+- Classificacao DFC via movement_type > cash_flow_class > dfc_default > OPERACIONAL;
+- Transferencias neutralizadas (net=0 em DFC);
+- UI: pagina Fluxo de Caixa (tabs Realizado/Projetado/13 Semanas) com KPIs e filtros;
+- UI: pagina DFC com cards por classe e conciliacao;
+- 50/50 SQL tests remotos;
+- Sidebar e routing atualizados;
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- 50/50 SQL tests pass via `supabase db query --linked`;
+- 206/206 frontend tests pass;
+- commit `d33d24b`;
+- deploy `14d82940.efetivaos.pages.dev` HTTP 200;
 
 ---
 
