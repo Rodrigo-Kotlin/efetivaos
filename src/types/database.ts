@@ -291,6 +291,48 @@ export type FinancialJournalLineList = FinancialJournalLine & {
   chart_account_code: string | null; chart_account_name: string | null; chart_account_class: FinancialAccountClass | null
 }
 
+// ---------------------------------------------------------------------------
+// Cash Flow / DFC view types (ETAPA 08D)
+// ---------------------------------------------------------------------------
+
+export type CashflowRealizedRow = {
+  entry_id: string; transaction_id: string; entry_date: string; entry_description: string
+  competence_date: string; status: FinancialTransactionStatus; created_at: string
+  transaction_description: string; movement_type: FinancialMovementType; transaction_amount: string
+  category_id: string | null; category_name: string | null
+  cost_center_id: string | null; cost_center_name: string | null
+  service_line_id: string | null; service_line_name: string | null
+  party_id: string | null; party_name: string | null
+  payment_method_id: string | null; payment_method_name: string | null
+  cash_accounts: string; cash_effect: string
+  direction: 'INFLOW' | 'OUTFLOW'; dfc_class: FinancialDfcClass; amount: string
+}
+
+export type CashflowForecastRow = {
+  transaction_id: string; description: string; movement_type: FinancialMovementType
+  status: FinancialTransactionStatus; due_date: string | null
+  original_amount: string; open_amount: string
+  direction: 'INFLOW' | 'OUTFLOW'
+  projected_inflow: string; projected_outflow: string
+  party_name: string | null; category_name: string | null
+  cost_center_id: string | null; cost_center_name: string | null
+  service_line_id: string | null; service_line_name: string | null
+  overdue: boolean; days_overdue: number | null
+  due_bucket: string
+}
+
+export type CashflowStatementRow = {
+  dfc_class: string; dfc_class_label: string
+  inflows: string; outflows: string; net_amount: string
+  opening_balance: string; sort_order: number
+}
+
+export type Cashflow13WeekRow = {
+  week_number: number; week_start: string; week_end: string
+  week_label: string; opening_balance: string
+  inflows: string; outflows: string; closing_balance: string
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -857,6 +899,18 @@ export type Database = {
         Row: FinancialJournalLineList
         Relationships: []
       }
+      financial_cashflow_realized_v: {
+        Row: CashflowRealizedRow
+        Relationships: []
+      }
+      financial_cashflow_forecast_v: {
+        Row: CashflowForecastRow
+        Relationships: []
+      }
+      financial_cashflow_statement_v: {
+        Row: CashflowStatementRow
+        Relationships: []
+      }
       client_list_v: {
         Row: ClientListRow
         Relationships: []
@@ -984,6 +1038,10 @@ export type Database = {
           p_expected_version?: number | null
         }
         Returns: undefined
+      }
+      cashflow_13_week_projection: {
+        Args: { p_from?: string | null }
+        Returns: Cashflow13WeekRow[]
       }
     }
     Enums: {

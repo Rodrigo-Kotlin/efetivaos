@@ -15,6 +15,10 @@ import type {
   FinancialJournalLineList,
   FinancialMovementType,
   FinancialTransactionStatus,
+  CashflowRealizedRow,
+  CashflowForecastRow,
+  CashflowStatementRow,
+  Cashflow13WeekRow,
 } from '@/types/database'
 
 type FinanceTables = Database['public']['Tables']
@@ -400,4 +404,58 @@ export async function fetchJournalLinesByEntry(entryId: string): Promise<Financi
     .order('debit', { ascending: false })
   if (error) throw error
   return (data ?? []) as FinancialJournalLineList[]
+}
+
+// ---------------------------------------------------------------------------
+// Cash Flow / DFC (ETAPA 08D)
+// ---------------------------------------------------------------------------
+
+export interface CashflowFilters {
+  from?: string | null
+  to?: string | null
+  accountId?: string | null
+  costCenterId?: string | null
+  serviceLineId?: string | null
+}
+
+export async function fetchCashflowRealized(filters: CashflowFilters = {}): Promise<CashflowRealizedRow[]> {
+  let q = supabase.from('financial_cashflow_realized_v').select('*')
+  if (filters.from) q = q.gte('entry_date', filters.from)
+  if (filters.to) q = q.lte('entry_date', filters.to)
+  if (filters.accountId) q = q.eq('cash_accounts', filters.accountId)
+  if (filters.costCenterId) q = q.eq('cost_center_id', filters.costCenterId)
+  if (filters.serviceLineId) q = q.eq('service_line_id', filters.serviceLineId)
+  q = q.order('entry_date', { ascending: true }).order('created_at', { ascending: true })
+  const { data, error } = await q
+  if (error) throw error
+  return (data ?? []) as CashflowRealizedRow[]
+}
+
+export async function fetchCashflowForecast(filters: CashflowFilters = {}): Promise<CashflowForecastRow[]> {
+  let q = supabase.from('financial_cashflow_forecast_v').select('*')
+  if (filters.from) q = q.gte('due_date', filters.from)
+  if (filters.to) q = q.lte('due_date', filters.to)
+  if (filters.costCenterId) q = q.eq('cost_center_id', filters.costCenterId)
+  if (filters.serviceLineId) q = q.eq('service_line_id', filters.serviceLineId)
+  q = q.order('due_date', { ascending: true, nullsFirst: true })
+  const { data, error } = await q
+  if (error) throw error
+  return (data ?? []) as CashflowForecastRow[]
+}
+
+export async function fetchCashflowStatement(filters: CashflowFilters = {}): Promise<CashflowStatementRow[]> {
+  const { data, error } = await supabase
+    .from('financial_cashflow_statement_v')
+    .select('*')
+    .order('sort_order', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as CashflowStatementRow[]
+}
+
+export async function fetchCashflow13Weeks(from?: string | null): Promise<Cashflow13WeekRow[]> {
+  const { data, error } = await supabase.rpc('cashflow_13_week_projection', {
+    p_from: from ?? null,
+  })
+  if (error) throw error
+  return (data ?? []) as Cashflow13WeekRow[]
 }

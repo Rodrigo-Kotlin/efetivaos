@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08B Motor de Lancamentos e Partidas Dobradas concluido. Financeiro 360 com camada transacional ativa.
+**Status atual:** ETAPA 08C COMPLETED.
 
 ---
 

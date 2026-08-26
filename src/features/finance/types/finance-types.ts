@@ -22,4 +22,8 @@ export type {
   FinancialJournalEntryList,
   FinancialJournalLine,
   FinancialJournalLineList,
+  CashflowRealizedRow,
+  CashflowForecastRow,
+  CashflowStatementRow,
+  Cashflow13WeekRow,
 } from '@/types/database'

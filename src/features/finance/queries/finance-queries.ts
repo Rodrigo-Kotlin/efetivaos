@@ -268,3 +268,43 @@ export function useCancelTransaction() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
   })
 }
+
+// ---------------------------------------------------------------------------
+// Cash Flow / DFC (ETAPA 08D)
+// ---------------------------------------------------------------------------
+
+const CF_KEYS = {
+  all: ['finance', 'cashflow'] as const,
+  realized: (filters: api.CashflowFilters) => [...CF_KEYS.all, 'realized', filters] as const,
+  forecast: (filters: api.CashflowFilters) => [...CF_KEYS.all, 'forecast', filters] as const,
+  statement: () => [...CF_KEYS.all, 'statement'] as const,
+  weeks13: (from?: string | null) => [...CF_KEYS.all, 'weeks13', from ?? ''] as const,
+}
+
+export function useCashflowRealized(filters: api.CashflowFilters = {}) {
+  return useQuery({
+    queryKey: CF_KEYS.realized(filters),
+    queryFn: () => api.fetchCashflowRealized(filters),
+  })
+}
+
+export function useCashflowForecast(filters: api.CashflowFilters = {}) {
+  return useQuery({
+    queryKey: CF_KEYS.forecast(filters),
+    queryFn: () => api.fetchCashflowForecast(filters),
+  })
+}
+
+export function useCashflowStatement() {
+  return useQuery({
+    queryKey: CF_KEYS.statement(),
+    queryFn: () => api.fetchCashflowStatement(),
+  })
+}
+
+export function useCashflow13Weeks(from?: string | null) {
+  return useQuery({
+    queryKey: CF_KEYS.weeks13(from),
+    queryFn: () => api.fetchCashflow13Weeks(from),
+  })
+}
