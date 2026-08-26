@@ -154,24 +154,52 @@ Card "Financeiro" ativado com link e status "ETAPA 08A".
 
 - `npm run build` → ✅ OK
 - TypeScript: 0 erros
-- Vite build: 19.2s
+- Vite build: 9.49s
 
 ### Lint
 
 - `npm run lint` → ✅ 0 erros (1 warning pre-existente: React Hook Form incompatible-library)
 
-### SQL
+### SQL Tests (remote, transactional ROLLBACK)
 
-- `supabase db push --linked` → ✅ Migration aplicada com sucesso
-- Nenhum erro de schema
+- `supabase db query --linked --file 08a_microgate_tests.sql` → ✅ **50/50 PASS**
+- Seed counts: chart_accounts=98, cost_centers=8, service_lines=7, categories=42, payment_methods=8
+- Class distribution: ATIVO=22, PASSIVO=20, PL=7, RECEITA=11, CUSTO=12, DESPESA=26
+- Category distribution: RECEITA=6, DESPESA=32, IMOBILIZADO=4
+- RLS: 24 policies (8 tables × 3 ops), period_locks uses is_admin() for INSERT/UPDATE
+- Grants: authenticated SELECT/INSERT/UPDATE only, no anon/public grants
+- Triggers: 8 audit + 2 normalize + 1 protect + 1 validate_cash
+- Views: 3 views with security_invoker=true
+- Unique constraints: all active names unique
+- Referential integrity: all FKs valid
+- No journal_entries/financial_transactions tables
 
-### pgTAP
+### DB Lint
 
-- Não executado (requer Docker local)
+- `supabase db lint --linked --schema public --level warning` → ✅ 0 new warnings
+- Pre-existing: `is_valid_brazilian_tax_id` shadowed variable warnings
 
-### E2E
+### Frontend Tests
 
-- Não executado (UI stub apenas)
+- `npm test` → ✅ **147/147 PASS** (21 test files)
+- Finance-specific: **48/48 PASS** (schemas + API tests)
+
+### TanStack Table Audit
+
+- N/A — finance pages use plain HTML tables, not useReactTable
+- No memoization violations possible
+
+### Cloudflare Deploy
+
+- SHA 77a3239 → https://efetivaos.pages.dev ✅
+- Production smoke: /finance, /finance/chart-accounts, /finance/cost-centers all serve SPA shell
+
+### Cleanup
+
+- financial_accounts: 0 rows (no seed)
+- financial_parties: 0 rows (no seed)
+- financial_period_locks: 0 rows (no seed)
+- No test fixtures persisted
 
 ---
 
@@ -200,6 +228,7 @@ Card "Financeiro" ativado com link e status "ETAPA 08A".
 ### Novos
 
 - `supabase/migrations/20260826000100_create_finance_foundation_schema.sql`
+- `supabase/migrations/20260826000100_08a_microgate_tests.sql`
 - `src/features/finance/types/finance-types.ts`
 - `src/features/finance/schemas/finance-schemas.ts`
 - `src/features/finance/api/finance-api.ts`
@@ -210,6 +239,8 @@ Card "Financeiro" ativado com link e status "ETAPA 08A".
 - `src/features/finance/pages/service-lines-page.tsx`
 - `src/features/finance/pages/categories-page.tsx`
 - `src/features/finance/pages/accounts-page.tsx`
+- `src/features/finance/finance-schemas.test.ts`
+- `src/features/finance/finance-api.test.ts`
 
 ### Modificados
 
