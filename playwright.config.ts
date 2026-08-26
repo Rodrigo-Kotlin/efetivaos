@@ -54,6 +54,16 @@ export default defineConfig({
       },
     },
     {
+      name: 'stage-smoke',
+      testMatch: /_stage-headless-smoke\.spec\.ts/,
+      dependencies: ['authenticate'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/admin.json',
+        channel: 'chrome',
+      },
+    },
+    {
       name: 'team-chromium',
       testMatch: /(pricing-rules-team|price-approval-team|crm-team)\.spec\.ts/,
       dependencies: ['chromium'],

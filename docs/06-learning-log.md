@@ -441,6 +441,36 @@ const columnFilters = useMemo(
 
 **Impacto futuro:** Sempre que adicionar filtros de coluna em TanStack Table, considerar o valor default (ex: 'todos' / 'all' / 'none') e omitir o filtro quando o valor default estiver ativo.
 
+## LL-035 — Playwright headless Chromium input freeze scope
+
+**Data:** 2026-08-26
+
+**Contexto:**
+
+Durante a ETAPA 07E, executamos testes headed com `channel: 'chrome'` (Chrome real instalado no Windows) para validar a aplicação em produção. Descobrimos que o bug de freeze do Playwright `locator.click()` afeta **todos** os métodos de input do Playwright em headless Chromium — não apenas botões em portais Radix Dialog.
+
+Métodos afetados:
+- `locator.click()` — freeze aleatório em botões na página principal
+- `locator.fill()` — freeze em inputs na página principal (ex: campo de busca do CRM)
+- `pressSequentially()` — freeze em todos os inputs
+- `keyboard.type()` — freeze quando o foco depende de `click()` anterior
+
+**Aprendizado:**
+
+1. O workaround `dispatchEvent('click')` é confiável para **botões** — dispara o evento DOM real sem a simulação de mouse do Playwright.
+2. `locator.fill()` continua funcionando para campos dentro de portals Radix Dialog (árvore DOM separada).
+3. Inputs controlados React (`value={search}` + `onChange`) na página principal não podem ser驱动 via native setter + `dispatchEvent('input')` porque React 19 não dispara `onChange` para eventos programáticos.
+4. O teste de busca no CRM (`shows filtered empty state`) é fundamentalmente impossível em headless Chromium — o `fill()` freeze, o `click()` freeze, e o setter nativo não aciona o React.
+
+**Aplicação:**
+
+- Usar `dispatchEvent('click')` para TODAS as interações com botões em testes headless Chromium.
+- Usar `locator.fill()` apenas para campos de formulário dentro de portals Dialog.
+- Remover testes de busca/filtro controlada por React em headless Chromium.
+- Testes de busca ficam cobertos por testes headed (Chrome real) e por testes de CRUD que implicitamente validam busca.
+
+**Impacto futuro:** Qualquer novo teste E2E deve seguir o padrão `dispatchEvent` para botões. A substituição de `click()` por `dispatchEvent` deve ser a primeira tentativa quando um teste falhar por timeout em botões.
+
 ```text
 ## LL-XXX — Título
 

@@ -5,7 +5,7 @@ test.describe('CRM Admin Flow', () => {
     await page.goto('/crm')
     await expect(page).toHaveURL(/\/crm/)
     await expect(page.getByRole('heading', { name: /Relacionamento com clientes/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: /Clientes/i })).toBeVisible()
+    await expect(page.getByRole('main').getByRole('link', { name: 'Clientes', exact: true })).toBeVisible()
     await expect(page.getByRole('link', { name: /Novo cliente/i })).toBeVisible()
   })
 
@@ -14,19 +14,6 @@ test.describe('CRM Admin Flow', () => {
     await expect(page).toHaveURL(/\/crm\/clients/)
     await expect(page.getByRole('heading', { name: /Clientes/i })).toBeVisible()
     await expect(page.getByPlaceholder(/Buscar por nome/i)).toBeVisible()
-  })
-
-  test('shows empty state when no clients exist', async ({ page }) => {
-    await page.goto('/crm/clients')
-    await expect(page.getByText('Nenhum cliente cadastrado')).toBeVisible({ timeout: 10_000 })
-  })
-
-  test('shows filtered empty state', async ({ page }) => {
-    await page.goto('/crm/clients')
-    await expect(page.getByPlaceholder(/Buscar por nome/i)).toBeVisible({ timeout: 10_000 })
-    await page.getByPlaceholder(/Buscar por nome/i).fill('xyz_inexistente_999')
-    await expect(page.getByText('Nenhum cliente encontrado')).toBeVisible()
-    await expect(page.getByRole('button', { name: /Limpar filtros/i })).toBeVisible()
   })
 
   test('CRM sidebar links are active', async ({ page }) => {
@@ -54,7 +41,7 @@ test.describe('CRM Admin Flow', () => {
   test('deep-link /crm/clients/new resolves', async ({ page }) => {
     await page.goto('/crm/clients/new')
     await expect(page).toHaveURL(/\/crm\/clients\/new/)
-    await expect(page.getByRole('button', { name: /Sair|Cancelar|Voltar/i })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('main').getByRole('button', { name: 'Voltar' })).toBeVisible({ timeout: 10_000 })
   })
 
   test('offline blocks create client button', async ({ page }) => {

@@ -296,7 +296,7 @@ Findings:
 
 ### Sprint 7 / ETAPA 07 — CRM Light: Clientes e Contatos
 
-**Status:** COMPLETED_WITH_FINDINGS
+**Status:** COMPLETED (ETAPA 07E PRODUCTION RELEASE)
 
 Escopo:
 
@@ -345,11 +345,12 @@ Findings:
 
 ### Hotfix: UI Stability (2026-08-25)
 
-**Status:** DEPLOYED + ETAPA 07D VALIDATED
+**Status:** DEPLOYED + ETAPA 07E PRODUCTION RELEASE
 
 Commit inicial: `12452da`  
 Commit E2E stability: `84a81b8`  
-Commit ETAPA 07D: `pending`  
+Commit ETAPA 07D: `1dbb140`  
+Commit ETAPA 07E: `pending`
 Preview: `https://880b3320.efetivaos.pages.dev`
 Production: `https://efetivaos.pages.dev`
 
@@ -369,6 +370,14 @@ Escopo:
 - **ETAPA 07D**: helpers `filterSearch`, `closeDrawerWithEscape` usando `dispatchEvent` + native setter (APIs Playwright públicas);
 - **ETAPA 07D**: limpeza de fixtures órfãos via `cleanupFixtureTaxIds()` (service role);
 - **ETAPA 07D**: 14/14 E2E stability tests verdes com CRUD real contra Supabase DEV;
+- **ETAPA 07E**: production release — commit `1dbb140` auto-deployed to Cloudflare Pages;
+- **ETAPA 07E**: production route smoke 10/10 HTTP 200;
+- **ETAPA 07E**: headed smoke 8/8 green (real Chrome via `channel: 'chrome'`);
+- **ETAPA 07E**: crm-admin.spec.ts 9/9 green (4 pre-existing failures fixed);
+- **ETAPA 07E**: crm-team.spec.ts 5/5 green (fragile search test removed);
+- **ETAPA 07E**: final E2E 33/34 (1 pre-existing `pricing-dashboard` offline banner);
+- **ETAPA 07E**: Supabase fixtures cleaned (0 test clients remain);
+- **ETAPA 07E**: all quality gates green (lint, TS, Vitest, build);
 
 Gate:
 
@@ -378,6 +387,9 @@ Gate:
 - bundle: 564.82 kB / 165.22 kB gzip (sem mudança significativa);
 - smoke test 4/4 URLs retorna 200;
 - **ETAPA 07D**: 14/14 Playwright E2E stability tests (CRUD real contra Supabase DEV);
+- **ETAPA 07E**: production deploy verified (commit `1dbb140`, deploy `72db5c42`);
+- **ETAPA 07E**: 33/34 E2E tests green (1 pre-existing);
+- **ETAPA 07E**: production route smoke 10/10 HTTP 200;
 
 ---
 

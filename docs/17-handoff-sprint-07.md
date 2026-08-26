@@ -2,7 +2,9 @@
 
 ## Status Final
 
-`ETAPA 07 — COMPLETED_WITH_FINDINGS`
+`ETAPA 07 — COMPLETED (ETAPA 07E PRODUCTION RELEASE)`
+
+Produção: `https://efetivaos.pages.dev` — commit `1dbb140`, deploy `72db5c42`
 
 ---
 
