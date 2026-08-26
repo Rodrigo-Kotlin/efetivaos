@@ -168,7 +168,11 @@ function TransactionCreateDrawer({ open, onClose }: { open: boolean; onClose: ()
   }, [activeCategories, fv.movement_type])
 
   const handleSubmit = async () => {
-    const r = transactionBaseSchema.safeParse(fv)
+    if (createMutation.isPending) return
+    const r = transactionBaseSchema.safeParse({
+      ...fv,
+      idempotency_key: fv.idempotency_key || crypto.randomUUID(),
+    })
     if (!r.success) {
       const e: Record<string, string> = {}
       for (const i of r.error.issues) e[i.path[0] as string] = i.message

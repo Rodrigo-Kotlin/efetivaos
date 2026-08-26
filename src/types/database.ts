@@ -271,7 +271,7 @@ export type PeriodLock = {
 export type FinancialTransactionStatus = 'pending' | 'settled' | 'cancelled'
 
 export type FinancialTransaction = FinanceAuditFields & {
-  id: string; description: string; transaction_date: string; competence_date: string; movement_type: FinancialMovementType; amount: string; status: FinancialTransactionStatus; category_id: string | null; origin_account_id: string | null; destination_account_id: string | null; party_id: string | null; cost_center_id: string | null; service_line_id: string | null; payment_method_id: string | null; due_date: string | null; payment_date: string | null; notes: string | null; review_required: boolean; version: number
+  id: string; description: string; transaction_date: string; competence_date: string; movement_type: FinancialMovementType; amount: string; status: FinancialTransactionStatus; category_id: string | null; origin_account_id: string | null; destination_account_id: string | null; party_id: string | null; cost_center_id: string | null; service_line_id: string | null; payment_method_id: string | null; due_date: string | null; payment_date: string | null; notes: string | null; review_required: boolean; version: number; idempotency_key: string | null
 }
 export type FinancialTransactionList = FinancialTransaction & {
   category_name: string | null; origin_account_name: string | null; destination_account_name: string | null; party_name: string | null; cost_center_name: string | null; service_line_name: string | null; payment_method_name: string | null; journal_entry_count: number; total_debit: string; total_credit: string
@@ -785,6 +785,7 @@ export type Database = {
           notes?: string | null
           review_required?: boolean
           version?: number
+          idempotency_key?: string | null
         }
         Update: Partial<Omit<FinancialTransaction, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
         Relationships: [
@@ -957,6 +958,7 @@ export type Database = {
           p_payment_method_id?: string | null; p_due_date?: string | null
           p_payment_date?: string | null; p_notes?: string | null
           p_principal_amount?: number | string | null; p_interest_amount?: number | string | null
+          p_idempotency_key?: string | null
         }
         Returns: string
       }

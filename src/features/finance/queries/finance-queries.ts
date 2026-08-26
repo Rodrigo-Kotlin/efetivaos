@@ -245,6 +245,7 @@ export function useCreateTransaction() {
       notes: values.notes,
       principalAmount: values.principal_amount,
       interestAmount: values.interest_amount,
+      idempotencyKey: values.idempotency_key,
     }),
     onSuccess: () => void qc.invalidateQueries({ queryKey: TX_KEYS.all }),
   })

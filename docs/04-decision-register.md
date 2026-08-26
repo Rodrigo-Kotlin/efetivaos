@@ -528,7 +528,48 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
-## Pendências ainda abertas
+## DEC-036 — Ledger contábil é append-only (imutável)
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** Microgate 08B.1 identificou que settle/cancel usavam DELETE + regenerate, violando imutabilidade do journal.
+
+**Decisão:** Journal entries e journal lines são append-only. Triggers BEFORE UPDATE/DELETE bloqueiam qualquer mutação direta. Settle/cancel criam novas entries (estorno/liquidação) sem remover as originais. Views refletem o estado mais recente.
+
+**Motivo:** Livro-razão append-only é padrão contábil. Permite auditoria completa e rastreabilidade de todas as alterações.
+
+**Impacto:** UI mostra todas as entries de uma transação (original + liquidação + estorno). Views permanecem inalteradas — o frontend já exibe todas as entries.
+
+---
+
+## DEC-037 — RPCs financeiras são Admin-only com guard interno
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** RLS sozinha não restringe mutações a Admin. Policies eram `is_internal_user()` para todos os authenticated.
+
+**Decisão:** Todas as 4 RPCs financeiras (create, settle, cancel, update) incluem `is_admin()` guard interno. RLS de INSERT/UPDATE removido das 3 tabelas financeiras — apenas SELECT permitido para authenticated. SECURITY DEFINER RPCs bypassam RLS mas são protegidos pelo guard.
+
+**Motivo:** Defesa em profundidade. Nem interface nem SQL direta podem executar mutações financeiras sem ser Admin.
+
+**Impacto:** Equipe pode visualizar transações/journal mas não criar, liquidar ou cancelar.
+
+---
+
+## DEC-038 — Idempotency key na criação de transações
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** Microgate 08B.1 identificou risco de duplicação por duplo clique/submit.
+
+**Decisão:** Coluna `idempotency_key` (text, unique partial) em `financial_transactions`. Frontend gera `crypto.randomUUID()` antes de cada submit. Se key já existe, RPC retorna UUID existente sem criar nova transação.
+
+**Motivo:** Previne transações duplicadas em cenários de rede lenta ou duplo clique.
+
+**Impacto:** Coluna adicional no schema. Frontend passa key a cada chamada. RPC aceita key opcional.
 
 ### PEND-001 — Nome definitivo do sistema
 

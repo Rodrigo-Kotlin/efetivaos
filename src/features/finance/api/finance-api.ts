@@ -278,6 +278,7 @@ export interface CreateTransactionParams {
   notes?: string | null
   principalAmount?: number | null
   interestAmount?: number | null
+  idempotencyKey?: string | null
 }
 
 export async function createTransaction(params: CreateTransactionParams): Promise<string> {
@@ -299,6 +300,7 @@ export async function createTransaction(params: CreateTransactionParams): Promis
     p_notes: params.notes ?? null,
     p_principal_amount: params.principalAmount ?? null,
     p_interest_amount: params.interestAmount ?? null,
+    p_idempotency_key: params.idempotencyKey ?? null,
   })
   if (error) throw error
   return data as string

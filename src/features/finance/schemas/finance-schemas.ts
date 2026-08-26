@@ -94,6 +94,7 @@ export const transactionBaseSchema = z.object({
   notes: z.string().max(1000).nullable().default(null),
   principal_amount: z.coerce.number().nullable().default(null),
   interest_amount: z.coerce.number().nullable().default(null),
+  idempotency_key: z.string().nullable().default(null),
 })
 
 export type TransactionBaseFormValues = z.infer<typeof transactionBaseSchema>

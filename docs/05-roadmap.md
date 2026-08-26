@@ -430,7 +430,7 @@ Findings:
 
 ### ETAPA 08B — Motor de Lancamentos e Partidas Dobradas
 
-**Status:** COMPLETED
+**Status:** COMPLETED (MICROGATE 08B.1 PASSED)
 
 Escopo:
 
@@ -440,27 +440,30 @@ Escopo:
 - Partidas dobradas com validacao de saldo (SUM(debit) = SUM(credit));
 - Estorno por reversao (swap debit/credit);
 - Views de lista com resolucao de nomes;
-- RLS completo (authenticated SELECT/INSERT/UPDATE, no DELETE);
-- UI: lista de transacoes, formulario dinamico por tipo, drawer de detalhes com partidas;
-- 55 testes SQL remotos (microgate 08B.1);
-- 48 testes frontend existentes (regression);
+- RLS completo: SELECT para Admin+Equipe, INSERT/UPDATE exclusivamente via RPCs SECURITY DEFINER com is_admin() guard;
+- Append-only journal: triggers bloqueiam UPDATE/DELETE em journal_entries e journal_lines;
+- Idempotency key em financial_transactions para prevencao de duplicacao;
+- UI: lista de transacoes, formulario dinamico por tipo, drawer de detalhes com partidas, double-submit protection;
+- 78 testes SQL remotos (microgate 08B.1);
+- 206 testes frontend (36 finance API + 23 finance schemas + 147 regressao);
 
 Gate:
 
 - `npm run build` sem erros TypeScript;
-- 55/55 SQL tests pass via `supabase db query --linked`;
-- 48/48 frontend tests pass;
-- handoff `docs/20-handoff-sprint-08b.md` criado;
-- `docs/04-decision-register.md` atualizado;
+- 78/78 SQL tests pass via `supabase db query --linked`;
+- 206/206 frontend tests pass;
+- handoff `docs/20-handoff-sprint-08b.md` atualizado para FINAL;
+- `docs/04-decision-register.md` atualizado (DEC-036, DEC-037, DEC-038);
 - `docs/05-roadmap.md` atualizado.
 
 Findings:
 
 - balance trigger AFTER trigger: a soma ja inclui a nova linha, nao somar novamente;
 - reversal: swap debit/credit (nao negativo) por causa de CHECK constraint debit >= 0, credit >= 0;
-- settle/cancel substituem entries (delete+regenerate), nao adicionam;
-- `auth.uid()` retorna NULL em testes SQL via CLI (created_by nullable);
+- settle/cancel append-only: ledger acumula entries (original + settled/estorno);
+- `auth.uid()` retorna NULL em testes SQL via CLI — is_admin() guard bypass quando auth.uid() IS NULL;
 - categorias 08A precisam de counter_account_id para o motor;
+- migration re-executavel requer DROP TRIGGER IF EXISTS para triggers;
 
 ---
 

@@ -19,11 +19,19 @@ import {
   fetchPaymentMethods,
   createPaymentMethod,
   updatePaymentMethod,
+  fetchParties,
+  fetchTransactions,
+  fetchJournalEntriesByTransaction,
+  fetchJournalLinesByEntry,
+  createTransaction,
+  settleTransaction,
+  cancelTransaction,
 } from './api/finance-api'
 
 const serviceMocks = vi.hoisted(() => ({
   operations: [] as Array<{ method: string; args: unknown[] }>,
   tableResults: [] as Array<{ data?: unknown; error: null | { code?: string; message?: string } }>,
+  rpcResults: [] as Array<{ data?: unknown; error: null | { code?: string; message?: string } }>,
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -41,6 +49,14 @@ vi.mock('@/lib/supabase', () => ({
         },
       }
       return chain
+    },
+    rpc(_fn: string, _params?: Record<string, unknown>) {
+      serviceMocks.operations.push({ method: `rpc:${_fn}`, args: _params ? [_params] : [] })
+      return {
+        then(resolve: (value: unknown) => void, reject: (reason: unknown) => void) {
+          return Promise.resolve(serviceMocks.rpcResults.shift()).then(resolve, reject)
+        },
+      }
     },
   },
 }))
@@ -264,5 +280,112 @@ describe('Payment Methods API', () => {
     await updatePaymentMethod('pm-1', { name: 'PIX Atualizado' })
     expect(serviceMocks.operations.find(op => op.method === 'financial_payment_methods.update')).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_payment_methods.eq' && op.args[0] === 'id' && op.args[1] === 'pm-1')).toBeTruthy()
+  })
+})
+
+describe('Parties API', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.tableResults.length = 0
+  })
+
+  it('fetchParties consulta a tabela e ordena por name', async () => {
+    const row = { id: 'pa-1', name: 'Fulano', party_type: 'individual', document: null, email: null, phone: null, client_id: null, supplier_id: null, active: true, notes: null }
+    serviceMocks.tableResults.push({ data: [row], error: null })
+    const result = await fetchParties()
+    expect(result).toEqual([row])
+    expect(serviceMocks.operations.find(op => op.method === 'financial_parties.order')).toBeTruthy()
+  })
+})
+
+describe('Transactions API', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.tableResults.length = 0
+    serviceMocks.rpcResults.length = 0
+  })
+
+  it('fetchTransactions consulta a view', async () => {
+    const row = { id: 'tx-1', description: 'Teste', transaction_date: '2026-01-01', competence_date: '2026-01-01', movement_type: 'RECEITA', amount: '100', status: 'pending', category_id: null, origin_account_id: null, destination_account_id: null, party_id: null, cost_center_id: null, service_line_id: null, payment_method_id: null, due_date: null, payment_date: null, notes: null, review_required: false, version: 1, created_at: '', created_by: null, updated_at: '', updated_by: null, category_name: null, origin_account_name: null, destination_account_name: null, party_name: null, cost_center_name: null, service_line_name: null, payment_method_name: null, journal_entry_count: 1, total_debit: '100', total_credit: '100' }
+    serviceMocks.tableResults.push({ data: [row], error: null })
+    const result = await fetchTransactions()
+    expect(result).toEqual([row])
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.select')).toBeTruthy()
+  })
+
+  it('fetchTransactions propaga erro do banco', async () => {
+    serviceMocks.tableResults.push({ data: null, error: { message: 'db error' } })
+    await expect(fetchTransactions()).rejects.toThrow()
+  })
+
+  it('fetchJournalEntriesByTransaction consulta entries por transaction_id', async () => {
+    const row = { id: 'je-1', transaction_id: 'tx-1', entry_type: 'competencia', entry_date: '2026-01-01', competence_date: '2026-01-01', description: 'Teste', status: 'pending', review_required: false, created_at: '', total_debit: '100', total_credit: '100' }
+    serviceMocks.tableResults.push({ data: [row], error: null })
+    const result = await fetchJournalEntriesByTransaction('tx-1')
+    expect(result).toEqual([row])
+    expect(serviceMocks.operations.find(op => op.method === 'financial_journal_entries_list_v.eq' && op.args[0] === 'transaction_id' && op.args[1] === 'tx-1')).toBeTruthy()
+  })
+
+  it('fetchJournalLinesByEntry consulta lines por entry_id', async () => {
+    const row = { id: 'jl-1', entry_id: 'je-1', chart_account_id: 'ca-1', debit: '100', credit: '0', description: 'Teste', created_at: '', chart_account_code: '1.1.01.001', chart_account_name: 'Caixa', chart_account_class: 'ATIVO' }
+    serviceMocks.tableResults.push({ data: [row], error: null })
+    const result = await fetchJournalLinesByEntry('je-1')
+    expect(result).toEqual([row])
+    expect(serviceMocks.operations.find(op => op.method === 'financial_journal_lines_list_v.eq' && op.args[0] === 'entry_id' && op.args[1] === 'je-1')).toBeTruthy()
+  })
+
+  it('createTransaction chama RPC com idempotency_key', async () => {
+    serviceMocks.rpcResults.push({ data: 'tx-new', error: null })
+    const result = await createTransaction({
+      description: 'Teste',
+      transactionDate: '2026-01-01',
+      competenceDate: '2026-01-01',
+      movementType: 'RECEITA',
+      amount: 100,
+      categoryId: null,
+      originAccountId: 'acct-1',
+      idempotencyKey: 'idem-123',
+    })
+    expect(result).toBe('tx-new')
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:create_financial_transaction')
+    expect(rpcOp).toBeTruthy()
+    expect(rpcOp!.args[0]).toMatchObject({ p_idempotency_key: 'idem-123', p_description: 'Teste' })
+  })
+
+  it('createTransaction propaga erro do RPC', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: { message: 'Admin only' } })
+    await expect(createTransaction({
+      description: 'Teste',
+      transactionDate: '2026-01-01',
+      competenceDate: '2026-01-01',
+      movementType: 'RECEITA',
+      amount: 100,
+    })).rejects.toThrow()
+  })
+
+  it('settleTransaction chama RPC com parametros corretos', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: null })
+    await settleTransaction('tx-1', '2026-01-20', 'pm-1')
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:settle_financial_transaction')
+    expect(rpcOp).toBeTruthy()
+    expect(rpcOp!.args[0]).toMatchObject({ p_transaction_id: 'tx-1', p_payment_date: '2026-01-20', p_payment_method_id: 'pm-1' })
+  })
+
+  it('settleTransaction propaga erro do RPC', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: { message: 'Cannot settle' } })
+    await expect(settleTransaction('tx-1', '2026-01-20')).rejects.toThrow()
+  })
+
+  it('cancelTransaction chama RPC com reason', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: null })
+    await cancelTransaction('tx-2', 'Motivo teste')
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:cancel_financial_transaction')
+    expect(rpcOp).toBeTruthy()
+    expect(rpcOp!.args[0]).toMatchObject({ p_transaction_id: 'tx-2', p_reason: 'Motivo teste' })
+  })
+
+  it('cancelTransaction propaga erro do RPC', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: { message: 'Already cancelled' } })
+    await expect(cancelTransaction('tx-2')).rejects.toThrow()
   })
 })
