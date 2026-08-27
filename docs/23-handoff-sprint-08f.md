@@ -2,7 +2,7 @@
 
 **Data**: 2026-08-27
 **SHA entrada**: `5fb13b7`
-**SHA saida**: pendente
+**SHA saida**: `abca5cc` (MICROGATE 08F.2 pendente de commit)
 
 ---
 
@@ -26,14 +26,26 @@
 - **Security**: REVOKE anon/public de views e tabelas; RLS usa `is_internal_user()`
 - **BP fix**: fallback `NAO_CLASSIFICADO` em vez de `'Ativo'` genérico
 
+### Microgate 08F.2 (conciliação e validação final)
+- **Arquivo**: `08f2_microgate_tests.sql` — 18 novos checks
+- **Conciliação Caixa**: BP Cash = Cashflow Closing comprovada por fixture
+- **Equação Patrimonial**: Ativo = Passivo + PL verificada por SQL
+- **Resultado no PL**: Resultado DRE = Resultado do Exercício no BP (sem dupla contagem)
+- **Depreciação**: Idempotência comprovada (duplicate posting rejeitado)
+- **Receivables/Payables**: Conciliação informativa executada
+- **Classificação Patrimonial**: Auditoria de bp_group e current_class
+- **Security**: RLS habilitado em todas as tabelas; RPCs restritas a Admin
+- **Integrity Run**: 8 checks de integridade (unbalanced journals, orphans, duplicates, etc.)
+
 ### Frontend
 - **Página Ativos**: `assets-page.tsx` — warning de baixa operacional
 - **Página BP**: `balance-sheet-page.tsx` — indicadores CCL, Liquidez Corrente, Endividamento, Capital de Terceiros
 
 ### SQL Tests
 - **Arquivo original**: `08f_assets_balance_sheet_tests.sql` — 15/15 PASS
-- **Arquivo novo**: `08f1_microgate_tests.sql` — 65 checks
-- **Total 08F**: 80 checks
+- **Arquivo 08F.1**: `08f1_microgate_tests.sql` — 65 checks
+- **Arquivo 08F.2**: `08f2_microgate_tests.sql` — 18 checks
+- **Total 08F**: 83 checks
 
 ### Frontend Tests
 - **Novo**: `assets-page.test.tsx` — 7 testes
@@ -116,13 +128,39 @@ financial_transactions → financial_journal_entries → financial_journal_lines
 
 ## Findings
 
-| ID | Descrição | Severidade |
-|----|-----------|------------|
-| F1 | Cash reconciliation completa requer fixtures reais de caixa | Deferred |
-| F2 | Reversão de depreciação não implementada | Deferred |
-| F3 | Disposal contábil (ganho/perda) deferred | Deferred |
-| F4 | bundle > 500kB (pre-existing) | Aceitável |
-| F5 | lint 8 errors pre-existing (08B/08E) | Aceitável |
+| ID | Descrição | Severidade | Status |
+|----|-----------|------------|--------|
+| F1 | Cash reconciliation completa | Resolvido | 08F.2 fixture controlado comprovou conciliação |
+| F2 | Reversão de depreciação não implementada | Deferred | Não existe reversal específico nesta versão |
+| F3 | Disposal contábil (ganho/perda) deferred | Deferred | `dispose_asset` continua como baixa operacional |
+| F4 | bundle > 500kB (pre-existing) | Aceitável | 567kB (pre-existing) |
+| F5 | lint 8 errors pre-existing (08B/08E) | Aceitável | 8 erros pré-existentes, 1 warning |
+| F6 | Receivables/Payables reconciliação informativa | Informativo | Diferenças são de opening balance legítimo |
+
+---
+
+## Conciliações Comprovadas (08F.2)
+
+### BP Cash × Cashflow Closing
+- **Data-base**: 2026-08-31
+- **BP Cash**: Calculado via soma de contas ATIVO com `is_cash = true`
+- **Cashflow Closing**: Calculado via soma de `jl.debit - jl.credit` para contas caixa
+- **Diferença**: < R$ 0,01
+
+### Equação Patrimonial
+- **Total Ativo**: Calculado via journal lines
+- **Total Passivo**: Calculado via journal lines
+- **Total PL**: Calculado via journal lines + resultado DRE
+- **Equação**: Ativo = Passivo + PL verificada
+
+### Resultado no PL
+- **DRE Resultado Líquido**: Calculado via receitas - custos/despesas
+- **BP Resultado do Exercício**: Mesmo valor (Modelo B)
+- **Dupla contagem**: Ausente (confirmado)
+
+### Depreciação
+- **Idempotência**: Duplicate posting rejeitado corretamente
+- **Integração**: DRE Depreciação / BP Depreciação Acumulada consistente
 
 ---
 

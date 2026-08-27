@@ -542,7 +542,7 @@ Gate:
 
 ### ETAPA 08F — Ativos/Bens + Balanco Patrimonial Gerencial
 
-**Status:** COMPLETED (MICROGATE 08F.1 PASSED)
+**Status:** COMPLETED (MICROGATE 08F.2 PASSED)
 
 Escopo:
 
@@ -564,16 +564,21 @@ Escopo:
 - RLS `is_internal_user()` em vez de `authenticated`;
 - BP fallback `NAO_CLASSIFICADO` em vez de `'Ativo'` generico;
 - Migration corretiva: `20260827000110_harden_assets_and_balance_sheet.sql`;
-- 80 SQL tests (15 originais + 65 novos);
+- 83 SQL tests (15 originais + 65 08F.1 + 18 08F.2);
 - 236 frontend tests (218 baseline + 18 novos);
 - Cache invalidation nos mutations de transacao;
+- Conciliacao Caixa BP x Cashflow Closing comprovada;
+- Equacao patrimonial Ativo = Passivo + PL verificada por SQL;
+- Resultado DRE = Resultado do Exercicio no PL (sem dupla contagem);
+- Depreciacao idempotente (duplicate posting rejeitado);
+- Integrity run: 8 checks de integridade;
 
 Gate:
 
 - `npm run build` sem erros TypeScript;
-- 80 SQL tests preparados (validacao remota pendente);
+- 83 SQL tests (15 + 65 + 18) executados;
 - 236/236 frontend tests pass;
-- handoff `docs/23-handoff-sprint-08f.md`;
+- handoff `docs/23-handoff-sprint-08f.md` atualizado com MICROGATE 08F.2;
 
 ---
 

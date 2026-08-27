@@ -669,3 +669,45 @@ Métodos afetados:
 **Aplicado:** Políticas de SELECT em `financial_assets` e `financial_asset_depreciation_postings` substituídas por `is_internal_user()`.
 
 **Impacto futuro:** Toda tabela financeira sensível deve usar predicate que verifique role E status ativo.
+
+---
+
+## LL-051 — Conciliação Caixa BP × Cashflow requer fixture controlado
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige comprovação de conciliação entre Caixa do BP e Closing Balance do Fluxo de Caixa.
+
+**Aprendido:** Em ambiente remoto sem dados reais, fixture controlado dentro de transação com rollback é a abordagem viável. A conciliação deve usar a mesma lógica de cálculo em ambos os lados.
+
+**Aplicado:** Criado fixture com capital inicial, receita recebida, despesa paga e transferência interna. Cálculos usam a mesma query de journal lines.
+
+**Impacto futuro:** Toda conciliação contábil deve ser testada com fixture controlado quando não houver dados reais.
+
+---
+
+## LL-052 — Equação patrimonial deve ser verificada por SQL, não apenas frontend
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige prova de que Ativo = Passivo + PL.
+
+**Aprendido:** Validação apenas no frontend é insuficiente para gate contábil. Check SQL explícito é necessário para garantir integridade.
+
+**Aplicado:** Criados checks T03 e T15 que calculam totais diretamente do ledger e verificam equação.
+
+**Impacto futuro:** Toda equação contábil crítica deve ter check SQL correspondente.
+
+---
+
+## LL-053 — Modelo B (resultado dinâmico) evita dupla contagem no PL
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige comprovação de que resultado não é contado duas vezes no PL.
+
+**Aprendido:** O Modelo B (resultado calculado dinamicamente no BP) garante que resultado do exercício entra no PL exatamente uma vez. Não há lançamento de encerramento automático.
+
+**Aplicado:** Verificado que DRE Resultado Líquido = BP Resultado do Exercício, com diferença < R$ 0,01.
+
+**Impacto futuro:** Enquanto não houver encerramento formal das contas de resultado, Modelo B é a abordagem segura.

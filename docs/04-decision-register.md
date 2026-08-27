@@ -740,3 +740,83 @@ Definir posteriormente se contratos recorrentes gerarão lançamentos automatica
 **Motivo:** Inativos não devem acessar dados financeiros. Política anterior era overly permissive.
 
 **Impacto:** Usuário inativo recebe SELECT negado em ativos e depreciation postings.
+
+---
+
+### DEC-050 — Conciliação Caixa BP × Cashflow Closing via fixture controlado
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige comprovação de que Caixa do BP concilia com Closing Balance do Fluxo de Caixa.
+
+**Decisão:** Criar fixture controlado dentro de transação com rollback para testar conciliação.
+
+**Motivo:** Ambiente remoto sem dados reais. Fixture controlado permite teste reproduzível.
+
+**Impacto:** Teste SQL T01 e T16 verificam conciliação com tolerância < R$ 0,01.
+
+---
+
+### DEC-051 — Equação patrimonial verificada por SQL fixture
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige prova de que Ativo = Passivo + Patrimônio Líquido.
+
+**Decisão:** Criar checks SQL que calculam totais diretamente do ledger e verificam equação.
+
+**Motivo:** Validação apenas no frontend não é suficiente para gate contábil.
+
+**Impacto:** Testes T03 e T15 verificam equação patrimonial.
+
+---
+
+### DEC-052 — Resultado DRE = Resultado do Exercício no PL (sem dupla contagem)
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige comprovação de que resultado não é contado duas vezes no PL.
+
+**Decisão:** Verificar que resultado líquido da DRE entra no PL exatamente uma vez (Modelo B).
+
+**Motivo:** Modelo B calcula resultado dinamicamente, sem lançamento de encerramento.
+
+**Impacto:** Testes T04 e T17 verificam ausência de dupla contagem.
+
+---
+
+### DEC-053 — Depreciação idempotente confirmada
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige confirmação de que duplicate depreciation posting é rejeitado.
+
+**Decisão:** Testar tentativa de posting duplicado e verificar rejeição.
+
+**Motivo:** Idempotência é requisito de segurança contábil.
+
+**Impacto:** Teste T05 confirma rejeição de posting duplicado.
+
+---
+
+### DEC-054 — Integrity run com 8 checks de integridade
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.2)
+
+**Contexto:** MICROGATE 08F.2 exige integrity run final.
+
+**Decisão:** Implementar 8 checks: unbalanced journals, orphan lines, duplicate depreciation, invalid accounts, BP mismatch, cash mismatch, duplicate result, invalid classification.
+
+**Motivo:** Verificar integridade referencial e contábil do sistema.
+
+**Impacto:** Testes T11-T18 verificam integridade.
