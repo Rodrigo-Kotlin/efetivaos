@@ -69,7 +69,19 @@ export default function BalanceSheetPage() {
     const totalPL = Number(pl.find(r => r.row_type === 'TOTAL')?.amount ?? 0)
     const isBalanced = Math.abs(totalAtivo - (totalPassivo + totalPL)) < 0.01
 
-    return { ativo, passivo, pl, totalAtivo, totalPassivo, totalPL, isBalanced }
+    // Compute circulante from group_name patterns
+    const ativoCirculante = ativo
+      .filter(r => r.group_name === 'Circulante' || r.group_name === 'Disponibilidades')
+      .reduce((s, r) => s + Number(r.amount), 0)
+    const passivoCirculante = passivo
+      .filter(r => r.group_name === 'Circulante')
+      .reduce((s, r) => s + Number(r.amount), 0)
+
+    return {
+      ativo, passivo, pl,
+      totalAtivo, totalPassivo, totalPL, isBalanced,
+      ativoCirculante, passivoCirculante,
+    }
   }, [rows])
 
   return (
@@ -156,27 +168,34 @@ export default function BalanceSheetPage() {
       {groups && (
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
           <h3 className="mb-4 font-serif text-lg font-semibold">Indicadores</h3>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Endividamento</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Capital Circulante Liquido</p>
+              <p className="mt-1 font-serif text-xl font-semibold">
+                {fmt(groups.ativoCirculante - groups.passivoCirculante)}
+              </p>
+              <p className="text-xs text-slate-500">AC - PC</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Liquidez Corrente</p>
+              <p className="mt-1 font-serif text-xl font-semibold">
+                {fmtPct(groups.ativoCirculante, groups.passivoCirculante)}
+              </p>
+              <p className="text-xs text-slate-500">AC / PC</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Endividamento Geral</p>
               <p className="mt-1 font-serif text-xl font-semibold">
                 {fmtPct(groups.totalPassivo, groups.totalAtivo)}
               </p>
               <p className="text-xs text-slate-500">Passivo / Ativo</p>
             </div>
             <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Composicao do PL</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Capital de Terceiros</p>
               <p className="mt-1 font-serif text-xl font-semibold">
-                {fmtPct(groups.totalPL, groups.totalAtivo)}
+                {fmtPct(groups.totalPassivo, groups.totalPL)}
               </p>
-              <p className="text-xs text-slate-500">PL / Ativo</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Composicao Do Ativo</p>
-              <p className="mt-1 font-serif text-xl font-semibold">
-                {fmtPct(groups.totalAtivo, groups.totalAtivo)}
-              </p>
-              <p className="text-xs text-slate-500">Ativo / Ativo</p>
+              <p className="text-xs text-slate-500">Passivo / PL</p>
             </div>
           </div>
         </section>

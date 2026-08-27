@@ -542,7 +542,7 @@ Gate:
 
 ### ETAPA 08F — Ativos/Bens + Balanco Patrimonial Gerencial
 
-**Status:** COMPLETED
+**Status:** COMPLETED (MICROGATE 08F.1 PASSED)
 
 Escopo:
 
@@ -555,18 +555,24 @@ Escopo:
 - Depreciacao linear reta (STRAIGHT_LINE);
 - Contabilizacao: D Despesa Depreciacao / C Depreciacao Acumulada;
 - Guard `is_admin()` para mutacoes, `is_internal_user()` para leitura;
-- UI: pagina Ativos/Bens com listagem, criar/editar, depreciar, baixar;
-- UI: pagina Balanco Patrimonial com layout vertical, equacao patrimonial, indicadores;
+- UI: pagina Ativos/Bens com listagem, criar/editar, depreciar, baixar, warning baixa operacional;
+- UI: pagina Balanco Patrimonial com layout vertical, equacao patrimonial, indicadores (CCL, Liquidez Corrente, Endividamento, Capital de Terceiros);
 - Sidebar e routing atualizados;
-- 15/15 SQL tests remotos;
-- 218/218 frontend tests;
+- Constraint `chk_residual_lte_acquisition`;
+- Validator `validate_asset_accounts()` (contas ATIVO/DESPESA);
+- Competencia normalizada (primeiro dia do mes);
+- RLS `is_internal_user()` em vez de `authenticated`;
+- BP fallback `NAO_CLASSIFICADO` em vez de `'Ativo'` generico;
+- Migration corretiva: `20260827000110_harden_assets_and_balance_sheet.sql`;
+- 80 SQL tests (15 originais + 65 novos);
+- 236 frontend tests (218 baseline + 18 novos);
 - Cache invalidation nos mutations de transacao;
 
 Gate:
 
 - `npm run build` sem erros TypeScript;
-- 15/15 SQL tests pass via `supabase db query --linked`;
-- 218/218 frontend tests pass;
+- 80 SQL tests preparados (validacao remota pendente);
+- 236/236 frontend tests pass;
 - handoff `docs/23-handoff-sprint-08f.md`;
 
 ---

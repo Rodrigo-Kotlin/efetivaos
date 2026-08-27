@@ -633,3 +633,39 @@ Métodos afetados:
 **Aplicado:** Todas as referências a `current_class` em CTEs agora usam `::text`.
 
 **Impacto futuro:** Verificar tipos de colunas enum antes de misturar com text em expressões COALESCE/concatenação.
+
+## LL-048 — CHECK constraint no DB é mais forte que trigger/RPC
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** `residual_value <= acquisition_value` era validado apenas no trigger `normalize_financial_asset` e na RPC `create_asset`. UPDATE direto via SQL poderia violar a regra.
+
+**Aprendido:** Triggers e RPCs são barreiras de aplicação, não de integridade. Para invariantes críticos, usar CHECK constraint no banco. O CHECK é avaliado em INSERT e UPDATE, independente da rota de acesso.
+
+**Aplicado:** `chk_residual_lte_acquisition` adicionado via migration corretiva.
+
+**Impacto futuro:** Todo CHECK de integridade referencial deve ser constraint no DB, não apenas lógica de trigger.
+
+## LL-049 — Validação de contas deve ser reutilizável entre create e update
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** A migration original validava contas apenas em `create_asset`. `update_asset` aceitava contas inválidas.
+
+**Aprendido:** Funções validators devem ser separadas das RPCs de mutação para reuso. PostgreSQL não permite CALL de função dentro de bloco PL/pgSQL como statement, mas `PERFORM public.validate_func(...)` funciona.
+
+**Aplicado:** `validate_asset_accounts()` criada como função SECURITY DEFINER separada, chamada por `create_asset` e `update_asset`.
+
+**Impacto futuro:** Toda validação que se aplica a múltiplas mutações deve ser extraída para função reutilizável.
+
+## LL-050 — RLS SELECT 'authenticated' é overly permissive para dados financeiros
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** Policy `assets_select_authenticated` permitia qualquer `authenticated` ler ativos, incluindo usuários inativos.
+
+**Aprendido:** `authenticated` é o role padrão de qualquer usuário logado. Para dados financeiros, usar `is_internal_user()` que verifica `role IN ('admin','equipe') AND active = true`.
+
+**Aplicado:** Políticas de SELECT em `financial_assets` e `financial_asset_depreciation_postings` substituídas por `is_internal_user()`.
+
+**Impacto futuro:** Toda tabela financeira sensível deve usar predicate que verifique role E status ativo.

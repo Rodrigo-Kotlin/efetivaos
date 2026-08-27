@@ -684,3 +684,59 @@ Definir posteriormente se contratos recorrentes gerarão lançamentos automatica
 **Motivo:** Simplificar implementação. Método linha reta é o mais comum para bens patrimoniais no contexto PME.
 
 **Impacto:** Cálculo: (valor_aquisição − valor_residual) / vida_util_meses. Extensão para outros métodos pode ser feita sem breaking change.
+
+### DEC-046 — Competência de depreciação normalizada para primeiro dia do mês
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** `post_asset_depreciation` aceitava qualquer `date`, permitindo competência como `2026-06-15`.
+
+**Decisão:** Normalizar `competence_period` para `date_trunc('month', input)::date` (primeiro dia do mês).
+
+**Motivo:** Depreciação é operação mensal. Competência por dia gera ambiguidade e complica idempotência.
+
+**Impacto:** Unique constraint opera sobre `(asset_id, primeiro_dia_do_mes)`. Input `2026-06-15` vira `2026-06-01`.
+
+### DEC-047 — Validação contábil das contas vinculadas ao ativo
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** Um ativo podia receber conta de PASSIVO em `asset_chart_account_id` sem erro.
+
+**Decisão:** Função `validate_asset_accounts()` verifica: asset account = ATIVO, accumulated = ATIVO, expense = DESPESA com `dre_class = 'DEPRECIACAO_AMORTIZACAO'`. Chamada em `create_asset` e `update_asset`.
+
+**Motivo:** Defesa em profundidade. UI filtra contas corretas, mas o banco deve rejeitar invariantes.
+
+**Impacto:** RPCs rejeitam contas inválidas com mensagem descritiva. Trigger não é necessário — validation é na camada de aplicação (RPC SECURITY DEFINER).
+
+### DEC-048 — Resultado do Exercício no BP: Modelo B (dinâmico)
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** Definir como `get_balance_sheet` trata resultado corrente no PL.
+
+**Decisão:** Modelo B — resultado é calculado dinamicamente a partir das contas de resultado (`class IN ('RECEITA','CUSTO','DESPESA')`) e inserido como row adicional no PL. Enquanto não houver rotina de encerramento contábil, não há risco de dupla contagem.
+
+**Motivo:** Simplicidade. Journal de encerramento não existe na fase atual. Se for implementado futuro, `get_balance_sheet` deve excluir contas de encerramento do cálculo dinâmico.
+
+**Impacto:** `dre_result` CTE calcula resultado e o inclui como `row_code = 'RE'` no PL. Proteção contra dupla contagem futura: documentada como deferred.
+
+### DEC-049 — RLS de ativos usa is_internal_user() em vez de authenticated
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F.1)
+
+**Contexto:** Policy `assets_select_authenticated` permitia que usuário inativo lesse dados.
+
+**Decisão:** Substituir por `is_internal_user()` que verifica `role IN ('admin','equipe') AND active = true`.
+
+**Motivo:** Inativos não devem acessar dados financeiros. Política anterior era overly permissive.
+
+**Impacto:** Usuário inativo recebe SELECT negado em ativos e depreciation postings.

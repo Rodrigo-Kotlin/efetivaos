@@ -264,6 +264,16 @@ export default function AssetsPage() {
         </table>
       </div>
 
+      {/* Disposed assets warning */}
+      {filtered.some(a => a.status === 'DISPOSED') && (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm text-amber-800">
+            <strong>Baixa operacional:</strong> Ativos com status &quot;Baixado&quot; foram desativados operacionalmente.
+            Eventual baixa contabiliza deve ser lancada separadamente via transacao financeira.
+          </p>
+        </div>
+      )}
+
       {/* Drawer */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 flex">
