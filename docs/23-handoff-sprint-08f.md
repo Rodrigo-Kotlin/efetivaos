@@ -2,7 +2,7 @@
 
 **Data**: 2026-08-27
 **SHA entrada**: `5fb13b7`
-**SHA saida**: `abca5cc` (MICROGATE 08F.2 pendente de commit)
+**SHA saida**: `98c2b05`
 
 ---
 
