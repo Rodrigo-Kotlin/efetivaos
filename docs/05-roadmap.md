@@ -582,6 +582,38 @@ Gate:
 
 ---
 
+### ETAPA 08G — DMPL/DLPA + DVA + Ajustes + Notas
+
+**Status:** COMPLETED
+
+Escopo:
+
+- Tabela `financial_notes` (notas gerenciais);
+- Enums `financial_note_type`, `financial_adjustment_status`;
+- RPC `get_statement_of_changes_in_equity` (DMPL);
+- RPC `get_retained_earnings_statement` (DLPA);
+- RPC `get_value_added_statement` (DVA);
+- RPC `create_manual_journal_adjustment` (ajustes manuais);
+- Trigger `set_updated_at` para `financial_notes`;
+- RLS `financial_notes` (admin INSERT/UPDATE/DELETE, internal_user SELECT);
+- UI: pagina DMPL com tabela matricial;
+- UI: pagina DLPA com layout vertical;
+- UI: pagina DVA com estrutura hierarquica;
+- UI: pagina Ajustes com form de partidas dobradas (admin-only);
+- UI: pagina Notas com CRUD completo;
+- Sidebar e routing atualizados;
+- 50 SQL tests especificos 08G;
+- Types TypeScript atualizados;
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- 50 SQL tests preparados;
+- 236/236 frontend tests preservados;
+- handoff `docs/25-handoff-sprint-08g.md`;
+
+---
+
 ## Fase 1 — Demais módulos
 
 Após estabilização do Motor de Preços:
