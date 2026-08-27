@@ -182,21 +182,17 @@ BEGIN
     v_transaction_id, 'ajuste', p_entry_date, p_competence_date, p_description, 'settled', v_idempotency::text
   ) RETURNING id INTO v_entry_id;
 
-  -- Create journal lines
-  FOR v_line IN SELECT * FROM jsonb_array_elements(p_lines)
-  LOOP
-    INSERT INTO public.financial_journal_lines (
-      entry_id, chart_account_id, debit, credit, description, cost_center_id, service_line_id
-    ) VALUES (
-      v_entry_id,
-      (v_line->>'chart_account_id')::uuid,
-      COALESCE((v_line->>'debit')::numeric, 0),
-      COALESCE((v_line->>'credit')::numeric, 0),
-      COALESCE(v_line->>'description', ''),
-      p_cost_center_id,
-      p_service_line_id
-    );
-  END LOOP;
+  -- Create journal lines (single INSERT to avoid per-line trigger)
+  INSERT INTO public.financial_journal_lines (
+    entry_id, chart_account_id, debit, credit, description
+  )
+  SELECT
+    v_entry_id,
+    (elem->>'chart_account_id')::uuid,
+    COALESCE((elem->>'debit')::numeric, 0),
+    COALESCE((elem->>'credit')::numeric, 0),
+    COALESCE(elem->>'description', '')
+  FROM jsonb_array_elements(p_lines) AS elem;
 
   -- Create note if justification provided
   IF p_justification IS NOT NULL AND p_justification <> '' THEN
