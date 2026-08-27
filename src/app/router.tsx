@@ -31,6 +31,11 @@ const DfcPage = lazy(() => import('@/features/finance/pages/dfc-page'))
 const DrePage = lazy(() => import('@/features/finance/pages/dre-page'))
 const AssetsPage = lazy(() => import('@/features/finance/pages/assets-page'))
 const BalanceSheetPage = lazy(() => import('@/features/finance/pages/balance-sheet-page'))
+const DmplPage = lazy(() => import('@/features/finance/pages/dmpl-page'))
+const DlpaPage = lazy(() => import('@/features/finance/pages/dlpa-page'))
+const DvaPage = lazy(() => import('@/features/finance/pages/dva-page'))
+const AdjustmentsPage = lazy(() => import('@/features/finance/pages/adjustments-page'))
+const NotesPage = lazy(() => import('@/features/finance/pages/notes-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -73,6 +78,14 @@ export const router = createBrowserRouter([
           { path: 'finance/dre', element: pending(<DrePage />) },
           { path: 'finance/assets', element: pending(<AssetsPage />) },
           { path: 'finance/balance-sheet', element: pending(<BalanceSheetPage />) },
+          { path: 'finance/dmpl', element: pending(<DmplPage />) },
+          { path: 'finance/dlpa', element: pending(<DlpaPage />) },
+          { path: 'finance/dva', element: pending(<DvaPage />) },
+          {
+            element: <AdminRoute />,
+            children: [{ path: 'finance/adjustments', element: pending(<AdjustmentsPage />) }],
+          },
+          { path: 'finance/notes', element: pending(<NotesPage />) },
         ],
       },
     ],

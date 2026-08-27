@@ -439,3 +439,110 @@ export function useBalanceSheet(asOfDate?: string | null) {
     queryFn: () => api.fetchBalanceSheet(asOfDate),
   })
 }
+
+// ---------------------------------------------------------------------------
+// DMPL (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export const DMPL_KEYS = {
+  all: ['finance', 'dmpl'] as const,
+  period: (from: string | null, to: string | null) => [...DMPL_KEYS.all, from, to] as const,
+}
+
+export function useDmpl(from?: string | null, to?: string | null) {
+  return useQuery({
+    queryKey: DMPL_KEYS.period(from ?? null, to ?? null),
+    queryFn: () => api.fetchDmpl(from, to),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// DLPA (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export const DLPA_KEYS = {
+  all: ['finance', 'dlpa'] as const,
+  period: (from: string | null, to: string | null) => [...DLPA_KEYS.all, from, to] as const,
+}
+
+export function useDlpa(from?: string | null, to?: string | null) {
+  return useQuery({
+    queryKey: DLPA_KEYS.period(from ?? null, to ?? null),
+    queryFn: () => api.fetchDlpa(from, to),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// DVA (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export const DVA_KEYS = {
+  all: ['finance', 'dva'] as const,
+  period: (from: string | null, to: string | null) => [...DVA_KEYS.all, from, to] as const,
+}
+
+export function useDva(from?: string | null, to?: string | null) {
+  return useQuery({
+    queryKey: DVA_KEYS.period(from ?? null, to ?? null),
+    queryFn: () => api.fetchDva(from, to),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Adjustments (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export function useCreateAdjustment() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: api.CreateAdjustmentPayload) => api.createManualJournalAdjustment(payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['finance', 'journal-entries'] })
+      void qc.invalidateQueries({ queryKey: ['finance', 'transactions'] })
+      void qc.invalidateQueries({ queryKey: DMPL_KEYS.all })
+      void qc.invalidateQueries({ queryKey: DLPA_KEYS.all })
+      void qc.invalidateQueries({ queryKey: DVA_KEYS.all })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Notes (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export const NOTES_KEYS = {
+  all: ['finance', 'notes'] as const,
+  byType: (reportType: string | null) => [...NOTES_KEYS.all, reportType] as const,
+}
+
+export function useNotes(reportType?: string | null) {
+  return useQuery({
+    queryKey: NOTES_KEYS.byType(reportType ?? null),
+    queryFn: () => api.fetchNotes(reportType),
+  })
+}
+
+export function useCreateNote() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: api.NoteFormValues) => api.createNote(payload),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: NOTES_KEYS.all }),
+  })
+}
+
+export function useUpdateNote() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, values }: { id: string; values: Partial<api.NoteFormValues> }) =>
+      api.updateNote(id, values),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: NOTES_KEYS.all }),
+  })
+}
+
+export function useDeleteNote() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.deleteNote(id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: NOTES_KEYS.all }),
+  })
+}

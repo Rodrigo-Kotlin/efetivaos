@@ -653,3 +653,186 @@ export async function fetchBalanceSheet(asOfDate?: string | null): Promise<Balan
   if (error) throw error
   return (data ?? []) as BalanceSheetRow[]
 }
+
+// ---------------------------------------------------------------------------
+// DMPL - Statement of Changes in Equity (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export interface DmplRow {
+  row_label: string
+  capital_social: number
+  reservas: number
+  lucros_prejuizos_acumulados: number
+  resultado_exercicio: number
+  outros_componentes: number
+  total_pl: number
+  sort_order: number
+}
+
+export async function fetchDmpl(from?: string | null, to?: string | null): Promise<DmplRow[]> {
+  const { data, error } = await supabase.rpc('get_statement_of_changes_in_equity', {
+    p_from: from ?? null,
+    p_to: to ?? new Date().toISOString().slice(0, 10),
+  })
+  if (error) throw error
+  return (data ?? []) as DmplRow[]
+}
+
+// ---------------------------------------------------------------------------
+// DLPA - Retained Earnings Statement (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export interface DlpaRow {
+  row_label: string
+  amount: number
+  sort_order: number
+}
+
+export async function fetchDlpa(from?: string | null, to?: string | null): Promise<DlpaRow[]> {
+  const { data, error } = await supabase.rpc('get_retained_earnings_statement', {
+    p_from: from ?? null,
+    p_to: to ?? new Date().toISOString().slice(0, 10),
+  })
+  if (error) throw error
+  return (data ?? []) as DlpaRow[]
+}
+
+// ---------------------------------------------------------------------------
+// DVA - Value Added Statement (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export interface DvaRow {
+  row_label: string
+  amount: number
+  sort_order: number
+}
+
+export async function fetchDva(from?: string | null, to?: string | null): Promise<DvaRow[]> {
+  const { data, error } = await supabase.rpc('get_value_added_statement', {
+    p_from: from ?? null,
+    p_to: to ?? new Date().toISOString().slice(0, 10),
+  })
+  if (error) throw error
+  return (data ?? []) as DvaRow[]
+}
+
+// ---------------------------------------------------------------------------
+// Adjustments (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export interface AdjustmentLine {
+  chart_account_id: string
+  debit: number
+  credit: number
+  description?: string
+}
+
+export interface CreateAdjustmentPayload {
+  entry_date: string
+  competence_date: string
+  description: string
+  reference?: string | null
+  cost_center_id?: string | null
+  service_line_id?: string | null
+  lines: AdjustmentLine[]
+  idempotency_key?: string | null
+  justification?: string | null
+}
+
+export async function createManualJournalAdjustment(payload: CreateAdjustmentPayload): Promise<string> {
+  const { data, error } = await supabase.rpc('create_manual_journal_adjustment', {
+    p_entry_date: payload.entry_date,
+    p_competence_date: payload.competence_date,
+    p_description: payload.description,
+    p_reference: payload.reference ?? null,
+    p_cost_center_id: payload.cost_center_id ?? null,
+    p_service_line_id: payload.service_line_id ?? null,
+    p_lines: payload.lines,
+    p_idempotency_key: payload.idempotency_key ?? null,
+    p_justification: payload.justification ?? null,
+  })
+  if (error) throw error
+  return data as string
+}
+
+// ---------------------------------------------------------------------------
+// Notes (ETAPA 08G)
+// ---------------------------------------------------------------------------
+
+export interface FinancialNote {
+  id: string
+  note_type: string
+  title: string
+  body: string | null
+  reference_date: string | null
+  period_start: string | null
+  period_end: string | null
+  chart_account_id: string | null
+  transaction_id: string | null
+  journal_entry_id: string | null
+  asset_id: string | null
+  report_type: string
+  active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface NoteFormValues {
+  note_type: string
+  title: string
+  body?: string | null
+  reference_date?: string | null
+  period_start?: string | null
+  period_end?: string | null
+  chart_account_id?: string | null
+  transaction_id?: string | null
+  journal_entry_id?: string | null
+  asset_id?: string | null
+  report_type: string
+}
+
+export async function fetchNotes(reportType?: string | null): Promise<FinancialNote[]> {
+  let query = supabase
+    .from('financial_notes')
+    .select('*')
+    .eq('active', true)
+    .order('created_at', { ascending: false })
+
+  if (reportType) {
+    query = query.eq('report_type', reportType)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  return (data ?? []) as FinancialNote[]
+}
+
+export async function createNote(payload: NoteFormValues): Promise<FinancialNote> {
+  const { data, error } = await supabase
+    .from('financial_notes')
+    .insert(payload)
+    .select()
+    .single()
+  if (error) throw error
+  return data as FinancialNote
+}
+
+export async function updateNote(id: string, payload: Partial<NoteFormValues>): Promise<FinancialNote> {
+  const { data, error } = await supabase
+    .from('financial_notes')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as FinancialNote
+}
+
+export async function deleteNote(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('financial_notes')
+    .update({ active: false })
+    .eq('id', id)
+  if (error) throw error
+}

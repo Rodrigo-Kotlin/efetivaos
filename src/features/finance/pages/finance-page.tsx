@@ -12,9 +12,14 @@ const sections = [
   { title: 'Formas de Pagamento', description: 'PIX, boleto, cartao, transferencia.', icon: Receipt, to: '/finance/payment-methods', status: 'Planejado' },
   { title: 'Lancamentos', description: 'Motor de partidas dobradas.', icon: DollarSign, status: 'ETAPA 08B' },
   { title: 'DRE', description: 'Demonstracao do Resultado do Exercicio.', icon: FileText, to: '/finance/dre', status: 'Disponivel', active: true },
-  { title: 'Demonstracoes', description: 'BP, DMPL, DVA.', icon: Settings, status: 'ETAPA 08F-08G' },
+  { title: 'Demonstracoes', description: 'BP, DMPL, DLPA, DVA.', icon: Settings, status: 'ETAPA 08F-08G' },
   { title: 'Ativos e Bens', description: 'Registro patrimonial, vida util e depreciacao gerencial.', icon: Warehouse, to: '/finance/assets', status: 'Disponivel', active: true },
   { title: 'Balan&ccedil;o Patrimonial', description: 'Posicao patrimonial consolidada por grupo contabil.', icon: PieChart, to: '/finance/balance-sheet', status: 'Disponivel', active: true },
+  { title: 'DMPL', description: 'Demonstracao das Mutacoes do Patrimonio Liquido.', icon: FileText, to: '/finance/dmpl', status: 'Disponivel', active: true },
+  { title: 'DLPA', description: 'Demonstracao de Lucros ou Prejuizos Acumulados.', icon: FileText, to: '/finance/dlpa', status: 'Disponivel', active: true },
+  { title: 'DVA', description: 'Demonstracao do Valor Adicionado.', icon: FileText, to: '/finance/dva', status: 'Disponivel', active: true },
+  { title: 'Ajustes Contabeis', description: 'Lancamentos manuais de ajuste.', icon: Settings, to: '/finance/adjustments', status: 'Disponivel', active: true },
+  { title: 'Notas Gerenciais', description: 'Notas explicativas vinculadas a demonstracoes.', icon: FileText, to: '/finance/notes', status: 'Disponivel', active: true },
 ]
 
 export default function FinancePage() {

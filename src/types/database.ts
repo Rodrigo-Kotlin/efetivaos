@@ -390,10 +390,34 @@ export type FinancialAssetDepreciationPosting = {
   created_at: string; created_by: string | null
 }
 
+export type FinancialNote = {
+  id: string; note_type: string; title: string
+  body: string | null; reference_date: string | null
+  period_start: string | null; period_end: string | null
+  chart_account_id: string | null; transaction_id: string | null
+  journal_entry_id: string | null; asset_id: string | null
+  report_type: string; active: boolean
+  created_by: string | null; created_at: string; updated_at: string
+}
+
 export type BalanceSheetRow = {
   row_code: string; label: string; class: string
   group_name: string; amount: string; sort_order: number
   level: number; row_type: string; presentation_sign: number
+}
+
+export type DmplRow = {
+  row_label: string; capital_social: number; reservas: number
+  lucros_prejuizos_acumulados: number; resultado_exercicio: number
+  outros_componentes: number; total_pl: number; sort_order: number
+}
+
+export type DlpaRow = {
+  row_label: string; amount: number; sort_order: number
+}
+
+export type DvaRow = {
+  row_label: string; amount: number; sort_order: number
 }
 
 export type Database = {
@@ -979,6 +1003,24 @@ export type Database = {
           { foreignKeyName: 'financial_asset_depreciation_postings_journal_entry_id_fkey'; columns: ['journal_entry_id']; isOneToOne: false; referencedRelation: 'financial_journal_entries'; referencedColumns: ['id'] },
         ]
       }
+      financial_notes: {
+        Row: FinancialNote
+        Insert: {
+          id?: string; note_type: string; title: string
+          body?: string | null; reference_date?: string | null
+          period_start?: string | null; period_end?: string | null
+          chart_account_id?: string | null; transaction_id?: string | null
+          journal_entry_id?: string | null; asset_id?: string | null
+          report_type?: string; active?: boolean
+        }
+        Update: Partial<Omit<FinancialNote, 'id' | 'created_at' | 'created_by'>>
+        Relationships: [
+          { foreignKeyName: 'financial_notes_chart_account_id_fkey'; columns: ['chart_account_id']; isOneToOne: false; referencedRelation: 'financial_chart_accounts'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_notes_transaction_id_fkey'; columns: ['transaction_id']; isOneToOne: false; referencedRelation: 'financial_transactions'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_notes_journal_entry_id_fkey'; columns: ['journal_entry_id']; isOneToOne: false; referencedRelation: 'financial_journal_entries'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_notes_asset_id_fkey'; columns: ['asset_id']; isOneToOne: false; referencedRelation: 'financial_assets'; referencedColumns: ['id'] },
+        ]
+      }
     }
     Views: {
       financial_chart_accounts_list_v: {
@@ -1210,6 +1252,28 @@ export type Database = {
       get_balance_sheet: {
         Args: { p_as_of_date?: string }
         Returns: BalanceSheetRow[]
+      }
+      get_statement_of_changes_in_equity: {
+        Args: { p_from?: string | null; p_to?: string | null }
+        Returns: DmplRow[]
+      }
+      get_retained_earnings_statement: {
+        Args: { p_from?: string | null; p_to?: string | null }
+        Returns: DlpaRow[]
+      }
+      get_value_added_statement: {
+        Args: { p_from?: string | null; p_to?: string | null }
+        Returns: DvaRow[]
+      }
+      create_manual_journal_adjustment: {
+        Args: {
+          p_entry_date: string; p_competence_date: string; p_description: string
+          p_reference?: string | null; p_cost_center_id?: string | null
+          p_service_line_id?: string | null; p_lines: Array<{
+            chart_account_id: string; debit: number; credit: number; description?: string
+          }>; p_idempotency_key?: string | null; p_justification?: string | null
+        }
+        Returns: string
       }
     }
     Enums: {

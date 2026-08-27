@@ -35,6 +35,11 @@ const navigation = [
   { to: '/finance/dre', label: 'DRE', icon: FileText },
   { to: '/finance/assets', label: 'Ativos e Bens', icon: Warehouse },
   { to: '/finance/balance-sheet', label: 'Balan&ccedil;o Patrimonial', icon: PieChart },
+  { to: '/finance/dmpl', label: 'DMPL', icon: FileText },
+  { to: '/finance/dlpa', label: 'DLPA', icon: FileText },
+  { to: '/finance/dva', label: 'DVA', icon: FileText },
+  { to: '/finance/adjustments', label: 'Ajustes', icon: Settings, adminOnly: true },
+  { to: '/finance/notes', label: 'Notas', icon: FileText },
 ]
 
 function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: () => void; forceExpanded?: boolean }) {
