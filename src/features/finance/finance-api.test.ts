@@ -26,6 +26,7 @@ import {
   createTransaction,
   settleTransaction,
   cancelTransaction,
+  fetchIncomeStatement,
 } from './api/finance-api'
 
 const serviceMocks = vi.hoisted(() => ({
@@ -387,5 +388,43 @@ describe('Transactions API', () => {
   it('cancelTransaction propaga erro do RPC', async () => {
     serviceMocks.rpcResults.push({ data: null, error: { message: 'Already cancelled' } })
     await expect(cancelTransaction('tx-2')).rejects.toThrow()
+  })
+})
+
+describe('Income Statement API', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.rpcResults.length = 0
+  })
+
+  it('fetchIncomeStatement chama RPC com parametros corretos', async () => {
+    const rows = [
+      { row_code: 'RECEITA_BRUTA', label: 'Receita Bruta', row_type: 'SUBTOTAL', amount: 100000, sort_order: 10 },
+      { row_code: 'RESULTADO_LIQUIDO', label: 'RESULTADO LÍQUIDO', row_type: 'TOTAL', amount: 21750, sort_order: 140 },
+    ]
+    serviceMocks.rpcResults.push({ data: rows, error: null })
+    const result = await fetchIncomeStatement({ from: '2026-01-01', to: '2026-12-31' })
+    expect(result).toEqual(rows)
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:get_income_statement')
+    expect(rpcOp).toBeTruthy()
+    expect(rpcOp!.args[0]).toMatchObject({ p_from: '2026-01-01', p_to: '2026-12-31', p_cost_center_id: null, p_service_line_id: null })
+  })
+
+  it('fetchIncomeStatement com filtros de centro e linha', async () => {
+    serviceMocks.rpcResults.push({ data: [], error: null })
+    await fetchIncomeStatement({ costCenterId: 'cc-1', serviceLineId: 'sl-1' })
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:get_income_statement')
+    expect(rpcOp!.args[0]).toMatchObject({ p_cost_center_id: 'cc-1', p_service_line_id: 'sl-1', p_from: null, p_to: null })
+  })
+
+  it('fetchIncomeStatement retorna array vazio quando sem dados', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: null })
+    const result = await fetchIncomeStatement()
+    expect(result).toEqual([])
+  })
+
+  it('fetchIncomeStatement propaga erro do RPC', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: { message: 'Access denied' } })
+    await expect(fetchIncomeStatement()).rejects.toThrow()
   })
 })
