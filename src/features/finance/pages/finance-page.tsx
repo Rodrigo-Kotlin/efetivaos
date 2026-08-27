@@ -11,7 +11,8 @@ const sections = [
   { title: 'Contas Financeiras', description: 'Caixa, bancos e equivalentes.', icon: CreditCard, to: '/finance/accounts', status: 'Disponivel', active: true },
   { title: 'Formas de Pagamento', description: 'PIX, boleto, cartao, transferencia.', icon: Receipt, to: '/finance/payment-methods', status: 'Planejado' },
   { title: 'Lancamentos', description: 'Motor de partidas dobradas.', icon: DollarSign, status: 'ETAPA 08B' },
-  { title: 'Demonstracoes', description: 'DRE, BP, DFC, DMPL, DVA.', icon: Settings, status: 'ETAPA 08E-08G' },
+  { title: 'DRE', description: 'Demonstracao do Resultado do Exercicio.', icon: FileText, to: '/finance/dre', status: 'Disponivel', active: true },
+  { title: 'Demonstracoes', description: 'BP, DMPL, DVA.', icon: Settings, status: 'ETAPA 08F-08G' },
 ]
 
 export default function FinancePage() {

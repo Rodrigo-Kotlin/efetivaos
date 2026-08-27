@@ -525,4 +525,59 @@ Métodos afetados:
 **Aplicado:** Frontend gera key no `handleSubmit`. RPC `create_financial_transaction` aceita `p_idempotency_key` opcional e retorna existing UUID se duplicata.
 
 **Impacto futuro:** Padrão reutilizável para qualquer operação de criação que precise ser idempotente.
-```
+
+---
+
+## LL-040 — DO $$ não pode ser usado dentro de corpo de função PL/pgSQL
+
+**Data:** 2026-08-26 (ETAPA 08E)
+
+**Contexto:** Migration `20260826000500_create_income_statement.sql` tentava usar `DO $$ BEGIN ... END $$;` dentro do corpo de `LANGUAGE plpgsql` para o admin guard.
+
+**Aprendido:** `DO $$ ... $$;` é um bloco anônimo SQL que só pode ser executado como statement independente — não pode ser aninhado dentro de corpos de função. Para tratamento de erros dentro de funções PL/pgSQL, usar `BEGIN ... EXCEPTION WHEN ... END;`.
+
+**Aplicado:** Substituído `DO $$` por `BEGIN ... EXCEPTION WHEN` direto no corpo da função.
+
+**Impacto futuro:** Nunca usar `DO $$` dentro de corpos de função. Usar `BEGIN/EXCEPTION` do PL/pgSQL.
+
+---
+
+## LL-041 — Variáveis de saída PL/pgSQL conflitam com colunas de subquery
+
+**Data:** 2026-08-26 (ETAPA 08E)
+
+**Contexto:** Função `get_income_statement` com `RETURNS TABLE (row_code text, ...)` e subquery interna que também tem colunas `row_code`.
+
+**Aprendido:** Em PL/pgSQL, as variáveis de saída da função (declaram no `RETURNS TABLE`) têm o mesmo escopo que variáveis locais. Quando uma subquery interna tem colunas com o mesmo nome, PostgreSQL levanta erro de ambiguidade. Solução: qualificar com alias da subquery (`dre_rows.row_code`).
+
+**Aplicado:** Subquery externa qualificada com alias `dre_rows`.
+
+**Impacto futuro:** Quando PL/pgSQL retorna colunas com nomes genéricos (row_code, label, amount), qualificar todas as referências em subqueries externas.
+
+---
+
+## LL-042 — COALESCE obrigatório em SUM com possibilidade de vazio
+
+**Data:** 2026-08-26 (ETAPA 08E)
+
+**Contexto:** `SUM(CASE WHEN dre_class = 'X' THEN natural_value ELSE 0 END)` retorna NULL quando não há linhas no período.
+
+**Aprendido:** `SUM()` retorna NULL (não 0) quando não há linhas que satisfaçam o `GROUP BY` / `WHERE`. Mesmo com `ELSE 0` no CASE, se a CTE de origem é vazia, `SUM(NULL)` = NULL. Usar `COALESCE(SUM(...), 0)` em todos os totais.
+
+**Aplicado:** Todos os 10 totais DRE envolvidos com `COALESCE(..., 0)`.
+
+**Impacto futuro:** Toda CTE de agregação que pode retornar vazio deve usar COALESCE para evitar propagação de NULL em cálculos downstream.
+
+---
+
+## LL-043 — supabase db query --file retorna apenas último result set
+
+**Data:** 2026-08-26 (ETAPA 08E)
+
+**Contexto:** Arquivo de testes SQL com 50 SELECTs independentes — `supabase db query --linked --file` só retornava o último.
+
+**Aprendido:** O Supabase CLI processa o arquivo como uma única sessão, mas o cliente HTTP retorna apenas o último result set. Para múltiplos checks, usar UNION ALL em uma única query ou criar views temporárias.
+
+**Aplicado:** Todos os 50 testes reescritos como uma única query UNION ALL.
+
+**Impacto futuro:** Toda suíte de testes SQL remota deve usar UNION ALL para garantir visibilidade de todos os checks.

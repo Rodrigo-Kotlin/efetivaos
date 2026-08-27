@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08D COMPLETED (MICROGATE 08D.1 PASSED).
+**Status atual:** ETAPA 08E — DRE Gerencial — COMPLETED.
 
 ---
 
@@ -510,6 +510,31 @@ Gate:
 - 206/206 frontend tests pass;
 - commit `d33d24b`;
 - deploy `14d82940.efetivaos.pages.dev` HTTP 200;
+
+---
+
+### ETAPA 08E — DRE Gerencial
+
+**Status:** COMPLETED
+
+Escopo:
+
+- Funcao `get_income_statement(p_from, p_to, p_cost_center_id, p_service_line_id)`;
+- 14 linhas DRE: Receita Bruta → Resultado Líquido;
+- Regime de competência via competence_date;
+- Cálculo via debit/credit + account nature (DEBITO → debit−credit, CREDITO → credit−debit);
+- 10 dre_class: RECEITA_BRUTA, DEDUCAO_RECEITA, RECEITA_FINANCEIRA, OUTRAS_RECEITAS, CUSTO_SERVICO, DESPESA_OPERACIONAL, DEPRECIACAO_AMORTIZACAO, DESPESA_FINANCEIRA, OUTRAS_DESPESAS, IMPOSTO_RESULTADO;
+- UI: pagina DRE com tabela vertical, KPI cards, filtros (De, Até, Centro de Custo, Linha de Serviço);
+- Sidebar e routing atualizados;
+- 50/50 SQL tests remotos;
+- Cache invalidation nos mutations de transação;
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- 50/50 SQL tests pass via `supabase db query --linked`;
+- 206/206 frontend tests pass;
+- handoff `docs/22-handoff-sprint-08e.md`;
 
 ---
 

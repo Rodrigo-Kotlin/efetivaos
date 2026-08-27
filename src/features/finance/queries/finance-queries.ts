@@ -250,6 +250,7 @@ export function useCreateTransaction() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: TX_KEYS.all })
       void qc.invalidateQueries({ queryKey: CF_KEYS.all })
+      void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
     },
   })
 }
@@ -262,6 +263,7 @@ export function useSettleTransaction() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: TX_KEYS.all })
       void qc.invalidateQueries({ queryKey: CF_KEYS.all })
+      void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
     },
   })
 }
@@ -274,6 +276,7 @@ export function useCancelTransaction() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: TX_KEYS.all })
       void qc.invalidateQueries({ queryKey: CF_KEYS.all })
+      void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
     },
   })
 }
@@ -323,5 +326,21 @@ export function useCashflow13Weeks(from?: string | null) {
   return useQuery({
     queryKey: CF_KEYS.weeks13(from),
     queryFn: () => api.fetchCashflow13Weeks(from),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Income Statement / DRE (ETAPA 08E)
+// ---------------------------------------------------------------------------
+
+const DRE_KEYS = {
+  all: ['finance', 'income-statement'] as const,
+  statement: (filters: api.IncomeStatementFilters) => [...DRE_KEYS.all, 'dre', filters] as const,
+}
+
+export function useIncomeStatement(filters: api.IncomeStatementFilters = {}) {
+  return useQuery({
+    queryKey: DRE_KEYS.statement(filters),
+    queryFn: () => api.fetchIncomeStatement(filters),
   })
 }

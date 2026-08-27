@@ -571,6 +571,66 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 **Impacto:** Coluna adicional no schema. Frontend passa key a cada chamada. RPC aceita key opcional.
 
+---
+
+## DEC-039 — DRE Gerencial usa LANGUAGE plpgsql STABLE
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** A função `get_income_statement` precisa de um guard de admin (RAISE EXCEPTION) que não é suportado em `LANGUAGE sql`.
+
+**Decisão:** Usar `LANGUAGE plpgsql STABLE` para a função DRE, permitindo `BEGIN ... EXCEPTION WHEN` no admin guard.
+
+**Motivo:** `LANGUAGE sql` não suporta `RAISE EXCEPTION`. O guard é necessário como defesa em profundidade além de GRANT/REVOKE.
+
+**Impacto:** Função é compilada como PL/pgSQL. Performance equivalente para consultas simples.
+
+---
+
+## DEC-040 — COALESCE nos totais DRE
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** `SUM(...)` retorna NULL quando não há linhas no período, causando todos os valores DRE como NULL.
+
+**Decisão:** Envolcher todos os `SUM(...)` da CTE `totals` com `COALESCE(..., 0)`.
+
+**Motivo:** Garantir que períodos sem dados retornem zeros consistentes em vez de NULL.
+
+**Impacto:** UI mostra R$ 0,00 em vez de campos vazios. Fórmulas funcionam corretamente com zero.
+
+---
+
+## DEC-041 — Apresentação DRE segue referência Financeiro 360
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** Terminologia da DRE deve seguir a referência funcional (Financeiro 360 v2.0.0).
+
+**Decisão:** Usar termos idênticos: "Lucro Bruto / Margem de Contribuição", "EBITDA Gerencial", "(-) Deduções da Receita".
+
+**Motivo:** Preservar conformidade com a referência funcional validada.
+
+**Impacto:** Nenhum impacto técnico. Coerência com documentação existente.
+
+---
+
+## DEC-042 — PL/pgSQL output variables vs subquery columns
+
+**Data:** 2026-08-26
+**Status:** FECHADA
+
+**Contexto:** Em PL/pgSQL, variáveis de saída da função (`row_code`, `label`, etc.) conflitam com nomes de colunas em subquery interna.
+
+**Decisão:** Qualificar colunas externas com alias da subquery: `dre_rows.row_code`.
+
+**Motivo:** PostgreSQL levanta erro de ambiguidade quando variável de PL/pgSQL e coluna de tabela têm o mesmo nome.
+
+**Impacto:** Qualificação explícita nas colunas da query externa. Sem impacto funcional.
+
 ### PEND-001 — Nome definitivo do sistema
 
 **Status:** ABERTA

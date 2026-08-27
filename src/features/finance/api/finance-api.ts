@@ -19,6 +19,7 @@ import type {
   CashflowStatementRow,
   Cashflow13WeekRow,
   CashflowSummaryRow,
+  IncomeStatementRow,
 } from '@/types/database'
 
 type FinanceTables = Database['public']['Tables']
@@ -484,4 +485,26 @@ export async function fetchCashflow13Weeks(from?: string | null): Promise<Cashfl
   })
   if (error) throw error
   return (data ?? []) as Cashflow13WeekRow[]
+}
+
+// ---------------------------------------------------------------------------
+// Income Statement / DRE (ETAPA 08E)
+// ---------------------------------------------------------------------------
+
+export interface IncomeStatementFilters {
+  from?: string | null
+  to?: string | null
+  costCenterId?: string | null
+  serviceLineId?: string | null
+}
+
+export async function fetchIncomeStatement(filters: IncomeStatementFilters = {}): Promise<IncomeStatementRow[]> {
+  const { data, error } = await supabase.rpc('get_income_statement', {
+    p_from: filters.from ?? null,
+    p_to: filters.to ?? null,
+    p_cost_center_id: filters.costCenterId ?? null,
+    p_service_line_id: filters.serviceLineId ?? null,
+  })
+  if (error) throw error
+  return (data ?? []) as IncomeStatementRow[]
 }

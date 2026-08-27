@@ -339,6 +339,18 @@ export type CashflowSummaryRow = {
   projected_balance: string
 }
 
+// ---------------------------------------------------------------------------
+// Income Statement / DRE (ETAPA 08E)
+// ---------------------------------------------------------------------------
+
+export type IncomeStatementRow = {
+  row_code: string
+  label: string
+  row_type: 'DETAIL' | 'SUBTOTAL' | 'TOTAL'
+  amount: string
+  sort_order: number
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -1060,6 +1072,10 @@ export type Database = {
       cashflow_summary: {
         Args: { p_from?: string | null; p_to?: string | null; p_account_id?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
         Returns: CashflowSummaryRow[]
+      }
+      get_income_statement: {
+        Args: { p_from?: string | null; p_to?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
+        Returns: IncomeStatementRow[]
       }
     }
     Enums: {
