@@ -28,4 +28,10 @@ export type {
   Cashflow13WeekRow,
   CashflowSummaryRow,
   IncomeStatementRow,
+  FinancialAssetStatus,
+  FinancialAssetDepreciationMethod,
+  FinancialAsset,
+  FinancialAssetList,
+  FinancialAssetDepreciationPosting,
+  BalanceSheetRow,
 } from '@/types/database'

@@ -637,8 +637,50 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 `Efetiva OS` permanece nome de trabalho.
 
+### DEC-043 — Relatórios financeiros: Equipe ativa tem acesso read-only
+
+**Status:** FECHADA
+
+**Data:** 2026-08-26 (MICROGATE 08E.1)
+
+**Contexto:** `get_income_statement()` foi implementada com `is_admin()`, bloqueando Equipe. A política do módulo financeiro prevê que relatórios de leitura sejam acessíveis por Admin e Equipe ativa, enquanto mutations permanecem Admin-only.
+
+**Decisão:** Usar `is_internal_user()` como guard em relatórios financeiros read-only. Função retorna `true` para `role IN ('admin','equipe') AND active = true`. Mutations financeiras (create, update, settle, cancel) continuam Admin-only via `is_admin()`.
+
+**Motivo:** Separar claramente permissão de relatório (read-only) de permissão de mutação (write). Equipe precisa visualizar DRE, cashflow e demonstrativos para operação.
+
+**Impacto:** `get_income_statement` agora usa `is_internal_user()`. Funções de mutation não são alteradas.
+
 ### PEND-002 — Lançamentos financeiros de contratos recorrentes
 
 **Status:** ABERTA
 
 Definir posteriormente se contratos recorrentes gerarão lançamentos automaticamente ou mediante confirmação manual.
+
+### DEC-044 — Ativo/Bem: cadastro patrimonial ≠ ledger
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F)
+
+**Contexto:** Definir se `financial_assets` alimenta diretamente o BP/DRE ou se permanece como registro operacional.
+
+**Decisão:** `financial_assets` é cadastro operacional. BP e DRE continuam calculados pelo ledger (journal entries). Depreciação gerencial é registrada no cadastro para referência, mas o impacto contábil é feito via posting de journal entry na contabilização.
+
+**Motivo:** Separar cadastro gerencial (vida útil, localização, responsável) da verdade contábil (ledger). Evita divergência entre o que o cadastro calcula e o que o journal entry registra.
+
+**Impacto:** Ledger é fonte única de verdade para BP e DRE. Cadastro de ativos fornece dados operacionais para demonstrações.
+
+### DEC-045 — Depreciação: apenas linha reta no 08F
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08F)
+
+**Contexto:** Definir quais métodos de depreciação suportar no 08F.
+
+**Decisão:** Apenas método de linha reta (STRAIGHT_LINE). Enum `financial_asset_depreciation_method` preparado para extensão futura.
+
+**Motivo:** Simplificar implementação. Método linha reta é o mais comum para bens patrimoniais no contexto PME.
+
+**Impacto:** Cálculo: (valor_aquisição − valor_residual) / vida_util_meses. Extensão para outros métodos pode ser feita sem breaking change.

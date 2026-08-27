@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08E — DRE Gerencial — COMPLETED.
+**Status atual:** ETAPA 08F — Ativos/Bens + Balanco Patrimonial — COMPLETED.
 
 ---
 
@@ -526,15 +526,48 @@ Escopo:
 - 10 dre_class: RECEITA_BRUTA, DEDUCAO_RECEITA, RECEITA_FINANCEIRA, OUTRAS_RECEITAS, CUSTO_SERVICO, DESPESA_OPERACIONAL, DEPRECIACAO_AMORTIZACAO, DESPESA_FINANCEIRA, OUTRAS_DESPESAS, IMPOSTO_RESULTADO;
 - UI: pagina DRE com tabela vertical, KPI cards, filtros (De, Até, Centro de Custo, Linha de Serviço);
 - Sidebar e routing atualizados;
-- 50/50 SQL tests remotos;
+- SECURITY DEFINER + search_path + is_internal_user() guard (admin OR equipe);
+- 50/50 SQL tests remotos + 15/15 microgate tests;
+- 218/218 frontend tests;
 - Cache invalidation nos mutations de transação;
 
 Gate:
 
 - `npm run build` sem erros TypeScript;
-- 50/50 SQL tests pass via `supabase db query --linked`;
-- 206/206 frontend tests pass;
+- 65/65 SQL tests pass via `supabase db query --linked`;
+- 218/218 frontend tests pass;
 - handoff `docs/22-handoff-sprint-08e.md`;
+
+---
+
+### ETAPA 08F — Ativos/Bens + Balanco Patrimonial Gerencial
+
+**Status:** COMPLETED
+
+Escopo:
+
+- Tabela `financial_assets` (cadastro patrimonial operacional);
+- Tabela `financial_asset_depreciation_postings` (contabilizacao de depreciacao);
+- Enums `financial_asset_status`, `financial_asset_depreciation_method`;
+- Estensao do enum `financial_movement_type` com `DEPRECIACAO`;
+- RPCs: `create_asset`, `update_asset`, `dispose_asset`, `post_asset_depreciation`, `get_balance_sheet`;
+- View `financial_assets_list_v` (depreciacao acumulada, valor contabil);
+- Depreciacao linear reta (STRAIGHT_LINE);
+- Contabilizacao: D Despesa Depreciacao / C Depreciacao Acumulada;
+- Guard `is_admin()` para mutacoes, `is_internal_user()` para leitura;
+- UI: pagina Ativos/Bens com listagem, criar/editar, depreciar, baixar;
+- UI: pagina Balanco Patrimonial com layout vertical, equacao patrimonial, indicadores;
+- Sidebar e routing atualizados;
+- 15/15 SQL tests remotos;
+- 218/218 frontend tests;
+- Cache invalidation nos mutations de transacao;
+
+Gate:
+
+- `npm run build` sem erros TypeScript;
+- 15/15 SQL tests pass via `supabase db query --linked`;
+- 218/218 frontend tests pass;
+- handoff `docs/23-handoff-sprint-08f.md`;
 
 ---
 

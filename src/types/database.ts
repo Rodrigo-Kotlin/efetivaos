@@ -234,7 +234,7 @@ export type FinancialAccountClass = 'ATIVO' | 'PASSIVO' | 'PL' | 'RECEITA' | 'CU
 export type FinancialNature = 'DEBITO' | 'CREDITO'
 export type FinancialCurrentClass = 'CIRCULANTE' | 'NAO_CIRCULANTE'
 export type FinancialDfcClass = 'OPERACIONAL' | 'INVESTIMENTO' | 'FINANCIAMENTO' | 'NAO_CAIXA' | 'TRANSFERENCIA'
-export type FinancialMovementType = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA' | 'EMPRESTIMO_RECEBIDO' | 'EMPRESTIMO_PAGO' | 'APORTE' | 'RETIRADA' | 'IMOBILIZADO' | 'SALDO_INICIAL' | 'AJUSTE'
+export type FinancialMovementType = 'RECEITA' | 'DESPESA' | 'TRANSFERENCIA' | 'EMPRESTIMO_RECEBIDO' | 'EMPRESTIMO_PAGO' | 'APORTE' | 'RETIRADA' | 'IMOBILIZADO' | 'SALDO_INICIAL' | 'AJUSTE' | 'DEPRECIACAO'
 export type FinancialAccountType = 'CAIXA' | 'CONTA_CORRENTE' | 'POUPANCA' | 'CARTAO' | 'INVESTIMENTO' | 'OUTRO'
 
 export type ChartAccount = FinanceAuditFields & {
@@ -349,6 +349,51 @@ export type IncomeStatementRow = {
   row_type: 'DETAIL' | 'SUBTOTAL' | 'TOTAL'
   amount: string
   sort_order: number
+}
+
+// ---------------------------------------------------------------------------
+// Assets / Balance Sheet (ETAPA 08F)
+// ---------------------------------------------------------------------------
+
+export type FinancialAssetStatus = 'ACTIVE' | 'FULLY_DEPRECIATED' | 'DISPOSED' | 'INACTIVE'
+export type FinancialAssetDepreciationMethod = 'STRAIGHT_LINE'
+
+export type FinancialAsset = FinanceAuditFields & {
+  id: string; asset_code: string; name: string; description: string | null
+  category: string | null; acquisition_date: string; acquisition_value: string
+  residual_value: string; useful_life_months: number
+  depreciation_method: FinancialAssetDepreciationMethod
+  depreciation_start_date: string | null; status: FinancialAssetStatus
+  location: string | null; responsible: string | null
+  serial_number: string | null; patrimony_number: string | null
+  notes: string | null; active: boolean
+  asset_chart_account_id: string | null
+  accumulated_depreciation_account_id: string | null
+  depreciation_expense_account_id: string | null
+  cost_center_id: string | null; service_line_id: string | null
+  party_id: string | null; acquisition_transaction_id: string | null
+}
+
+export type FinancialAssetList = FinancialAsset & {
+  depreciable_base: string; monthly_depreciation: string
+  accumulated_depreciation: string; book_value_estimated: string
+  cost_center_name: string | null; service_line_name: string | null
+  chart_account_code: string | null; chart_account_name: string | null
+  accumulated_account_code: string | null; accumulated_account_name: string | null
+  expense_account_code: string | null; expense_account_name: string | null
+}
+
+export type FinancialAssetDepreciationPosting = {
+  id: string; asset_id: string; competence_period: string
+  amount: string; journal_entry_id: string | null
+  status: string; idempotency_key: string
+  created_at: string; created_by: string | null
+}
+
+export type BalanceSheetRow = {
+  row_code: string; label: string; class: string
+  group_name: string; amount: string; sort_order: number
+  level: number; row_type: string; presentation_sign: number
 }
 
 export type Database = {
@@ -891,6 +936,49 @@ export type Database = {
           { foreignKeyName: 'fjl_chart_account_id_fkey'; columns: ['chart_account_id']; isOneToOne: false; referencedRelation: 'financial_chart_accounts'; referencedColumns: ['id'] },
         ]
       }
+      financial_assets: {
+        Row: FinancialAsset
+        Insert: {
+          id?: string; asset_code: string; name: string
+          description?: string | null; category?: string | null
+          acquisition_date: string; acquisition_value: number | string
+          residual_value?: number | string; useful_life_months?: number
+          depreciation_method?: FinancialAssetDepreciationMethod
+          depreciation_start_date?: string | null
+          status?: FinancialAssetStatus
+          location?: string | null; responsible?: string | null
+          serial_number?: string | null; patrimony_number?: string | null
+          notes?: string | null; active?: boolean
+          asset_chart_account_id?: string | null
+          accumulated_depreciation_account_id?: string | null
+          depreciation_expense_account_id?: string | null
+          cost_center_id?: string | null; service_line_id?: string | null
+          party_id?: string | null; acquisition_transaction_id?: string | null
+        }
+        Update: Partial<Omit<FinancialAsset, 'id' | 'created_at' | 'updated_at' | 'created_by' | 'updated_by'>>
+        Relationships: [
+          { foreignKeyName: 'financial_assets_asset_chart_account_id_fkey'; columns: ['asset_chart_account_id']; isOneToOne: false; referencedRelation: 'financial_chart_accounts'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_assets_accumulated_depreciation_account_id_fkey'; columns: ['accumulated_depreciation_account_id']; isOneToOne: false; referencedRelation: 'financial_chart_accounts'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_assets_depreciation_expense_account_id_fkey'; columns: ['depreciation_expense_account_id']; isOneToOne: false; referencedRelation: 'financial_chart_accounts'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_assets_cost_center_id_fkey'; columns: ['cost_center_id']; isOneToOne: false; referencedRelation: 'financial_cost_centers'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_assets_service_line_id_fkey'; columns: ['service_line_id']; isOneToOne: false; referencedRelation: 'financial_service_lines'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_assets_party_id_fkey'; columns: ['party_id']; isOneToOne: false; referencedRelation: 'financial_parties'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_assets_acquisition_transaction_id_fkey'; columns: ['acquisition_transaction_id']; isOneToOne: false; referencedRelation: 'financial_transactions'; referencedColumns: ['id'] },
+        ]
+      }
+      financial_asset_depreciation_postings: {
+        Row: FinancialAssetDepreciationPosting
+        Insert: {
+          id?: string; asset_id: string; competence_period: string
+          amount: number | string; journal_entry_id?: string | null
+          status?: string; idempotency_key: string
+        }
+        Update: Partial<Omit<FinancialAssetDepreciationPosting, 'id' | 'created_at' | 'created_by'>>
+        Relationships: [
+          { foreignKeyName: 'financial_asset_depreciation_postings_asset_id_fkey'; columns: ['asset_id']; isOneToOne: false; referencedRelation: 'financial_assets'; referencedColumns: ['id'] },
+          { foreignKeyName: 'financial_asset_depreciation_postings_journal_entry_id_fkey'; columns: ['journal_entry_id']; isOneToOne: false; referencedRelation: 'financial_journal_entries'; referencedColumns: ['id'] },
+        ]
+      }
     }
     Views: {
       financial_chart_accounts_list_v: {
@@ -951,6 +1039,10 @@ export type Database = {
       }
       ranked_quotation_items_v: {
         Row: QuotationOfferCandidateRow & { offer_rank: number; eligible_offer_count: number }
+        Relationships: []
+      }
+      financial_assets_list_v: {
+        Row: FinancialAssetList
         Relationships: []
       }
     }
@@ -1077,6 +1169,48 @@ export type Database = {
         Args: { p_from?: string | null; p_to?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
         Returns: IncomeStatementRow[]
       }
+      create_asset: {
+        Args: {
+          p_asset_code: string; p_name: string; p_description?: string | null
+          p_category?: string | null; p_acquisition_date?: string
+          p_acquisition_value?: number | string; p_residual_value?: number | string
+          p_useful_life_months?: number; p_depreciation_start_date?: string | null
+          p_location?: string | null; p_responsible?: string | null
+          p_serial_number?: string | null; p_patrimony_number?: string | null
+          p_notes?: string | null; p_asset_chart_account_id?: string | null
+          p_accumulated_depreciation_account_id?: string | null
+          p_depreciation_expense_account_id?: string | null
+          p_cost_center_id?: string | null; p_service_line_id?: string | null
+          p_party_id?: string | null; p_acquisition_transaction_id?: string | null
+        }
+        Returns: string
+      }
+      update_asset: {
+        Args: {
+          p_asset_id: string; p_name?: string | null; p_description?: string | null
+          p_category?: string | null; p_location?: string | null
+          p_responsible?: string | null; p_serial_number?: string | null
+          p_patrimony_number?: string | null; p_notes?: string | null
+          p_asset_chart_account_id?: string | null
+          p_accumulated_depreciation_account_id?: string | null
+          p_depreciation_expense_account_id?: string | null
+          p_cost_center_id?: string | null; p_service_line_id?: string | null
+          p_party_id?: string | null
+        }
+        Returns: undefined
+      }
+      dispose_asset: {
+        Args: { p_asset_id: string; p_notes?: string | null }
+        Returns: undefined
+      }
+      post_asset_depreciation: {
+        Args: { p_asset_id: string; p_competence_period: string; p_amount?: number | string | null }
+        Returns: string
+      }
+      get_balance_sheet: {
+        Args: { p_as_of_date?: string }
+        Returns: BalanceSheetRow[]
+      }
     }
     Enums: {
       app_role: AppRole
@@ -1093,6 +1227,8 @@ export type Database = {
       financial_movement_type: FinancialMovementType
       financial_account_type: FinancialAccountType
       financial_transaction_status: FinancialTransactionStatus
+      financial_asset_status: FinancialAssetStatus
+      financial_asset_depreciation_method: FinancialAssetDepreciationMethod
     }
     CompositeTypes: Record<string, never>
   }

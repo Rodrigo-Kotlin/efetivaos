@@ -62,9 +62,10 @@
 
 ### SQL Tests
 
-- **Arquivo**: `supabase/tests/08e_income_statement_tests.sql`
-- **Total**: 50/50 PASS
-- **Cobertura**: grants, anon/public reject, structure, formulas, competence date, filters, integrity, labels
+- **Arquivo 08E**: `supabase/tests/08e_income_statement_tests.sql` — 50/50 PASS
+- **Arquivo 08E.1**: `supabase/tests/08e1_microgate_tests.sql` — 15/15 PASS
+- **Total**: 65/65 PASS
+- **Cobertura**: grants, anon/public reject, security definer, search_path, structure, formulas, competence date, filters, integrity, labels, is_internal_user guard
 
 ### Integrity Checks
 
@@ -80,9 +81,19 @@
 
 | Gate | Result |
 |---|---|
-| npm test | 206/206 PASS |
+| npm test | 218/218 PASS |
 | npm run lint | 8 errors (all pre-existing), 1 warning (pre-existing) |
-| npm run build | SUCCESS |
+| npm run build | SUCCESS (8.96s) |
+
+### Security (after MICROGATE 08E.1)
+
+| Objeto | Admin | Equipe | Inativo | Anon | PUBLIC |
+|---|---|---|---|---|---|
+| get_income_statement() | EXECUTE | EXECUTE | DENY | DENY | NONE |
+
+- SECURITY DEFINER
+- search_path = 'public, pg_temp'
+- Guard: `is_internal_user()` (active + role IN admin/equipe)
 
 ---
 
@@ -94,6 +105,8 @@
 | DEC-08E-02 | COALESCE(..., 0) nos totals | Evita NULL quando não há journal entries no período |
 | DEC-08E-03 | Apresentação segue referência Financeiro 360 | Termos: "Lucro Bruto / Margem de Contribuição", "EBITDA Gerencial" |
 | DEC-08E-04 | Deduções apresentadas como negativo | UI exibe `(-) Deduções` com valor negativo, mantendo coerência visual |
+| DEC-08E-05 | SECURITY DEFINER + search_path | Previne search_path hijacking em função que executa queries internas |
+| DEC-08E-06 | Guard usa `is_internal_user()` | Relatório read-only: admin + equipe ativa (DEC-043) |
 
 ## Aprendizados
 
@@ -103,6 +116,8 @@
 | LL-08E-02 | PL/pgSQL output variables conflitam com nomes de colunas em subquery — qualificar com alias |
 | LL-08E-03 | `supabase db query --linked --file` só retorna o último result set — usar UNION ALL para múltiplos checks |
 | LL-08E-04 | `REVOKE ALL ON FUNCTION ... FROM PUBLIC` falha com `undefined_object` quando função não existe ainda — aplicar REVOKE depois do CREATE |
+| LL-08E-05 | `type="date"` inputs não têm role ARIA em jsdom — usar `container.querySelector` em testes |
+| LL-08E-06 | Mocks parciais de TanStack Query precisam de `as unknown as` para satisfazer TypeScript |
 
 ---
 

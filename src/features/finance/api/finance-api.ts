@@ -20,6 +20,8 @@ import type {
   Cashflow13WeekRow,
   CashflowSummaryRow,
   IncomeStatementRow,
+  FinancialAssetList,
+  BalanceSheetRow,
 } from '@/types/database'
 
 type FinanceTables = Database['public']['Tables']
@@ -507,4 +509,147 @@ export async function fetchIncomeStatement(filters: IncomeStatementFilters = {})
   })
   if (error) throw error
   return (data ?? []) as IncomeStatementRow[]
+}
+
+// ---------------------------------------------------------------------------
+// Assets (ETAPA 08F)
+// ---------------------------------------------------------------------------
+
+export async function fetchAssets(): Promise<FinancialAssetList[]> {
+  const { data, error } = await supabase
+    .from('financial_assets_list_v')
+    .select('*')
+    .order('asset_code', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as FinancialAssetList[]
+}
+
+export async function fetchAsset(id: string): Promise<FinancialAssetList> {
+  const { data, error } = await supabase
+    .from('financial_assets_list_v')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return data as FinancialAssetList
+}
+
+export interface CreateAssetPayload {
+  asset_code: string
+  name: string
+  description?: string | null
+  category?: string | null
+  acquisition_date?: string
+  acquisition_value: number | string
+  residual_value?: number | string
+  useful_life_months?: number
+  depreciation_start_date?: string | null
+  location?: string | null
+  responsible?: string | null
+  serial_number?: string | null
+  patrimony_number?: string | null
+  notes?: string | null
+  asset_chart_account_id?: string | null
+  accumulated_depreciation_account_id?: string | null
+  depreciation_expense_account_id?: string | null
+  cost_center_id?: string | null
+  service_line_id?: string | null
+  party_id?: string | null
+  acquisition_transaction_id?: string | null
+}
+
+export async function createAsset(payload: CreateAssetPayload): Promise<string> {
+  const { data, error } = await supabase.rpc('create_asset', {
+    p_asset_code: payload.asset_code,
+    p_name: payload.name,
+    p_description: payload.description ?? null,
+    p_category: payload.category ?? null,
+    p_acquisition_date: payload.acquisition_date ?? new Date().toISOString().slice(0, 10),
+    p_acquisition_value: payload.acquisition_value,
+    p_residual_value: payload.residual_value ?? 0,
+    p_useful_life_months: payload.useful_life_months ?? 60,
+    p_depreciation_start_date: payload.depreciation_start_date ?? null,
+    p_location: payload.location ?? null,
+    p_responsible: payload.responsible ?? null,
+    p_serial_number: payload.serial_number ?? null,
+    p_patrimony_number: payload.patrimony_number ?? null,
+    p_notes: payload.notes ?? null,
+    p_asset_chart_account_id: payload.asset_chart_account_id ?? null,
+    p_accumulated_depreciation_account_id: payload.accumulated_depreciation_account_id ?? null,
+    p_depreciation_expense_account_id: payload.depreciation_expense_account_id ?? null,
+    p_cost_center_id: payload.cost_center_id ?? null,
+    p_service_line_id: payload.service_line_id ?? null,
+    p_party_id: payload.party_id ?? null,
+    p_acquisition_transaction_id: payload.acquisition_transaction_id ?? null,
+  })
+  if (error) throw error
+  return data as string
+}
+
+export interface UpdateAssetPayload {
+  name?: string | null
+  description?: string | null
+  category?: string | null
+  location?: string | null
+  responsible?: string | null
+  serial_number?: string | null
+  patrimony_number?: string | null
+  notes?: string | null
+  asset_chart_account_id?: string | null
+  accumulated_depreciation_account_id?: string | null
+  depreciation_expense_account_id?: string | null
+  cost_center_id?: string | null
+  service_line_id?: string | null
+  party_id?: string | null
+}
+
+export async function updateAsset(id: string, payload: UpdateAssetPayload): Promise<void> {
+  const { error } = await supabase.rpc('update_asset', {
+    p_asset_id: id,
+    p_name: payload.name ?? null,
+    p_description: payload.description ?? null,
+    p_category: payload.category ?? null,
+    p_location: payload.location ?? null,
+    p_responsible: payload.responsible ?? null,
+    p_serial_number: payload.serial_number ?? null,
+    p_patrimony_number: payload.patrimony_number ?? null,
+    p_notes: payload.notes ?? null,
+    p_asset_chart_account_id: payload.asset_chart_account_id ?? null,
+    p_accumulated_depreciation_account_id: payload.accumulated_depreciation_account_id ?? null,
+    p_depreciation_expense_account_id: payload.depreciation_expense_account_id ?? null,
+    p_cost_center_id: payload.cost_center_id ?? null,
+    p_service_line_id: payload.service_line_id ?? null,
+    p_party_id: payload.party_id ?? null,
+  })
+  if (error) throw error
+}
+
+export async function disposeAsset(id: string, notes?: string | null): Promise<void> {
+  const { error } = await supabase.rpc('dispose_asset', {
+    p_asset_id: id,
+    p_notes: notes ?? null,
+  })
+  if (error) throw error
+}
+
+export async function postAssetDepreciation(assetId: string, competencePeriod: string, amount?: number | null): Promise<string> {
+  const { data, error } = await supabase.rpc('post_asset_depreciation', {
+    p_asset_id: assetId,
+    p_competence_period: competencePeriod,
+    p_amount: amount ?? null,
+  })
+  if (error) throw error
+  return data as string
+}
+
+// ---------------------------------------------------------------------------
+// Balance Sheet (ETAPA 08F)
+// ---------------------------------------------------------------------------
+
+export async function fetchBalanceSheet(asOfDate?: string | null): Promise<BalanceSheetRow[]> {
+  const { data, error } = await supabase.rpc('get_balance_sheet', {
+    p_as_of_date: asOfDate ?? new Date().toISOString().slice(0, 10),
+  })
+  if (error) throw error
+  return (data ?? []) as BalanceSheetRow[]
 }

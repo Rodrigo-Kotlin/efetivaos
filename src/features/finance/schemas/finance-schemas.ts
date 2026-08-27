@@ -41,7 +41,7 @@ export type ServiceLineFormValues = z.infer<typeof serviceLineSchema>
 
 export const categorySchema = z.object({
   name: z.string().min(2, 'Nome deve ter ao menos 2 caracteres').max(200),
-  movement_type: z.enum(['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL', 'AJUSTE']),
+  movement_type: z.enum(['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL', 'AJUSTE', 'DEPRECIACAO']),
   counter_account_id: z.string().nullable().default(null),
   cost_center_id: z.string().nullable().default(null),
   service_line_id: z.string().nullable().default(null),
@@ -74,7 +74,7 @@ export type PaymentMethodFormValues = z.infer<typeof paymentMethodSchema>
 // Transaction schemas (Motor de Lançamentos 08B)
 // ---------------------------------------------------------------------------
 
-const MOVEMENT_TYPES = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL', 'AJUSTE'] as const
+const MOVEMENT_TYPES = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL', 'AJUSTE', 'DEPRECIACAO'] as const
 
 export const transactionBaseSchema = z.object({
   description: z.string().min(3, 'Descricao deve ter ao menos 3 caracteres').max(500),

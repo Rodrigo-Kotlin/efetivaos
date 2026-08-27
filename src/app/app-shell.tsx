@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText } from 'lucide-react'
+import { Building2, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
@@ -33,6 +33,8 @@ const navigation = [
   { to: '/finance/cashflow', label: 'Fluxo de Caixa', icon: TrendingUp },
   { to: '/finance/cash-flow-statement', label: 'DFC', icon: BarChart3 },
   { to: '/finance/dre', label: 'DRE', icon: FileText },
+  { to: '/finance/assets', label: 'Ativos e Bens', icon: Warehouse },
+  { to: '/finance/balance-sheet', label: 'Balan&ccedil;o Patrimonial', icon: PieChart },
 ]
 
 function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: () => void; forceExpanded?: boolean }) {

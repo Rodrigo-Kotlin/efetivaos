@@ -1,4 +1,4 @@
-import { ArrowUpRight, BookOpen, Building2, CreditCard, DollarSign, FileText, Layers, Receipt, Settings } from 'lucide-react'
+import { ArrowUpRight, BookOpen, Building2, CreditCard, DollarSign, FileText, Layers, Receipt, Settings, Warehouse, PieChart } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,8 @@ const sections = [
   { title: 'Lancamentos', description: 'Motor de partidas dobradas.', icon: DollarSign, status: 'ETAPA 08B' },
   { title: 'DRE', description: 'Demonstracao do Resultado do Exercicio.', icon: FileText, to: '/finance/dre', status: 'Disponivel', active: true },
   { title: 'Demonstracoes', description: 'BP, DMPL, DVA.', icon: Settings, status: 'ETAPA 08F-08G' },
+  { title: 'Ativos e Bens', description: 'Registro patrimonial, vida util e depreciacao gerencial.', icon: Warehouse, to: '/finance/assets', status: 'Disponivel', active: true },
+  { title: 'Balan&ccedil;o Patrimonial', description: 'Posicao patrimonial consolidada por grupo contabil.', icon: PieChart, to: '/finance/balance-sheet', status: 'Disponivel', active: true },
 ]
 
 export default function FinancePage() {

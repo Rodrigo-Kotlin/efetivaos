@@ -29,6 +29,8 @@ const TransactionsPage = lazy(() => import('@/features/finance/pages/transaction
 const CashflowPage = lazy(() => import('@/features/finance/pages/cashflow-page'))
 const DfcPage = lazy(() => import('@/features/finance/pages/dfc-page'))
 const DrePage = lazy(() => import('@/features/finance/pages/dre-page'))
+const AssetsPage = lazy(() => import('@/features/finance/pages/assets-page'))
+const BalanceSheetPage = lazy(() => import('@/features/finance/pages/balance-sheet-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -69,6 +71,8 @@ export const router = createBrowserRouter([
           { path: 'finance/cashflow', element: pending(<CashflowPage />) },
           { path: 'finance/cash-flow-statement', element: pending(<DfcPage />) },
           { path: 'finance/dre', element: pending(<DrePage />) },
+          { path: 'finance/assets', element: pending(<AssetsPage />) },
+          { path: 'finance/balance-sheet', element: pending(<BalanceSheetPage />) },
         ],
       },
     ],

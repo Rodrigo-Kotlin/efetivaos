@@ -581,3 +581,55 @@ Métodos afetados:
 **Aplicado:** Todos os 50 testes reescritos como uma única query UNION ALL.
 
 **Impacto futuro:** Toda suíte de testes SQL remota deve usar UNION ALL para garantir visibilidade de todos os checks.
+
+---
+
+## LL-044 — Relatório read-only ≠ mutation: permissões devem ser tratadas separadamente
+
+**Data:** 2026-08-26 (MICROGATE 08E.1)
+
+**Contexto:** A função DRE foi implementada com `is_admin()`, bloqueando Equipe. Relatórios financeiros de leitura precisam ser acessíveis por Admin e Equipe ativa.
+
+**Aprendido:** Não aplicar automaticamente a mesma permissão de mutations (Admin-only) a relatórios read-only. Relatórios financeiros sãoconsultas seguras — não modificam dados. A regra canônica é: mutations = Admin-only; relatórios = Admin + Equipe ativa; anon = SEMPRE negado.
+
+**Aplicado:** Guard substituído de `is_admin()` para `is_internal_user()` em `get_income_statement()`. DEC-043 registrada.
+
+**Impacto futuro:** Toda nova função de relatório/consulta financeira deve usar `is_internal_user()` como guard, não `is_admin()`.
+
+---
+
+## LL-045 — deploy/smoke deve ser gate antes de declarar COMPLETED
+
+**Data:** 2026-08-26 (MICROGATE 08E.1)
+
+**Contexto:** ETAPA 08E foi marcada COMPLETED enquanto deploy Cloudflare e smoke estavam pendentes.
+
+**Aprendido:** Deploy + smoke são gates obrigatórios antes de declarar uma etapa como COMPLETED. Não fechar relatório final sem confirmar que o código está acessível em produção.
+
+**Aplicado:** MICROGATE 08E.1 exige deploy + smoke antes de fechar.
+
+**Impacto futuro:** Todo relatório final deve incluir seção de deploy e smoke como gates obrigatórios.
+
+## LL-046 — PL/pgSQL RETURNS TABLE conflita com nomes de colunas CTE
+
+**Data:** 2026-08-27 (ETAPA 08F)
+
+**Contexto:** Função `get_balance_sheet` com RETURNS TABLE e LANGUAGE plpgsql gerava erro "column reference is ambiguous" porque colunas de CTEs tinham os mesmos nomes das colunas de retorno (class, level, row_type, presentation_sign).
+
+**Aprendido:** Em PL/pgSQL, RETURNS TABLE cria variáveis locais com os mesmos nomes das colunas. Quando CTEs internas produzem colunas com o mesmo nome, há conflito de ambiguidade. SOLUÇÃO: usar LANGUAGE sql (sem variáveis locais) OU renomear todas as colunas intermediárias das CTEs para evitar conflito.
+
+**Aplicado:** Reescrita de `get_balance_sheet` para LANGUAGE sql com CTE chain limpa, sem conflitos de nomes.
+
+**Impacto futuro:** Preferir LANGUAGE sql para funções que retornam TABLE e não precisam de lógica procedural complexa. Se PL/pgSQL for necessário, renomear colunas intermediárias para aliases curtos sem conflito.
+
+## LL-047 — COALESCE com enum + text exige cast explícito
+
+**Data:** 2026-08-27 (ETAPA 08F)
+
+**Contexto:** COALESCE(NULLIF(bp_group, ''), current_class, 'Ativo') falhou porque `current_class` é do tipo enum `financial_current_class`, incompatível com text.
+
+**Aprendido:** Quando misturar enum com text em COALESCE, cast o enum para text: `current_class::text`.
+
+**Aplicado:** Todas as referências a `current_class` em CTEs agora usam `::text`.
+
+**Impacto futuro:** Verificar tipos de colunas enum antes de misturar com text em expressões COALESCE/concatenação.

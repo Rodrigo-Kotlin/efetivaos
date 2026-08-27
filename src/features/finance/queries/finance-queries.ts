@@ -251,6 +251,8 @@ export function useCreateTransaction() {
       void qc.invalidateQueries({ queryKey: TX_KEYS.all })
       void qc.invalidateQueries({ queryKey: CF_KEYS.all })
       void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
     },
   })
 }
@@ -264,6 +266,8 @@ export function useSettleTransaction() {
       void qc.invalidateQueries({ queryKey: TX_KEYS.all })
       void qc.invalidateQueries({ queryKey: CF_KEYS.all })
       void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
     },
   })
 }
@@ -277,6 +281,8 @@ export function useCancelTransaction() {
       void qc.invalidateQueries({ queryKey: TX_KEYS.all })
       void qc.invalidateQueries({ queryKey: CF_KEYS.all })
       void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
     },
   })
 }
@@ -342,5 +348,94 @@ export function useIncomeStatement(filters: api.IncomeStatementFilters = {}) {
   return useQuery({
     queryKey: DRE_KEYS.statement(filters),
     queryFn: () => api.fetchIncomeStatement(filters),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Assets (ETAPA 08F)
+// ---------------------------------------------------------------------------
+
+export const ASSET_KEYS = {
+  all: ['finance', 'assets'] as const,
+  list: () => [...ASSET_KEYS.all, 'list'] as const,
+  detail: (id: string) => [...ASSET_KEYS.all, 'detail', id] as const,
+}
+
+export function useAssets() {
+  return useQuery({
+    queryKey: ASSET_KEYS.list(),
+    queryFn: api.fetchAssets,
+  })
+}
+
+export function useAssetDetail(id: string) {
+  return useQuery({
+    queryKey: ASSET_KEYS.detail(id),
+    queryFn: () => api.fetchAsset(id),
+    enabled: !!id,
+  })
+}
+
+export function useCreateAsset() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: api.CreateAssetPayload) => api.createAsset(payload),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'chart-accounts'] })
+    },
+  })
+}
+
+export function useUpdateAsset() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: api.UpdateAssetPayload }) =>
+      api.updateAsset(id, payload),
+    onSuccess: (_data, variables) => {
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.detail(variables.id) })
+    },
+  })
+}
+
+export function useDisposeAsset() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, notes }: { id: string; notes?: string | null }) =>
+      api.disposeAsset(id, notes),
+    onSuccess: (_data, variables) => {
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.detail(variables.id) })
+    },
+  })
+}
+
+export function usePostDepreciation() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ assetId, competencePeriod, amount }: { assetId: string; competencePeriod: string; amount?: number | null }) =>
+      api.postAssetDepreciation(assetId, competencePeriod, amount),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'income-statement'] })
+      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Balance Sheet (ETAPA 08F)
+// ---------------------------------------------------------------------------
+
+export const BS_KEYS = {
+  all: ['finance', 'balance-sheet'] as const,
+  sheet: (asOfDate: string | null) => [...BS_KEYS.all, asOfDate] as const,
+}
+
+export function useBalanceSheet(asOfDate?: string | null) {
+  return useQuery({
+    queryKey: BS_KEYS.sheet(asOfDate ?? null),
+    queryFn: () => api.fetchBalanceSheet(asOfDate),
   })
 }
