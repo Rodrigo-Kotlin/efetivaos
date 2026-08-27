@@ -820,3 +820,67 @@ Definir posteriormente se contratos recorrentes gerarão lançamentos automatica
 **Motivo:** Verificar integridade referencial e contábil do sistema.
 
 **Impacto:** Testes T11-T18 verificam integridade.
+
+---
+
+### DEC-055 — DMPL deriva do ledger (não de tabela separada)
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08G)
+
+**Contexto:** ETAPA 08G requer DMPL que demonstre mutações do PL.
+
+**Decisão:** DMPL deriva exclusivamente do ledger via `get_statement_of_changes_in_equity()`. Não criar segundo livro contábil.
+
+**Motivo:** Consistência com princípio central: ledger é fonte autoritativa.
+
+**Impacto:** DMPL, DLPA e DVA derivam de journal entries/lines.
+
+---
+
+### DEC-056 — Modelo B para resultado na DMPL/DLPA
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08G)
+
+**Contexto:** DMPL e DLPA precisam demonstrar resultado do exercício.
+
+**Decisão:** Manter Modelo B (resultado calculado dinamicamente) para DMPL e DLPA, sem lançamento de encerramento.
+
+**Motivo:** Consistência com BP (08F) e simplicidade.
+
+**Impacto:** Resultado na DMPL/DLPA reconcilia com DRE via cálculo dinâmico.
+
+---
+
+### DEC-057 — Ajustes manuais são append-only
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08G)
+
+**Contexto:** ETAPA 08G requer lançamentos manuais de ajuste.
+
+**Decisão:** Ajustes criam novos journal entries (append-only). Journal entries existentes não podem ser editadas.
+
+**Motivo:** Integridade do ledger e rastreabilidade.
+
+**Impacto:** Trigger impede UPDATE em journal entries. Correções são feitas via reversal + novo lançamento.
+
+---
+
+### DEC-058 — Notas gerenciais são camada explicativa
+
+**Status:** FECHADA
+
+**Data:** 2026-08-27 (ETAPA 08G)
+
+**Contexto:** ETAPA 08G requer notas vinculadas a demonstrações.
+
+**Decisão:** `financial_notes` é tabela separada que não afeta ledger. Notas são camada explicativa.
+
+**Motivo:** Separação entre dados contábeis e anotações gerenciais.
+
+**Impacto:** Notas podem ser criadas/editadas sem impacto em demonstrações.
