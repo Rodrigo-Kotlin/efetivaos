@@ -114,10 +114,10 @@ CREATE OR REPLACE FUNCTION public.create_manual_journal_adjustment(
   p_entry_date date,
   p_competence_date date,
   p_description text,
+  p_lines jsonb,
   p_reference text DEFAULT null,
   p_cost_center_id uuid DEFAULT null,
   p_service_line_id uuid DEFAULT null,
-  p_lines jsonb,
   p_idempotency_key uuid DEFAULT null,
   p_justification text DEFAULT null
 )
@@ -213,15 +213,15 @@ $$;
 
 -- Grants for adjustment
 GRANT EXECUTE ON FUNCTION public.create_manual_journal_adjustment(
-  date, date, text, text, uuid, uuid, jsonb, uuid, text
+  date, date, text, jsonb, text, uuid, uuid, uuid, text
 ) TO authenticated;
 
 DO $$ BEGIN REVOKE ALL ON FUNCTION public.create_manual_journal_adjustment(
-  date, date, text, text, uuid, uuid, jsonb, uuid, text
+  date, date, text, jsonb, text, uuid, uuid, uuid, text
 ) FROM PUBLIC; EXCEPTION WHEN undefined_object THEN NULL; END $$;
 
 DO $$ BEGIN REVOKE EXECUTE ON FUNCTION public.create_manual_journal_adjustment(
-  date, date, text, text, uuid, uuid, jsonb, uuid, text
+  date, date, text, jsonb, text, uuid, uuid, uuid, text
 ) FROM anon; EXCEPTION WHEN undefined_object THEN NULL; END $$;
 
 -- ---------------------------------------------------------------------------
