@@ -584,7 +584,7 @@ Gate:
 
 ### ETAPA 08G — DMPL/DLPA + DVA + Ajustes + Notas
 
-**Status:** COMPLETED
+**Status:** COMPLETED (MICROGATE 08G.1 PASSED)
 
 Escopo:
 
@@ -602,14 +602,20 @@ Escopo:
 - UI: pagina Ajustes com form de partidas dobradas (admin-only);
 - UI: pagina Notas com CRUD completo;
 - Sidebar e routing atualizados;
-- 50 SQL tests especificos 08G;
+- 80 SQL tests (50 base + 30 08G.1);
+- 273 frontend tests (236 baseline + 37 novos);
 - Types TypeScript atualizados;
+- Grants RPCs corrigidos (authenticated EXECUTE, anon/PUBLIC revoked);
+- Journal lines inseridos em batch (evita trigger per-line);
+- DMPL reconcilia com BP;
+- DLPA reconcilia com DRE;
+- DVA fecha (Total Distribuir = Total Distribuido);
 
 Gate:
 
 - `npm run build` sem erros TypeScript;
-- 50 SQL tests preparados;
-- 236/236 frontend tests preservados;
+- 80 SQL tests executados (50 + 30);
+- 273/273 frontend tests pass;
 - handoff `docs/25-handoff-sprint-08g.md`;
 
 ---
