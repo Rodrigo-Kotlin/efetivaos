@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { Pencil, Check, X, Plus, Clock, AlertTriangle, Circle, RotateCcw } from 'lucide-react'
+import { Pencil, Check, X, Plus, Clock, AlertTriangle, Circle } from 'lucide-react'
 import {
   useCrmOpportunityExtended,
   useUpdateCrmOpportunity,
@@ -40,7 +40,8 @@ const fmtDate = (d: string | null) => {
 
 const fmtDateTime = (d: string | null) => {
   if (!d) return '-'
-  return new Date(d).toLocaleString('pt-BR')
+  const date = new Date(d)
+  return date.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
 }
 
 const EVENT_LABELS: Record<string, string> = {
@@ -54,6 +55,11 @@ const EVENT_LABELS: Record<string, string> = {
   marked_won: 'Marcada como ganha',
   marked_lost: 'Marcada como perdida',
   loss_reason_changed: 'Motivo de perda alterado',
+}
+
+function toLocalDatetimeString(dateStr: string, timeStr: string): string {
+  const dt = new Date(`${dateStr}T${timeStr || '09:00'}:00`)
+  return dt.toISOString()
 }
 
 export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost, stages }: Props) {
@@ -80,8 +86,9 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
   const [actDate, setActDate] = useState('')
   const [actTime, setActTime] = useState('')
   const [actDesc, setActDesc] = useState('')
-  const [completeOutcome, setCompleteOutcome] = useState<string | null>(null)
+  const [completeOutcome, setCompleteOutcome] = useState('')
   const [completingId, setCompletingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (opp) {
@@ -95,43 +102,56 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
 
   async function handleSave() {
     if (!opp) return
-    if (editStageId !== opp.stage_id) {
-      await moveMutation.mutateAsync({ opportunityId: opp.opportunity_id, targetStageId: editStageId })
+    setError(null)
+    try {
+      if (editStageId !== opp.stage_id) {
+        await moveMutation.mutateAsync({ opportunityId: opp.opportunity_id, targetStageId: editStageId })
+      }
+      await updateMutation.mutateAsync({
+        id: opp.opportunity_id,
+        title: editTitle,
+        value: editValue ? Number(editValue) : 0,
+        expected_close_date: editDate || null,
+        description: editDesc || null,
+      })
+      setEditing(false)
+    } catch {
+      setError('Erro ao salvar. Tente novamente.')
     }
-    await updateMutation.mutateAsync({
-      id: opp.opportunity_id,
-      title: editTitle,
-      value: editValue ? Number(editValue) : 0,
-      expected_close_date: editDate || null,
-      description: editDesc || null,
-    })
-    setEditing(false)
   }
 
   async function handleCreateActivity(e: React.FormEvent) {
     e.preventDefault()
     if (!opp || !actTitle.trim() || !actDate) return
-    const dueAt = actTime
-      ? `${actDate}T${actTime}:00.000Z`
-      : `${actDate}T09:00:00.000Z`
-    await createActivity.mutateAsync({
-      opportunity_id: opp.opportunity_id,
-      type: actType,
-      title: actTitle.trim(),
-      due_at: dueAt,
-      description: actDesc.trim() || undefined,
-    })
-    setActTitle('')
-    setActDate('')
-    setActTime('')
-    setActDesc('')
-    setShowActivityForm(false)
+    setError(null)
+    try {
+      const dueAt = toLocalDatetimeString(actDate, actTime)
+      await createActivity.mutateAsync({
+        opportunity_id: opp.opportunity_id,
+        type: actType,
+        title: actTitle.trim(),
+        due_at: dueAt,
+        description: actDesc.trim() || undefined,
+      })
+      setActTitle('')
+      setActDate('')
+      setActTime('')
+      setActDesc('')
+      setShowActivityForm(false)
+    } catch {
+      setError('Erro ao criar atividade. Tente novamente.')
+    }
   }
 
   async function handleComplete(activityId: string) {
-    await completeActivity.mutateAsync({ activityId, outcome: completeOutcome ?? undefined })
-    setCompletingId(null)
-    setCompleteOutcome(null)
+    setError(null)
+    try {
+      await completeActivity.mutateAsync({ activityId, outcome: completeOutcome || undefined })
+      setCompletingId(null)
+      setCompleteOutcome('')
+    } catch {
+      setError('Erro ao concluir atividade.')
+    }
   }
 
   if (!opportunityId) return null
@@ -141,19 +161,28 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
   const isClosed = opp?.status === 'won' || opp?.status === 'lost'
 
   return (
-    <Drawer open={!!opportunityId} onOpenChange={o => { if (!o) { setEditing(false); setShowActivityForm(false); onClose() } }} title="Oportunidade">
+    <Drawer open={!!opportunityId} onOpenChange={o => { if (!o) { setEditing(false); setShowActivityForm(false); setError(null); onClose() } }} title="Oportunidade">
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4].map(i => <div key={i} className="h-10 animate-pulse rounded bg-slate-100" />)}
         </div>
       ) : !opp ? (
-        <p className="text-sm text-slate-500">Oportunidade não encontrada.</p>
+        <div className="space-y-2">
+          <p className="text-sm text-slate-500">Oportunidade não encontrada.</p>
+          <Button variant="outline" size="sm" onClick={onClose}>Fechar</Button>
+        </div>
       ) : (
         <div className="space-y-4">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-xs text-slate-500">{opp.client_name}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-slate-500 truncate">{opp.client_name}</p>
               {editing ? (
                 <Input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="mt-1 font-serif text-lg" />
               ) : (
@@ -188,20 +217,20 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
                 <div className="space-y-2">
                   {activities.filter(a => a.status === 'pending').slice(0, 1).map(a => (
                     <div key={a.id} className="flex items-start justify-between">
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-start gap-2 min-w-0">
                         {semantic === 'overdue' ? (
-                          <AlertTriangle className="mt-0.5 size-4 text-red-500" />
+                          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-red-500" />
                         ) : semantic === 'today' ? (
-                          <Clock className="mt-0.5 size-4 text-amber-500" />
+                          <Clock className="mt-0.5 size-4 shrink-0 text-amber-500" />
                         ) : (
-                          <Clock className="mt-0.5 size-4 text-slate-400" />
+                          <Clock className="mt-0.5 size-4 shrink-0 text-slate-400" />
                         )}
-                        <div>
-                          <p className="text-sm font-medium">{a.title}</p>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{a.title}</p>
                           <p className="text-xs text-slate-500">{a.type} · {fmtDateTime(a.due_at)}</p>
                         </div>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 shrink-0">
                         <Button variant="ghost" size="sm" onClick={() => setCompletingId(a.id)}>
                           <Check className="size-3" />
                         </Button>
@@ -286,9 +315,11 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
           </div>
 
           {/* Timeline */}
-          {events.length > 0 && (
-            <div className="rounded-lg border border-slate-200 p-4">
-              <p className="mb-3 text-xs font-medium text-slate-500">Histórico</p>
+          <div className="rounded-lg border border-slate-200 p-4">
+            <p className="mb-3 text-xs font-medium text-slate-500">Histórico</p>
+            {events.length === 0 ? (
+              <p className="text-sm text-slate-400">Nenhum registro ainda.</p>
+            ) : (
               <div className="space-y-3 relative before:absolute before:left-[7px] before:top-2 before:h-[calc(100%-16px)] before:w-px before:bg-slate-200">
                 {events.map(evt => (
                   <div key={evt.id} className="flex gap-3 relative">
@@ -305,8 +336,8 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Actions */}
           {editing ? (
@@ -370,15 +401,15 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
           </Dialog>
 
           {/* Complete Activity Dialog */}
-          <Dialog open={completingId !== null} onOpenChange={open => { if (!open) { setCompletingId(null); setCompleteOutcome(null) } }}>
+          <Dialog open={completingId !== null} onOpenChange={open => { if (!open) { setCompletingId(null); setCompleteOutcome('') } }}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Concluir atividade</DialogTitle>
                 <DialogDescription>Registro opcional do resultado.</DialogDescription>
               </DialogHeader>
-              <textarea className="min-h-[60px] w-full rounded-md border border-slate-200 px-3 py-2 text-sm" placeholder="Resultado ou observação (opcional)" value={completeOutcome ?? ''} onChange={e => setCompleteOutcome(e.target.value)} />
+              <textarea className="min-h-[60px] w-full rounded-md border border-slate-200 px-3 py-2 text-sm" placeholder="Resultado ou observação (opcional)" value={completeOutcome} onChange={e => setCompleteOutcome(e.target.value)} />
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setCompletingId(null); setCompleteOutcome(null) }}>Cancelar</Button>
+                <Button variant="outline" onClick={() => { setCompletingId(null); setCompleteOutcome('') }}>Cancelar</Button>
                 <Button onClick={() => completingId && handleComplete(completingId)} disabled={completeActivity.isPending}>
                   {completeActivity.isPending ? 'Concluindo...' : 'Concluir'}
                 </Button>

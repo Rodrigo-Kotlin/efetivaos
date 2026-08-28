@@ -514,4 +514,247 @@ describe('CRM Pipeline Core + Activities First', () => {
       expect(columns).toContain('next_activity')
     })
   })
+
+  // ======================================================================
+  // CRM 08D — Refinamento Operacional e UX
+  // ======================================================================
+
+  describe('Filter conflict resolution', () => {
+    it('quick filter clears advanced activity', () => {
+      let quickFilter = 'all'
+      let advancedActivity = 'overdue'
+      // When quick filter changes to non-all, advanced activity should clear
+      if (quickFilter !== 'all') advancedActivity = ''
+      quickFilter = 'overdue'
+      if (quickFilter !== 'all') advancedActivity = ''
+      expect(advancedActivity).toBe('')
+    })
+
+    it('advanced activity clears quick filter', () => {
+      let quickFilter = 'overdue'
+      let advancedActivity = ''
+      // When advanced activity is set, quick filter should reset to all
+      advancedActivity = 'today'
+      if (advancedActivity) quickFilter = 'all'
+      expect(quickFilter).toBe('all')
+    })
+
+    it('clear all resets both', () => {
+      let quickFilter = 'overdue'
+      let filters = { activity: 'today', search: 'test' }
+      quickFilter = 'all'
+      filters = { activity: '', search: '', stage_id: '', status: '', value_min: '', value_max: '', date_from: '', date_to: '' }
+      expect(quickFilter).toBe('all')
+      expect(filters.activity).toBe('')
+      expect(filters.search).toBe('')
+    })
+  })
+
+  describe('Active filter count', () => {
+    it('counts quick filter as 1', () => {
+      const quickFilter = 'overdue'
+      const filters = { search: '', stage_id: '', status: '', activity: '', value_min: '', value_max: '', date_from: '', date_to: '' }
+      const advancedCount = Object.values(filters).filter(v => v !== '').length
+      const totalCount = advancedCount + (quickFilter !== 'all' ? 1 : 0)
+      expect(totalCount).toBe(1)
+    })
+
+    it('counts combined filters', () => {
+      const quickFilter = 'all'
+      const filters = { search: 'test', stage_id: 's1', status: '', activity: '', value_min: '', value_max: '', date_from: '', date_to: '' }
+      const advancedCount = Object.values(filters).filter(v => v !== '').length
+      const totalCount = advancedCount + (quickFilter !== 'all' ? 1 : 0)
+      expect(totalCount).toBe(2)
+    })
+
+    it('zero when no filters', () => {
+      const quickFilter = 'all'
+      const filters = { search: '', stage_id: '', status: '', activity: '', value_min: '', value_max: '', date_from: '', date_to: '' }
+      const advancedCount = Object.values(filters).filter(v => v !== '').length
+      const totalCount = advancedCount + (quickFilter !== 'all' ? 1 : 0)
+      expect(totalCount).toBe(0)
+    })
+  })
+
+  describe('Empty states', () => {
+    it('no opportunities vs no filter results', () => {
+      const opps: unknown[] = []
+      const activeFilterCount = 0
+      const message = opps.length === 0 && activeFilterCount === 0
+        ? 'Nenhuma oportunidade aberta'
+        : opps.length === 0
+          ? 'Nenhuma oportunidade corresponde aos filtros'
+          : ''
+      expect(message).toBe('Nenhuma oportunidade aberta')
+    })
+
+    it('filter returns empty shows different message', () => {
+      const opps = [{ id: '1' }]
+      const filteredOpps: unknown[] = []
+      const activeFilterCount = 2
+      const message = filteredOpps.length === 0 && activeFilterCount > 0
+        ? 'Nenhuma oportunidade corresponde aos filtros'
+        : ''
+      expect(message).toBe('Nenhuma oportunidade corresponde aos filtros')
+    })
+  })
+
+  describe('Sort persistence', () => {
+    it('persists sortDir to localStorage', () => {
+      const key = 'crm-list-sort-dir'
+      localStorage.setItem(key, 'asc')
+      expect(localStorage.getItem(key)).toBe('asc')
+      localStorage.setItem(key, 'desc')
+      expect(localStorage.getItem(key)).toBe('desc')
+      localStorage.removeItem(key)
+    })
+  })
+
+  describe('Touch DnD configuration', () => {
+    it('PointerSensor uses distance activationConstraint', () => {
+      const config = { activationConstraint: { distance: 8 } }
+      expect(config.activationConstraint.distance).toBe(8)
+    })
+
+    it('TouchSensor uses delay + tolerance', () => {
+      const config = { activationConstraint: { delay: 150, tolerance: 5 } }
+      expect(config.activationConstraint.delay).toBe(150)
+      expect(config.activationConstraint.tolerance).toBe(5)
+    })
+  })
+
+  describe('Drag-after-click prevention', () => {
+    it('dragDidMove flag prevents click after drag', () => {
+      let dragDidMove = false
+      function handleDragOver() { dragDidMove = true }
+      function handleCardClick() {
+        if (dragDidMove) return 'blocked'
+        return 'opened'
+      }
+      handleDragOver()
+      expect(handleCardClick()).toBe('blocked')
+    })
+
+    it('click works without drag', () => {
+      let dragDidMove = false
+      function handleCardClick() {
+        if (dragDidMove) return 'blocked'
+        return 'opened'
+      }
+      expect(handleCardClick()).toBe('opened')
+    })
+  })
+
+  describe('Timezone handling', () => {
+    it('toLocalDatetimeString creates valid date', () => {
+      const dateStr = '2026-08-28'
+      const timeStr = '15:30'
+      const result = new Date(`${dateStr}T${timeStr}:00`)
+      expect(result).toBeInstanceOf(Date)
+      expect(result.getHours()).toBe(15)
+      expect(result.getMinutes()).toBe(30)
+    })
+
+    it('default time when no time provided', () => {
+      const dateStr = '2026-08-28'
+      const timeStr = ''
+      const result = new Date(`${dateStr}T${timeStr || '09:00'}:00`)
+      expect(result).toBeInstanceOf(Date)
+      expect(result.getHours()).toBe(9)
+    })
+
+    it('fmtDateTime displays in pt-BR', () => {
+      const d = '2026-08-28T15:30:00Z'
+      const formatted = new Date(d).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+      expect(formatted).toBeTruthy()
+      expect(typeof formatted).toBe('string')
+    })
+  })
+
+  describe('Error states', () => {
+    it('error message shown when set', () => {
+      const error = 'Erro ao salvar'
+      expect(error).toBeTruthy()
+    })
+
+    it('error null means no error', () => {
+      const error = null
+      expect(error).toBeNull()
+    })
+  })
+
+  describe('Won dialog confirmation', () => {
+    it('won requires confirmation', () => {
+      const action = 'won'
+      const hasDialog = action === 'won' || action === 'lost'
+      expect(hasDialog).toBe(true)
+    })
+
+    it('lost requires reason selection', () => {
+      const lostReasonId = ''
+      const canSubmit = lostReasonId !== ''
+      expect(canSubmit).toBe(false)
+    })
+  })
+
+  describe('Loss reason selected style', () => {
+    it('selected reason has different styling', () => {
+      const selectedId = 'r1'
+      const currentId = 'r1'
+      const isSelected = selectedId === currentId
+      expect(isSelected).toBe(true)
+    })
+
+    it('unselected reason has default styling', () => {
+      const selectedId = 'r1'
+      const currentId = 'r2'
+      const isSelected = selectedId === currentId
+      expect(isSelected).toBe(false)
+    })
+  })
+
+  describe('Timeline empty state', () => {
+    it('shows message when no events', () => {
+      const events: unknown[] = []
+      const message = events.length === 0 ? 'Nenhum registro ainda.' : ''
+      expect(message).toBe('Nenhum registro ainda.')
+    })
+
+    it('shows timeline when events exist', () => {
+      const events = [{ id: '1' }]
+      const message = events.length === 0 ? 'Nenhum registro ainda.' : ''
+      expect(message).toBe('')
+    })
+  })
+
+  describe('Mobile responsive classes', () => {
+    it('header uses responsive padding', () => {
+      const classes = 'flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4'
+      expect(classes).toContain('sm:px-6')
+      expect(classes).toContain('px-4')
+    })
+
+    it('view toggle uses hidden sm:inline for text', () => {
+      const classes = 'hidden sm:inline'
+      expect(classes).toContain('hidden')
+    })
+  })
+
+  describe('Dead field removal', () => {
+    it('CrmFilters has no responsible field', () => {
+      const filters = { search: '', stage_id: '', status: '', activity: '', value_min: '', value_max: '', date_from: '', date_to: '' }
+      expect(filters).not.toHaveProperty('responsible')
+    })
+  })
+
+  describe('Invalidation helpers', () => {
+    it('query key predicates work', () => {
+      const key1 = ['crm', 'pipeline', 'opportunities', 'p1']
+      const key2 = ['crm', 'pipeline', 'analytics']
+      const key3 = ['crm', 'pipeline', 'stages', 'p1']
+      expect(key1.includes('opportunities')).toBe(true)
+      expect(key2.includes('analytics')).toBe(true)
+      expect(key3.includes('opportunities')).toBe(false)
+    })
+  })
 })

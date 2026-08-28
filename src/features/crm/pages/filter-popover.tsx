@@ -7,7 +7,6 @@ import type { CrmStage } from '@/types/database'
 export type CrmFilters = {
   search: string
   stage_id: string
-  responsible: string
   status: string
   activity: string
   value_min: string
@@ -17,8 +16,12 @@ export type CrmFilters = {
 }
 
 export const DEFAULT_FILTERS: CrmFilters = {
-  search: '', stage_id: '', responsible: '', status: '', activity: '',
+  search: '', stage_id: '', status: '', activity: '',
   value_min: '', value_max: '', date_from: '', date_to: '',
+}
+
+export function countActiveFilters(filters: CrmFilters): number {
+  return Object.values(filters).filter(v => v !== '').length
 }
 
 type Props = {
@@ -29,7 +32,7 @@ type Props = {
 
 export function FilterPopover({ filters, onChange, stages }: Props) {
   const [open, setOpen] = useState(false)
-  const activeCount = Object.values(filters).filter(v => v !== '').length
+  const activeCount = countActiveFilters(filters)
 
   return (
     <div className="relative">
@@ -46,7 +49,7 @@ export function FilterPopover({ filters, onChange, stages }: Props) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full z-50 mt-2 w-[320px] rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-[min(320px,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-4 shadow-xl">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-medium text-slate-700">Filtros avançados</p>
               {activeCount > 0 && (
@@ -115,7 +118,7 @@ export function FilterPopover({ filters, onChange, stages }: Props) {
             </div>
 
             <div className="mt-4 flex justify-end">
-              <Button size="sm" onClick={() => setOpen(false)}>Aplicar</Button>
+              <Button size="sm" onClick={() => setOpen(false)}>Fechar</Button>
             </div>
           </div>
         </>

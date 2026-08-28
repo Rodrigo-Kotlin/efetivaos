@@ -47,6 +47,35 @@ export const crmPipelineKeys = {
 }
 
 // ---------------------------------------------------------------------------
+// Targeted invalidation helpers
+// ---------------------------------------------------------------------------
+
+function invalidateOpportunities(qc: ReturnType<typeof useQueryClient>, pipelineId?: string) {
+  if (pipelineId) {
+    qc.invalidateQueries({ queryKey: crmPipelineKeys.opportunities(pipelineId) })
+  } else {
+    qc.invalidateQueries({ queryKey: crmPipelineKeys.all, predicate: (q) =>
+      q.queryKey.includes('opportunities')
+    })
+  }
+}
+
+function invalidateOpportunity(qc: ReturnType<typeof useQueryClient>, id: string) {
+  qc.invalidateQueries({ queryKey: crmPipelineKeys.opportunity(id) })
+}
+
+function invalidateActivities(qc: ReturnType<typeof useQueryClient>, opportunityId: string) {
+  qc.invalidateQueries({ queryKey: crmPipelineKeys.activities(opportunityId) })
+  qc.invalidateQueries({ queryKey: crmPipelineKeys.events(opportunityId) })
+}
+
+function invalidateAnalytics(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: crmPipelineKeys.all, predicate: (q) =>
+    q.queryKey.includes('analytics')
+  })
+}
+
+// ---------------------------------------------------------------------------
 // Hooks
 // ---------------------------------------------------------------------------
 
@@ -141,8 +170,9 @@ export function useCreateCrmOpportunity() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: createCrmOpportunity,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      invalidateOpportunities(qc, variables.pipeline_id as string | undefined)
+      invalidateAnalytics(qc)
     },
   })
 }
@@ -152,8 +182,10 @@ export function useUpdateCrmOpportunity() {
   return useMutation({
     mutationFn: ({ id, ...input }: { id: string } & Parameters<typeof updateCrmOpportunity>[1]) =>
       updateCrmOpportunity(id, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      invalidateOpportunity(qc, variables.id)
+      invalidateOpportunities(qc)
+      invalidateAnalytics(qc)
     },
   })
 }
@@ -170,8 +202,10 @@ export function useMoveCrmOpportunity() {
       targetStageId: string
       targetPosition?: number
     }) => moveCrmOpportunity(opportunityId, targetStageId, targetPosition),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      invalidateOpportunity(qc, variables.opportunityId)
+      invalidateOpportunities(qc)
+      invalidateAnalytics(qc)
     },
   })
 }
@@ -180,8 +214,10 @@ export function useMarkOpportunityWon() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: markOpportunityWon,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, id) => {
+      invalidateOpportunity(qc, id)
+      invalidateOpportunities(qc)
+      invalidateAnalytics(qc)
     },
   })
 }
@@ -195,8 +231,10 @@ export function useMarkOpportunityLost() {
       reasonId?: string
       reasonDetail?: string
     }) => markOpportunityLost(id, reason, reasonId, reasonDetail),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      invalidateOpportunity(qc, variables.id)
+      invalidateOpportunities(qc)
+      invalidateAnalytics(qc)
     },
   })
 }
@@ -209,8 +247,10 @@ export function useCreateCrmActivity() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: createCrmActivity,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      invalidateActivities(qc, variables.opportunity_id)
+      invalidateOpportunity(qc, variables.opportunity_id)
+      invalidateOpportunities(qc)
     },
   })
 }
@@ -220,8 +260,10 @@ export function useUpdateCrmActivity() {
   return useMutation({
     mutationFn: ({ activityId, ...input }: { activityId: string } & Parameters<typeof updateCrmActivity>[1]) =>
       updateCrmActivity(activityId, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: crmPipelineKeys.all, predicate: (q) =>
+        q.queryKey.includes('activities') || q.queryKey.includes('opportunities')
+      })
     },
   })
 }
@@ -231,8 +273,10 @@ export function useCompleteCrmActivity() {
   return useMutation({
     mutationFn: ({ activityId, outcome }: { activityId: string; outcome?: string }) =>
       completeCrmActivity(activityId, outcome),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, variables) => {
+      invalidateActivities(qc, variables.activityId)
+      invalidateOpportunities(qc)
+      invalidateAnalytics(qc)
     },
   })
 }
@@ -241,8 +285,9 @@ export function useCancelCrmActivity() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: cancelCrmActivity,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    onSuccess: (_data, activityId) => {
+      invalidateActivities(qc, activityId)
+      invalidateOpportunities(qc)
     },
   })
 }

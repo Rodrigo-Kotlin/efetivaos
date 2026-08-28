@@ -25,6 +25,7 @@ export function OpportunityCreateDrawer({ open, onClose, defaultPipelineId, stag
   const [value, setValue] = useState('')
   const [expectedDate, setExpectedDate] = useState('')
   const [description, setDescription] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   // Client search
   const { data: clients } = useQuery({
@@ -52,35 +53,47 @@ export function OpportunityCreateDrawer({ open, onClose, defaultPipelineId, stag
     setValue('')
     setExpectedDate('')
     setDescription('')
+    setError(null)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!clientId || !title.trim()) return
+    setError(null)
 
-    await createMutation.mutateAsync({
-      client_id: clientId,
-      title: title.trim(),
-      pipeline_id: defaultPipelineId,
-      stage_id: stageId || undefined,
-      value: value ? Number(value) : 0,
-      expected_close_date: expectedDate || null,
-      description: description.trim() || null,
-    })
-    reset()
-    onClose()
+    try {
+      await createMutation.mutateAsync({
+        client_id: clientId,
+        title: title.trim(),
+        pipeline_id: defaultPipelineId,
+        stage_id: stageId || stages[0]?.id || undefined,
+        value: value ? Number(value) : 0,
+        expected_close_date: expectedDate || null,
+        description: description.trim() || null,
+      })
+      reset()
+      onClose()
+    } catch {
+      setError('Erro ao criar oportunidade. Tente novamente.')
+    }
   }
 
   return (
     <Drawer open={open} onOpenChange={o => { if (!o) { reset(); onClose() } }} title="Nova Oportunidade">
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Client */}
         <div>
           <label className="mb-1 block text-xs font-medium text-slate-600">Cliente *</label>
           {selectedClient ? (
             <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-              <span className="flex-1 text-sm">{selectedClient.trade_name || selectedClient.legal_name}</span>
-              <button type="button" className="text-xs text-slate-500 hover:text-slate-700" onClick={() => { setClientId(''); setClientSearch('') }}>
+              <span className="flex-1 text-sm truncate">{selectedClient.trade_name || selectedClient.legal_name}</span>
+              <button type="button" className="text-xs text-slate-500 hover:text-slate-700 shrink-0" onClick={() => { setClientId(''); setClientSearch('') }}>
                 Trocar
               </button>
             </div>
@@ -100,8 +113,8 @@ export function OpportunityCreateDrawer({ open, onClose, defaultPipelineId, stag
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-slate-50"
                       onClick={() => { setClientId(c.id); setClientSearch('') }}
                     >
-                      <span className="font-medium">{c.trade_name || c.legal_name}</span>
-                      {c.tax_id && <span className="text-xs text-slate-400">{c.tax_id}</span>}
+                      <span className="font-medium truncate">{c.trade_name || c.legal_name}</span>
+                      {c.tax_id && <span className="text-xs text-slate-400 shrink-0">{c.tax_id}</span>}
                     </button>
                   ))}
                 </div>

@@ -1,9 +1,10 @@
-import { useState, useMemo, useCallback } from 'react'
-import { Plus, LayoutGrid, List, BarChart3 } from 'lucide-react'
+import { useState, useMemo, useCallback, useRef } from 'react'
+import { Plus, LayoutGrid, List, BarChart3, X } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -26,7 +27,7 @@ import { OpportunityCreateDrawer } from './opportunity-create-drawer'
 import { OpportunityDetailDrawer } from './opportunity-detail-drawer'
 import { WonLostDialogs } from './won-lost-dialogs'
 import { CrmKpiBar } from './crm-kpi-bar'
-import { FilterPopover, DEFAULT_FILTERS, type CrmFilters } from './filter-popover'
+import { FilterPopover, DEFAULT_FILTERS, countActiveFilters, type CrmFilters } from './filter-popover'
 import { IndicatorsDrawer } from './indicators-drawer'
 import type { CrmOpportunityBoardRowExtended, CrmBoardColumn, CrmStage } from '@/types/database'
 
@@ -91,6 +92,7 @@ const fmt = (v: number) =>
 
 const STORAGE_KEY_VIEW = 'crm-view-mode'
 const STORAGE_KEY_SORT = 'crm-list-sort'
+const STORAGE_KEY_SORT_DIR = 'crm-list-sort-dir'
 
 export default function CrmPage() {
   const [viewMode, setViewMode] = useState<ViewMode>(
@@ -104,8 +106,11 @@ export default function CrmPage() {
   const [sortKey, setSortKey] = useState<SortKey>(
     () => (localStorage.getItem(STORAGE_KEY_SORT) as SortKey) || 'updated_at'
   )
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>(
+    () => (localStorage.getItem(STORAGE_KEY_SORT_DIR) as 'asc' | 'desc') || 'desc'
+  )
   const [indicatorsOpen, setIndicatorsOpen] = useState(false)
+  const dragDidMove = useRef(false)
 
   const { data: pipelines, isLoading: lPipelines } = useCrmPipelines()
   const defaultPipeline = pipelines?.find(p => p.is_default) ?? pipelines?.[0]
@@ -116,7 +121,7 @@ export default function CrmPage() {
   const [items, setItems] = useState<Record<string, CrmOpportunityBoardRowExtended[]>>({})
 
   const isLoading = lPipelines || lStages || lOpps
-  const extOpps = (opportunities ?? []) as CrmOpportunityBoardRowExtended []
+  const extOpps = (opportunities ?? []) as CrmOpportunityBoardRowExtended[]
 
   // Apply filters
   const filteredOpps = useMemo(() => {
@@ -143,6 +148,8 @@ export default function CrmPage() {
     })
   }, [extOpps, quickFilter, filters])
 
+  const activeFilterCount = countActiveFilters(filters) + (quickFilter !== 'all' ? 1 : 0)
+
   const handleSort = useCallback((key: SortKey) => {
     if (sortKey === key) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -153,9 +160,35 @@ export default function CrmPage() {
     localStorage.setItem(STORAGE_KEY_SORT, key)
   }, [sortKey])
 
+  // Persist sortDir
+  const handleSortDirChange = useCallback((dir: 'asc' | 'desc') => {
+    setSortDir(dir)
+    localStorage.setItem(STORAGE_KEY_SORT_DIR, dir)
+  }, [])
+
   const switchView = useCallback((mode: ViewMode) => {
     setViewMode(mode)
     localStorage.setItem(STORAGE_KEY_VIEW, mode)
+  }, [])
+
+  // Clear quick filter when advanced activity filter is set, and vice versa
+  const handleQuickFilter = useCallback((key: QuickFilter) => {
+    setQuickFilter(key)
+    if (key !== 'all') {
+      setFilters(f => ({ ...f, activity: '' }))
+    }
+  }, [])
+
+  const handleAdvancedFilter = useCallback((f: CrmFilters) => {
+    setFilters(f)
+    if (f.activity) {
+      setQuickFilter('all')
+    }
+  }, [])
+
+  const clearAllFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS)
+    setQuickFilter('all')
   }, [])
 
   // Kanban columns
@@ -173,10 +206,16 @@ export default function CrmPage() {
     sortableItems[col.stage_id] = col.opportunities.map(o => o.opportunity_id)
   }
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  )
   const activeOpp = activeId ? extOpps.find(o => o.opportunity_id === activeId) : null
 
-  function handleDragStart(event: DragStartEvent) { setActiveId(String(event.active.id)) }
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id))
+    dragDidMove.current = false
+  }
 
   function handleDragOver(event: DragOverEvent) {
     const { active, over } = event
@@ -196,6 +235,7 @@ export default function CrmPage() {
       }
     }
     if (!overStageId || activeStageId === overStageId) return
+    dragDidMove.current = true
     setItems(prev => {
       const newItems = { ...prev }
       for (const col of columns) {
@@ -206,8 +246,8 @@ export default function CrmPage() {
       const activeIdx = source.findIndex(o => o.opportunity_id === activeId)
       if (activeIdx === -1) return prev
       const [moved] = source.splice(activeIdx, 1)
-      moved.stage_id = overStageId!
-      dest.push(moved)
+      const movedCopy = { ...moved, stage_id: overStageId! }
+      dest.push(movedCopy)
       newItems[activeStageId!] = source
       newItems[overStageId!] = dest
       return newItems
@@ -217,6 +257,8 @@ export default function CrmPage() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     setActiveId(null)
+    const didMove = dragDidMove.current
+    dragDidMove.current = false
     if (!over) return
     const activeId = String(active.id)
     const overId = String(over.id)
@@ -232,8 +274,8 @@ export default function CrmPage() {
       }
       if (overStageId && activeStageId === overStageId) {
         const currentItems = items[activeStageId] ?? sortableItems[activeStageId]?.map(id =>
-          extOpps.find(o => o.opportunity_id === id)!
-        ) ?? []
+          extOpps.find(o => o.opportunity_id === id)
+        ).filter(Boolean) ?? []
         const oldIdx = currentItems.findIndex(o => o.opportunity_id === activeId)
         const newIdx = currentItems.findIndex(o => o.opportunity_id === overId)
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
@@ -242,6 +284,12 @@ export default function CrmPage() {
       }
     }
   }
+
+  // Prevent click after drag
+  const handleCardClick = useCallback((opp: CrmOpportunityBoardRowExtended) => {
+    if (dragDidMove.current) return
+    setDetailId(opp.opportunity_id)
+  }, [])
 
   const displayColumns = columns.map(col => {
     const override = items[col.stage_id]
@@ -252,42 +300,42 @@ export default function CrmPage() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
         <div>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight">CRM Comercial</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">CRM Comercial</h1>
+          <p className="mt-0.5 text-xs text-slate-500 sm:mt-1 sm:text-sm">
             {viewMode === 'pipeline' ? 'Arraste oportunidades entre etapas.' : 'Visualize e gerencie seu pipeline.'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {/* View toggle */}
           <div className="flex rounded-lg border border-slate-200 bg-white">
             <button
               onClick={() => switchView('pipeline')}
-              className={`flex items-center gap-1 rounded-l-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1 rounded-l-lg px-2 py-1.5 text-xs font-medium transition-colors sm:px-3 ${
                 viewMode === 'pipeline' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <LayoutGrid className="size-3.5" />Pipeline
+              <LayoutGrid className="size-3.5" /><span className="hidden sm:inline">Pipeline</span>
             </button>
             <button
               onClick={() => switchView('list')}
-              className={`flex items-center gap-1 rounded-r-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-1 rounded-r-lg px-2 py-1.5 text-xs font-medium transition-colors sm:px-3 ${
                 viewMode === 'list' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <List className="size-3.5" />Lista
+              <List className="size-3.5" /><span className="hidden sm:inline">Lista</span>
             </button>
           </div>
 
-          <Button variant="outline" size="sm" onClick={() => setIndicatorsOpen(true)}>
+          <Button variant="outline" size="sm" onClick={() => setIndicatorsOpen(true)} className="hidden sm:flex">
             <BarChart3 className="mr-1 size-3.5" />Indicadores
           </Button>
 
-          <FilterPopover filters={filters} onChange={setFilters} stages={stages ?? []} />
+          <FilterPopover filters={filters} onChange={handleAdvancedFilter} stages={stages ?? []} />
 
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="mr-2 size-4" />Oportunidade
+          <Button onClick={() => setCreateOpen(true)} size="sm" className="sm:size-default">
+            <Plus className="mr-1 size-3.5 sm:mr-2 sm:size-4" /><span className="hidden sm:inline">Oportunidade</span><span className="sm:hidden">Nova</span>
           </Button>
         </div>
       </div>
@@ -295,12 +343,12 @@ export default function CrmPage() {
       <CrmKpiBar opportunities={extOpps} />
 
       {/* Quick filters */}
-      <div className="flex items-center gap-2 px-6 pb-3">
+      <div className="flex items-center gap-1.5 px-4 pb-2 sm:gap-2 sm:px-6 sm:pb-3">
         {quickFilters.map(f => (
           <button
             key={f.key}
-            onClick={() => setQuickFilter(f.key)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            onClick={() => handleQuickFilter(f.key)}
+            className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors sm:px-3 ${
               quickFilter === f.key
                 ? 'bg-slate-800 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -309,11 +357,20 @@ export default function CrmPage() {
             {f.label}
           </button>
         ))}
+        {activeFilterCount > 0 && (
+          <button
+            onClick={clearAllFilters}
+            className="flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-100"
+          >
+            <X className="size-3" />
+            Limpar{activeFilterCount > 1 && ` (${activeFilterCount})`}
+          </button>
+        )}
       </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex gap-4 overflow-x-auto px-6 pb-4">
+        <div className="flex gap-4 overflow-x-auto px-4 pb-4 sm:px-6">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-[400px] w-[300px] shrink-0 animate-pulse rounded-xl bg-slate-100" />
           ))}
@@ -334,14 +391,23 @@ export default function CrmPage() {
               </Button>
             </div>
           </div>
+        ) : filteredOpps.length === 0 && activeFilterCount > 0 ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm font-medium text-slate-700">Nenhuma oportunidade corresponde aos filtros.</p>
+              <Button variant="outline" className="mt-3" size="sm" onClick={clearAllFilters}>
+                <X className="mr-1 size-3" />Limpar filtros
+              </Button>
+            </div>
+          </div>
         ) : (
-          <div className="flex-1 overflow-x-auto px-6 pb-4">
+          <div className="flex-1 overflow-x-auto px-4 pb-4 sm:px-6">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
               <div className="flex gap-4">
                 {displayColumns.map(col => {
                   const stage = stages?.find(s => s.id === col.stage_id)
                   if (!stage) return null
-                  return <KanbanColumn key={col.stage_id} stage={stage} opportunities={col.opportunities} onCardClick={opp => setDetailId(opp.opportunity_id)} />
+                  return <KanbanColumn key={col.stage_id} stage={stage} opportunities={col.opportunities} onCardClick={handleCardClick} />
                 })}
               </div>
               <DragOverlay>

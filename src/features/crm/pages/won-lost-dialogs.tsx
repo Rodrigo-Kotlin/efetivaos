@@ -15,31 +15,42 @@ export function WonLostDialogs({ wonLost, onClose }: Props) {
 
   const [lostReasonId, setLostReasonId] = useState('')
   const [otherDetail, setOtherDetail] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   function handleClose() {
     setLostReasonId('')
     setOtherDetail('')
+    setError(null)
     onClose()
   }
 
   async function handleWon() {
     if (!wonLost || wonLost.action !== 'won') return
-    await wonMutation.mutateAsync(wonLost.id)
-    handleClose()
+    setError(null)
+    try {
+      await wonMutation.mutateAsync(wonLost.id)
+      handleClose()
+    } catch {
+      setError('Erro ao marcar como ganha. Tente novamente.')
+    }
   }
 
   async function handleLost() {
     if (!wonLost || wonLost.action !== 'lost') return
     const selectedReason = reasons.find(r => r.id === lostReasonId)
     if (!selectedReason) return
-
-    await lostMutation.mutateAsync({
-      id: wonLost.id,
-      reasonId: lostReasonId,
-      reason: selectedReason.name,
-      reasonDetail: selectedReason.name === 'Outro' ? otherDetail : undefined,
-    })
-    handleClose()
+    setError(null)
+    try {
+      await lostMutation.mutateAsync({
+        id: wonLost.id,
+        reasonId: lostReasonId,
+        reason: selectedReason.name,
+        reasonDetail: selectedReason.name === 'Outro' ? otherDetail : undefined,
+      })
+      handleClose()
+    } catch {
+      setError('Erro ao marcar como perdida. Tente novamente.')
+    }
   }
 
   if (!wonLost) return null
@@ -54,6 +65,7 @@ export function WonLostDialogs({ wonLost, onClose }: Props) {
               Confirmar que esta oportunidade foi fechada com sucesso?
             </DialogDescription>
           </DialogHeader>
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <DialogFooter>
             <Button variant="outline" onClick={handleClose}>Cancelar</Button>
             <Button onClick={handleWon} disabled={wonMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">
@@ -74,22 +86,34 @@ export function WonLostDialogs({ wonLost, onClose }: Props) {
             Selecione o motivo da perda.
           </DialogDescription>
         </DialogHeader>
+        {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="space-y-3">
-          <div className="space-y-1">
-            {reasons.map(reason => (
-              <label key={reason.id} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer">
-                <input
-                  type="radio"
-                  name="loss-reason"
-                  value={reason.id}
-                  checked={lostReasonId === reason.id}
-                  onChange={() => setLostReasonId(reason.id)}
-                  className="accent-red-600"
-                />
-                {reason.name}
-              </label>
-            ))}
-          </div>
+          {reasons.length === 0 ? (
+            <p className="text-sm text-slate-500">Nenhum motivo configurado. Contate o administrador.</p>
+          ) : (
+            <div className="space-y-1">
+              {reasons.map(reason => (
+                <label
+                  key={reason.id}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors ${
+                    lostReasonId === reason.id
+                      ? 'border-red-300 bg-red-50 text-red-800'
+                      : 'border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="loss-reason"
+                    value={reason.id}
+                    checked={lostReasonId === reason.id}
+                    onChange={() => setLostReasonId(reason.id)}
+                    className="accent-red-600"
+                  />
+                  {reason.name}
+                </label>
+              ))}
+            </div>
+          )}
           {reasons.find(r => r.id === lostReasonId)?.name === 'Outro' && (
             <textarea
               className="min-h-[60px] w-full rounded-md border border-slate-200 px-3 py-2 text-sm"
