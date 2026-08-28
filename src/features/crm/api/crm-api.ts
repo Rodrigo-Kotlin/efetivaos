@@ -56,7 +56,7 @@ export async function fetchCrmStages(pipelineId: string): Promise<CrmStage[]> {
 
 export async function fetchCrmOpportunities(
   pipelineId: string,
-): Promise<CrmOpportunityBoardRow[]> {
+): Promise<CrmOpportunityBoardRowExtended[]> {
   const { data, error } = await (supabase
     .from('crm_opportunities_board_v' as any)
     .select('*') as any)
@@ -64,7 +64,7 @@ export async function fetchCrmOpportunities(
     .eq('status', 'open')
     .order('sort_order')
   if (error) throw new Error(crmError(error, 'carregar oportunidades'))
-  return data as CrmOpportunityBoardRow[]
+  return data as CrmOpportunityBoardRowExtended[]
 }
 
 // ---------------------------------------------------------------------------
@@ -279,4 +279,20 @@ export async function fetchCrmOpportunityExtended(id: string): Promise<CrmOpport
     .single()
   if (error) throw new Error(crmError(error, 'carregar oportunidade'))
   return data as CrmOpportunityBoardRowExtended
+}
+
+export async function fetchCrmPipelineAnalytics(params?: {
+  pipeline_id?: string
+  from_date?: string
+  to_date?: string
+  responsible_user_id?: string
+}): Promise<import('@/types/database').CrmPipelineAnalytics> {
+  const { data, error } = await (supabase.rpc as any)('get_crm_pipeline_analytics', {
+    p_pipeline_id: params?.pipeline_id ?? null,
+    p_from_date: params?.from_date ?? null,
+    p_to_date: params?.to_date ?? null,
+    p_responsible_user_id: params?.responsible_user_id ?? null,
+  })
+  if (error) throw new Error(crmError(error, 'carregar analytics'))
+  return data as import('@/types/database').CrmPipelineAnalytics
 }

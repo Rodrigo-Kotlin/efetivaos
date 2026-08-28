@@ -288,7 +288,7 @@ export type CrmBoardColumn = {
   stage_name: string
   stage_position: number
   stage_probability: number
-  opportunities: CrmOpportunityBoardRow[]
+  opportunities: CrmOpportunityBoardRowExtended[]
   total_value: number
   count: number
 }
@@ -345,6 +345,58 @@ export type CrmOpportunityBoardRowExtended = CrmOpportunityBoardRow & {
   lost_reason_id: string | null
   lost_reason_detail: string | null
   loss_reason_name: string | null
+  stage_entered_at: string
+  stage_age_days: number
+}
+
+// ---------------------------------------------------------------------------
+// CRM Views & Intelligence (ETAPA 08C)
+// ---------------------------------------------------------------------------
+
+export type CrmStageMetric = {
+  stage_id: string
+  stage_name: string
+  position: number
+  entered_count: number
+  exited_count: number
+  current_count: number
+  avg_duration_days: number
+}
+
+export type CrmLossAnalysis = {
+  reason_id: string
+  reason_name: string
+  count: number
+  value: number
+  percentage: number
+}
+
+export type CrmForecastMonth = {
+  month: string
+  month_label: string
+  total_value: number
+  weighted_value: number
+  opportunity_count: number
+}
+
+export type CrmPipelineAnalytics = {
+  totals: {
+    open_count: number
+    open_value: number
+    weighted_value: number
+    won_count: number
+    won_value: number
+    lost_count: number
+    lost_value: number
+  }
+  conversion: {
+    won: number
+    lost: number
+    rate: number
+  }
+  stage_metrics: CrmStageMetric[]
+  loss_reasons: CrmLossAnalysis[]
+  forecast: CrmForecastMonth[]
 }
 
 export type FinancialAccountClass = 'ATIVO' | 'PASSIVO' | 'PL' | 'RECEITA' | 'CUSTO' | 'DESPESA'

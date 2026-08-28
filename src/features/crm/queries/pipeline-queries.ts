@@ -5,6 +5,7 @@ import {
   fetchCrmOpportunities,
   fetchCrmOpportunity,
   fetchCrmOpportunityExtended,
+  fetchCrmPipelineAnalytics,
   createCrmOpportunity,
   updateCrmOpportunity,
   moveCrmOpportunity,
@@ -26,6 +27,7 @@ import type {
   CrmActivity,
   CrmOpportunityEvent,
   CrmLossReason,
+  CrmPipelineAnalytics,
 } from '@/types/database'
 
 // ---------------------------------------------------------------------------
@@ -41,6 +43,7 @@ export const crmPipelineKeys = {
   activities: (opportunityId: string) => [...crmPipelineKeys.all, 'activities', opportunityId] as const,
   events: (opportunityId: string) => [...crmPipelineKeys.all, 'events', opportunityId] as const,
   lossReasons: () => [...crmPipelineKeys.all, 'lossReasons'] as const,
+  analytics: (params?: Record<string, string | undefined>) => [...crmPipelineKeys.all, 'analytics', params] as const,
 }
 
 // ---------------------------------------------------------------------------
@@ -65,7 +68,7 @@ export function useCrmStages(pipelineId: string | undefined) {
 }
 
 export function useCrmOpportunities(pipelineId: string | undefined) {
-  return useQuery<CrmOpportunityBoardRow[]>({
+  return useQuery<CrmOpportunityBoardRowExtended[]>({
     queryKey: crmPipelineKeys.opportunities(pipelineId ?? ''),
     queryFn: () => fetchCrmOpportunities(pipelineId!),
     enabled: !!pipelineId,
@@ -114,6 +117,19 @@ export function useCrmLossReasons() {
     queryKey: crmPipelineKeys.lossReasons(),
     queryFn: fetchCrmLossReasons,
     staleTime: 300_000,
+  })
+}
+
+export function useCrmPipelineAnalytics(params?: {
+  pipeline_id?: string
+  from_date?: string
+  to_date?: string
+  responsible_user_id?: string
+}) {
+  return useQuery<CrmPipelineAnalytics>({
+    queryKey: crmPipelineKeys.analytics(params as Record<string, string | undefined>),
+    queryFn: () => fetchCrmPipelineAnalytics(params),
+    staleTime: 60_000,
   })
 }
 

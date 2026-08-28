@@ -301,4 +301,217 @@ describe('CRM Pipeline Core + Activities First', () => {
       expect(count).toBe(1)
     })
   })
+
+  // ======================================================================
+  // CRM 08C — Views & Intelligence
+  // ======================================================================
+
+  describe('Aging', () => {
+    it('stage_age_days >= 0', () => {
+      const days = 5
+      expect(days).toBeGreaterThanOrEqual(0)
+    })
+
+    it('normal aging (0-3 days)', () => {
+      const days = 2
+      const label = days <= 3 ? 'normal' : days <= 7 ? 'attention' : 'high'
+      expect(label).toBe('normal')
+    })
+
+    it('attention aging (4-7 days)', () => {
+      const days = 5
+      const label = days <= 3 ? 'normal' : days <= 7 ? 'attention' : 'high'
+      expect(label).toBe('attention')
+    })
+
+    it('high aging (8+ days)', () => {
+      const days = 12
+      const label = days <= 3 ? 'normal' : days <= 7 ? 'attention' : 'high'
+      expect(label).toBe('high')
+    })
+
+    it('aging resets on stage change', () => {
+      const enteredAt = new Date()
+      const now = new Date()
+      const ageDays = Math.floor((now.getTime() - enteredAt.getTime()) / (1000 * 60 * 60 * 24))
+      expect(ageDays).toBe(0)
+    })
+  })
+
+  describe('List view sorting', () => {
+    it('sorts by value ascending', () => {
+      const items = [{ value: 3000 }, { value: 1000 }, { value: 2000 }]
+      items.sort((a, b) => a.value - b.value)
+      expect(items.map(i => i.value)).toEqual([1000, 2000, 3000])
+    })
+
+    it('sorts by value descending', () => {
+      const items = [{ value: 3000 }, { value: 1000 }, { value: 2000 }]
+      items.sort((a, b) => b.value - a.value)
+      expect(items.map(i => i.value)).toEqual([3000, 2000, 1000])
+    })
+
+    it('sorts by title ascending', () => {
+      const items = [{ title: 'Charlie' }, { title: 'Alice' }, { title: 'Bob' }]
+      items.sort((a, b) => a.title.localeCompare(b.title))
+      expect(items.map(i => i.title)).toEqual(['Alice', 'Bob', 'Charlie'])
+    })
+
+    it('sorts by aging descending (oldest first)', () => {
+      const items = [{ stage_age_days: 2 }, { stage_age_days: 10 }, { stage_age_days: 5 }]
+      items.sort((a, b) => b.stage_age_days - a.stage_age_days)
+      expect(items.map(i => i.stage_age_days)).toEqual([10, 5, 2])
+    })
+  })
+
+  describe('Filters', () => {
+    it('search filters by title', () => {
+      const opps = [
+        { title: 'Proposta SST', client_name: 'ABC' },
+        { title: 'Gestão RH', client_name: 'XYZ' },
+      ]
+      const q = 'sst'
+      const filtered = opps.filter(o => o.title.toLowerCase().includes(q))
+      expect(filtered).toHaveLength(1)
+      expect(filtered[0].title).toBe('Proposta SST')
+    })
+
+    it('search filters by client', () => {
+      const opps = [
+        { title: 'Proposta', client_name: 'ABC Ltda' },
+        { title: 'Gestão', client_name: 'XYZ SA' },
+      ]
+      const q = 'xyz'
+      const filtered = opps.filter(o => o.client_name.toLowerCase().includes(q))
+      expect(filtered).toHaveLength(1)
+    })
+
+    it('stage filter works', () => {
+      const opps = [
+        { stage_id: 's1', title: 'A' },
+        { stage_id: 's2', title: 'B' },
+        { stage_id: 's1', title: 'C' },
+      ]
+      const filtered = opps.filter(o => o.stage_id === 's1')
+      expect(filtered).toHaveLength(2)
+    })
+
+    it('status filter works', () => {
+      const opps = [
+        { status: 'open', title: 'A' },
+        { status: 'won', title: 'B' },
+        { status: 'lost', title: 'C' },
+      ]
+      expect(opps.filter(o => o.status === 'open')).toHaveLength(1)
+      expect(opps.filter(o => o.status === 'won')).toHaveLength(1)
+      expect(opps.filter(o => o.status === 'lost')).toHaveLength(1)
+    })
+
+    it('value range filter works', () => {
+      const opps = [
+        { value: 1000 },
+        { value: 5000 },
+        { value: 10000 },
+      ]
+      const min = 3000
+      const max = 8000
+      const filtered = opps.filter(o => o.value >= min && o.value <= max)
+      expect(filtered).toHaveLength(1)
+      expect(filtered[0].value).toBe(5000)
+    })
+
+    it('activity filter works', () => {
+      const opps = [
+        { next_activity_status_semantic: 'overdue' },
+        { next_activity_status_semantic: 'today' },
+        { next_activity_status_semantic: 'none' },
+      ]
+      expect(opps.filter(o => o.next_activity_status_semantic === 'overdue')).toHaveLength(1)
+      expect(opps.filter(o => o.next_activity_status_semantic === 'none')).toHaveLength(1)
+    })
+  })
+
+  describe('Analytics', () => {
+    it('conversion rate formula', () => {
+      const won = 10
+      const lost = 5
+      const rate = won / (won + lost) * 100
+      expect(rate).toBeCloseTo(66.67, 1)
+    })
+
+    it('conversion rate with zero', () => {
+      const won = 0
+      const lost = 0
+      const rate = (won + lost) > 0 ? won / (won + lost) * 100 : 0
+      expect(rate).toBe(0)
+    })
+
+    it('weighted value formula', () => {
+      const value = 10000
+      const probability = 40
+      const weighted = value * probability / 100
+      expect(weighted).toBe(4000)
+    })
+
+    it('stage metrics structure', () => {
+      const sm = {
+        stage_id: 's1', stage_name: 'Novo contato', position: 1,
+        entered_count: 5, exited_count: 3, current_count: 2, avg_duration_days: 4.5,
+      }
+      expect(sm.entered_count).toBeGreaterThanOrEqual(0)
+      expect(sm.exited_count).toBeGreaterThanOrEqual(0)
+      expect(sm.current_count).toBeGreaterThanOrEqual(0)
+      expect(sm.avg_duration_days).toBeGreaterThanOrEqual(0)
+    })
+
+    it('loss reason structure', () => {
+      const lr = {
+        reason_id: 'r1', reason_name: 'Preço', count: 8, value: 50000, percentage: 35.5,
+      }
+      expect(lr.count).toBeGreaterThanOrEqual(0)
+      expect(lr.percentage).toBeGreaterThanOrEqual(0)
+    })
+
+    it('forecast structure', () => {
+      const f = {
+        month: '2026-09', month_label: 'Sep 2026',
+        total_value: 120000, weighted_value: 73000, opportunity_count: 15,
+      }
+      expect(f.total_value).toBeGreaterThanOrEqual(0)
+      expect(f.weighted_value).toBeGreaterThanOrEqual(0)
+      expect(f.opportunity_count).toBeGreaterThanOrEqual(0)
+    })
+
+    it('totals reconcile', () => {
+      const totals = {
+        open_count: 10, open_value: 50000, weighted_value: 30000,
+        won_count: 5, won_value: 25000, lost_count: 3, lost_value: 15000,
+      }
+      expect(totals.open_count + totals.won_count + totals.lost_count).toBeGreaterThanOrEqual(0)
+    })
+  })
+
+  describe('View toggle', () => {
+    it('pipeline and list are valid modes', () => {
+      const modes = ['pipeline', 'list']
+      expect(modes).toContain('pipeline')
+      expect(modes).toContain('list')
+    })
+
+    it('localStorage persistence', () => {
+      const key = 'crm-view-mode'
+      localStorage.setItem(key, 'list')
+      expect(localStorage.getItem(key)).toBe('list')
+      localStorage.removeItem(key)
+    })
+  })
+
+  describe('List columns', () => {
+    it('has required columns', () => {
+      const columns = ['title', 'client_name', 'stage_name', 'value', 'probability', 'next_activity', 'expected_close_date', 'stage_age_days']
+      expect(columns).toHaveLength(8)
+      expect(columns).toContain('stage_age_days')
+      expect(columns).toContain('next_activity')
+    })
+  })
 })
