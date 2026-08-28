@@ -1,7 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical } from 'lucide-react'
-import type { CrmOpportunityBoardRow } from '@/types/database'
+import { GripVertical, AlertTriangle, Clock, Circle } from 'lucide-react'
+import type { CrmOpportunityBoardRowExtended } from '@/types/database'
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -21,8 +21,34 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
+const typeShort: Record<string, string> = {
+  'Ligação': 'Ligação',
+  'WhatsApp': 'WhatsApp',
+  'E-mail': 'E-mail',
+  'Reunião': 'Reunião',
+  'Visita': 'Visita',
+  'Follow-up': 'Follow-up',
+  'Preparar proposta': 'Proposta',
+  'Enviar proposta': 'Proposta',
+  'Solicitar documentos': 'Docs',
+  'Outro': 'Atividade',
+}
+
+function formatDue(dueAt: string): string {
+  const due = new Date(dueAt)
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const dueDate = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+  const diffDays = Math.floor((dueDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) return `${Math.abs(diffDays)}d atraso`
+  if (diffDays === 0) return 'hoje'
+  if (diffDays === 1) return 'amanhã'
+  return `${diffDays}d`
+}
+
 type Props = {
-  opportunity: CrmOpportunityBoardRow
+  opportunity: CrmOpportunityBoardRowExtended
   onClick: () => void
   isDragOverlay?: boolean
 }
@@ -42,6 +68,9 @@ export function OpportunityCard({ opportunity, onClick, isDragOverlay }: Props) 
     transition,
   }
 
+  const semantic = opportunity.next_activity_status_semantic
+  const typeLabel = typeShort[opportunity.next_activity_type ?? ''] ?? 'Atividade'
+
   return (
     <div
       ref={setNodeRef}
@@ -50,7 +79,6 @@ export function OpportunityCard({ opportunity, onClick, isDragOverlay }: Props) 
         isDragging ? 'opacity-40' : ''
       } ${isDragOverlay ? 'shadow-lg' : ''}`}
     >
-      {/* Drag handle */}
       <button
         {...attributes}
         {...listeners}
@@ -61,13 +89,11 @@ export function OpportunityCard({ opportunity, onClick, isDragOverlay }: Props) 
         <GripVertical className="size-3.5" />
       </button>
 
-      {/* Client + Title */}
       <div className="cursor-pointer pl-4" onClick={onClick} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onClick()}>
         <p className="text-xs font-medium text-slate-500 truncate">{opportunity.client_name}</p>
         <p className="mt-0.5 text-sm font-medium text-slate-800 line-clamp-2">{opportunity.title}</p>
       </div>
 
-      {/* Value + Date + Responsible */}
       <div className="mt-2 flex items-center justify-between pl-4">
         <span className="text-xs font-semibold text-emerald-700">
           {opportunity.value > 0 ? fmt(opportunity.value) : ''}
@@ -87,6 +113,34 @@ export function OpportunityCard({ opportunity, onClick, isDragOverlay }: Props) 
             </span>
           )}
         </div>
+      </div>
+
+      {/* Activity status line */}
+      <div className="mt-2 pl-4">
+        {semantic === 'overdue' && (
+          <div className="flex items-center gap-1 text-[11px] font-medium text-red-600">
+            <AlertTriangle className="size-3" />
+            <span>{typeLabel} · atrasado {formatDue(opportunity.next_activity_due_at!)}</span>
+          </div>
+        )}
+        {semantic === 'today' && (
+          <div className="flex items-center gap-1 text-[11px] font-medium text-amber-600">
+            <Clock className="size-3" />
+            <span>{typeLabel} · hoje</span>
+          </div>
+        )}
+        {semantic === 'upcoming' && (
+          <div className="flex items-center gap-1 text-[11px] text-slate-500">
+            <Clock className="size-3" />
+            <span>{typeLabel} · {formatDue(opportunity.next_activity_due_at!)}</span>
+          </div>
+        )}
+        {semantic === 'none' && (
+          <div className="flex items-center gap-1 text-[11px] text-slate-400">
+            <Circle className="size-2.5" />
+            <span>Sem próxima atividade</span>
+          </div>
+        )}
       </div>
     </div>
   )

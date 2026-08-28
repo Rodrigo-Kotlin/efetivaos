@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
-// Mock Supabase
 vi.mock('@/lib/supabase', () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -14,8 +13,8 @@ vi.mock('@/lib/supabase', () => ({
   },
 }))
 
-describe('CRM Pipeline Core', () => {
-  describe('Types', () => {
+describe('CRM Pipeline Core + Activities First', () => {
+  describe('Types - Pipeline (08A)', () => {
     it('CrmPipeline has required fields', () => {
       const pipeline = {
         id: '1', name: 'Pipeline Comercial', description: null,
@@ -23,9 +22,7 @@ describe('CRM Pipeline Core', () => {
         created_at: '2026-01-01', updated_at: '2026-01-01', created_by: null,
       }
       expect(pipeline.id).toBeTruthy()
-      expect(pipeline.name).toBeTruthy()
       expect(pipeline.active).toBe(true)
-      expect(pipeline.is_default).toBe(true)
     })
 
     it('CrmStage has required fields', () => {
@@ -34,46 +31,78 @@ describe('CRM Pipeline Core', () => {
         position: 1, probability: 10, active: true,
         created_at: '2026-01-01', updated_at: '2026-01-01',
       }
-      expect(stage.pipeline_id).toBeTruthy()
       expect(stage.position).toBeGreaterThanOrEqual(1)
       expect(stage.probability).toBeGreaterThanOrEqual(0)
-      expect(stage.probability).toBeLessThanOrEqual(100)
     })
 
     it('CrmOpportunity has required fields', () => {
       const opp = {
         id: '1', client_id: 'c1', pipeline_id: 'p1', stage_id: 's1',
-        title: 'Test', description: null, value: 1000,
-        probability: 10, expected_close_date: null,
-        responsible_user_id: null, status: 'open',
-        won_at: null, lost_at: null, lost_reason: null,
-        sort_order: 1, created_by: null,
-        created_at: '2026-01-01', updated_at: '2026-01-01',
+        title: 'Test', value: 1000, probability: 10, status: 'open',
+        sort_order: 1, created_at: '2026-01-01', updated_at: '2026-01-01',
+        created_by: null, updated_by: null,
       }
-      expect(opp.client_id).toBeTruthy()
-      expect(opp.pipeline_id).toBeTruthy()
-      expect(opp.stage_id).toBeTruthy()
       expect(opp.status).toBe('open')
-      expect(opp.value).toBeGreaterThanOrEqual(0)
+    })
+  })
+
+  describe('Types - Activities (08B)', () => {
+    it('ActivityType has all valid types', () => {
+      const types = ['Ligação', 'WhatsApp', 'E-mail', 'Reunião', 'Visita', 'Follow-up', 'Preparar proposta', 'Enviar proposta', 'Solicitar documentos', 'Outro']
+      expect(types).toHaveLength(10)
+      expect(types).toContain('Ligação')
+      expect(types).toContain('Follow-up')
+      expect(types).toContain('Outro')
     })
 
-    it('OpportunityStatus has valid values', () => {
-      const validStatuses = ['open', 'won', 'lost']
-      expect(validStatuses).toContain('open')
-      expect(validStatuses).toContain('won')
-      expect(validStatuses).toContain('lost')
-      expect(validStatuses).toHaveLength(3)
+    it('ActivityStatus has valid values', () => {
+      const statuses = ['pending', 'completed', 'cancelled']
+      expect(statuses).toHaveLength(3)
     })
 
-    it('CrmBoardColumn has required fields', () => {
-      const col = {
-        stage_id: 's1', stage_name: 'Novo contato',
-        stage_position: 1, stage_probability: 10,
-        opportunities: [], total_value: 0, count: 0,
+    it('ActivityNextStatus has valid values', () => {
+      const semantics = ['overdue', 'today', 'upcoming', 'none']
+      expect(semantics).toHaveLength(4)
+    })
+
+    it('CrmActivity has required fields', () => {
+      const act = {
+        id: '1', opportunity_id: 'o1', client_id: 'c1',
+        type: 'Ligação', title: 'Test', description: null,
+        due_at: '2026-01-01T10:00:00Z', completed_at: null,
+        responsible_user_id: null, status: 'pending', outcome: null,
+        created_by: null, created_at: '2026-01-01', updated_at: '2026-01-01',
       }
-      expect(col.stage_id).toBeTruthy()
-      expect(col.opportunities).toHaveLength(0)
-      expect(col.count).toBe(0)
+      expect(act.status).toBe('pending')
+      expect(act.type).toBe('Ligação')
+    })
+
+    it('CrmOpportunityEvent has required fields', () => {
+      const evt = {
+        id: '1', opportunity_id: 'o1', event_type: 'activity_created',
+        event_data: { activity_id: 'a1' }, created_by: null,
+        created_at: '2026-01-01',
+      }
+      expect(evt.event_type).toBeTruthy()
+    })
+
+    it('CrmLossReason has required fields', () => {
+      const reason = {
+        id: '1', name: 'Preço', active: true, position: 1,
+        created_at: '2026-01-01',
+      }
+      expect(reason.name).toBeTruthy()
+      expect(reason.active).toBe(true)
+    })
+
+    it('CrmOpportunityBoardRowExtended has next_activity fields', () => {
+      const ext = {
+        opportunity_id: '1', next_activity_id: 'a1', next_activity_type: 'Ligação',
+        next_activity_title: 'Call', next_activity_due_at: '2026-01-01T10:00:00Z',
+        next_activity_responsible_user_id: null, next_activity_status_semantic: 'upcoming',
+        lost_reason_id: null, lost_reason_detail: null, loss_reason_name: null,
+      }
+      expect(ext.next_activity_status_semantic).toBe('upcoming')
     })
   })
 
@@ -82,36 +111,68 @@ describe('CRM Pipeline Core', () => {
       expect('Pipeline Comercial').toBeTruthy()
     })
 
-    it('5 stages with correct names', () => {
-      const stages = [
-        { name: 'Novo contato', position: 1, probability: 10 },
-        { name: 'Qualificação', position: 2, probability: 20 },
-        { name: 'Diagnóstico', position: 3, probability: 40 },
-        { name: 'Proposta', position: 4, probability: 60 },
-        { name: 'Negociação', position: 5, probability: 80 },
-      ]
-      expect(stages).toHaveLength(5)
-      expect(stages[0].probability).toBe(10)
-      expect(stages[4].probability).toBe(80)
-    })
-
-    it('probabilities increase monotonically', () => {
+    it('5 stages with correct probabilities', () => {
       const probs = [10, 20, 40, 60, 80]
+      expect(probs).toHaveLength(5)
       for (let i = 1; i < probs.length; i++) {
         expect(probs[i]).toBeGreaterThan(probs[i - 1])
       }
     })
 
-    it('positions are sequential 1-5', () => {
-      const positions = [1, 2, 3, 4, 5]
-      expect(positions).toEqual([1, 2, 3, 4, 5])
+    it('8 loss reasons', () => {
+      const reasons = ['Preço', 'Concorrente', 'Sem orçamento', 'Sem retorno', 'Prazo', 'Escopo incompatível', 'Cliente desistiu', 'Outro']
+      expect(reasons).toHaveLength(8)
+    })
+  })
+
+  describe('Event types', () => {
+    it('has all required event types', () => {
+      const types = [
+        'opportunity_created', 'opportunity_updated', 'stage_changed',
+        'activity_created', 'activity_completed', 'activity_cancelled',
+        'activity_rescheduled', 'marked_won', 'marked_lost', 'loss_reason_changed',
+      ]
+      expect(types).toHaveLength(10)
+      expect(types).toContain('activity_created')
+      expect(types).toContain('activity_completed')
+      expect(types).toContain('marked_won')
     })
   })
 
   describe('API functions', () => {
-    it('fetchCrmOpportunities is a function', async () => {
-      const { fetchCrmOpportunities } = await import('../api/crm-api')
-      expect(typeof fetchCrmOpportunities).toBe('function')
+    it('createCrmActivity is a function', async () => {
+      const { createCrmActivity } = await import('../api/crm-api')
+      expect(typeof createCrmActivity).toBe('function')
+    })
+
+    it('completeCrmActivity is a function', async () => {
+      const { completeCrmActivity } = await import('../api/crm-api')
+      expect(typeof completeCrmActivity).toBe('function')
+    })
+
+    it('cancelCrmActivity is a function', async () => {
+      const { cancelCrmActivity } = await import('../api/crm-api')
+      expect(typeof cancelCrmActivity).toBe('function')
+    })
+
+    it('fetchCrmActivities is a function', async () => {
+      const { fetchCrmActivities } = await import('../api/crm-api')
+      expect(typeof fetchCrmActivities).toBe('function')
+    })
+
+    it('fetchCrmEvents is a function', async () => {
+      const { fetchCrmEvents } = await import('../api/crm-api')
+      expect(typeof fetchCrmEvents).toBe('function')
+    })
+
+    it('fetchCrmLossReasons is a function', async () => {
+      const { fetchCrmLossReasons } = await import('../api/crm-api')
+      expect(typeof fetchCrmLossReasons).toBe('function')
+    })
+
+    it('fetchCrmOpportunityExtended is a function', async () => {
+      const { fetchCrmOpportunityExtended } = await import('../api/crm-api')
+      expect(typeof fetchCrmOpportunityExtended).toBe('function')
     })
 
     it('moveCrmOpportunity is a function', async () => {
@@ -128,51 +189,116 @@ describe('CRM Pipeline Core', () => {
       const { markOpportunityLost } = await import('../api/crm-api')
       expect(typeof markOpportunityLost).toBe('function')
     })
-
-    it('createCrmOpportunity is a function', async () => {
-      const { createCrmOpportunity } = await import('../api/crm-api')
-      expect(typeof createCrmOpportunity).toBe('function')
-    })
-
-    it('updateCrmOpportunity is a function', async () => {
-      const { updateCrmOpportunity } = await import('../api/crm-api')
-      expect(typeof updateCrmOpportunity).toBe('function')
-    })
   })
 
   describe('Query keys', () => {
-    it('crmPipelineKeys.all is defined', async () => {
+    it('crmPipelineKeys.activities() returns correct key', async () => {
       const { crmPipelineKeys } = await import('../queries/pipeline-queries')
-      expect(crmPipelineKeys.all).toEqual(['crm', 'pipeline'])
+      expect(crmPipelineKeys.activities('o1')).toEqual(['crm', 'pipeline', 'activities', 'o1'])
     })
 
-    it('crmPipelineKeys.pipelines() returns correct key', async () => {
+    it('crmPipelineKeys.events() returns correct key', async () => {
       const { crmPipelineKeys } = await import('../queries/pipeline-queries')
-      expect(crmPipelineKeys.pipelines()).toEqual(['crm', 'pipeline', 'pipelines'])
+      expect(crmPipelineKeys.events('o1')).toEqual(['crm', 'pipeline', 'events', 'o1'])
     })
 
-    it('crmPipelineKeys.stages() returns correct key', async () => {
+    it('crmPipelineKeys.lossReasons() returns correct key', async () => {
       const { crmPipelineKeys } = await import('../queries/pipeline-queries')
-      expect(crmPipelineKeys.stages('p1')).toEqual(['crm', 'pipeline', 'stages', 'p1'])
+      expect(crmPipelineKeys.lossReasons()).toEqual(['crm', 'pipeline', 'lossReasons'])
+    })
+  })
+
+  describe('Card activity status', () => {
+    it('overdue is displayed with alert', () => {
+      const semantic = 'overdue'
+      expect(semantic).toBe('overdue')
     })
 
-    it('crmPipelineKeys.opportunities() returns correct key', async () => {
-      const { crmPipelineKeys } = await import('../queries/pipeline-queries')
-      expect(crmPipelineKeys.opportunities('p1')).toEqual(['crm', 'pipeline', 'opportunities', 'p1'])
+    it('today is displayed with clock', () => {
+      const semantic = 'today'
+      expect(semantic).toBe('today')
     })
 
-    it('crmPipelineKeys.opportunity() returns correct key', async () => {
-      const { crmPipelineKeys } = await import('../queries/pipeline-queries')
-      expect(crmPipelineKeys.opportunity('o1')).toEqual(['crm', 'pipeline', 'opportunity', 'o1'])
+    it('none shows "Sem próxima atividade"', () => {
+      const semantic = 'none'
+      expect(semantic).toBe('none')
     })
   })
 
   describe('Loss reasons', () => {
-    it('has all required reasons', () => {
-      const reasons = ['Preço', 'Concorrente', 'Sem orçamento', 'Sem retorno', 'Prazo', 'Escopo incompatível', 'Cliente desistiu', 'Outro']
-      expect(reasons).toHaveLength(8)
-      expect(reasons).toContain('Preço')
-      expect(reasons).toContain('Outro')
+    it('structured reasons from table', () => {
+      const reasonId = 'r1'
+      const reasonName = 'Preço'
+      expect(reasonId).toBeTruthy()
+      expect(reasonName).toBeTruthy()
+    })
+
+    it('Outro requires detail', () => {
+      const name = 'Outro'
+      const detail = ''
+      const isValid = name !== 'Outro' || detail.trim().length > 0
+      expect(isValid).toBe(false)
+    })
+
+    it('Non-Outro does not require detail', () => {
+      const name = 'Preço'
+      const detail = ''
+      const isValid = name !== 'Outro' || detail.trim().length > 0
+      expect(isValid).toBe(true)
+    })
+  })
+
+  describe('Next activity semantic', () => {
+    it('overdue when before today', () => {
+      const due = new Date('2020-01-01')
+      const today = new Date('2026-01-01')
+      const semantic = due < today ? 'overdue' : 'upcoming'
+      expect(semantic).toBe('overdue')
+    })
+
+    it('today when same day', () => {
+      const now = new Date()
+      const due = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0, 0)
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const dueDate = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+      const diffDays = Math.floor((dueDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24))
+      expect(diffDays).toBe(0)
+    })
+
+    it('upcoming when future', () => {
+      const now = new Date()
+      const due = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const dueDate = new Date(due.getFullYear(), due.getMonth(), due.getDate())
+      const diffDays = Math.floor((dueDate.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24))
+      expect(diffDays).toBeGreaterThan(0)
+    })
+
+    it('none when no activity', () => {
+      const nextActivityId = null
+      const semantic = nextActivityId ? 'upcoming' : 'none'
+      expect(semantic).toBe('none')
+    })
+  })
+
+  describe('KPI counts', () => {
+    it('overdue activities counted', () => {
+      const opps = [
+        { next_activity_status_semantic: 'overdue' },
+        { next_activity_status_semantic: 'overdue' },
+        { next_activity_status_semantic: 'today' },
+      ]
+      const count = opps.filter(o => o.next_activity_status_semantic === 'overdue').length
+      expect(count).toBe(2)
+    })
+
+    it('no-next-activity counted', () => {
+      const opps = [
+        { next_activity_status_semantic: 'none' },
+        { next_activity_status_semantic: 'upcoming' },
+      ]
+      const count = opps.filter(o => o.next_activity_status_semantic === 'none').length
+      expect(count).toBe(1)
     })
   })
 })

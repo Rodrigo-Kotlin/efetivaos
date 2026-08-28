@@ -4,16 +4,28 @@ import {
   fetchCrmStages,
   fetchCrmOpportunities,
   fetchCrmOpportunity,
+  fetchCrmOpportunityExtended,
   createCrmOpportunity,
   updateCrmOpportunity,
   moveCrmOpportunity,
   markOpportunityWon,
   markOpportunityLost,
+  fetchCrmActivities,
+  fetchCrmEvents,
+  fetchCrmLossReasons,
+  createCrmActivity,
+  updateCrmActivity,
+  completeCrmActivity,
+  cancelCrmActivity,
 } from '../api/crm-api'
 import type {
   CrmPipeline,
   CrmStage,
   CrmOpportunityBoardRow,
+  CrmOpportunityBoardRowExtended,
+  CrmActivity,
+  CrmOpportunityEvent,
+  CrmLossReason,
 } from '@/types/database'
 
 // ---------------------------------------------------------------------------
@@ -26,6 +38,9 @@ export const crmPipelineKeys = {
   stages: (pipelineId: string) => [...crmPipelineKeys.all, 'stages', pipelineId] as const,
   opportunities: (pipelineId: string) => [...crmPipelineKeys.all, 'opportunities', pipelineId] as const,
   opportunity: (id: string) => [...crmPipelineKeys.all, 'opportunity', id] as const,
+  activities: (opportunityId: string) => [...crmPipelineKeys.all, 'activities', opportunityId] as const,
+  events: (opportunityId: string) => [...crmPipelineKeys.all, 'events', opportunityId] as const,
+  lossReasons: () => [...crmPipelineKeys.all, 'lossReasons'] as const,
 }
 
 // ---------------------------------------------------------------------------
@@ -64,6 +79,41 @@ export function useCrmOpportunity(id: string | undefined) {
     queryFn: () => fetchCrmOpportunity(id!),
     enabled: !!id,
     staleTime: 30_000,
+  })
+}
+
+export function useCrmOpportunityExtended(id: string | undefined) {
+  return useQuery<CrmOpportunityBoardRowExtended>({
+    queryKey: crmPipelineKeys.opportunity(id ?? ''),
+    queryFn: () => fetchCrmOpportunityExtended(id!),
+    enabled: !!id,
+    staleTime: 30_000,
+  })
+}
+
+export function useCrmActivities(opportunityId: string | undefined) {
+  return useQuery<CrmActivity[]>({
+    queryKey: crmPipelineKeys.activities(opportunityId ?? ''),
+    queryFn: () => fetchCrmActivities(opportunityId!),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  })
+}
+
+export function useCrmEvents(opportunityId: string | undefined) {
+  return useQuery<CrmOpportunityEvent[]>({
+    queryKey: crmPipelineKeys.events(opportunityId ?? ''),
+    queryFn: () => fetchCrmEvents(opportunityId!),
+    enabled: !!opportunityId,
+    staleTime: 15_000,
+  })
+}
+
+export function useCrmLossReasons() {
+  return useQuery<CrmLossReason[]>({
+    queryKey: crmPipelineKeys.lossReasons(),
+    queryFn: fetchCrmLossReasons,
+    staleTime: 300_000,
   })
 }
 
@@ -123,8 +173,58 @@ export function useMarkOpportunityWon() {
 export function useMarkOpportunityLost() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      markOpportunityLost(id, reason),
+    mutationFn: ({ id, reason, reasonId, reasonDetail }: {
+      id: string
+      reason?: string
+      reasonId?: string
+      reasonDetail?: string
+    }) => markOpportunityLost(id, reason, reasonId, reasonDetail),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    },
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Activity Mutations
+// ---------------------------------------------------------------------------
+
+export function useCreateCrmActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: createCrmActivity,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    },
+  })
+}
+
+export function useUpdateCrmActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ activityId, ...input }: { activityId: string } & Parameters<typeof updateCrmActivity>[1]) =>
+      updateCrmActivity(activityId, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    },
+  })
+}
+
+export function useCompleteCrmActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ activityId, outcome }: { activityId: string; outcome?: string }) =>
+      completeCrmActivity(activityId, outcome),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
+    },
+  })
+}
+
+export function useCancelCrmActivity() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: cancelCrmActivity,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: crmPipelineKeys.all })
     },

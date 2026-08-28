@@ -293,6 +293,60 @@ export type CrmBoardColumn = {
   count: number
 }
 
+// ---------------------------------------------------------------------------
+// CRM Activities First (ETAPA 08B)
+// ---------------------------------------------------------------------------
+
+export type ActivityType = 'Ligação' | 'WhatsApp' | 'E-mail' | 'Reunião' | 'Visita' | 'Follow-up' | 'Preparar proposta' | 'Enviar proposta' | 'Solicitar documentos' | 'Outro'
+
+export type ActivityStatus = 'pending' | 'completed' | 'cancelled'
+
+export type ActivityNextStatus = 'overdue' | 'today' | 'upcoming' | 'none'
+
+export type CrmActivity = AuditFields & {
+  id: string
+  opportunity_id: string
+  client_id: string | null
+  type: ActivityType
+  title: string
+  description: string | null
+  due_at: string
+  completed_at: string | null
+  responsible_user_id: string | null
+  status: ActivityStatus
+  outcome: string | null
+  created_by: string | null
+}
+
+export type CrmOpportunityEvent = {
+  id: string
+  opportunity_id: string
+  event_type: string
+  event_data: Record<string, unknown> | null
+  created_by: string | null
+  created_at: string
+}
+
+export type CrmLossReason = {
+  id: string
+  name: string
+  active: boolean
+  position: number
+  created_at: string
+}
+
+export type CrmOpportunityBoardRowExtended = CrmOpportunityBoardRow & {
+  next_activity_id: string | null
+  next_activity_type: string | null
+  next_activity_title: string | null
+  next_activity_due_at: string | null
+  next_activity_responsible_user_id: string | null
+  next_activity_status_semantic: ActivityNextStatus
+  lost_reason_id: string | null
+  lost_reason_detail: string | null
+  loss_reason_name: string | null
+}
+
 export type FinancialAccountClass = 'ATIVO' | 'PASSIVO' | 'PL' | 'RECEITA' | 'CUSTO' | 'DESPESA'
 export type FinancialNature = 'DEBITO' | 'CREDITO'
 export type FinancialCurrentClass = 'CIRCULANTE' | 'NAO_CIRCULANTE'
