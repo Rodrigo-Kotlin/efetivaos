@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart, type LucideIcon } from 'lucide-react'
+import { Building2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart, Receipt, CreditCard, type LucideIcon } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
@@ -63,6 +63,8 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { to: '/finance', label: 'Financeiro 360', icon: CircleDollarSign, end: true },
       { to: '/finance/transactions', label: 'Lançamentos', icon: ArrowLeftRight },
+      { to: '/finance/receivables', label: 'Contas a Receber', icon: Receipt },
+      { to: '/finance/payables', label: 'Contas a Pagar', icon: CreditCard },
       { to: '/finance/cashflow', label: 'Fluxo de Caixa', icon: TrendingUp },
     ],
   },

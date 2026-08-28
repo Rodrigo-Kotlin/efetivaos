@@ -37,6 +37,8 @@ const DlpaPage = lazy(() => import('@/features/finance/pages/dlpa-page'))
 const DvaPage = lazy(() => import('@/features/finance/pages/dva-page'))
 const AdjustmentsPage = lazy(() => import('@/features/finance/pages/adjustments-page'))
 const NotesPage = lazy(() => import('@/features/finance/pages/notes-page'))
+const ReceivablesPage = lazy(() => import('@/features/finance/pages/receivables-page'))
+const PayablesPage = lazy(() => import('@/features/finance/pages/payables-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
@@ -75,6 +77,8 @@ export const router = createBrowserRouter([
           { path: 'finance/categories', element: pending(<CategoriesPage />) },
           { path: 'finance/accounts', element: pending(<AccountsPage />) },
           { path: 'finance/transactions', element: pending(<TransactionsPage />) },
+          { path: 'finance/receivables', element: pending(<ReceivablesPage />) },
+          { path: 'finance/payables', element: pending(<PayablesPage />) },
           { path: 'finance/cashflow', element: pending(<CashflowPage />) },
           { path: 'finance/cash-flow-statement', element: pending(<DfcPage />) },
           { path: 'finance/dre', element: pending(<DrePage />) },

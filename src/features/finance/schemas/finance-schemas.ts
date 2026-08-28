@@ -180,6 +180,7 @@ export const STATUS_LABELS: Record<string, string> = {
 
 const REVENUE_TYPES = ['RECEITA', 'APORTE', 'EMPRESTIMO_RECEBIDO']
 const EXPENSE_TYPES = ['DESPESA', 'EMPRESTIMO_PAGO', 'RETIRADA']
+const TRANSFER_TYPES = ['TRANSFERENCIA']
 
 export function getStatusLabel(status: string, movementType: string): string {
   if (status === 'cancelled') return 'Cancelado'
@@ -188,6 +189,9 @@ export function getStatusLabel(status: string, movementType: string): string {
   }
   if (EXPENSE_TYPES.includes(movementType)) {
     return status === 'settled' ? 'Pago' : 'A pagar'
+  }
+  if (TRANSFER_TYPES.includes(movementType)) {
+    return status === 'settled' ? 'Concluída' : 'Pendente'
   }
   return STATUS_LABELS[status] || status
 }

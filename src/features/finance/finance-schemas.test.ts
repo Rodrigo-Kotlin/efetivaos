@@ -218,8 +218,11 @@ describe('getStatusLabel', () => {
   it('transfer pending -> Pendente', () => {
     expect(getStatusLabel('pending', 'TRANSFERENCIA')).toBe('Pendente')
   })
-  it('transfer settled -> Liquidado', () => {
-    expect(getStatusLabel('settled', 'TRANSFERENCIA')).toBe('Liquidado')
+  it('transfer settled -> Concluída', () => {
+    expect(getStatusLabel('settled', 'TRANSFERENCIA')).toBe('Concluída')
+  })
+  it('transfer cancelled -> Cancelado', () => {
+    expect(getStatusLabel('cancelled', 'TRANSFERENCIA')).toBe('Cancelado')
   })
   it('aporte pending -> A receber', () => {
     expect(getStatusLabel('pending', 'APORTE')).toBe('A receber')
