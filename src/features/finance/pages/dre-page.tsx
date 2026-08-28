@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { useIncomeStatement } from '../queries/finance-queries'
 import type { IncomeStatementFilters } from '../api/finance-api'
 import { useCostCenters, useServiceLines } from '../queries/finance-queries'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
@@ -114,6 +115,18 @@ export default function DrePage() {
         {hasFilters && (
           <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); setCostCenterId(''); setServiceLineId('') }}>
             Limpar
+          </Button>
+        )}
+        {rows?.length && (
+          <Button variant="outline" size="sm" onClick={() => {
+            const period = `${dateFrom || 'início'} a ${dateTo || 'hoje'}`
+            const statementRows = rows.map(r => ({ label: r.label, amount: Number(r.amount), bold: r.row_type === 'SUBTOTAL' || r.row_type === 'TOTAL' }))
+            const totalRow = rows.find(r => r.row_code === 'RESULTADO_LIQUIDO')
+            const totals = totalRow ? [{ label: 'Resultado Líquido', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(totalRow.amount)) }] : undefined
+            const doc = generateStatementPdf('DRE - Demonstração do Resultado', period, statementRows, totals)
+            downloadPdf(doc, 'dre')
+          }}>
+            PDF
           </Button>
         )}
       </div>

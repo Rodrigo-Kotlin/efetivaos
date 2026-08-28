@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDva } from '../queries/finance-queries'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
@@ -38,6 +39,14 @@ export default function DvaPage() {
         <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo('') }}>
           Limpar
         </Button>
+        {rows?.length ? (
+          <Button variant="outline" size="sm" onClick={() => {
+            const period = `${dateFrom || 'início'} a ${dateTo || 'hoje'}`
+            const statementRows = rows.map(r => ({ label: r.row_label, amount: Number(r.amount), bold: r.row_label.startsWith('=') }))
+            const doc = generateStatementPdf('DVA - Demonstração do Valor Adicionado', period, statementRows)
+            downloadPdf(doc, 'dva')
+          }}>PDF</Button>
+        ) : null}
       </div>
 
       {/* Loading */}

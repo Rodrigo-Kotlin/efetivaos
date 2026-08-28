@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { useCashflowRealized, useCashflowForecast, useCashflow13Weeks, useCashflowSummary } from '../queries/finance-queries'
 import type { CashflowFilters } from '../api/finance-api'
 import { useFinancialAccounts, useCostCenters, useServiceLines } from '../queries/finance-queries'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
 const fmtDate = (d: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'
@@ -100,6 +101,14 @@ export default function CashflowPage() {
         <Button variant="outline" size="sm" onClick={() => { setFilters({}); setDateFrom(''); setDateTo('') }}>
           Limpar
         </Button>
+        {realized?.length ? (
+          <Button variant="outline" size="sm" onClick={() => {
+            const period = `${dateFrom || 'início'} a ${dateTo || 'hoje'}`
+            const statementRows = realized.map(r => ({ label: r.entry_description, amount: Number(r.amount), bold: false }))
+            const doc = generateStatementPdf('Fluxo de Caixa - Realizado', period, statementRows)
+            downloadPdf(doc, 'fluxo-de-caixa')
+          }}>PDF</Button>
+        ) : null}
       </div>
 
       {/* KPI Cards — all values from backend summary */}

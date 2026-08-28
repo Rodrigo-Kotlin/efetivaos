@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useCashflowStatement } from '../queries/finance-queries'
 import type { CashflowFilters } from '../api/finance-api'
 import { useCostCenters, useServiceLines } from '../queries/finance-queries'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
 
@@ -91,6 +92,14 @@ export default function DfcPage() {
         <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); setCostCenterId(''); setServiceLineId('') }}>
           Limpar
         </Button>
+        {statement?.length && (
+          <Button variant="outline" size="sm" onClick={() => {
+            const period = `${dateFrom || 'início'} a ${dateTo || 'hoje'}`
+            const statementRows = statement.map(r => ({ label: r.dfc_class_label, amount: Number(r.net_amount), bold: ['SALDO_INICIAL', 'SALDO_FINAL', 'VARIACAO'].includes(r.dfc_class) }))
+            const doc = generateStatementPdf('DFC - Demonstração dos Fluxos de Caixa', period, statementRows)
+            downloadPdf(doc, 'dfc')
+          }}>PDF</Button>
+        )}
       </div>
 
       {/* DFC Statement */}

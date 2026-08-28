@@ -1,11 +1,13 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Eye, Plus, Search, XCircle, CheckCircle, Clock, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Eye, Plus, Search, XCircle, CheckCircle, Clock, ArrowUpRight, ArrowDownRight, Upload, Download } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Drawer } from '@/components/ui/drawer'
+import { ImportWizard } from './import-wizard'
+import { exportData, TRANSACTION_COLUMNS } from '../lib/export-utils'
 import {
   useTransactions,
   useTransactionDetail,
@@ -344,6 +346,7 @@ export default function TransactionsPage() {
   const { data: transactions = [], isLoading } = useTransactions()
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -372,7 +375,18 @@ export default function TransactionsPage() {
           <h1 className="font-serif text-3xl font-semibold tracking-tight">Lançamentos Financeiros</h1>
           <p className="mt-1 text-sm text-slate-600">Registre receitas, despesas, transferências e demais movimentações financeiras.</p>
         </div>
-        <Button onClick={() => setCreateOpen(true)}><Plus className="mr-2 size-4" />Novo lançamento</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportData(filtered as any, TRANSACTION_COLUMNS, 'lancamentos', 'csv')}>
+            <Download className="mr-1 size-3.5" />CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportData(filtered as any, TRANSACTION_COLUMNS, 'lancamentos', 'xlsx')}>
+            <Download className="mr-1 size-3.5" />XLSX
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+            <Upload className="mr-1 size-3.5" />Importar
+          </Button>
+          <Button onClick={() => setCreateOpen(true)}><Plus className="mr-2 size-4" />Novo lançamento</Button>
+        </div>
       </div>
 
       <div className="mb-6">
@@ -430,6 +444,7 @@ export default function TransactionsPage() {
 
       <TransactionCreateDrawer open={createOpen} onClose={() => setCreateOpen(false)} defaultType={searchParams.get('create')} />
       <TransactionDetailDrawer transactionId={detailId} onClose={() => setDetailId(null)} />
+      <ImportWizard open={importOpen} onClose={() => setImportOpen(false)} />
     </div>
   )
 }

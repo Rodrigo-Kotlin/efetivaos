@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDlpa } from '../queries/finance-queries'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
@@ -38,6 +39,14 @@ export default function DlpaPage() {
         <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo('') }}>
           Limpar
         </Button>
+        {rows?.length ? (
+          <Button variant="outline" size="sm" onClick={() => {
+            const period = `${dateFrom || 'início'} a ${dateTo || 'hoje'}`
+            const statementRows = rows.map(r => ({ label: r.row_label, amount: Number(r.amount), bold: r.row_label.includes('Saldo') }))
+            const doc = generateStatementPdf('DLPA - Demonstração de Lucros ou Prejuízos Acumulados', period, statementRows)
+            downloadPdf(doc, 'dlpa')
+          }}>PDF</Button>
+        ) : null}
       </div>
 
       {/* Loading */}

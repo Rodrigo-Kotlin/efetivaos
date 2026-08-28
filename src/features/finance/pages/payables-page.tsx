@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Search, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
+import { Search, Clock, CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { supabase } from '@/lib/supabase'
 import { getStatusLabel } from '../schemas/finance-schemas'
+import { exportData, PAYABLE_COLUMNS } from '../lib/export-utils'
 
 type PayableRow = {
   transaction_id: string
@@ -77,6 +79,14 @@ export default function PayablesPage() {
             {filtered.length} títulos &middot; Total em aberto: {fmt(totalOpen)}
             {totalOverdue > 0 && <span className="ml-2 text-red-600">({fmt(totalOverdue)} vencidos)</span>}
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportData(filtered as any, PAYABLE_COLUMNS, 'contas_a_pagar', 'csv')}>
+            <Download className="mr-1 size-3.5" />CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => exportData(filtered as any, PAYABLE_COLUMNS, 'contas_a_pagar', 'xlsx')}>
+            <Download className="mr-1 size-3.5" />XLSX
+          </Button>
         </div>
       </div>
 

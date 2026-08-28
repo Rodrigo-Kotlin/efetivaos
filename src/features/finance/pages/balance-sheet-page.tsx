@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useBalanceSheet } from '../queries/finance-queries'
 import type { BalanceSheetRow } from '@/types/database'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) => {
   const n = Number(v)
@@ -99,6 +101,19 @@ export default function BalanceSheetPage() {
             <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">Data de referencia</label>
             <Input type="date" value={asOfDate} onChange={e => setAsOfDate(e.target.value)} className="w-44" />
           </div>
+          {groups && (
+            <Button variant="outline" size="sm" onClick={() => {
+              const allRows = [...groups.ativo, ...groups.passivo, ...groups.pl]
+              const statementRows = allRows.filter(r => r.row_type !== 'GROUP_HEADER').map(r => ({ label: r.label, amount: Number(r.amount), bold: r.row_type === 'TOTAL' || r.row_type === 'SUBTOTAL' }))
+              const tA = groups.ativo.find(r => r.row_type === 'TOTAL')
+              const tP = groups.passivo.find(r => r.row_type === 'TOTAL')
+              const doc = generateStatementPdf('Balanço Patrimonial', `Ref: ${asOfDate}`, statementRows, [
+                { label: 'Total Ativo', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(tA?.amount ?? 0)) },
+                { label: 'Total Passivo + PL', value: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(tP?.amount ?? 0) + Number(groups.totalPL)) },
+              ])
+              downloadPdf(doc, 'balanco-patrimonial')
+            }}>PDF</Button>
+          )}
         </div>
       </div>
 

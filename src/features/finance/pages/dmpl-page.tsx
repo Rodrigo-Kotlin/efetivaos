@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDmpl } from '../queries/finance-queries'
+import { generateStatementPdf, downloadPdf } from '../lib/pdf-utils'
 
 const fmt = (v: string | number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
@@ -40,6 +41,14 @@ export default function DmplPage() {
         <Button variant="outline" size="sm" onClick={() => { setDateFrom(''); setDateTo('') }}>
           Limpar
         </Button>
+        {rows?.length ? (
+          <Button variant="outline" size="sm" onClick={() => {
+            const period = `${dateFrom || 'início'} a ${dateTo || 'hoje'}`
+            const statementRows = rows.map(r => ({ label: r.row_label, amount: Number(r.total_pl), bold: TOTAL_ROWS.has(r.row_label) }))
+            const doc = generateStatementPdf('DMPL - Demonstração das Mutações do Patrimônio Líquido', period, statementRows)
+            downloadPdf(doc, 'dmpl')
+          }}>PDF</Button>
+        ) : null}
       </div>
 
       {/* Loading */}
