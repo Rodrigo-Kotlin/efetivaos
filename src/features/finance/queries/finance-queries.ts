@@ -253,6 +253,7 @@ export function useCreateTransaction() {
       void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
       void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
       void qc.invalidateQueries({ queryKey: BS_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
     },
   })
 }
@@ -268,6 +269,7 @@ export function useSettleTransaction() {
       void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
       void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
       void qc.invalidateQueries({ queryKey: BS_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
     },
   })
 }
@@ -283,6 +285,7 @@ export function useCancelTransaction() {
       void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
       void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
       void qc.invalidateQueries({ queryKey: BS_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
     },
   })
 }
@@ -420,6 +423,7 @@ export function usePostDepreciation() {
       void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
       void qc.invalidateQueries({ queryKey: ['finance', 'income-statement'] })
       void qc.invalidateQueries({ queryKey: BS_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
     },
   })
 }
@@ -502,6 +506,7 @@ export function useCreateAdjustment() {
       void qc.invalidateQueries({ queryKey: DMPL_KEYS.all })
       void qc.invalidateQueries({ queryKey: DLPA_KEYS.all })
       void qc.invalidateQueries({ queryKey: DVA_KEYS.all })
+      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
     },
   })
 }
@@ -544,5 +549,22 @@ export function useDeleteNote() {
   return useMutation({
     mutationFn: (id: string) => api.deleteNote(id),
     onSuccess: () => void qc.invalidateQueries({ queryKey: NOTES_KEYS.all }),
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Financial Dashboard (ETAPA 08H)
+// ---------------------------------------------------------------------------
+
+export const DASHBOARD_KEYS = {
+  all: ['finance', 'dashboard'] as const,
+  filtered: (from: string | null, to: string | null, asOf: string | null) =>
+    [...DASHBOARD_KEYS.all, from, to, asOf] as const,
+}
+
+export function useFinancialDashboard(filters: api.DashboardFilters = {}) {
+  return useQuery({
+    queryKey: DASHBOARD_KEYS.filtered(filters.from ?? null, filters.to ?? null, filters.asOfDate ?? null),
+    queryFn: () => api.fetchFinancialDashboard(filters),
   })
 }

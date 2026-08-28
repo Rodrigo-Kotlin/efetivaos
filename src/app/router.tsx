@@ -20,6 +20,7 @@ const ClientsPage = lazy(() => import('@/features/crm/pages/clients-page'))
 const ClientFormPage = lazy(() => import('@/features/crm/pages/client-form-page'))
 const ClientDetailPage = lazy(() => import('@/features/crm/pages/client-detail-page'))
 const FinancePage = lazy(() => import('@/features/finance/pages/finance-page'))
+const FinanceDashboardPage = lazy(() => import('@/features/finance/pages/finance-dashboard-page'))
 const ChartAccountsPage = lazy(() => import('@/features/finance/pages/chart-accounts-page'))
 const CostCentersPage = lazy(() => import('@/features/finance/pages/cost-centers-page'))
 const ServiceLinesPage = lazy(() => import('@/features/finance/pages/service-lines-page'))
@@ -66,7 +67,8 @@ export const router = createBrowserRouter([
           { path: 'crm/clients/new', element: pending(<ClientFormPage />) },
           { path: 'crm/clients/:clientId', element: pending(<ClientDetailPage />) },
           { path: 'crm/clients/:clientId/edit', element: pending(<ClientFormPage />) },
-          { path: 'finance', element: pending(<FinancePage />) },
+          { path: 'finance', element: pending(<FinanceDashboardPage />) },
+          { path: 'finance/launch', element: pending(<FinancePage />) },
           { path: 'finance/chart-accounts', element: pending(<ChartAccountsPage />) },
           { path: 'finance/cost-centers', element: pending(<CostCentersPage />) },
           { path: 'finance/service-lines', element: pending(<ServiceLinesPage />) },

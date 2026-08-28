@@ -836,3 +836,51 @@ export async function deleteNote(id: string): Promise<void> {
     .eq('id', id)
   if (error) throw error
 }
+
+// ---------------------------------------------------------------------------
+// Financial Dashboard (ETAPA 08H)
+// ---------------------------------------------------------------------------
+
+export interface DashboardFilters {
+  from?: string | null
+  to?: string | null
+  asOfDate?: string | null
+  costCenterId?: string | null
+  serviceLineId?: string | null
+}
+
+export interface FinancialDashboardData {
+  period: { from: string; to: string; as_of_date: string }
+  cashflow: {
+    opening_balance: number; closing_balance: number
+    realized_inflows: number; realized_outflows: number
+    projected_inflows: number; projected_outflows: number; projected_balance: number
+  }
+  receivables: { open: number; overdue: number; due_in_7_days: number; due_in_30_days: number }
+  payables: { open: number; overdue: number; due_in_7_days: number; due_in_30_days: number }
+  income_statement: {
+    revenue: number; revenue_deductions: number; net_revenue: number
+    cogs: number; gross_profit: number; opex: number; depreciation: number
+    ebitda: number; financial_result: number; other_income: number
+    other_expense: number; tax: number; net_result: number
+    margin_ebitda: number; margin_net: number
+  }
+  balance_sheet: {
+    total_assets: number; current_assets: number
+    current_liabilities: number; non_current_liabilities: number
+    total_liabilities: number; equity: number
+    working_capital: number; current_ratio: number; leverage: number
+  }
+}
+
+export async function fetchFinancialDashboard(filters: DashboardFilters = {}): Promise<FinancialDashboardData> {
+  const { data, error } = await supabase.rpc('get_financial_dashboard', {
+    p_from: filters.from ?? null,
+    p_to: filters.to ?? null,
+    p_as_of_date: filters.asOfDate ?? null,
+    p_cost_center_id: filters.costCenterId ?? null,
+    p_service_line_id: filters.serviceLineId ?? null,
+  })
+  if (error) throw error
+  return (data as unknown as FinancialDashboardData)
+}

@@ -59,7 +59,7 @@ const navigationGroups: NavigationGroup[] = [
     id: 'financeiro',
     label: 'Financeiro',
     items: [
-      { to: '/finance', label: 'Financeiro', icon: CircleDollarSign, end: true },
+      { to: '/finance', label: 'Financeiro 360', icon: CircleDollarSign, end: true },
       { to: '/finance/transactions', label: 'Transações', icon: ArrowLeftRight },
       { to: '/finance/cashflow', label: 'Fluxo de Caixa', icon: TrendingUp },
     ],

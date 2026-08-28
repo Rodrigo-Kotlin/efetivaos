@@ -1265,6 +1265,10 @@ export type Database = {
         Args: { p_from?: string | null; p_to?: string | null }
         Returns: DvaRow[]
       }
+      get_financial_dashboard: {
+        Args: { p_from?: string | null; p_to?: string | null; p_as_of_date?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
+        Returns: Record<string, unknown>
+      }
       create_manual_journal_adjustment: {
         Args: {
           p_entry_date: string; p_competence_date: string; p_description: string
