@@ -230,6 +230,69 @@ export type ClientListRow = Client & {
   active_contact_count: number
 }
 
+// ---------------------------------------------------------------------------
+// CRM Pipeline Core (ETAPA 08A)
+// ---------------------------------------------------------------------------
+
+export type OpportunityStatus = 'open' | 'won' | 'lost'
+
+export type CrmPipeline = AuditFields & {
+  id: string
+  name: string
+  description: string | null
+  active: boolean
+  is_default: boolean
+}
+
+export type CrmStage = AuditFields & {
+  id: string
+  pipeline_id: string
+  name: string
+  position: number
+  probability: number
+  active: boolean
+}
+
+export type CrmOpportunity = AuditFields & {
+  id: string
+  client_id: string
+  pipeline_id: string
+  stage_id: string
+  title: string
+  description: string | null
+  value: number
+  probability: number
+  expected_close_date: string | null
+  responsible_user_id: string | null
+  status: OpportunityStatus
+  won_at: string | null
+  lost_at: string | null
+  lost_reason: string | null
+  sort_order: number
+}
+
+export type CrmOpportunityBoardRow = CrmOpportunity & {
+  opportunity_id: string
+  client_name: string
+  client_legal_name: string
+  client_tax_id: string | null
+  pipeline_name: string
+  stage_name: string
+  stage_position: number
+  stage_probability: number
+  responsible_name: string | null
+}
+
+export type CrmBoardColumn = {
+  stage_id: string
+  stage_name: string
+  stage_position: number
+  stage_probability: number
+  opportunities: CrmOpportunityBoardRow[]
+  total_value: number
+  count: number
+}
+
 export type FinancialAccountClass = 'ATIVO' | 'PASSIVO' | 'PL' | 'RECEITA' | 'CUSTO' | 'DESPESA'
 export type FinancialNature = 'DEBITO' | 'CREDITO'
 export type FinancialCurrentClass = 'CIRCULANTE' | 'NAO_CIRCULANTE'
