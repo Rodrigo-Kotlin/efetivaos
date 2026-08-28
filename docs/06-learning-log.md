@@ -711,3 +711,17 @@ Métodos afetados:
 **Aplicado:** Verificado que DRE Resultado Líquido = BP Resultado do Exercício, com diferença < R$ 0,01.
 
 **Impacto futuro:** Enquanto não houver encerramento formal das contas de resultado, Modelo B é a abordagem segura.
+
+---
+
+## LL-054 — Dashboard consolidado via JSONB evita N+1 no frontend
+
+**Data:** 2026-08-28 (ETAPA 08H)
+
+**Contexto:** Financeiro 360 precisaria 5 chamadas RPC separadas (cashflow, AR, AP, DRE, BP) com risco de inconsistência entre elas.
+
+**Aprendido:** Uma única RPC `get_financial_dashboard` retornando JSONB com todos os KPIs garante atomicidade de leitura e elimina race conditions entre seções do dashboard.
+
+**Aplicado:** RPC usa CTEs para compor cada seção e retorna tudo num único JSONB. Frontend faz uma chamada `useFinancialDashboard`.
+
+**Impacto futuro:** Padrão para dashboards que agregam múltiplas fontes — preferir RPC única com JSONB a múltiplas chamadas sequenciais.
