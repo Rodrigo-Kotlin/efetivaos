@@ -24,7 +24,7 @@ describe('DmplPage', () => {
 
   it('renders DMPL title', () => {
     render(<DmplPage />)
-    expect(screen.getByText('DMPL - Demonstracao das Mutacoes do Patrimonio Liquido')).toBeInTheDocument()
+    expect(screen.getByText('DMPL - Demonstração das Mutações do Patrimônio Líquido')).toBeInTheDocument()
   })
 
   it('renders table headers', () => {

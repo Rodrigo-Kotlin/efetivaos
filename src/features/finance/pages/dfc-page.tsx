@@ -49,7 +49,7 @@ export default function DfcPage() {
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight">
-          DFC - Demonstracao dos Fluxos de Caixa
+          DFC - Demonstração dos Fluxos de Caixa
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           Regime de caixa, classificado por atividades operacionais, de investimento e de financiamento.
@@ -187,7 +187,7 @@ function DfcClassCard({ data }: { data: { dfc_class: string; dfc_class_label: st
       </div>
       <div className="mt-2 flex gap-4 text-xs text-slate-600">
         <span>Entradas: <strong className="text-emerald-700">{fmt(data.inflows)}</strong></span>
-        <span>Saidas: <strong className="text-red-700">{fmt(data.outflows)}</strong></span>
+        <span>Saídas: <strong className="text-red-700">{fmt(data.outflows)}</strong></span>
       </div>
     </div>
   )

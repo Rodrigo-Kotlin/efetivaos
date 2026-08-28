@@ -98,9 +98,9 @@ describe('AppShell sidebar', () => {
     const user = userEvent.setup()
     const financeiroButton = screen.getByRole('button', { name: /Financeiro/i })
     await user.click(financeiroButton)
-    expect(screen.getByText('Transações')).toBeVisible()
+    expect(screen.getByText('Lançamentos')).toBeVisible()
     await user.click(financeiroButton)
-    expect(screen.queryByText('Transações')).not.toBeInTheDocument()
+    expect(screen.queryByText('Lançamentos')).not.toBeInTheDocument()
   })
 
   it('sidebar collapsed hides group labels', () => {

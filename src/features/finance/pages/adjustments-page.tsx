@@ -210,7 +210,7 @@ export default function AdjustmentsPage() {
             <p>Os lancamentos de ajuste criados aparecerao automaticamente em:</p>
             <ul className="mt-2 space-y-1">
               <li>Balanco Patrimonial (BP)</li>
-              <li>Demonstracao do Resultado (DRE)</li>
+              <li>Demonstração do Resultado (DRE)</li>
               <li>Fluxo de Caixa (DFC) - se afetar caixa</li>
               <li>DMPL / DLPA - se afetar PL</li>
               <li>DVA - quando conta tiver dva_class</li>

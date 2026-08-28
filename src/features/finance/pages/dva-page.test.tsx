@@ -32,7 +32,7 @@ describe('DvaPage', () => {
 
   it('renders DVA title', () => {
     render(<DvaPage />)
-    expect(screen.getByText('DVA - Demonstracao do Valor Adicionado')).toBeInTheDocument()
+    expect(screen.getByText('DVA - Demonstração do Valor Adicionado')).toBeInTheDocument()
   })
 
   it('renders all DVA rows', () => {

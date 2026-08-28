@@ -10,7 +10,7 @@ import { chartAccountSchema, type ChartAccountFormValues } from '../schemas/fina
 import type { ChartAccount, FinancialAccountClass } from '../types/finance-types'
 
 const CLASS_LABELS: Record<FinancialAccountClass, string> = {
-  ATIVO: 'Ativo', PASSIVO: 'Passivo', PL: 'Patrimonio Liquido',
+  ATIVO: 'Ativo', PASSIVO: 'Passivo', PL: 'Patrimônio Líquido',
   RECEITA: 'Receita', CUSTO: 'Custo', DESPESA: 'Despesa',
 }
 
@@ -177,7 +177,7 @@ export default function ChartAccountsPage() {
               <select className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" value={fv.current_class || ''} onChange={e => upd('current_class', e.target.value || null)}>
                 <option value="">N/A</option>
                 <option value="CIRCULANTE">Circulante</option>
-                <option value="NAO_CIRCULANTE">Nao Circulante</option>
+                <option value="NAO_CIRCULANTE">Não Circulante</option>
               </select>
             </div>
             <div>

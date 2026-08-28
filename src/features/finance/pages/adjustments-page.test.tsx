@@ -27,7 +27,7 @@ describe('AdjustmentsPage', () => {
     render(<AdjustmentsPage />)
     expect(screen.getByText('Os lancamentos de ajuste criados aparecerao automaticamente em:')).toBeInTheDocument()
     expect(screen.getByText('Balanco Patrimonial (BP)')).toBeInTheDocument()
-    expect(screen.getByText('Demonstracao do Resultado (DRE)')).toBeInTheDocument()
+    expect(screen.getByText('Demonstração do Resultado (DRE)')).toBeInTheDocument()
   })
 
   it('shows form when Novo Ajuste button clicked', async () => {

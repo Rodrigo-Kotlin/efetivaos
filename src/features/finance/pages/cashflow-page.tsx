@@ -123,7 +123,7 @@ export default function CashflowPage() {
           />
           <KpiCard
             icon={<ArrowUpFromLine className="h-4 w-4 text-red-600" />}
-            label="Saidas Realizadas"
+            label="Saídas Realizadas"
             value={lSummary ? null : fmt(summary?.realized_outflows ?? 0)}
             loading={lSummary}
           />
@@ -142,7 +142,7 @@ export default function CashflowPage() {
           />
           <KpiCard
             icon={<TrendingDown className="h-4 w-4 text-red-600" />}
-            label="Saidas Previstas"
+            label="Saídas Previstas"
             value={lSummary ? null : fmt(summary?.projected_outflows ?? 0)}
             loading={lSummary}
           />
@@ -359,10 +359,10 @@ function WeeksTable({ data, loading }: { data: { week_number: number; week_label
         <thead>
           <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
             <th className="px-4 py-3">Semana</th>
-            <th className="px-4 py-3">Periodo</th>
+            <th className="px-4 py-3">Período</th>
             <th className="px-4 py-3 text-right">Saldo Inicial</th>
             <th className="px-4 py-3 text-right">Entradas</th>
-            <th className="px-4 py-3 text-right">Saidas</th>
+            <th className="px-4 py-3 text-right">Saídas</th>
             <th className="px-4 py-3 text-right">Saldo Final</th>
           </tr>
         </thead>

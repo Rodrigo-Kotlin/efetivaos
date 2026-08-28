@@ -48,7 +48,7 @@ describe('FinanceDashboardPage', () => {
 
   it('renders period subtitle', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText(/Visao consolidada/)).toBeInTheDocument()
+    expect(screen.getByText(/Visão consolidada/)).toBeInTheDocument()
   })
 
   it('renders preset buttons', () => {
@@ -63,7 +63,7 @@ describe('FinanceDashboardPage', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
     expect(screen.getByText('Caixa Atual')).toBeInTheDocument()
     expect(screen.getAllByText('R$ 52.000,00').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getAllByText('Resultado Liquido').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Resultado Líquido').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('R$ 21.500,00').length).toBeGreaterThanOrEqual(1)
   })
 
@@ -71,7 +71,7 @@ describe('FinanceDashboardPage', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
     expect(screen.getAllByText('EBITDA').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Margem EBITDA')).toBeInTheDocument()
-    expect(screen.getByText('Margem Liquida')).toBeInTheDocument()
+    expect(screen.getByText('Margem Líquida')).toBeInTheDocument()
   })
 
   it('renders cashflow section', () => {
@@ -95,24 +95,24 @@ describe('FinanceDashboardPage', () => {
 
   it('renders income statement section', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText('Resultado do Periodo')).toBeInTheDocument()
+    expect(screen.getByText('Resultado do Período')).toBeInTheDocument()
     expect(screen.getByText('Receita Bruta')).toBeInTheDocument()
-    expect(screen.getByText('(-) Deducoes')).toBeInTheDocument()
+    expect(screen.getByText('(-) Deduções')).toBeInTheDocument()
   })
 
   it('renders balance sheet section', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText('Posicao Patrimonial')).toBeInTheDocument()
+    expect(screen.getByText('Posição Patrimonial')).toBeInTheDocument()
     expect(screen.getByText('Ativo Total')).toBeInTheDocument()
-    expect(screen.getByText('Patrimonio Liquido')).toBeInTheDocument()
+    expect(screen.getByText('Patrimônio Líquido')).toBeInTheDocument()
   })
 
   it('renders statement links', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText('Demonstracoes Financeiras')).toBeInTheDocument()
+    expect(screen.getByText('Demonstrações Financeiras')).toBeInTheDocument()
     expect(screen.getByText('DRE')).toBeInTheDocument()
     expect(screen.getByText('DFC')).toBeInTheDocument()
-    expect(screen.getByText('Balanco Patrimonial')).toBeInTheDocument()
+    expect(screen.getByText('Balanço Patrimonial')).toBeInTheDocument()
   })
 
   it('shows loading skeleton', () => {
@@ -133,12 +133,12 @@ describe('FinanceDashboardPage', () => {
 
   it('shows warning for overdue receivables', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText(/Recebiveis vencidos/)).toBeInTheDocument()
+    expect(screen.getByText(/Recebíveis vencidos/)).toBeInTheDocument()
   })
 
   it('shows warning for overdue payables', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText(/Pagaveis vencidos/)).toBeInTheDocument()
+    expect(screen.getByText(/Pagáveis vencidos/)).toBeInTheDocument()
   })
 
   it('does not show alerts when values are zero', () => {
@@ -150,7 +150,45 @@ describe('FinanceDashboardPage', () => {
       }, isLoading: false, isError: false,
     } as unknown as ReturnType<typeof useFinancialDashboard>)
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.queryByText(/Recebiveis vencidos/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/Pagaveis vencidos/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Recebíveis vencidos/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Pagáveis vencidos/)).not.toBeInTheDocument()
+  })
+
+  it('renders quick action buttons', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('+ Receita')).toBeInTheDocument()
+    expect(screen.getByText('+ Despesa')).toBeInTheDocument()
+    expect(screen.getByText('Transferir')).toBeInTheDocument()
+    expect(screen.getByText('Ver lançamentos')).toBeInTheDocument()
+  })
+
+  it('quick actions navigate to transactions', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    const receitaBtn = screen.getByText('+ Receita')
+    expect(receitaBtn).toBeDefined()
+    const despBtn = screen.getByText('+ Despesa')
+    expect(despBtn).toBeDefined()
+    const transfBtn = screen.getByText('Transferir')
+    expect(transfBtn).toBeDefined()
+    const verBtn = screen.getByText('Ver lançamentos')
+    expect(verBtn).toBeDefined()
+  })
+
+  it('renders Saídas realizadas and Saídas previstas', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Saídas realizadas')).toBeInTheDocument()
+    expect(screen.getByText('Saídas previstas')).toBeInTheDocument()
+  })
+
+  it('renders Resultado do Período section', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Resultado do Período')).toBeInTheDocument()
+    expect(screen.getByText('(-) Deduções')).toBeInTheDocument()
+    expect(screen.getByText('(-) Custos dos Serviços')).toBeInTheDocument()
+  })
+
+  it('renders Passivo Não Circulante', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Passivo Não Circulante')).toBeInTheDocument()
   })
 })

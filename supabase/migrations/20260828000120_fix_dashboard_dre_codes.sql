@@ -1,9 +1,3 @@
--- ============================================================================
--- EFETIVA OS — ETAPA 08H — Dashboard Financeiro 360
--- Migration: get_financial_dashboard RPC
--- Purpose: Consolidated KPIs from authoritative financial sources
--- ============================================================================
-
 CREATE OR REPLACE FUNCTION public.get_financial_dashboard(
   p_from date DEFAULT NULL,
   p_to date DEFAULT NULL,
@@ -34,13 +28,11 @@ BEGIN
     RAISE EXCEPTION 'Apenas usuarios internos podem acessar o dashboard financeiro';
   END IF;
 
-  -- 1. CAIXA
   SELECT opening_balance, closing_balance, realized_inflows, realized_outflows,
          projected_inflows, projected_outflows, projected_balance
   INTO v_cashopening, v_cashclosing, v_cashrin, v_cashrout, v_cashpin, v_cashpout, v_cashpb
   FROM public.cashflow_summary(v_from, v_to, NULL, p_cost_center_id, p_service_line_id);
 
-  -- 2-6. BUILD JSON
   v_result := jsonb_build_object(
     'period', jsonb_build_object('from', v_from, 'to', v_to, 'as_of_date', v_as_of),
     'cashflow', jsonb_build_object(
@@ -102,7 +94,6 @@ BEGIN
     )
   );
 
-  -- Add computed indicators
   v_result := v_result || jsonb_build_object(
     'balance_sheet', (v_result->'balance_sheet') || jsonb_build_object(
       'working_capital', (v_result->'balance_sheet'->>'current_assets')::numeric

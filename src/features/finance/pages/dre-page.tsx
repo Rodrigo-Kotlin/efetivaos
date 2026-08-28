@@ -72,10 +72,10 @@ export default function DrePage() {
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight">
-          DRE - Demonstracao do Resultado
+          DRE - Demonstração do Resultado
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Regime de competencia, com custos dos servicos e EBITDA gerencial.
+          Regime de competência, com custos dos serviços e EBITDA gerencial.
         </p>
       </div>
 
@@ -123,9 +123,9 @@ export default function DrePage() {
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
           <KpiCard label="Receita Liquida" value={fmt(summary.receitaLiquida)} />
           <KpiCard label="EBITDA" value={fmt(summary.ebitda)} />
-          <KpiCard label="Resultado Liquido" value={fmt(summary.resultadoLiquido)} negative={summary.resultadoLiquido < 0} />
+          <KpiCard label="Resultado Líquido" value={fmt(summary.resultadoLiquido)} negative={summary.resultadoLiquido < 0} />
           <KpiCard label="Margem EBITDA" value={`${summary.margemEbitda.toFixed(1)}%`} />
-          <KpiCard label="Margem Liquida" value={`${summary.margemLiquida.toFixed(1)}%`} negative={summary.margemLiquida < 0} />
+          <KpiCard label="Margem Líquida" value={`${summary.margemLiquida.toFixed(1)}%`} negative={summary.margemLiquida < 0} />
         </div>
       )}
 
@@ -145,7 +145,7 @@ export default function DrePage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                <th className="px-5 py-3">Demonstracao do Resultado do Exercicio</th>
+                <th className="px-5 py-3">Demonstração do Resultado do Exercício</th>
                 <th className="w-[180px] px-5 py-3 text-right">Valor (R$)</th>
                 {summary && <th className="w-[100px] px-5 py-3 text-right">% RL</th>}
               </tr>
@@ -194,7 +194,7 @@ export default function DrePage() {
       {/* Period info */}
       {rows?.length && (
         <div className="text-right text-xs text-slate-400">
-          Periodo: {dateFrom || 'inicio'} a {dateTo || 'hoje'} - competencia
+          Período: {dateFrom || 'início'} a {dateTo || 'hoje'} - competência
         </div>
       )}
     </div>

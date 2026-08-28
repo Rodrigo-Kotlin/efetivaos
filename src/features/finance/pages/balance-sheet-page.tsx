@@ -91,7 +91,7 @@ export default function BalanceSheetPage() {
           <Badge className="mb-4">Financeiro</Badge>
           <h1 className="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">Balan&ccedil;o Patrimonial</h1>
           <p className="mt-3 max-w-2xl text-base text-slate-600">
-            Posicao patrimonial consolidada por grupo contabil.
+            Posição patrimonial consolidada por grupo contábil.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export default function BalanceSheetPage() {
             <p className="mt-2 font-serif text-2xl font-semibold">{fmt(groups.totalPassivo)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Patrimonio Liquido</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Patrimônio Líquido</p>
             <p className="mt-2 font-serif text-2xl font-semibold">{fmt(groups.totalPL)}</p>
           </div>
         </section>
@@ -170,7 +170,7 @@ export default function BalanceSheetPage() {
           <h3 className="mb-4 font-serif text-lg font-semibold">Indicadores</h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Capital Circulante Liquido</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Capital Circulante Líquido</p>
               <p className="mt-1 font-serif text-xl font-semibold">
                 {fmt(groups.ativoCirculante - groups.passivoCirculante)}
               </p>

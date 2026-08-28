@@ -38,18 +38,18 @@ describe('DrePage', () => {
 
   it('renders DRE title and statement rows', () => {
     render(<DrePage />)
-    expect(screen.getByText('DRE - Demonstracao do Resultado')).toBeInTheDocument()
+    expect(screen.getByText('DRE - Demonstração do Resultado')).toBeInTheDocument()
     expect(screen.getByText('Receita Bruta')).toBeInTheDocument()
     expect(screen.getByText('RESULTADO LÍQUIDO')).toBeInTheDocument()
   })
 
   it('renders KPI cards with correct values', () => {
     render(<DrePage />)
-    expect(screen.getByText('Receita Liquida')).toBeInTheDocument()
+    expect(screen.getByText('Receita Líquida')).toBeInTheDocument()
     expect(screen.getByText('EBITDA')).toBeInTheDocument()
-    expect(screen.getByText('Resultado Liquido')).toBeInTheDocument()
+    expect(screen.getByText('Resultado Líquido')).toBeInTheDocument()
     expect(screen.getByText('Margem EBITDA')).toBeInTheDocument()
-    expect(screen.getByText('Margem Liquida')).toBeInTheDocument()
+    expect(screen.getByText('Margem Líquida')).toBeInTheDocument()
   })
 
   it('shows loading skeletons', () => {

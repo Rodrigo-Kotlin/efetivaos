@@ -167,7 +167,7 @@ export default function AssetsPage() {
   }
 
   const handlePostDep = async (a: FinancialAssetList) => {
-    const period = prompt('Periodo de competencia (YYYY-MM):', new Date().toISOString().slice(0, 7))
+    const period = prompt('Período de competência (YYYY-MM):', new Date().toISOString().slice(0, 7))
     if (!period) return
     try {
       await postDepMutation.mutateAsync({ assetId: a.id, competencePeriod: `${period}-01` })
@@ -203,7 +203,7 @@ export default function AssetsPage() {
           <p className="mt-2 font-serif text-2xl font-semibold text-red-600">{fmt(summary.totalAccDep)}</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Valor liquido</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Valor líquido</p>
           <p className="mt-2 font-serif text-2xl font-semibold text-emerald-700">{fmt(summary.totalBookValue)}</p>
         </div>
       </section>

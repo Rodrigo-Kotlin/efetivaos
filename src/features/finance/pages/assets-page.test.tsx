@@ -67,7 +67,7 @@ describe('AssetsPage', () => {
     expect(screen.getByText('Total de bens')).toBeDefined()
     expect(screen.getByText('Custo historico')).toBeDefined()
     expect(screen.getByText('Dep. acumulada')).toBeDefined()
-    expect(screen.getByText('Valor liquido')).toBeDefined()
+    expect(screen.getByText('Valor líquido')).toBeDefined()
   })
 
   it('has search input', () => {

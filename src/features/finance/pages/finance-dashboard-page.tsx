@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { Plus, ArrowDownRight, ArrowLeftRight, List } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -62,12 +63,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function StatementLinks() {
   const links = [
-    { to: '/finance/dre', label: 'DRE', desc: 'Demonstracao do Resultado' },
-    { to: '/finance/cash-flow-statement', label: 'DFC', desc: 'Demonstracao dos Fluxos de Caixa' },
-    { to: '/finance/balance-sheet', label: 'Balanco Patrimonial', desc: 'Posicao patrimonial' },
+    { to: '/finance/dre', label: 'DRE', desc: 'Demonstração do Resultado' },
+    { to: '/finance/cash-flow-statement', label: 'DFC', desc: 'Demonstração dos Fluxos de Caixa' },
+    { to: '/finance/balance-sheet', label: 'Balanço Patrimonial', desc: 'Posição patrimonial' },
     { to: '/finance/dmpl', label: 'DMPL', desc: 'Mutacoes do PL' },
     { to: '/finance/dlpa', label: 'DLPA', desc: 'Lucros/Prejuizos Acumulados' },
-    { to: '/finance/dva', label: 'DVA', desc: 'Demonstracao do Valor Adicionado' },
+    { to: '/finance/dva', label: 'DVA', desc: 'Demonstração do Valor Adicionado' },
   ]
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -90,6 +91,7 @@ export default function FinanceDashboardPage() {
   const [dateTo, setDateTo] = useState('')
   const [asOf, setAsOf] = useState('')
   const [activePreset, setActivePreset] = useState<number | null>(0)
+  const navigate = useNavigate()
 
   const filters = useMemo(() => ({
     from: dateFrom || null,
@@ -135,11 +137,11 @@ export default function FinanceDashboardPage() {
   const bs = dash.balance_sheet
 
   const alerts: { level: 'critical' | 'warning'; text: string }[] = []
-  if (ar.overdue > 0) alerts.push({ level: 'warning', text: `Recebiveis vencidos: ${fmt(ar.overdue)}` })
-  if (ap.overdue > 0) alerts.push({ level: 'warning', text: `Pagaveis vencidos: ${fmt(ap.overdue)}` })
+  if (ar.overdue > 0) alerts.push({ level: 'warning', text: `Recebíveis vencidos: ${fmt(ar.overdue)}` })
+  if (ap.overdue > 0) alerts.push({ level: 'warning', text: `Pagáveis vencidos: ${fmt(ap.overdue)}` })
   if (cf.projected_balance < 0) alerts.push({ level: 'critical', text: `Saldo projetado negativo: ${fmt(cf.projected_balance)}` })
   if (bs.current_ratio > 0 && bs.current_ratio < 1) alerts.push({ level: 'warning', text: `Liquidez corrente abaixo de 1: ${bs.current_ratio.toFixed(2)}` })
-  if (is.net_result < 0) alerts.push({ level: 'warning', text: `Resultado liquido negativo: ${fmt(is.net_result)}` })
+  if (is.net_result < 0) alerts.push({ level: 'warning', text: `Resultado líquido negativo: ${fmt(is.net_result)}` })
 
   return (
     <div className="mx-auto max-w-[1480px] space-y-6 p-6">
@@ -147,8 +149,16 @@ export default function FinanceDashboardPage() {
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight">Financeiro 360</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Visao consolidada de caixa, resultado, obrigacoes e posicao patrimonial.
+          Visão consolidada de caixa, resultado, obrigações e posição patrimonial.
         </p>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" onClick={() => navigate('/finance/transactions?create=RECEITA')}><Plus className="mr-1 size-3.5" />+ Receita</Button>
+        <Button size="sm" variant="outline" onClick={() => navigate('/finance/transactions?create=DESPESA')}><ArrowDownRight className="mr-1 size-3.5" />+ Despesa</Button>
+        <Button size="sm" variant="outline" onClick={() => navigate('/finance/transactions?create=TRANSFERENCIA')}><ArrowLeftRight className="mr-1 size-3.5" />Transferir</Button>
+        <Button size="sm" variant="ghost" onClick={() => navigate('/finance/transactions')}><List className="mr-1 size-3.5" />Ver lançamentos</Button>
       </div>
 
       {/* Filters */}
@@ -174,7 +184,7 @@ export default function FinanceDashboardPage() {
           <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setActivePreset(null) }} className="w-36" />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Posicao:</span>
+          <span className="text-xs text-slate-500">Posição:</span>
           <Input type="date" value={asOf} onChange={e => setAsOf(e.target.value)} className="w-36" />
         </div>
         {(dateFrom || dateTo || asOf) && (
@@ -198,15 +208,15 @@ export default function FinanceDashboardPage() {
       {/* KPIs Row 1: Caixa + Resultado */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard label="Caixa Atual" value={fmt(cf.closing_balance)} />
-        <KpiCard label="Resultado Liquido" value={fmt(is.net_result)} variant={is.net_result < 0 ? 'danger' : 'default'} />
-        <KpiCard label="Receita Liquida" value={fmt(is.net_revenue)} />
+        <KpiCard label="Resultado Líquido" value={fmt(is.net_result)} variant={is.net_result < 0 ? 'danger' : 'default'} />
+        <KpiCard label="Receita Líquida" value={fmt(is.net_revenue)} />
         <KpiCard label="EBITDA" value={fmt(is.ebitda)} subtitle={`Margem: ${pct(is.margin_ebitda)}`} />
       </div>
 
       {/* KPIs Row 2: Margens + Indicadores */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard label="Margem EBITDA" value={pct(is.margin_ebitda)} variant={is.margin_ebitda < 0 ? 'danger' : is.margin_ebitda > 10 ? 'success' : 'default'} />
-        <KpiCard label="Margem Liquida" value={pct(is.margin_net)} variant={is.margin_net < 0 ? 'danger' : 'default'} />
+        <KpiCard label="Margem Líquida" value={pct(is.margin_net)} variant={is.margin_net < 0 ? 'danger' : 'default'} />
         <KpiCard label="Liquidez Corrente" value={bs.current_ratio.toFixed(2)} variant={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'warning' : 'default'} />
         <KpiCard label="Endividamento" value={bs.leverage.toFixed(2)} subtitle="Passivo / PL" />
       </div>
@@ -217,10 +227,10 @@ export default function FinanceDashboardPage() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium">{fmt(cf.opening_balance)}</span></div>
             <div className="flex justify-between text-emerald-700"><span>Entradas realizadas</span><span className="font-medium">{fmt(cf.realized_inflows)}</span></div>
-            <div className="flex justify-between text-red-700"><span>Saidas realizadas</span><span className="font-medium">{fmt(cf.realized_outflows)}</span></div>
+            <div className="flex justify-between text-red-700"><span>Saídas realizadas</span><span className="font-medium">{fmt(cf.realized_outflows)}</span></div>
             <div className="border-t pt-2 font-medium"><span>Saldo realizado</span><span>{fmt(cf.closing_balance)}</span></div>
             <div className="flex justify-between text-emerald-600"><span>Entradas previstas</span><span>{fmt(cf.projected_inflows)}</span></div>
-            <div className="flex justify-between text-red-600"><span>Saidas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
+            <div className="flex justify-between text-red-600"><span>Saídas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
             <div className="border-t pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance < 0 ? 'text-red-700' : ''}>{fmt(cf.projected_balance)}</span></div>
           </div>
         </Section>
@@ -233,7 +243,7 @@ export default function FinanceDashboardPage() {
             <div className="flex justify-between"><span className="text-slate-600">Vence em 30 dias</span><span>{fmt(ar.due_in_30_days)}</span></div>
           </div>
           <Link to="/finance/transactions" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
-            Ver transacoes &rarr;
+            Ver lançamentos &rarr;
           </Link>
         </Section>
 
@@ -245,37 +255,37 @@ export default function FinanceDashboardPage() {
             <div className="flex justify-between"><span className="text-slate-600">Vence em 30 dias</span><span>{fmt(ap.due_in_30_days)}</span></div>
           </div>
           <Link to="/finance/transactions" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
-            Ver transacoes &rarr;
+            Ver lançamentos &rarr;
           </Link>
         </Section>
       </div>
 
       {/* Resultado + Patrimonio */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Section title="Resultado do Periodo">
+        <Section title="Resultado do Período">
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between"><span className="text-slate-600">Receita Bruta</span><span>{fmt(is.revenue)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">(-) Deducoes</span><span>{fmt(is.revenue_deductions)}</span></div>
-            <div className="flex justify-between font-medium"><span>Receita Liquida</span><span>{fmt(is.net_revenue)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">(-) Custo dos Servicos</span><span>{fmt(is.cogs)}</span></div>
+            <div className="flex justify-between"><span className="text-slate-600">(-) Deduções</span><span>{fmt(is.revenue_deductions)}</span></div>
+            <div className="flex justify-between font-medium"><span>Receita Líquida</span><span>{fmt(is.net_revenue)}</span></div>
+            <div className="flex justify-between"><span className="text-slate-600">(-) Custos dos Serviços</span><span>{fmt(is.cogs)}</span></div>
             <div className="flex justify-between font-medium"><span>Lucro Bruto</span><span>{fmt(is.gross_profit)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Despesas Operacionais</span><span>{fmt(is.opex)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Depreciacao</span><span>{fmt(is.depreciation)}</span></div>
             <div className="flex justify-between font-medium border-t pt-1"><span>EBITDA</span><span>{fmt(is.ebitda)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Resultado Financeiro</span><span>{fmt(is.financial_result)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Impostos</span><span>{fmt(is.tax)}</span></div>
-            <div className="flex justify-between border-t pt-1 font-semibold text-lg"><span>Resultado Liquido</span><span className={is.net_result < 0 ? 'text-red-700' : 'text-emerald-700'}>{fmt(is.net_result)}</span></div>
+            <div className="flex justify-between border-t pt-1 font-semibold text-lg"><span>Resultado Líquido</span><span className={is.net_result < 0 ? 'text-red-700' : 'text-emerald-700'}>{fmt(is.net_result)}</span></div>
           </div>
         </Section>
 
-        <Section title="Posicao Patrimonial">
+        <Section title="Posição Patrimonial">
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between"><span className="text-slate-600">Ativo Total</span><span className="font-medium">{fmt(bs.total_assets)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Passivo Circulante</span><span>{fmt(bs.current_liabilities)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Passivo Nao Circulante</span><span>{fmt(bs.non_current_liabilities)}</span></div>
+            <div className="flex justify-between"><span className="text-slate-600">Passivo Não Circulante</span><span>{fmt(bs.non_current_liabilities)}</span></div>
             <div className="flex justify-between font-medium"><span>Passivo Total</span><span>{fmt(bs.total_liabilities)}</span></div>
-            <div className="flex justify-between font-medium border-t pt-1"><span>Patrimonio Liquido</span><span>{fmt(bs.equity)}</span></div>
-            <div className="flex justify-between border-t pt-1"><span>Capital Circulante Liquido</span><span className={bs.working_capital < 0 ? 'text-red-700 font-medium' : 'font-medium'}>{fmt(bs.working_capital)}</span></div>
+            <div className="flex justify-between font-medium border-t pt-1"><span>Patrimônio Líquido</span><span>{fmt(bs.equity)}</span></div>
+            <div className="flex justify-between border-t pt-1"><span>Capital Circulante Líquido</span><span className={bs.working_capital < 0 ? 'text-red-700 font-medium' : 'font-medium'}>{fmt(bs.working_capital)}</span></div>
             <div className="flex justify-between"><span>Liquidez Corrente</span><span className={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'text-amber-700 font-medium' : 'font-medium'}>{bs.current_ratio.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Endividamento Geral</span><span>{bs.leverage.toFixed(2)}</span></div>
           </div>
@@ -283,7 +293,7 @@ export default function FinanceDashboardPage() {
       </div>
 
       {/* Statement Shortcuts */}
-      <Section title="Demonstracoes Financeiras">
+      <Section title="Demonstrações Financeiras">
         <StatementLinks />
       </Section>
     </div>

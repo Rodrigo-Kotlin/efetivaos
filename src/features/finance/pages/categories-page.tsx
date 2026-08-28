@@ -10,7 +10,7 @@ import { categorySchema, type CategoryFormValues } from '../schemas/finance-sche
 import type { FinancialCategoryList } from '../types/finance-types'
 
 const MOVEMENT_LABELS: Record<string, string> = {
-  RECEITA: 'Receita', DESPESA: 'Despesa', TRANSFERENCIA: 'Transferencia',
+  RECEITA: 'Receita', DESPESA: 'Despesa', TRANSFERENCIA: 'Transferência',
   EMPRESTIMO_RECEBIDO: 'Emprestimo Recebido', EMPRESTIMO_PAGO: 'Emprestimo Pago',
   APORTE: 'Aporte', RETIRADA: 'Retirada', IMOBILIZADO: 'Imobilizado',
   SALDO_INICIAL: 'Saldo Inicial', AJUSTE: 'Ajuste',

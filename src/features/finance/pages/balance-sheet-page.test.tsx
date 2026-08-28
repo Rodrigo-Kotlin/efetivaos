@@ -44,7 +44,7 @@ describe('BalanceSheetPage', () => {
   it('does not show indicators when no data', async () => {
     renderPage()
     await waitFor(() => {
-      expect(screen.queryByText('Capital Circulante Liquido')).toBeNull()
+      expect(screen.queryByText('Capital Circulante Líquido')).toBeNull()
     })
   })
 })
@@ -57,7 +57,7 @@ describe('BalanceSheetPage with data', () => {
     { row_code: 'T1', label: 'TOTAL ATIVO', class: 'ATIVO', group_name: '', amount: '13000', sort_order: 4, level: 0, row_type: 'TOTAL', presentation_sign: 1 },
     { row_code: '2.1', label: 'Fornecedores', class: 'PASSIVO', group_name: 'Circulante', amount: '3000', sort_order: 5, level: 2, row_type: 'DETAIL', presentation_sign: 1 },
     { row_code: 'T2', label: 'TOTAL PASSIVO', class: 'PASSIVO', group_name: '', amount: '3000', sort_order: 6, level: 0, row_type: 'TOTAL', presentation_sign: 1 },
-    { row_code: '3.1', label: 'Capital Social', class: 'PL', group_name: 'Patrimonio Liquido', amount: '8000', sort_order: 7, level: 2, row_type: 'DETAIL', presentation_sign: 1 },
+    { row_code: '3.1', label: 'Capital Social', class: 'PL', group_name: 'Patrimônio Líquido', amount: '8000', sort_order: 7, level: 2, row_type: 'DETAIL', presentation_sign: 1 },
     { row_code: 'RE', label: 'Resultado do Exercicio', class: 'PL', group_name: 'Resultados Acumulados', amount: '2000', sort_order: 8, level: 2, row_type: 'DETAIL', presentation_sign: 1 },
     { row_code: 'T3', label: 'TOTAL PL', class: 'PL', group_name: '', amount: '10000', sort_order: 9, level: 0, row_type: 'TOTAL', presentation_sign: 1 },
   ]
@@ -70,7 +70,7 @@ describe('BalanceSheetPage with data', () => {
     await waitFor(() => {
       expect(screen.getByText('Total Ativo')).toBeDefined()
       expect(screen.getByText('Total Passivo')).toBeDefined()
-      expect(screen.getByText('Patrimonio Liquido')).toBeDefined()
+      expect(screen.getByText('Patrimônio Líquido')).toBeDefined()
     })
   })
 
@@ -120,7 +120,7 @@ describe('BalanceSheetPage with data', () => {
 
     renderPage()
     await waitFor(() => {
-      expect(screen.getByText('Capital Circulante Liquido')).toBeDefined()
+      expect(screen.getByText('Capital Circulante Líquido')).toBeDefined()
       expect(screen.getByText('Liquidez Corrente')).toBeDefined()
       expect(screen.getByText('Endividamento Geral')).toBeDefined()
       expect(screen.getByText('Capital de Terceiros')).toBeDefined()

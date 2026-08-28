@@ -20,10 +20,10 @@ export default function DmplPage() {
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight">
-          DMPL - Demonstracao das Mutacoes do Patrimonio Liquido
+          DMPL - Demonstração das Mutações do Patrimônio Líquido
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Movimentacao das contas de Patrimonio Liquido no periodo.
+          Movimentação das contas de Patrimônio Líquido no período.
         </p>
       </div>
 

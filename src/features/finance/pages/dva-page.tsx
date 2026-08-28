@@ -18,7 +18,7 @@ export default function DvaPage() {
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight">
-          DVA - Demonstracao do Valor Adicionado
+          DVA - Demonstração do Valor Adicionado
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           Geracao e distribuicao do valor adicionado.

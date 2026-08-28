@@ -18,7 +18,7 @@ export default function DlpaPage() {
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl font-semibold tracking-tight">
-          DLPA - Demonstracao de Lucros ou Prejuizos Acumulados
+          DLPA - Demonstração de Lucros ou Prejuízos Acumulados
         </h1>
         <p className="mt-1 text-sm text-slate-500">
           Movimentacao especifica de Lucros ou Prejuizos Acumulados.

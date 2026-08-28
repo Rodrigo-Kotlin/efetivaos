@@ -7,6 +7,8 @@ import {
   categorySchema,
   financialAccountSchema,
   paymentMethodSchema,
+  getStatusLabel,
+  MOVEMENT_TYPE_GROUPS,
 } from './schemas/finance-schemas'
 
 describe('chartAccountSchema', () => {
@@ -193,5 +195,54 @@ describe('paymentMethodSchema', () => {
   it('rejeita nome muito curto', () => {
     const result = paymentMethodSchema.safeParse({ name: 'A' })
     expect(result.success).toBe(false)
+  })
+})
+
+describe('getStatusLabel', () => {
+  it('revenue pending -> A receber', () => {
+    expect(getStatusLabel('pending', 'RECEITA')).toBe('A receber')
+  })
+  it('revenue settled -> Recebido', () => {
+    expect(getStatusLabel('settled', 'RECEITA')).toBe('Recebido')
+  })
+  it('expense pending -> A pagar', () => {
+    expect(getStatusLabel('pending', 'DESPESA')).toBe('A pagar')
+  })
+  it('expense settled -> Pago', () => {
+    expect(getStatusLabel('settled', 'DESPESA')).toBe('Pago')
+  })
+  it('any cancelled -> Cancelado', () => {
+    expect(getStatusLabel('cancelled', 'RECEITA')).toBe('Cancelado')
+    expect(getStatusLabel('cancelled', 'DESPESA')).toBe('Cancelado')
+  })
+  it('transfer pending -> Pendente', () => {
+    expect(getStatusLabel('pending', 'TRANSFERENCIA')).toBe('Pendente')
+  })
+  it('transfer settled -> Liquidado', () => {
+    expect(getStatusLabel('settled', 'TRANSFERENCIA')).toBe('Liquidado')
+  })
+  it('aporte pending -> A receber', () => {
+    expect(getStatusLabel('pending', 'APORTE')).toBe('A receber')
+  })
+  it('emprestimo pago pending -> A pagar', () => {
+    expect(getStatusLabel('pending', 'EMPRESTIMO_PAGO')).toBe('A pagar')
+  })
+})
+
+describe('MOVEMENT_TYPE_GROUPS', () => {
+  it('has 3 groups', () => {
+    expect(MOVEMENT_TYPE_GROUPS).toHaveLength(3)
+  })
+  it('first group is Entradas', () => {
+    expect(MOVEMENT_TYPE_GROUPS[0].label).toBe('Entradas')
+    expect(MOVEMENT_TYPE_GROUPS[0].types.map(t => t.value)).toContain('RECEITA')
+  })
+  it('second group is Saídas', () => {
+    expect(MOVEMENT_TYPE_GROUPS[1].label).toBe('Saídas')
+    expect(MOVEMENT_TYPE_GROUPS[1].types.map(t => t.value)).toContain('DESPESA')
+  })
+  it('third group is Movimentação Interna', () => {
+    expect(MOVEMENT_TYPE_GROUPS[2].label).toBe('Movimentação Interna')
+    expect(MOVEMENT_TYPE_GROUPS[2].types.map(t => t.value)).toContain('TRANSFERENCIA')
   })
 })

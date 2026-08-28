@@ -129,9 +129,9 @@ export type TransactionFormValues = z.infer<typeof transactionSchema>
 export const MOVEMENT_TYPE_LABELS: Record<string, string> = {
   RECEITA: 'Receita',
   DESPESA: 'Despesa',
-  TRANSFERENCIA: 'Transferencia',
-  EMPRESTIMO_RECEBIDO: 'Emprestimo Recebido',
-  EMPRESTIMO_PAGO: 'Emprestimo Pago',
+  TRANSFERENCIA: 'Transferência',
+  EMPRESTIMO_RECEBIDO: 'Empréstimo Recebido',
+  EMPRESTIMO_PAGO: 'Empréstimo Pago',
   APORTE: 'Aporte',
   RETIRADA: 'Retirada',
   IMOBILIZADO: 'Imobilizado',
@@ -139,8 +139,55 @@ export const MOVEMENT_TYPE_LABELS: Record<string, string> = {
   AJUSTE: 'Ajuste',
 }
 
+export type MovementTypeGroup = {
+  label: string
+  types: { value: string; label: string }[]
+}
+
+export const MOVEMENT_TYPE_GROUPS: MovementTypeGroup[] = [
+  {
+    label: 'Entradas',
+    types: [
+      { value: 'RECEITA', label: 'Receita' },
+      { value: 'APORTE', label: 'Aporte' },
+      { value: 'EMPRESTIMO_RECEBIDO', label: 'Empréstimo Recebido' },
+    ],
+  },
+  {
+    label: 'Saídas',
+    types: [
+      { value: 'DESPESA', label: 'Despesa' },
+      { value: 'EMPRESTIMO_PAGO', label: 'Empréstimo Pago' },
+      { value: 'RETIRADA', label: 'Retirada' },
+    ],
+  },
+  {
+    label: 'Movimentação Interna',
+    types: [
+      { value: 'TRANSFERENCIA', label: 'Transferência' },
+      { value: 'IMOBILIZADO', label: 'Imobilizado' },
+      { value: 'SALDO_INICIAL', label: 'Saldo Inicial' },
+      { value: 'AJUSTE', label: 'Ajuste' },
+    ],
+  },
+]
+
 export const STATUS_LABELS: Record<string, string> = {
   pending: 'Pendente',
   settled: 'Liquidado',
   cancelled: 'Cancelado',
+}
+
+const REVENUE_TYPES = ['RECEITA', 'APORTE', 'EMPRESTIMO_RECEBIDO']
+const EXPENSE_TYPES = ['DESPESA', 'EMPRESTIMO_PAGO', 'RETIRADA']
+
+export function getStatusLabel(status: string, movementType: string): string {
+  if (status === 'cancelled') return 'Cancelado'
+  if (REVENUE_TYPES.includes(movementType)) {
+    return status === 'settled' ? 'Recebido' : 'A receber'
+  }
+  if (EXPENSE_TYPES.includes(movementType)) {
+    return status === 'settled' ? 'Pago' : 'A pagar'
+  }
+  return STATUS_LABELS[status] || status
 }

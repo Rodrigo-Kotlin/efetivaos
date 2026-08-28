@@ -15,7 +15,7 @@ const mockRows: DlpaRow[] = [
   { row_label: '(+) Ajustes Exercicios Anteriores', amount: 0, sort_order: 20 },
   { row_label: '(+) Resultado Liquido do Exercicio', amount: 21750, sort_order: 30 },
   { row_label: '(-) Dividendos / Lucros Distribuidos', amount: -5000, sort_order: 40 },
-  { row_label: '(+) Ajustes do Periodo', amount: 0, sort_order: 50 },
+  { row_label: '(+) Ajustes do Período', amount: 0, sort_order: 50 },
   { row_label: '= Saldo Final LP', amount: 31750, sort_order: 60 },
 ]
 
@@ -26,7 +26,7 @@ describe('DlpaPage', () => {
 
   it('renders DLPA title', () => {
     render(<DlpaPage />)
-    expect(screen.getByText('DLPA - Demonstracao de Lucros ou Prejuizos Acumulados')).toBeInTheDocument()
+    expect(screen.getByText('DLPA - Demonstração de Lucros ou Prejuízos Acumulados')).toBeInTheDocument()
   })
 
   it('renders all DLPA rows', () => {

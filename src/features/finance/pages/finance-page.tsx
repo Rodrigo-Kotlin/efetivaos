@@ -4,22 +4,22 @@ import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 
 const sections = [
-  { title: 'Plano de Contas', description: 'Classes, naturezas, grupos BP, DRE, DFC e DVA.', icon: BookOpen, to: '/finance/chart-accounts', status: 'Disponivel', active: true },
-  { title: 'Centros de Custo', description: 'Organizacao por area de atuacao.', icon: Building2, to: '/finance/cost-centers', status: 'Disponivel', active: true },
-  { title: 'Linhas de Servico', description: 'Linhagem de receita e custo por servico.', icon: Layers, to: '/finance/service-lines', status: 'Disponivel', active: true },
-  { title: 'Categorias', description: 'Regras de classificacao e mapeamento contabil.', icon: FileText, to: '/finance/categories', status: 'Disponivel', active: true },
-  { title: 'Contas Financeiras', description: 'Caixa, bancos e equivalentes.', icon: CreditCard, to: '/finance/accounts', status: 'Disponivel', active: true },
-  { title: 'Formas de Pagamento', description: 'PIX, boleto, cartao, transferencia.', icon: Receipt, to: '/finance/payment-methods', status: 'Planejado' },
-  { title: 'Lancamentos', description: 'Motor de partidas dobradas.', icon: DollarSign, status: 'ETAPA 08B' },
-  { title: 'DRE', description: 'Demonstracao do Resultado do Exercicio.', icon: FileText, to: '/finance/dre', status: 'Disponivel', active: true },
-  { title: 'Demonstracoes', description: 'BP, DMPL, DLPA, DVA.', icon: Settings, status: 'ETAPA 08F-08G' },
-  { title: 'Ativos e Bens', description: 'Registro patrimonial, vida util e depreciacao gerencial.', icon: Warehouse, to: '/finance/assets', status: 'Disponivel', active: true },
-  { title: 'Balan&ccedil;o Patrimonial', description: 'Posicao patrimonial consolidada por grupo contabil.', icon: PieChart, to: '/finance/balance-sheet', status: 'Disponivel', active: true },
-  { title: 'DMPL', description: 'Demonstracao das Mutacoes do Patrimonio Liquido.', icon: FileText, to: '/finance/dmpl', status: 'Disponivel', active: true },
-  { title: 'DLPA', description: 'Demonstracao de Lucros ou Prejuizos Acumulados.', icon: FileText, to: '/finance/dlpa', status: 'Disponivel', active: true },
-  { title: 'DVA', description: 'Demonstracao do Valor Adicionado.', icon: FileText, to: '/finance/dva', status: 'Disponivel', active: true },
-  { title: 'Ajustes Contabeis', description: 'Lancamentos manuais de ajuste.', icon: Settings, to: '/finance/adjustments', status: 'Disponivel', active: true },
-  { title: 'Notas Gerenciais', description: 'Notas explicativas vinculadas a demonstracoes.', icon: FileText, to: '/finance/notes', status: 'Disponivel', active: true },
+  { title: 'Plano de Contas', description: 'Classes, naturezas, grupos BP, DRE, DFC e DVA.', icon: BookOpen, to: '/finance/chart-accounts', status: 'Disponível', active: true },
+  { title: 'Centros de Custo', description: 'Organização por área de atuação.', icon: Building2, to: '/finance/cost-centers', status: 'Disponível', active: true },
+  { title: 'Linhas de Serviço', description: 'Linhagem de receita e custo por serviço.', icon: Layers, to: '/finance/service-lines', status: 'Disponível', active: true },
+  { title: 'Categorias', description: 'Regras de classificação e mapeamento contábil.', icon: FileText, to: '/finance/categories', status: 'Disponível', active: true },
+  { title: 'Contas Financeiras', description: 'Caixa, bancos e equivalentes.', icon: CreditCard, to: '/finance/accounts', status: 'Disponível', active: true },
+  { title: 'Formas de Pagamento', description: 'PIX, boleto, cartão, transferência.', icon: Receipt, to: '/finance/payment-methods', status: 'Planejado' },
+  { title: 'Lançamentos', description: 'Motor de partidas dobradas.', icon: DollarSign, status: 'ETAPA 08B' },
+  { title: 'DRE', description: 'Demonstração do Resultado do Exercício.', icon: FileText, to: '/finance/dre', status: 'Disponível', active: true },
+  { title: 'Demonstrações', description: 'BP, DMPL, DLPA, DVA.', icon: Settings, status: 'ETAPA 08F-08G' },
+  { title: 'Ativos e Bens', description: 'Registro patrimonial, vida útil e depreciação gerencial.', icon: Warehouse, to: '/finance/assets', status: 'Disponível', active: true },
+  { title: 'Balanço Patrimonial', description: 'Posição patrimonial consolidada por grupo contábil.', icon: PieChart, to: '/finance/balance-sheet', status: 'Disponível', active: true },
+  { title: 'DMPL', description: 'Demonstração das Mutações do Patrimônio Líquido.', icon: FileText, to: '/finance/dmpl', status: 'Disponível', active: true },
+  { title: 'DLPA', description: 'Demonstração de Lucros ou Prejuízos Acumulados.', icon: FileText, to: '/finance/dlpa', status: 'Disponível', active: true },
+  { title: 'DVA', description: 'Demonstração do Valor Adicionado.', icon: FileText, to: '/finance/dva', status: 'Disponível', active: true },
+  { title: 'Ajustes Contábeis', description: 'Lançamentos manuais de ajuste.', icon: Settings, to: '/finance/adjustments', status: 'Disponível', active: true },
+  { title: 'Notas Gerenciais', description: 'Notas explicativas vinculadas às demonstrações.', icon: FileText, to: '/finance/notes', status: 'Disponível', active: true },
 ]
 
 export default function FinancePage() {
@@ -27,16 +27,16 @@ export default function FinancePage() {
     <div className="mx-auto max-w-[1480px]">
       <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
-          <Badge className="mb-4">Modulo Financeiro</Badge>
+          <Badge className="mb-4">Módulo Financeiro</Badge>
           <h1 className="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">Financeiro</h1>
           <p className="mt-3 max-w-2xl text-base text-slate-600">
-            Fundacao contabil-gerencial. Plano de contas, centros de custo, linhas de servico e categorias com mapeamento para partidas dobradas.
+            Fundação contábil-gerencial. Plano de contas, centros de custo, linhas de serviço e categorias com mapeamento para partidas dobradas.
           </p>
         </div>
       </div>
 
       <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-        <strong>Aviso gerencial:</strong> As demonstracoes e classificacoes para escrituracao oficial devem ser conciliadas e validadas pela contabilidade responsavel.
+        <strong>Aviso gerencial:</strong> As demonstrações e classificações para escrituração oficial devem ser conciliadas e validadas pela contabilidade responsável.
       </section>
 
       <p className="mb-4 mt-8 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">Cadastros Mestres</p>
