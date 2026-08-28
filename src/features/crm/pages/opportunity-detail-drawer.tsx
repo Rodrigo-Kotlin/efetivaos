@@ -300,20 +300,6 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
             </div>
           </div>
 
-          {/* Status */}
-          <div className="rounded-lg border border-slate-200 p-4 text-xs text-slate-500">
-            <p>Criada em: {fmtDateTime(opp.created_at)}</p>
-            <p>Atualizada em: {fmtDateTime(opp.updated_at)}</p>
-            {opp.status === 'won' && <p className="text-emerald-600">Ganha em: {fmtDateTime(opp.won_at)}</p>}
-            {opp.status === 'lost' && (
-              <>
-                <p className="text-red-600">Perdida em: {fmtDateTime(opp.lost_at)}</p>
-                <p>Motivo: {opp.loss_reason_name ?? opp.lost_reason}</p>
-                {opp.lost_reason_detail && <p>Detalhe: {opp.lost_reason_detail}</p>}
-              </>
-            )}
-          </div>
-
           {/* Timeline */}
           <div className="rounded-lg border border-slate-200 p-4">
             <p className="mb-3 text-xs font-medium text-slate-500">Histórico</p>
@@ -336,6 +322,20 @@ export function OpportunityDetailDrawer({ opportunityId, onClose, onWon, onLost,
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* Status */}
+          <div className="rounded-lg border border-slate-200 p-4 text-xs text-slate-500">
+            <p>Criada em: {fmtDateTime(opp.created_at)}</p>
+            <p>Atualizada em: {fmtDateTime(opp.updated_at)}</p>
+            {opp.status === 'won' && <p className="text-emerald-600">Ganha em: {fmtDateTime(opp.won_at)}</p>}
+            {opp.status === 'lost' && (
+              <>
+                <p className="text-red-600">Perdida em: {fmtDateTime(opp.lost_at)}</p>
+                <p>Motivo: {opp.loss_reason_name ?? opp.lost_reason}</p>
+                {opp.lost_reason_detail && <p>Detalhe: {opp.lost_reason_detail}</p>}
+              </>
             )}
           </div>
 

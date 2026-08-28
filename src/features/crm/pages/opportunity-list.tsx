@@ -25,9 +25,10 @@ type Props = {
 }
 
 function AgingBadge({ days }: { days: number }) {
-  if (days <= 3) return <span className="text-xs text-slate-500">{days}d</span>
-  if (days <= 7) return <span className="text-xs font-medium text-amber-600">{days}d</span>
-  return <span className="text-xs font-semibold text-red-600">{days}d</span>
+  const text = days <= 1 ? `${days} dia` : `${days} dias`
+  if (days <= 3) return <span className="text-xs text-slate-500">{text}</span>
+  if (days <= 7) return <span className="text-xs font-medium text-amber-600">{text}</span>
+  return <span className="text-xs font-semibold text-red-600">{text}</span>
 }
 
 function ActivityBadge({ opp }: { opp: CrmOpportunityBoardRowExtended }) {
@@ -91,17 +92,17 @@ export function OpportunityList({ opportunities, onRowClick, sortKey, sortDir, o
       {/* Desktop table */}
       <table className="hidden w-full text-left text-sm md:table">
         <thead>
-          <tr className="border-b border-slate-200 text-xs text-slate-500">
-            <th className="cursor-pointer py-2 pr-2 font-medium" onClick={() => onSort('title')}>Oportunidade<SortIcon active={sortKey === 'title'} dir={sortDir} /></th>
-            <th className="cursor-pointer py-2 pr-2 font-medium" onClick={() => onSort('client_name')}>Cliente<SortIcon active={sortKey === 'client_name'} dir={sortDir} /></th>
-            <th className="cursor-pointer py-2 pr-2 font-medium" onClick={() => onSort('stage_name')}>Etapa<SortIcon active={sortKey === 'stage_name'} dir={sortDir} /></th>
-            <th className="cursor-pointer py-2 pr-2 text-right font-medium" onClick={() => onSort('value')}>Valor<SortIcon active={sortKey === 'value'} dir={sortDir} /></th>
-            <th className="cursor-pointer py-2 pr-2 text-right font-medium" onClick={() => onSort('probability')}>Prob.<SortIcon active={sortKey === 'probability'} dir={sortDir} /></th>
-            <th className="py-2 pr-2 font-medium">Ponderado</th>
-            <th className="cursor-pointer py-2 pr-2 font-medium" onClick={() => onSort('next_activity')}>Próx. Atividade<SortIcon active={sortKey === 'next_activity'} dir={sortDir} /></th>
-            <th className="py-2 pr-2 font-medium">Resp.</th>
-            <th className="cursor-pointer py-2 pr-2 font-medium" onClick={() => onSort('expected_close_date')}>Previsão<SortIcon active={sortKey === 'expected_close_date'} dir={sortDir} /></th>
-            <th className="cursor-pointer py-2 pr-2 text-right font-medium" onClick={() => onSort('stage_age_days')}>Aging<SortIcon active={sortKey === 'stage_age_days'} dir={sortDir} /></th>
+          <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            <th className="cursor-pointer py-2.5 pr-2 font-semibold" onClick={() => onSort('title')}>Oportunidade<SortIcon active={sortKey === 'title'} dir={sortDir} /></th>
+            <th className="cursor-pointer py-2.5 pr-2 font-semibold" onClick={() => onSort('client_name')}>Cliente<SortIcon active={sortKey === 'client_name'} dir={sortDir} /></th>
+            <th className="cursor-pointer py-2.5 pr-2 font-semibold" onClick={() => onSort('stage_name')}>Etapa<SortIcon active={sortKey === 'stage_name'} dir={sortDir} /></th>
+            <th className="cursor-pointer py-2.5 pr-2 text-right font-semibold" onClick={() => onSort('value')}>Valor<SortIcon active={sortKey === 'value'} dir={sortDir} /></th>
+            <th className="cursor-pointer py-2.5 pr-2 text-right font-semibold" onClick={() => onSort('probability')}>Prob.<SortIcon active={sortKey === 'probability'} dir={sortDir} /></th>
+            <th className="py-2.5 pr-2 font-semibold">Ponderado</th>
+            <th className="cursor-pointer py-2.5 pr-2 font-semibold" onClick={() => onSort('next_activity')}>Próx. Ativ.<SortIcon active={sortKey === 'next_activity'} dir={sortDir} /></th>
+            <th className="py-2.5 pr-2 font-semibold">Resp.</th>
+            <th className="cursor-pointer py-2.5 pr-2 font-semibold" onClick={() => onSort('expected_close_date')}>Previsão<SortIcon active={sortKey === 'expected_close_date'} dir={sortDir} /></th>
+            <th className="cursor-pointer py-2.5 pr-2 text-right font-semibold" onClick={() => onSort('stage_age_days')}>Aging<SortIcon active={sortKey === 'stage_age_days'} dir={sortDir} /></th>
           </tr>
         </thead>
         <tbody>

@@ -80,7 +80,9 @@ function KanbanColumn({
           ))}
         </SortableContext>
         {opportunities.length === 0 && (
-          <p className="py-8 text-center text-xs text-slate-400">Nenhuma oportunidade</p>
+          <p className="rounded-lg border border-dashed border-slate-200 py-8 text-center text-xs text-slate-400">
+            Nenhuma oportunidade
+          </p>
         )}
       </div>
     </div>

@@ -17,7 +17,7 @@ export function IndicatorsDrawer({ open, onClose, pipelineId }: Props) {
   )
 
   return (
-    <Drawer open={open} onOpenChange={o => { if (!o) onClose() }} title="Indicadores Comerciais">
+    <Drawer open={open} onOpenChange={o => { if (!o) onClose() }} title="Indicadores do Pipeline">
       {isLoading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map(i => <div key={i} className="h-16 animate-pulse rounded bg-slate-100" />)}

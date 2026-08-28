@@ -47,6 +47,12 @@ function formatDue(dueAt: string): string {
   return `${diffDays}d`
 }
 
+function AgingLabel({ days }: { days: number }) {
+  const text = days <= 1 ? `${days} dia nesta etapa` : `${days} dias nesta etapa`
+  const cls = days > 7 ? 'text-red-600 font-medium' : days > 3 ? 'text-amber-600 font-medium' : 'text-slate-400'
+  return <span className={`text-[11px] ${cls}`}>{text}</span>
+}
+
 type Props = {
   opportunity: CrmOpportunityBoardRowExtended
   onClick: () => void
@@ -98,21 +104,11 @@ export function OpportunityCard({ opportunity, onClick, isDragOverlay }: Props) 
         <span className="text-xs font-semibold text-emerald-700">
           {opportunity.value > 0 ? fmt(opportunity.value) : ''}
         </span>
-        <div className="flex items-center gap-2">
-          {opportunity.expected_close_date && (
-            <span className="text-[10px] text-slate-400">
-              {fmtDate(opportunity.expected_close_date)}
-            </span>
-          )}
-          {opportunity.responsible_name && (
-            <span
-              className="flex size-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-medium text-slate-600"
-              title={opportunity.responsible_name}
-            >
-              {getInitials(opportunity.responsible_name)}
-            </span>
-          )}
-        </div>
+        {opportunity.expected_close_date && (
+          <span className="text-[10px] text-slate-400">
+            {fmtDate(opportunity.expected_close_date)}
+          </span>
+        )}
       </div>
 
       {/* Activity status line */}
@@ -140,6 +136,19 @@ export function OpportunityCard({ opportunity, onClick, isDragOverlay }: Props) 
             <Circle className="size-2.5" />
             <span>Sem próxima atividade</span>
           </div>
+        )}
+      </div>
+
+      {/* Footer: aging + responsible */}
+      <div className="mx-0 mt-2 flex items-center justify-between border-t border-slate-100 pt-2 pl-4">
+        <AgingLabel days={opportunity.stage_age_days} />
+        {opportunity.responsible_name && (
+          <span
+            className="flex size-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-medium text-slate-600"
+            title={opportunity.responsible_name}
+          >
+            {getInitials(opportunity.responsible_name)}
+          </span>
         )}
       </div>
     </div>

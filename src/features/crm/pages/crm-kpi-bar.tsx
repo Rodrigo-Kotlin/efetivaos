@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, CircleOff } from 'lucide-react'
+import { AlertTriangle, CircleOff } from 'lucide-react'
 import type { CrmOpportunityBoardRowExtended } from '@/types/database'
 
 const fmt = (v: number) =>
@@ -25,25 +25,25 @@ export function CrmKpiBar({ opportunities }: Props) {
         label="Atividades atrasadas"
         value={String(overdueCount)}
         icon={<AlertTriangle className="size-3.5 text-red-500" />}
-        highlight={overdueCount > 0}
+        alert={overdueCount > 0}
       />
       <KpiCard
         label="Sem próxima atividade"
         value={String(noNextCount)}
         icon={<CircleOff className="size-3.5 text-slate-400" />}
-        highlight={noNextCount > 0}
+        muted
       />
     </div>
   )
 }
 
-function KpiCard({ label, value, icon, highlight }: { label: string; value: string; icon?: React.ReactNode; highlight?: boolean }) {
+function KpiCard({ label, value, icon, alert, muted }: { label: string; value: string; icon?: React.ReactNode; alert?: boolean; muted?: boolean }) {
   return (
-    <div className={`rounded-lg border px-4 py-2.5 ${highlight ? 'border-amber-200 bg-amber-50' : 'border-slate-200 bg-white'}`}>
+    <div className="rounded-lg border border-slate-200 bg-white px-4 py-2.5">
       <p className="text-xs text-slate-500">{label}</p>
       <div className="mt-0.5 flex items-center gap-1.5">
         {icon}
-        <p className="text-lg font-semibold text-slate-800">{value}</p>
+        <p className={`text-lg font-semibold ${alert ? 'text-red-600' : muted ? 'text-slate-400' : 'text-slate-800'}`}>{value}</p>
       </div>
     </div>
   )

@@ -540,8 +540,8 @@ describe('CRM Pipeline Core + Activities First', () => {
     })
 
     it('clear all resets both', () => {
-      let quickFilter = 'overdue'
-      let filters = { activity: 'today', search: 'test' }
+      let quickFilter: string = 'overdue'
+      let filters: Record<string, string> = { activity: 'today', search: 'test' }
       quickFilter = 'all'
       filters = { activity: '', search: '', stage_id: '', status: '', value_min: '', value_max: '', date_from: '', date_to: '' }
       expect(quickFilter).toBe('all')
@@ -552,7 +552,7 @@ describe('CRM Pipeline Core + Activities First', () => {
 
   describe('Active filter count', () => {
     it('counts quick filter as 1', () => {
-      const quickFilter = 'overdue'
+      const quickFilter: string = 'overdue'
       const filters = { search: '', stage_id: '', status: '', activity: '', value_min: '', value_max: '', date_from: '', date_to: '' }
       const advancedCount = Object.values(filters).filter(v => v !== '').length
       const totalCount = advancedCount + (quickFilter !== 'all' ? 1 : 0)
@@ -706,8 +706,8 @@ describe('CRM Pipeline Core + Activities First', () => {
     })
 
     it('unselected reason has default styling', () => {
-      const selectedId = 'r1'
-      const currentId = 'r2'
+      const selectedId: string = 'r1'
+      const currentId: string = 'r2'
       const isSelected = selectedId === currentId
       expect(isSelected).toBe(false)
     })
