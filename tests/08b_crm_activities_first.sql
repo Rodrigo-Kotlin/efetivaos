@@ -452,6 +452,128 @@ BEGIN
   IF v_tmp = 0 THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 13.7 Duplicate loss reasons: %', v_tmp; END IF;
 
   -- ======================================================================
+  -- 14. EVENT SECURITY: Direct INSERT/UPDATE/DELETE denied
+  -- ======================================================================
+
+  -- 14.1 Authenticated cannot INSERT events directly
+  v_total := v_total + 1;
+  IF has_table_privilege('authenticated', 'public.crm_opportunity_events', 'INSERT') THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 14.1 Authenticated can INSERT events directly';
+  ELSE v_passed := v_passed + 1;
+  END IF;
+
+  -- 14.2 Authenticated cannot UPDATE events
+  v_total := v_total + 1;
+  IF has_table_privilege('authenticated', 'public.crm_opportunity_events', 'UPDATE') THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 14.2 Authenticated can UPDATE events';
+  ELSE v_passed := v_passed + 1;
+  END IF;
+
+  -- 14.3 Authenticated cannot DELETE events
+  v_total := v_total + 1;
+  IF has_table_privilege('authenticated', 'public.crm_opportunity_events', 'DELETE') THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 14.3 Authenticated can DELETE events';
+  ELSE v_passed := v_passed + 1;
+  END IF;
+
+  -- ======================================================================
+  -- 15. RPC EVENT ATOMICITY: complete_crm_activity writes event
+  -- ======================================================================
+
+  -- 15.1 complete_crm_activity generates activity_completed event
+  v_total := v_total + 1;
+  DECLARE v_act_test UUID; v_evt_count_before INT; v_evt_count_after INT;
+  BEGIN
+    UPDATE public.crm_opportunities SET status = 'open', won_at = NULL, lost_at = NULL, lost_reason_id = NULL WHERE id = v_opp_id;
+    SELECT public.create_crm_activity(v_opp_id, 'Follow-up', 'Event test', now() + interval '1 day') INTO v_act_test;
+    SELECT count(*) INTO v_evt_count_before FROM public.crm_opportunity_events
+    WHERE opportunity_id = v_opp_id AND event_type = 'activity_completed';
+    PERFORM public.complete_crm_activity(v_act_test, 'Teste concluido');
+    SELECT count(*) INTO v_evt_count_after FROM public.crm_opportunity_events
+    WHERE opportunity_id = v_opp_id AND event_type = 'activity_completed';
+    IF v_evt_count_after > v_evt_count_before THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 15.1 complete_crm_activity no event'; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 15.1: %', SQLERRM;
+  END;
+
+  -- ======================================================================
+  -- 16. CLOSED OPPORTUNITY CLEANUP
+  -- ======================================================================
+
+  -- 16.1 Won cancels all pending
+  v_total := v_total + 1;
+  BEGIN
+    PERFORM public.create_crm_activity(v_opp_id, 'Ligação', 'Pending 1', now() + interval '1 day');
+    PERFORM public.create_crm_activity(v_opp_id, 'WhatsApp', 'Pending 2', now() + interval '2 days');
+    PERFORM public.mark_opportunity_won(v_opp_id);
+    SELECT count(*) INTO v_tmp FROM public.crm_activities
+    WHERE opportunity_id = v_opp_id AND status = 'pending';
+    IF v_tmp = 0 THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 16.1 Won pending cleanup: %', v_tmp; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 16.1: %', SQLERRM;
+  END;
+
+  -- 16.2 Lost cancels all pending
+  v_total := v_total + 1;
+  BEGIN
+    UPDATE public.crm_opportunities SET status = 'open', won_at = NULL, lost_at = NULL, lost_reason_id = NULL WHERE id = v_opp_id;
+    PERFORM public.create_crm_activity(v_opp_id, 'E-mail', 'Lost pending', now() + interval '1 day');
+    SELECT id INTO v_reason_id FROM public.crm_loss_reasons WHERE name = 'Preço' LIMIT 1;
+    PERFORM public.mark_opportunity_lost(v_opp_id, 'Preço', v_reason_id, NULL);
+    SELECT count(*) INTO v_tmp FROM public.crm_activities
+    WHERE opportunity_id = v_opp_id AND status = 'pending';
+    IF v_tmp = 0 THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 16.2 Lost pending cleanup: %', v_tmp; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 16.2: %', SQLERRM;
+  END;
+
+  -- ======================================================================
+  -- 17. NEXT ACTIVITY ORDERING
+  -- ======================================================================
+
+  -- 17.1 Earliest pending wins
+  v_total := v_total + 1;
+  DECLARE v_act_early UUID; v_act_late UUID; v_next_id UUID;
+  BEGIN
+    UPDATE public.crm_opportunities SET status = 'open', won_at = NULL, lost_at = NULL, lost_reason_id = NULL WHERE id = v_opp_id;
+    SELECT public.create_crm_activity(v_opp_id, 'Ligação', 'Late', now() + interval '10 days') INTO v_act_late;
+    SELECT public.create_crm_activity(v_opp_id, 'WhatsApp', 'Early', now() + interval '1 day') INTO v_act_early;
+    SELECT next_activity_id INTO v_next_id FROM public.crm_opportunities_board_v WHERE opportunity_id = v_opp_id;
+    IF v_next_id = v_act_early THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 17.1 Next activity not earliest: got %, expected %', v_next_id, v_act_early; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 17.1: %', SQLERRM;
+  END;
+
+  -- 17.2 Completed excluded, next pending used
+  v_total := v_total + 1;
+  DECLARE v_next_before UUID; v_next_after UUID;
+  BEGIN
+    SELECT next_activity_id INTO v_next_before FROM public.crm_opportunities_board_v WHERE opportunity_id = v_opp_id;
+    PERFORM public.complete_crm_activity(v_next_before, 'Done');
+    SELECT next_activity_id INTO v_next_after FROM public.crm_opportunities_board_v WHERE opportunity_id = v_opp_id;
+    IF v_next_after IS NOT NULL AND v_next_after != v_next_before THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 17.2 Completed not excluded: before=% after=%', v_next_before, v_next_after; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 17.2: %', SQLERRM;
+  END;
+
+  -- ======================================================================
+  -- 18. EVENT APPEND-ONLY INTEGRITY
+  -- ======================================================================
+
+  -- 18.1 Event data unchanged after other mutations
+  v_total := v_total + 1;
+  DECLARE v_evt_original JSONB; v_evt_after JSONB; v_evt_id_check UUID;
+  BEGIN
+    SELECT id, event_data INTO v_evt_id_check, v_evt_original FROM public.crm_opportunity_events
+    WHERE opportunity_id = v_opp_id AND event_type = 'opportunity_created' LIMIT 1;
+    PERFORM public.update_crm_opportunity(v_opp_id, 'Updated Title', NULL, NULL, NULL, NULL, NULL);
+    SELECT event_data INTO v_evt_after FROM public.crm_opportunity_events WHERE id = v_evt_id_check;
+    IF v_evt_original = v_evt_after THEN v_passed := v_passed + 1; ELSE v_failed := v_failed + 1; RAISE WARNING 'FAIL 18.1 Event data changed after update'; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    v_failed := v_failed + 1; RAISE WARNING 'FAIL 18.1: %', SQLERRM;
+  END;
+
+  -- ======================================================================
   -- CLEANUP
   -- ======================================================================
   DELETE FROM public.crm_opportunity_events WHERE opportunity_id = v_opp_id;

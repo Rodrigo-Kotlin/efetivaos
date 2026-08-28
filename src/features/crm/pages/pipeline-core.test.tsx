@@ -234,14 +234,14 @@ describe('CRM Pipeline Core + Activities First', () => {
     })
 
     it('Outro requires detail', () => {
-      const name = 'Outro'
+      const name: string = 'Outro'
       const detail = ''
       const isValid = name !== 'Outro' || detail.trim().length > 0
       expect(isValid).toBe(false)
     })
 
     it('Non-Outro does not require detail', () => {
-      const name = 'Preço'
+      const name: string = 'Preço'
       const detail = ''
       const isValid = name !== 'Outro' || detail.trim().length > 0
       expect(isValid).toBe(true)
