@@ -884,3 +884,19 @@ Definir posteriormente se contratos recorrentes gerarão lançamentos automatica
 **Motivo:** Separação entre dados contábeis e anotações gerenciais.
 
 **Impacto:** Notas podem ser criadas/editadas sem impacto em demonstrações.
+
+---
+
+### DEC-059 — Mock CRM Comercial é referência visual, implementação CRM é autoritativa
+
+**Status:** FECHADA
+
+**Data:** 2026-08-28 (ETAPA CRM 09A)
+
+**Contexto:** Aprovou-se um mock navegável do CRM Comercial como referência de apresentação.
+
+**Decisão:** O mock (`docs/wireframes/crm-comercial-mock.html`) define apresentação; as regras funcionais permanecem definidas pela implementação CRM 08A–08D. Registro formal: `docs/30-crm-09a-design-baseline.md` (CRM DESIGN BASELINE v1).
+
+**Motivo:** Alinhar a interface de produção ao design aprovado sem reconstruir o CRM nem substituir regras funcionais por lógica fictícia.
+
+**Impacto:** Em conflito mock vs regra funcional, a regra funcional vence. Mudanças visuais não alteram arquitetura funcional (Pipeline, Activities First, Lista, Intelligence, segurança, histórico, mobile). Dados fictícios do mock não entram em produção.

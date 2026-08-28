@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CRM Comercial — Mock UX | Efetiva OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Georgia:ital,wght@0,400;0,700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --efetiva:#0B6B3A;
+    --efetiva-med:#16A34A;
+    --efetiva-light:#22C55E;
+    --efetiva-soft:#eaf4ee;
+    --bg:#f4f6f3;
+    --bg-soft:#fafbfa;
+    --white:#ffffff;
+    --slate-950:#0f172a;
+    --slate-900:#171e2e;
+    --slate-700:#334155;
+    --slate-600:#475569;
+    --slate-500:#64748b;
+    --slate-400:#94a3b8;
+    --slate-300:#cbd5e1;
+    --slate-200:#e2e8f0;
+    --slate-100:#eef2f0;
+    --slate-50:#f8faf8;
+    --amber-600:#d97706;
+    --amber-100:#fef3c7;
+    --red-600:#dc2626;
+    --red-50:#fef2f2;
+    --radius:12px;
+    --radius-sm:8px;
+    --font:'Inter',ui-sans-serif,system-ui,sans-serif;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.05);
+    --shadow-md:0 6px 20px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--slate-900);min-width:320px;-webkit-font-smoothing:antialiased}
+  .serif{font-family:Georgia,'Times New Roman',serif}
+  .wrap{display:flex;min-height:100vh}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{width:240px;background:var(--white);border-right:1px solid var(--slate-200);display:flex;flex-direction:column;padding:16px 12px;flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--slate-100);margin-bottom:12px}
+  .brand-mark{width:34px;height:34px;border-radius:10px;background:var(--efetiva);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-family:var(--font)}
+  .brand-name{font-size:14px;font-weight:700;color:var(--slate-900)}
+  .brand-sub{font-size:10.5px;color:var(--slate-400)}
+  .nav-group{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--slate-400);padding:14px 8px 6px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:var(--slate-600);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:2px}
+  .nav-item:hover{background:var(--slate-50);color:var(--slate-900)}
+  .nav-item .ic{width:18px;text-align:center;font-size:15px;color:var(--slate-400)}
+  .nav-item.active{background:var(--efetiva-soft);color:var(--efetiva)}
+  .nav-item.active .ic{color:var(--efetiva)}
+  .nav-item.active .pill{margin-left:auto;background:var(--efetiva);color:#fff;font-size:10px;font-weight:600;border-radius:99px;padding:1px 6px}
+  .sidebar-foot{margin-top:auto;padding:10px 8px;font-size:11px;color:var(--slate-400);border-top:1px solid var(--slate-100);display:flex;align-items:center;gap:8px}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .main-inner{flex:1;overflow-y:auto;padding:24px 28px 32px}
+  .hdr{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:6px}
+  .hdr h1{font-family:Georgia,serif;font-size:26px;font-weight:600;margin:0;color:var(--slate-900);letter-spacing:-.01em}
+  .hdr .sub{font-size:13px;color:var(--slate-500);margin-top:3px}
+  .hdr-actions{display:flex;align-items:center;gap:8px}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--slate-200);background:var(--white);color:var(--slate-700);font-family:var(--font);font-size:13px;font-weight:500;padding:7px 12px;border-radius:8px;cursor:pointer;transition:all .12s ease}
+  .btn:hover{border-color:var(--slate-300);box-shadow:var(--shadow-sm)}
+  .btn-primary{background:var(--efetiva);border-color:var(--efetiva);color:#fff}
+  .btn-primary:hover{background:#0a5c32;box-shadow:none}
+  .btn-icon{width:32px;height:32px;padding:0;justify-content:center}
+
+  /* view toggle */
+  .view-toggle{display:flex;border:1px solid var(--slate-200);border-radius:9px;background:var(--white);overflow:hidden}
+  .view-toggle button{border:0;background:var(--white);color:var(--slate-600);font-family:var(--font);font-size:13px;font-weight:500;padding:7px 14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .view-toggle button+.view-toggle button{border-left:1px solid var(--slate-200)}
+  .view-toggle button.on{background:var(--slate-900);color:#fff}
+
+  /* KPI BAR */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0 14px}
+  .kpi{border:1px solid var(--slate-200);background:var(--white);border-radius:var(--radius-sm);padding:10px 14px}
+  .kpi .lab{font-size:11px;color:var(--slate-500);font-weight:500;display:flex;align-items:center;gap:5px}
+  .kpi .val{font-size:19px;font-weight:600;color:var(--slate-900);margin-top:2px}
+  .kpi .val.alert{color:var(--red-600)}
+  .kpi .val.muted{color:var(--slate-500)}
+  .badge-dot{width:7px;height:7px;border-radius:50%;background:var(--slate-300)}
+
+  /* quick filters */
+  .qfilters{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .chip{border:1px solid var(--slate-200);background:var(--white);color:var(--slate-600);font-size:12px;font-weight:500;padding:5px 13px;border-radius:99px;cursor:pointer;font-family:var(--font)}
+  .chip.on{background:var(--slate-900);border-color:var(--slate-900);color:#fff}
+  .clear-chip{display:flex;align-items:center;gap:4px;background:var(--red-50);border-color:var(--red-50);color:var(--red-600);font-size:12px;font-weight:500;padding:5px 12px;border-radius:99px;cursor:pointer;font-family:var(--font);margin-left:4px}
+
+  /* KANBAN */
+  .board{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;padding-bottom:8px}
+  .col{flex:1 1 0;min-width:250px;background:var(--bg-soft);border:1px solid var(--slate-200);border-radius:var(--radius);padding:10px;display:flex;flex-direction:column;gap:10px}
+  .col-hd{padding:2px 4px 8px}
+  .col-title{font-size:13px;font-weight:600;color:var(--slate-700)}
+  .col-meta{font-size:11px;color:var(--slate-400);margin-top:1px}
+  .card{background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius-sm);padding:12px;box-shadow:var(--shadow-sm);cursor:pointer;transition:all .12s ease}
+  .card:hover{border-color:var(--slate-300);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+  .card .client{font-size:11.5px;color:var(--slate-500);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .opp{margin-top:2px;font-size:13.5px;font-weight:600;color:var(--slate-900);line-height:1.25}
+  .card .val{margin-top:8px;font-size:14px;font-weight:600;color:var(--efetiva)}
+  .act{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:11.5px;font-weight:500;color:var(--slate-500)}
+  .act.overdue{color:var(--red-600)}
+  .act.today{color:var(--amber-600)}
+  .act.none{color:var(--slate-400);font-weight:400}
+  .act .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .act.overdue .dot{background:var(--red-600)}
+  .act.today .dot{background:var(--amber-600)}
+  .act.none .dot{background:var(--slate-300)}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:9px;border-top:1px solid var(--slate-100)}
+  .age{font-size:10.5px;color:var(--slate-400);font-weight:500}
+  .age.att{color:var(--amber-600)}
+  .age.high{color:var(--red-600);font-weight:600}
+  .avatar{width:22px;height:22px;border-radius:50%;background:var(--efetiva-soft);color:var(--efetiva);font-size:9.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .avatar.alt{background:var(--slate-100);color:var(--slate-500)}
+
+  /* empty column */
+  .col-empty{text-align:center;color:var(--slate-400);font-size:11.5px;padding:22px 4px;border:1px dashed var(--slate-200);border-radius:8px}
+
+  /* ---------- LISTA ---------- */
+  .l-table-wrap{border:1px solid var(--slate-200);border-radius:var(--radius);background:var(--white);overflow:hidden}
+  table.l-table{width:100%;border-collapse:collapse;font-size:13px}
+  .l-table thead th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-400);padding:11px 14px;border-bottom:1px solid var(--slate-200);background:var(--bg-soft)}
+  .l-table tbody td{padding:12px 14px;border-bottom:1px solid var(--slate-100);color:var(--slate-700);white-space:nowrap}
+  .l-table tbody tr:hover{background:var(--slate-50)}
+  .l-table tbody tr{cursor:pointer}
+  .td-opp{font-weight:600;color:var(--slate-900)}
+  .td-client{color:var(--slate-500)}
+  .tab-eteapa{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:99px;background:var(--efetiva-soft);color:var(--efetiva)}
+  .money{font-variant-numeric:tabular-nums}
+
+  /* ---------- DRAWER ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.42);opacity:0;pointer-events:none;transition:opacity .22s ease;z-index:40}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:560px;max-width:94vw;background:var(--white);z-index:50;box-shadow:-8px 0 40px rgba(15,23,42,.15);transform:translateX(105%);transition:transform .26s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
+  .drawer.show{transform:translateX(0)}
+  .dr-hd{padding:22px;border-bottom:1px solid var(--slate-100)}
+  .dr-client{font-size:11px;color:var(--efetiva);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  .dr-title{font-family:Georgia,serif;font-size:19px;font-weight:600;color:var(--slate-900);margin-top:4px;padding-right:30px}
+  .dr-top-actions{position:absolute;top:18px;right:16px;display:flex;gap:6px}
+  .dr-hd-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .dr-body{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:18px}
+  .sec-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--slate-400);margin-bottom:8px}
+  .sec{border:1px solid var(--slate-200);border-radius:var(--radius-sm);padding:12px 14px}
+  .next-card{border:1px solid var(--efetiva);background:var(--efetiva-soft);border-radius:var(--radius-sm);padding:14px}
+  .next-card .t{font-size:11px;font-weight:600;color:var(--efetiva);text-transform:uppercase;letter-spacing:.04em}
+  .next-card .nt{font-size:15px;font-weight:600;color:var(--slate-900);margin-top:5px}
+  .next-card .meta{font-size:12px;color:var(--slate-600);margin-top:3px}
+  .next-card .overdue-tag{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;font-weight:600;color:var(--red-600)}
+  .next-card .who{font-size:11.5px;color:var(--slate-500);margin-top:6px}
+  .next-btns{display:flex;gap:6px;margin-top:12px}
+  .mini-btn{font-size:12px;font-weight:500;padding:5px 11px;border-radius:6px;font-family:var(--font);cursor:pointer}
+  .mini-btn.primary{background:var(--efetiva);color:#fff;border:1px solid var(--efetiva)}
+  .mini-btn.ghost{background:var(--white);color:var(--slate-600);border:1px solid var(--slate-200)}
+  .sum-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--slate-600)}
+  .sum-row b{color:var(--slate-900);font-weight:600}
+  .contact{margin-top:2px}
+  .contact .nm{font-size:13.5px;font-weight:600;color:var(--slate-900)}
+  .contact .rl{font-size:12px;color:var(--slate-500);margin-top:1px}
+  /* timeline */
+  .tl{position:relative;padding-left:20px}
+  .tl:before{content:"";position:absolute;left:5px;top:4px;bottom:4px;width:1px;background:var(--slate-200)}
+  .tl-item{position:relative;padding-bottom:16px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item:before{content:"";position:absolute;left:-18px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--white);border:2px solid var(--slate-300)}
+  .tl-item.date{color:var(--slate-400);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+  .tl-item.detail{color:var(--slate-700);font-size:12.5px}
+  .tl-item .em{color:var(--slate-400);font-size:11.5px;margin-top:2px}
+  .tl-item blockquote{border-left:2px solid var(--slate-200);padding-left:8px;color:var(--slate-500);font-style:italic;font-size:12px;margin:4px 0 0}
+  /* drawer footer actions */
+  .dr-foot{border-top:1px solid var(--slate-100);padding:14px 22px;display:flex;gap:8px}
+  .dr-foot .btn{flex:1;justify-content:center}
+
+  /* ---------- FILTER POPOVER ---------- */
+  .filter-pop{position:absolute;z-index:60;top:calc(100% + 8px);right:0;width:340px;background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:16px;display:none}
+  .filter-pop.show{display:block}
+  .filter-pop h5{margin:0 0 12px;font-size:14px;font-weight:600;color:var(--slate-900)}
+  .f-group{margin-bottom:12px}
+  .f-label{font-size:11px;color:var(--slate-500);margin-bottom:4px;display:block}
+  .f-input,.f-select{width:100%;height:34px;border:1px solid var(--slate-200);border-radius:7px;padding:0 10px;font-size:13px;font-family:var(--font);background:var(--white);color:var(--slate-900)}
+  .f-row{display:flex;gap:8px}
+  .f-row .f-group{flex:1}
+  .f-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+
+  /* ---------- INDICADORES ---------- */
+  .ind-hero{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ind-card{border:1px solid var(--slate-200);border-radius:var(--radius-sm);padding:13px 15px;background:var(--white)}
+  .ind-card .lab{font-size:11px;color:var(--slate-500)}
+  .ind-card .val{font-size:20px;font-weight:600;color:var(--slate-900);margin-top:2px}
+  .ind-card .sub{font-size:11px;color:var(--slate-400);margin-top:1px}
+  .ind-card.green .val{color:var(--efetiva)}
+  .funnel{display:flex;flex-direction:column;gap:5px}
+  .fn-row{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--slate-700)}
+  .fn-bar{height:26px;background:var(--efetiva-light);border-radius:5px;min-width:8px}
+  .fn-bar.deep{background:var(--efetiva)}
+  .fn-bar.mid{background:var(--efetiva-med)}
+  .fn-n{width:24px;text-align:right;font-weight:600;color:var(--slate-900)}
+  .fn-l{width:130px}
+  .small-table td{font-size:12.5px;padding:5px 0;color:var(--slate-700)}
+  .small-table td:first-child{color:var(--slate-500)}
+  .small-table{width:100%;border-collapse:collapse}
+  .loss-row{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px}
+  .loss-row .nm{flex:1;color:var(--slate-700)}
+  .loss-pct{font-weight:600;color:var(--slate-900);width:44px;text-align:right}
+  .loss-val{font-size:11px;color:var(--slate-400);width:90px;text-align:right}
+  .bar-track{height:6px;background:var(--slate-100);border-radius:99px;overflow:hidden;width:70px}
+  .bar-fill{height:100%;background:var(--efetiva);border-radius:99px}
+  .forecast{border:1px solid var(--slate-200);border-radius:var(--radius-sm);overflow:hidden}
+  .fc-head{font-size:11px;font-weight:600;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;padding:12px 15px;border-bottom:1px solid var(--slate-100)}
+  .fc-row{display:flex;justify-content:space-between;padding:9px 15px;border-bottom:1px solid var(--slate-100);align-items:center}
+  .fc-row:last-child{border-bottom:0}
+  .fc-m{font-size:12px;font-weight:600;color:var(--slate-900);width:54px}
+  .fc-pipe{font-size:12.5px;color:var(--slate-600)}
+  .fc-pond{font-size:12.5px;color:var(--efetiva);font-weight:600}
+
+  /* ---------- MOBILE ---------- */
+  .w-appbar{display:none}
+  .mobile-tab{display:none}
+  @media (max-width:860px){
+    .desktop-tab{display:none}
+    .mobile-tab{display:block}
+    .main-inner{padding:14px 14px 24px}
+    .hdr h1{font-size:20px}
+    .hdr .sub{font-size:12px}
+    .hdr-actions .hide-m{display:none}
+    .kpis{grid-template-columns:1fr 1fr;gap:8px;overflow-x:auto}
+    .kpi{padding:9px 12px}
+    .kpi .val{font-size:17px}
+    .board{flex-direction:column;align-items:stretch}
+    .col{min-width:0;width:100%}
+    .drawer{width:100vw;max-width:100vw}
+    .sidebar{display:none}
+    .w-appbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--white);border-bottom:1px solid var(--slate-200)}
+  }
+  .m-buttons{display:flex;gap:6px}
+  .ml-toggle{display:flex;border:1px solid var(--slate-200);border-radius:8px;overflow:hidden;background:var(--white)}
+  .ml-toggle button{border:0;background:var(--white);padding:7px 9px;font-size:16px;cursor:pointer;line-height:1}
+  .ml-toggle button.on{background:var(--slate-900);color:#fff}
+  .ml-toggle button+button{border-left:1px solid var(--slate-200)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">E</div>
+      <div>
+        <div class="brand-name">Efetiva OS</div>
+        <div class="brand-sub">Gestão SST & RH</div>
+      </div>
+    </div>
+    <nav style="flex:1">
+      <div class="nav-group">Principal</div>
+      <a class="nav-item" href="#"><span class="ic">🏠</span>Início</a>
+      <div class="nav-group">Comercial</div>
+      <a class="nav-item active" href="#"><span class="ic">◆</span>CRM Comercial</a>
+      <div class="nav-group">Operação</div>
+      <a class="nav-item" href="#"><span class="ic">▤</span>Clientes</a>
+      <a class="nav-item" href="#"><span class="ic">☑</span>Tarefas</a>
+      <a class="nav-item" href="#"><span class="ic">◫</span>Documentos</a>
+      <a class="nav-item" href="#"><span class="ic">🖹</span>Orçamentos</a>
+      <div class="nav-group">Setores</div>
+      <a class="nav-item" href="#"><span class="ic">▣</span>Financeiro</a>
+      <a class="nav-item" href="#"><span class="ic">➤</span>Projetos</a>
+      <a class="nav-item" href="#"><span class="ic">▸</span>Escalas</a>
+      <div class="nav-group">Sistema</div>
+      <a class="nav-item" href="#"><span class="ic">⚙</span>Configurações</a>
+    </nav>
+    <div class="sidebar-foot"><span>⚫</span>Rodrigo · Comercial</div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <!-- mobile app bar (visible <860px) -->
+    <div class="w-appbar">
+      <div class="brand" style="border:0;margin:0;padding:0">
+        <div class="brand-mark" style="width:30px;height:30px">E</div>
+        <div class="brand-name">CRM Comercial</div>
+      </div>
+      <div class="m-buttons">
+        <div class="ml-toggle">
+          <button class="on" onclick="setView('pipeline')" id="mbtn-pipe" title="Pipeline">◫</button>
+          <button onclick="setView('list')" id="mbtn-list" title="Lista">☰</button>
+        </div>
+        <button class="btn btn-icon" onclick="openFilter()" title="Filtros">⏷</button>
+        <button class="btn btn-primary btn-icon" onclick="openDrawer('novo')">+</button>
+      </div>
+    </div>
+
+    <div class="main-inner" id="mainInner">
+
+      <!-- ============ HEADER ============ -->
+      <div class="hdr">
+        <div>
+          <h1>CRM Comercial</h1>
+          <div class="sub">Acompanhe oportunidades, atividades e evolução do pipeline comercial.</div>
+        </div>
+        <div class="hdr-actions">
+          <button class="btn" onclick="openIndicadores()"><span style="color:var(--slate-500)">▤</span>Indicadores</button>
+          <div style="position:relative">
+            <button class="btn" onclick="toggleFilter(event)"><span style="color:var(--slate-500)">⏷</span>Filtros<span id="filterBadge" style="display:none;margin-left:4px;background:var(--efetiva);color:#fff;border-radius:99px;font-size:10px;padding:0 6px">2</span></button>
+            <div class="filter-pop" id="filterPop">
+              <h5>Filtros avançados</h5>
+              <div class="f-group">
+                <label class="f-label">Buscar oportunidade ou cliente</label>
+                <input class="f-input" placeholder="Digite para buscar..." />
+              </div>
+              <div class="f-row">
+                <div class="f-group"><label class="f-label">Etapa</label><select class="f-select"><option>Todas</option><option>Novo contato</option><option>Qualificação</option><option>Diagnóstico</option><option>Proposta</option><option>Negociação</option></select></div>
+                <div class="f-group"><label class="f-label">Status</label><select class="f-select"><option>Abertas</option><option>Ganhas</option><option>Perdidas</option></select></div>
+              </div>
+              <div class="f-group"><label class="f-label">Atividade</label><select class="f-select"><option>Todas</option><option>Atrasada</option><option>Hoje</option><option>Próximos 7 dias</option><option>Sem atividade</option></select></div>
+              <div class="f-row">
+                <div class="f-group"><label class="f-label">Valor mínimo</label><input class="f-input" placeholder="0,00" /></div>
+                <div class="f-group"><label class="f-label">Valor máximo</label><input class="f-input" placeholder="∞" /></div>
+              </div>
+              <div class="f-row">
+                <div class="f-group"><label class="f-label">Previsão de</label><input class="f-select" type="date" /></div>
+                <div class="f-group"><label class="f-label">até</label><input class="f-select" type="date" /></div>
+              </div>
+              <div class="f-actions">
+                <button class="mini-btn ghost">Limpar</button>
+                <button class="mini-btn primary" onclick="closeFilter()">Aplicar</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="openDrawer('novo')">+ Oportunidade</button>
+        </div>
+      </div>
+
+      <!-- view toggle -->
+      <div class="view-toggle" style="width:fit-content;margin-bottom:4px">
+        <button class="on" id="btn-pipe" onclick="setView('pipeline')">◫ Pipeline</button>
+        <button id="btn-list" onclick="setView('list')">☰ Lista</button>
+      </div>
+
+      <!-- ============ KPI BAR ============ -->
+      <div class="kpis">
+        <div class="kpi">
+          <div class="lab">● Pipeline aberto</div>
+          <div class="val money">R$ 186.400</div>
+        </div>
+        <div class="kpi">
+          <div class="lab">● Pipeline ponderado</div>
+          <div class="val money">R$ 104.820</div>
+        </div>
+        <div class="kpi">
+          <div class="lab">● Oportunidades abertas</div>
+          <div class="val">18</div>
+        </div>
+        <div class="kpi">
+          <div class="lab"><span class="badge-dot" style="background:var(--red-600)"></span>Atividades atrasadas</div>
+          <div class="val alert">4</div>
+        </div>
+        <div class="kpi">
+          <div class="lab"><span class="badge-dot"></span>Sem próxima atividade</div>
+          <div class="val muted">3</div>
+        </div>
+      </div>
+
+      <!-- ============ QUICK FILTERS ============ -->
+      <div class="qfilters">
+        <button class="chip on" onclick="setQuick(this,'all')">Todas</button>
+        <button class="chip" onclick="setQuick(this,'overdue')">Atrasadas</button>
+        <button class="chip" onclick="setQuick(this,'today')">Hoje</button>
+        <button class="chip" onclick="setQuick(this,'none')">Sem atividade</button>
+        <button class="clear-chip" id="clearChip" style="display:none" onclick="clearFilters()">✕ Limpar (2)</button>
+      </div>
+
+      <!-- ============ PIPELINE (desktop) ============ -->
+      <div id="viewPipeline" class="desktop-tab">
+        <div class="board">
+
+          <!-- col 1: Novo contato -->
+          <div class="col">
+            <div class="col-hd"><div class="col-title">Novo contato</div><div class="col-meta">2 · R$ 17.300</div></div>
+            <div class="card" onclick="openDrawer('norte')">
+              <div class="client">Norte Logística Ltda.</div>
+              <div class="opp">PGR + PCMSO 2027</div>
+              <div class="val money">R$ 12.800</div>
+              <div class="act today"><span class="dot"></span>Hoje · 15:30</div>
+              <div class="act" style="margin-top:1px">Ligação inicial</div>
+              <div class="card-foot"><span class="age">1 dia nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+            <div class="card" onclick="openDrawer('tapajos')">
+              <div class="client">Construtora Tapajós</div>
+              <div class="opp">Treinamento NR-35</div>
+              <div class="val money">R$ 4.500</div>
+              <div class="act none"><span class="dot"></span>Sem próxima atividade</div>
+              <div class="card-foot"><span class="age">2 dias nesta etapa</span><div class="avatar alt">JA</div></div>
+            </div>
+          </div>
+
+          <!-- col 2: Qualificação -->
+          <div class="col">
+            <div class="col-hd"><div class="col-title">Qualificação</div><div class="col-meta">1 · R$ 3.200</div></div>
+            <div class="card" onclick="openDrawer('hotel')">
+              <div class="client">Hotel Rio Verde</div>
+              <div class="opp">Gestão Mensal SST</div>
+              <div class="val money">R$ 3.200/mês</div>
+              <div class="act"><span class="dot"></span>Amanhã · 09:00</div>
+              <div class="act" style="margin-top:1px">Reunião de levantamento</div>
+              <div class="card-foot"><span class="age att">4 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+          </div>
+
+          <!-- col 3: Diagnóstico -->
+          <div class="col">
+            <div class="col-hd"><div class="col-title">Diagnóstico</div><div class="col-meta">2 · R$ 28.700</div></div>
+            <div class="card" onclick="openDrawer('mineracao')">
+              <div class="client">Mineração Horizonte</div>
+              <div class="opp">PGR + LTCAT + PCMSO</div>
+              <div class="val money">R$ 18.900</div>
+              <div class="act today"><span class="dot"></span>Hoje · 11:00</div>
+              <div class="act" style="margin-top:1px">Análise documental</div>
+              <div class="card-foot"><span class="age att">6 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+            <div class="card" onclick="openDrawer('shopping')">
+              <div class="client">Shopping Amazônia</div>
+              <div class="opp">Brigada de Incêndio</div>
+              <div class="val money">R$ 9.800</div>
+              <div class="act overdue"><span class="dot"></span>Atrasada · 2 dias</div>
+              <div class="act overdue" style="margin-top:1px;font-weight:400">Follow-up</div>
+              <div class="card-foot"><span class="age high">9 dias nesta etapa</span><div class="avatar alt">JA</div></div>
+            </div>
+          </div>
+
+          <!-- col 4: Proposta -->
+          <div class="col">
+            <div class="col-hd"><div class="col-title">Proposta</div><div class="col-meta">4 · R$ 43.700</div></div>
+            <div class="card" onclick="openDrawer('madeira')">
+              <div class="client">Grupo Madeira Forte</div>
+              <div class="opp">Consultoria SST Anual</div>
+              <div class="val money">R$ 36.000</div>
+              <div class="act today"><span class="dot"></span>Hoje · 16:00</div>
+              <div class="act" style="margin-top:1px">Follow-up da proposta</div>
+              <div class="card-foot"><span class="age high">7 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+            <div class="card" onclick="openDrawer('transportes')">
+              <div class="client">Transportes Norte Brasil</div>
+              <div class="opp">PGR + AET</div>
+              <div class="val money">R$ 7.700</div>
+              <div class="act"><span class="dot"></span>Amanhã · 10:30</div>
+              <div class="act" style="margin-top:1px">Revisar escopo</div>
+              <div class="card-foot"><span class="age">3 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+          </div>
+
+          <!-- col 5: Negociação -->
+          <div class="col">
+            <div class="col-hd"><div class="col-title">Negociação</div><div class="col-meta">2 · R$ 75.500</div></div>
+            <div class="card" onclick="openDrawer('arati')">
+              <div class="client">Arati Distribuidora</div>
+              <div class="opp">Gestão SST + Clínica Ocupacional</div>
+              <div class="val money">R$ 48.000</div>
+              <div class="act overdue"><span class="dot"></span>Atrasada · 1 dia</div>
+              <div class="act overdue" style="margin-top:1px;font-weight:400">Retorno comercial</div>
+              <div class="card-foot"><span class="age high">11 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+            <div class="card" onclick="openDrawer('neves')">
+              <div class="client">Grupo Das Neves</div>
+              <div class="opp">Ouvidoria + SST Integrada</div>
+              <div class="val money">R$ 27.500</div>
+              <div class="act today"><span class="dot"></span>Hoje · 14:00</div>
+              <div class="act" style="margin-top:1px">Reunião com diretoria</div>
+              <div class="card-foot"><span class="age att">5 dias nesta etapa</span><div class="avatar alt">JA</div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ LISTA (desktop) ============ -->
+      <div id="viewList" class="desktop-tab" style="display:none">
+        <div class="l-table-wrap">
+          <table class="l-table">
+            <thead>
+              <tr>
+                <th>Oportunidade</th><th>Cliente</th><th>Etapa</th><th>Valor</th><th>Prob.</th><th>Ponderado</th><th>Próx. atividade</th><th>Responsável</th><th>Previsão</th><th>Aging</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr onclick="openDrawer('arati')">
+                <td class="td-opp">Gestão SST + Clínica Ocupacional</td><td class="td-client">Arati Distribuidora</td><td><span class="tab-eteapa">Negociação</span></td><td class="money">R$ 48.000</td><td>80%</td><td class="money">R$ 38.400</td><td style="color:var(--red-600)">Atrasada · 1 dia</td><td>Rodrigo</td><td class="money">05/09/2026</td><td class="age high">11 dias</td>
+              </tr>
+              <tr onclick="openDrawer('madeira')">
+                <td class="td-opp">Consultoria SST Anual</td><td class="td-client">Grupo Madeira Forte</td><td><span class="tab-eteapa">Proposta</span></td><td class="money">R$ 36.000</td><td>60%</td><td class="money">R$ 21.600</td><td style="color:var(--amber-600)">Hoje · 16:00</td><td>Rodrigo</td><td class="money">30/08/2026</td><td class="age high">7 dias</td>
+              </tr>
+              <tr onclick="openDrawer('neves')">
+                <td class="td-opp">Ouvidoria + SST Integrada</td><td class="td-client">Grupo Das Neves</td><td><span class="tab-eteapa">Negociação</span></td><td class="money">R$ 27.500</td><td>80%</td><td class="money">R$ 22.000</td><td style="color:var(--amber-600)">Hoje · 14:00</td><td>Juliana</td><td class="money">02/09/2026</td><td class="age att">5 dias</td>
+              </tr>
+              <tr onclick="openDrawer('mineracao')">
+                <td class="td-opp">PGR + LTCAT + PCMSO</td><td class="td-client">Mineração Horizonte</td><td><span class="tab-eteapa">Diagnóstico</span></td><td class="money">R$ 18.900</td><td>40%</td><td class="money">R$ 7.560</td><td style="color:var(--amber-600)">Hoje · 11:00</td><td>Rodrigo</td><td class="money">15/09/2026</td><td class="age att">6 dias</td>
+              </tr>
+              <tr onclick="openDrawer('norte')">
+                <td class="td-opp">PGR + PCMSO 2027</td><td class="td-client">Norte Logística Ltda.</td><td><span class="tab-eteapa">Novo contato</span></td><td class="money">R$ 12.800</td><td>10%</td><td class="money">R$ 1.280</td><td style="color:var(--amber-600)">Hoje · 15:30</td><td>Rodrigo</td><td class="money">30/11/2026</td><td class="age">1 dia</td>
+              </tr>
+              <tr onclick="openDrawer('shopping')">
+                <td class="td-opp">Brigada de Incêndio</td><td class="td-client">Shopping Amazônia</td><td><span class="tab-eteapa">Diagnóstico</span></td><td class="money">R$ 9.800</td><td>40%</td><td class="money">R$ 3.920</td><td style="color:var(--red-600)">Atrasada · 2 dias</td><td>Juliana</td><td class="money">22/09/2026</td><td class="age high">9 dias</td>
+              </tr>
+              <tr onclick="openDrawer('transportes')">
+                <td class="td-opp">PGR + AET</td><td class="td-client">Transportes Norte Brasil</td><td><span class="tab-eteapa">Proposta</span></td><td class="money">R$ 7.700</td><td>60%</td><td class="money">R$ 4.620</td><td>Amanhã · 10:30</td><td>Rodrigo</td><td class="money">10/09/2026</td><td class="age">3 dias</td>
+              </tr>
+              <tr onclick="openDrawer('tapajos')">
+                <td class="td-opp">Treinamento NR-35</td><td class="td-client">Construtora Tapajós</td><td><span class="tab-eteapa">Novo contato</span></td><td class="money">R$ 4.500</td><td>10%</td><td class="money">R$ 450</td><td style="color:var(--slate-400)">Sem próxima atividade</td><td>Juliana</td><td class="money">—</td><td class="age">2 dias</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ MOBILE KANBAN ============ -->
+      <div id="viewPipelineM" class="mobile-tab">
+        <div class="board" style="flex-direction:column">
+          <div class="col">
+            <div class="col-hd"><div class="col-title">Proposta</div><div class="col-meta">4 · R$ 43.700</div></div>
+            <div class="card" onclick="openDrawer('madeira')">
+              <div class="client">Grupo Madeira Forte</div>
+              <div class="opp">Consultoria SST Anual</div>
+              <div class="val money">R$ 36.000</div>
+              <div class="act today"><span class="dot"></span>Hoje · 16:00</div>
+              <div class="act" style="margin-top:1px">Follow-up da proposta</div>
+              <div class="card-foot"><span class="age high">7 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+            <div class="card" onclick="openDrawer('transportes')">
+              <div class="client">Transportes Norte Brasil</div>
+              <div class="opp">PGR + AET</div>
+              <div class="val money">R$ 7.700</div>
+              <div class="act"><span class="dot"></span>Amanhã · 10:30</div>
+              <div class="act" style="margin-top:1px">Revisar escopo</div>
+              <div class="card-foot"><span class="age">3 dias nesta etapa</span><div class="avatar">RO</div></div>
+            </div>
+          </div>
+          <div style="text-align:center;color:var(--slate-400);font-size:11.5px;padding:2px 0 10px">◄ Arrraste para ver Negociação e demais etapas ►</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============ OVERLAY + DRAWER ============ -->
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<!-- OPPORTUNITY DRAWER -->
+<div class="drawer" id="drawer">
+  <div class="dr-hd" id="drTop"></div>
+  <div class="dr-body" id="drBody"></div>
+  <div class="dr-foot" id="drFoot"></div>
+</div>
+
+<script>
+  // ---------- mock data ----------
+  const OPP = {
+    arati: {
+      client: 'Arati Distribuidora', opp: 'Gestão SST + Clínica Ocupacional',
+      stage: 'Negociação', value: 'R$ 48.000', prob: '80%', prev: '05/09/2026', age: '11 dias', who: 'Rodrigo',
+      actType: 'Follow-up', actTitle: 'Retorno comercial', actOverdue: true,
+      contact: { nm: 'Mariana Souza', rl: 'Gerente Administrativa', em: 'mariana@empresa.com.br', ph: '(93) 99999-0000' },
+      timeline: [
+        { d: 'Hoje · 09:10', t: 'Follow-up reagendado', em: 'De 27/08 para 28/08' },
+        { d: '27/08 · 16:30', t: 'Oportunidade movida', em: 'Proposta → Negociação' },
+        { d: '26/08 · 14:20', t: 'Proposta enviada' },
+        { d: '25/08 · 10:00', t: 'Reunião de diagnóstico concluída', q: '“Cliente solicitou inclusão da clínica ocupacional.”' },
+        { d: '22/08 · 08:45', t: 'Oportunidade criada' },
+      ]
+    },
+    madeira: { client:'Grupo Madeira Forte', opp:'Consultoria SST Anual', stage:'Proposta', value:'R$ 36.000', prob:'60%', prev:'30/08/2026', age:'7 dias', who:'Rodrigo', actType:'Follow-up', actTitle:'Follow-up da proposta', actOverdue:false },
+    neves:   { client:'Grupo Das Neves', opp:'Ouvidoria + SST Integrada', stage:'Negociação', value:'R$ 27.500', prob:'80%', prev:'02/09/2026', age:'5 dias', who:'Juliana', actType:'Reunião', actTitle:'Reunião com diretoria', actOverdue:false, contact:{nm:'Paulo Neves',rl:'Diretor Geral',em:'paulo@neves.com.br',ph:'(91) 98888-1111'} },
+    mineracao:{client:'Mineração Horizonte', opp:'PGR + LTCAT + PCMSO', stage:'Diagnóstico', value:'R$ 18.900', prob:'40%', prev:'15/09/2026', age:'6 dias', who:'Rodrigo', actType:'Análise', actTitle:'Análise documental', actOverdue:false },
+    norte:   { client:'Norte Logística Ltda.', opp:'PGR + PCMSO 2027', stage:'Novo contato', value:'R$ 12.800', prob:'10%', prev:'30/11/2026', age:'1 dia', who:'Rodrigo', actType:'Ligação', actTitle:'Ligação inicial', actOverdue:false },
+    shopping:{ client:'Shopping Amazônia', opp:'Brigada de Incêndio', stage:'Diagnóstico', value:'R$ 9.800', prob:'40%', prev:'22/09/2026', age:'9 dias', who:'Juliana', actType:'Follow-up', actTitle:'Follow-up', actOverdue:true },
+    transportes:{client:'Transportes Norte Brasil', opp:'PGR + AET', stage:'Proposta', value:'R$ 7.700', prob:'60%', prev:'10/09/2026', age:'3 dias', who:'Rodrigo', actType:'Reunião', actTitle:'Revisar escopo', actOverdue:false },
+    tapajos: { client:'Construtora Tapajós', opp:'Treinamento NR-35', stage:'Novo contato', value:'R$ 4.500', prob:'10%', prev:'—', age:'2 dias', who:'Juliana', actType:'', actTitle:'Sem próxima atividade', actOverdue:false, none:true },
+    hotel:   { client:'Hotel Rio Verde', opp:'Gestão Mensal SST', stage:'Qualificação', value:'R$ 3.200/mês', prob:'20%', prev:'12/09/2026', age:'4 dias', who:'Rodrigo', actType:'Reunião', actTitle:'Reunião de levantamento', actOverdue:false }
+  };
+
+  // ---------- view toggle ----------
+  function setView(v){
+    const pipe=document.getElementById('viewPipeline'), list=document.getElementById('viewList'),
+          pipeM=document.getElementById('viewPipelineM');
+    pipe.style.display = v==='pipeline'?'':'none';
+    pipeM.style.display = v==='pipeline'?'':'none';
+    list.style.display = v==='list'?'':'none';
+    document.getElementById('btn-pipe').classList.toggle('on',v==='pipeline');
+    document.getElementById('btn-list').classList.toggle('on',v==='list');
+    document.getElementById('mbtn-pipe').classList.toggle('on',v==='pipeline');
+    document.getElementById('mbtn-list').classList.toggle('on',v==='list');
+  }
+
+  // ---------- quick filters ----------
+  function setQuick(el,key){
+    document.querySelectorAll('.qfilters .chip').forEach(c=>c.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('clearChip').style.display='inline-flex';
+  }
+  function clearFilters(){
+    document.querySelectorAll('.qfilters .chip').forEach(c=>c.classList.remove('on'));
+    document.querySelector('.qfilters .chip').classList.add('on');
+    document.getElementById('clearChip').style.display='none';
+  }
+
+  // ---------- filter popover ----------
+  function toggleFilter(e){ e.stopPropagation(); document.getElementById('filterPop').classList.toggle('show'); }
+  function closeFilter(){ document.getElementById('filterPop').classList.remove('show'); }
+  function openFilter(){ document.getElementById('filterPop').classList.add('show'); }
+
+  // ---------- indicadores ----------
+  function openIndicadores(){
+    const b=document.getElementById('drBody'), t=document.getElementById('drTop'), f=document.getElementById('drFoot');
+    t.innerHTML=`
+      <div style="position:relative;padding-bottom:4px">
+        <button class="btn btn-icon" style="position:absolute;right:0;top:0" onclick="closeAll()">✕</button>
+        <div class="dr-client" style="color:var(--slate-400)">Comercial</div>
+        <div class="dr-title" style="padding-right:40px">Indicadores do Pipeline</div>
+        <div style="font-size:12px;color:var(--slate-500);margin-top:4px">Período: Últimos 30 dias</div>
+      </div>`;
+    f.style.display='none';
+    b.innerHTML=`
+      <div>
+        <div class="sec-title">Visão geral</div>
+        <div class="ind-hero">
+          <div class="ind-card"><div class="lab">Pipeline aberto</div><div class="val money">R$ 186.400</div></div>
+          <div class="ind-card"><div class="lab">Pipeline ponderado</div><div class="val money">R$ 104.820</div></div>
+          <div class="ind-card green"><div class="lab">Ganhas</div><div class="val money">R$ 92.500</div><div class="sub">7 negócios</div></div>
+          <div class="ind-card"><div class="lab">Perdidas</div><div class="val money">R$ 31.400</div><div class="sub">3 negócios</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+          <div class="ind-card" style="flex:1"><div class="lab">Conversão</div><div class="val">70%</div></div>
+          <div class="ind-card" style="flex:1"><div class="lab">Oportunidades abertas</div><div class="val">18</div></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-title">Funil</div>
+        <div class="funnel">
+          <div class="fn-row"><span class="fn-l">Novo contato</span><div class="fn-bar" style="width:96%"></div><span class="fn-n">22</span></div>
+          <div class="fn-row"><span class="fn-l">Qualificação</span><div class="fn-bar mid" style="width:78%"></div><span class="fn-n">17</span></div>
+          <div class="fn-row"><span class="fn-l">Diagnóstico</span><div class="fn-bar mid" style="width:60%"></div><span class="fn-n">13</span></div>
+          <div class="fn-row"><span class="fn-l">Proposta</span><div class="fn-bar mid" style="width:42%"></div><span class="fn-n">9</span></div>
+          <div class="fn-row"><span class="fn-l">Negociação</span><div class="fn-bar deep" style="width:28%"></div><span class="fn-n">6</span></div>
+          <div class="fn-row"><span class="fn-l">Ganhas</span><div class="fn-bar deep" style="width:32%"></div><span class="fn-n">7</span></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-title">Tempo médio por etapa</div>
+        <table class="small-table">
+          <tr><td>Novo contato</td><td>1,8 dias</td></tr>
+          <tr><td>Qualificação</td><td>3,2 dias</td></tr>
+          <tr><td>Diagnóstico</td><td>5,4 dias</td></tr>
+          <tr><td>Proposta</td><td>6,1 dias</td></tr>
+          <tr><td>Negociação</td><td>8,3 dias</td></tr>
+        </table>
+      </div>
+
+      <div class="sec">
+        <div class="sec-title">Motivos de perda</div>
+        <div class="loss-row"><span class="nm">Preço</span><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div><span class="loss-pct">40%</span><span class="loss-val">R$ 12.560</span></div>
+        <div class="loss-row"><span class="nm">Sem retorno</span><div class="bar-track"><div class="bar-fill" style="width:30%"></div></div><span class="loss-pct">30%</span><span class="loss-val">R$ 9.420</span></div>
+        <div class="loss-row"><span class="nm">Concorrente</span><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><span class="loss-pct">20%</span><span class="loss-val">R$ 6.280</span></div>
+        <div class="loss-row"><span class="nm">Outro</span><div class="bar-track"><div class="bar-fill" style="width:10%"></div></div><span class="loss-pct">10%</span><span class="loss-val">R$ 3.140</span></div>
+      </div>
+
+      <div class="forecast">
+        <div class="fc-head">Previsão comercial</div>
+        <div class="fc-row"><span class="fc-m">Set/2026</span><span class="fc-pipe">R$ 96.000</span><span class="fc-pond">R$ 61.400</span></div>
+        <div class="fc-row"><span class="fc-m">Out/2026</span><span class="fc-pipe">R$ 72.000</span><span class="fc-pond">R$ 38.900</span></div>
+        <div class="fc-row"><span class="fc-m">Nov/2026</span><span class="fc-pipe">R$ 54.500</span><span class="fc-pond">R$ 27.200</span></div>
+      </div>`;
+    openDrawerBase();
+  }
+
+  // ---------- opportunity drawer ----------
+  function openDrawer(id){
+    const b=document.getElementById('drBody'), t=document.getElementById('drTop'), f=document.getElementById('drFoot');
+    if(id==='novo'){
+      t.innerHTML=`<div style="position:relative"><button class="btn btn-icon" style="position:absolute;right:0;top:0" onclick="closeAll()">✕</button><div class="dr-client" style="color:var(--slate-400)">Comercial</div><div class="dr-title" style="padding-right:40px">Nova oportunidade</div></div>`;
+      f.style.display='flex';
+      f.innerHTML=`<button class="btn" onclick="closeAll()">Cancelar</button><button class="btn btn-primary" onclick="closeAll()">Criar oportunidade</button>`;
+      b.innerHTML=`
+        <div><label class="f-label">Cliente *</label><div class="f-input" style="display:flex;align-items:center;justify-content:space-between;color:var(--slate-400)">Buscar cliente... <span>⌕</span></div></div>
+        <div><label class="f-label">Título *</label><input class="f-input" placeholder="Ex: Gestão Mensal SST" /></div>
+        <div><label class="f-label">Etapa</label><select class="f-select"><option>Novo contato</option><option>Qualificação</option><option>Diagnóstico</option><option>Proposta</option><option>Negociação</option></select></div>
+        <div><label class="f-label">Valor (R$)</label><input class="f-input" placeholder="0,00" /></div>
+        <div><label class="f-label">Previsão de fechamento</label><input class="f-select" type="date" /></div>
+        <div><label class="f-label">Descrição</label><textarea class="f-input" style="height:80px;padding:8px 10px" placeholder="Detalhes opcionais..."></textarea></div>`;
+      openDrawerBase(); return;
+    }
+    const o=OPP[id];
+    t.innerHTML=`
+      <button class="btn btn-icon" style="position:absolute;right:16px;top:18px;z-index:5" onclick="closeAll()">✕</button>
+      <div class="dr-client">${o.client}</div>
+      <div class="dr-title">${o.opp}</div>
+      <div class="dr-hd-row">
+        <span class="tab-eteapa">${o.stage}</span>
+        <span style="font-size:16px;font-weight:600;color:var(--efetiva);margin-left:auto">${o.value}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px">
+        <button class="mini-btn ghost">✎ Editar</button>
+        <button class="mini-btn primary" style="flex:1">✓ Ganhar</button>
+        <button class="btn" onclick="closeAll()" style="border-color:var(--red-600);color:var(--red-600)">Perder</button>
+      </div>`;
+    // next activity block
+    const actHtml = o.none
+      ? `<div class="sec" style="text-align:center;color:var(--slate-400);font-size:13px">Sem próxima atividade cadastrada</div>`
+      : `<div class="next-card">
+          <div class="t">Próxima atividade</div>
+          <div class="nt">${o.actTitle}</div>
+          <div class="meta">${o.actType} ${o.actOverdue?'· <span style="color:var(--red-600);font-weight:600">Atrasada há 1 dia</span>':'· Hoje'}</div>
+          <div class="meta">28/08/2026 · 10:00</div>
+          <div class="who">Responsável: Rodrigo</div>
+          <div class="next-btns">
+            <button class="mini-btn primary">Concluir</button>
+            <button class="mini-btn ghost">Reagendar</button>
+            <button class="mini-btn ghost">+ Atividade</button>
+          </div>
+        </div>`;
+    const contact = o.contact
+      ? `<div class="sec"><div class="sec-title">Contato</div><div class="contact"><div class="nm">${o.contact.nm}</div><div class="rl">${o.contact.rl}</div><div class="rl">${o.contact.em}</div><div class="rl">${o.contact.ph}</div></div></div>`
+      : '';
+    const tl = o.timeline
+      ? `<div class="sec" style="border:0;padding:0"><div class="sec-title">Histórico</div><div class="tl">${o.timeline.map(it=>`
+          <div class="tl-item"><div class="date">${it.d}</div><div class="detail">${it.t}</div>${it.em?`<div class="em">${it.em}</div>`:''}${it.q?`<blockquote>${it.q}</blockquote>`:''}</div>`).join('')}</div></div>`
+      : '';
+    b.innerHTML=`
+      ${actHtml}
+      <div class="sec">
+        <div class="sec-title">Resumo</div>
+        <div class="sum-row"><span>Cliente</span><b>${o.client}</b></div>
+        <div class="sum-row"><span>Etapa</span><b>${o.stage}</b></div>
+        <div class="sum-row"><span>Valor</span><b>${o.value}</b></div>
+        <div class="sum-row"><span>Probabilidade</span><b>${o.prob}</b></div>
+        <div class="sum-row"><span>Previsão</span><b>${o.prev}</b></div>
+        <div class="sum-row"><span>Aging</span><b>${o.age}</b></div>
+        <div class="sum-row"><span>Responsável</span><b>${o.who}</b></div>
+      </div>
+      ${contact}
+      ${tl}`;
+    f.style.display = 'flex';
+    f.innerHTML=`
+      <button class="btn" style="border-color:var(--red-600);color:var(--red-600)">Perder</button>
+      <button class="btn" style="border-color:var(--efetiva);color:var(--efetiva)">✓ Ganhar</button>`;
+    openDrawerBase();
+  }
+  function openDrawerBase(){
+    document.getElementById('overlay').classList.add('show');
+    document.getElementById('drawer').classList.add('show');
+    document.getElementById('filterPop').classList.remove('show');
+  }
+  function closeAll(){
+    document.getElementById('overlay').classList.remove('show');
+    document.getElementById('drawer').classList.remove('show');
+    document.getElementById('filterPop').classList.remove('show');
+  }
+  document.addEventListener('click',e=>{
+    if(!document.getElementById('filterPop').contains(e.target)) closeFilter();
+  });
+</script>
+</body>
+</html>
