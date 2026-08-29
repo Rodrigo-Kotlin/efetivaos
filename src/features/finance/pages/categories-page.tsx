@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
-import { Pencil, Plus, Search } from 'lucide-react'
+import { Pencil, Plus, Search, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Drawer } from '@/components/ui/drawer'
-import { useCategories, useCreateCategory, useUpdateCategory, useChartAccounts, useCostCenters, useServiceLines } from '../queries/finance-queries'
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, useChartAccounts, useCostCenters, useServiceLines } from '../queries/finance-queries'
 import { categorySchema, type CategoryFormValues } from '../schemas/finance-schemas'
 import type { FinancialCategoryList } from '../types/finance-types'
 
@@ -28,6 +28,7 @@ export default function CategoriesPage() {
   const { data: serviceLines = [] } = useServiceLines()
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
+  const deleteMutation = useDeleteCategory()
 
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -48,6 +49,12 @@ export default function CategoriesPage() {
     setEditing(c)
     setFv({ name: c.name, movement_type: c.movement_type, counter_account_id: c.counter_account_id, cost_center_id: c.cost_center_id, service_line_id: c.service_line_id, cash_flow_class: c.cash_flow_class, active: c.active })
     setFe({}); setDrawerOpen(true)
+  }
+
+  const handleDelete = async (c: FinancialCategoryList) => {
+    if (!window.confirm(`Excluir a categoria "${c.name}"? Esta ação não pode ser desfeita.`)) return
+    try { await deleteMutation.mutateAsync(c.id) }
+    catch { /* error */ }
   }
 
   const handleSubmit = async () => {
@@ -90,7 +97,12 @@ export default function CategoriesPage() {
                 <td className="px-5 py-3 text-xs text-slate-600">{c.service_line_name || '-'}</td>
                 <td className="px-5 py-3 text-xs">{DFC_LABELS[c.cash_flow_class] || c.cash_flow_class}</td>
                 <td className="px-5 py-3">{c.active ? <Badge className="bg-emerald-100 text-emerald-800">Ativo</Badge> : <Badge variant="secondary">Inativo</Badge>}</td>
-                <td className="px-5 py-3"><Button variant="ghost" size="icon" onClick={() => openEdit(c)} aria-label={`Editar ${c.name}`}><Pencil className="size-4" /></Button></td>
+                <td className="px-5 py-3">
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)} aria-label={`Editar ${c.name}`}><Pencil className="size-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(c)} aria-label={`Excluir ${c.name}`}><Trash2 className="size-4 text-red-500" /></Button>
+                  </div>
+                </td>
               </tr>
             ))}</tbody>
           </table>

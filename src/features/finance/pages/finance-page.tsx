@@ -7,7 +7,7 @@ const sections = [
   { title: 'Plano de Contas', description: 'Classes, naturezas, grupos BP, DRE, DFC e DVA.', icon: BookOpen, to: '/finance/chart-accounts', status: 'Disponível', active: true },
   { title: 'Centros de Custo', description: 'Organização por área de atuação.', icon: Building2, to: '/finance/cost-centers', status: 'Disponível', active: true },
   { title: 'Linhas de Serviço', description: 'Linhagem de receita e custo por serviço.', icon: Layers, to: '/finance/service-lines', status: 'Disponível', active: true },
-  { title: 'Categorias', description: 'Regras de classificação e mapeamento contábil.', icon: FileText, to: '/finance/categories', status: 'Disponível', active: true },
+  { title: 'Categorias Financeiras', description: 'Regras de classificação e mapeamento contábil.', icon: FileText, to: '/finance/categories', status: 'Disponível', active: true },
   { title: 'Contas Financeiras', description: 'Caixa, bancos e equivalentes.', icon: CreditCard, to: '/finance/accounts', status: 'Disponível', active: true },
   { title: 'Formas de Pagamento', description: 'PIX, boleto, cartão, transferência.', icon: Receipt, to: '/finance/payment-methods', status: 'Planejado' },
   { title: 'Lançamentos', description: 'Motor de partidas dobradas.', icon: DollarSign, status: 'ETAPA 08B' },

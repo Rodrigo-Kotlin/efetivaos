@@ -162,6 +162,14 @@ export async function updateCategory(id: string, payload: FinanceTables['financi
   return data
 }
 
+export async function deleteCategory(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('financial_categories')
+    .delete()
+    .eq('id', id)
+  if (error) throw error
+}
+
 // ---------------------------------------------------------------------------
 // Financial Accounts (Contas de Caixa/Banco)
 // ---------------------------------------------------------------------------

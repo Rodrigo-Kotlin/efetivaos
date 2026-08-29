@@ -97,7 +97,7 @@ const navigationGroups: NavigationGroup[] = [
       { to: '/finance/chart-accounts', label: 'Plano de Contas', icon: LibraryBig },
       { to: '/finance/cost-centers', label: 'Centros de Custo', icon: Building2 },
       { to: '/finance/service-lines', label: 'Linhas de Serviço', icon: ListTree },
-      { to: '/finance/categories', label: 'Categorias', icon: ClipboardList },
+      { to: '/finance/categories', label: 'Categorias Financeiras', icon: ClipboardList },
     ],
   },
 ]

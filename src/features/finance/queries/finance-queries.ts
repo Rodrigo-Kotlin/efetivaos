@@ -115,6 +115,14 @@ export function useUpdateCategory() {
   })
 }
 
+export function useDeleteCategory() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.deleteCategory(id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['finance', 'categories'] }),
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Financial Accounts
 // ---------------------------------------------------------------------------
