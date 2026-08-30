@@ -180,7 +180,7 @@ function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: ()
 
   return (
     <>
-      <div className="flex h-28 items-center border-b border-slate-200 px-4">
+      <div className="flex h-28 items-center justify-center border-b border-slate-200 px-4">
         <Logo compact={collapsed} />
       </div>
       <nav className="flex-1 overflow-y-auto p-3" aria-label="Navegação principal">

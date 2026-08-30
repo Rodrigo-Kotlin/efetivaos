@@ -9,7 +9,7 @@ export function Logo({ compact = false, className }: { compact?: boolean; classN
       <img
         src={compact ? symbolLogo : fullLogo}
         alt={compact ? 'Símbolo da Efetiva' : 'Efetiva'}
-        className={cn('shrink-0 object-contain', compact ? 'size-11' : 'h-auto w-[120px]')}
+        className={cn('shrink-0 object-contain', compact ? 'size-10' : 'h-auto w-[108px]')}
       />
     </div>
   )
