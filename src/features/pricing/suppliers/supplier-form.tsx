@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FieldError, textareaClassName } from '@/components/shared/operational-ui'
+import { CnpjLookupField } from '@/features/shared/company-lookup'
+import type { CompanyLookupResult } from '@/features/shared/company-lookup'
 import type { Supplier } from '@/types/database'
 
 import { supplierFormDefaults, type SupplierFormValues, type SupplierInput, supplierSchema, toSupplierInput } from './supplier-schema'
@@ -16,10 +19,19 @@ type SupplierFormProps = {
 }
 
 export function SupplierForm({ supplier, pending = false, onCancel, onSubmit }: SupplierFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<SupplierFormValues>({
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierSchema),
     defaultValues: supplierFormDefaults(supplier),
   })
+
+  const taxId = watch('tax_id')
+
+  const handleCnpjLookup = useCallback((data: CompanyLookupResult) => {
+    if (data.legalName) setValue('legal_name', data.legalName)
+    if (data.tradeName) setValue('name', data.tradeName)
+    if (data.email) setValue('email', data.email)
+    if (data.phone) setValue('phone', data.phone)
+  }, [setValue])
 
   const field = (name: keyof SupplierFormValues) => ({
     'aria-invalid': Boolean(errors[name]),
@@ -40,11 +52,14 @@ export function SupplierForm({ supplier, pending = false, onCancel, onSubmit }: 
         <FieldError id="legal_name-error">{errors.legal_name?.message}</FieldError>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
-        <div>
-          <label className="text-sm font-semibold text-slate-800" htmlFor="tax_id">CPF/CNPJ</label>
-          <Input id="tax_id" {...register('tax_id')} {...field('tax_id')} />
-          <FieldError id="tax_id-error">{errors.tax_id?.message}</FieldError>
-        </div>
+        <CnpjLookupField
+          id="tax_id"
+          label="CPF/CNPJ"
+          value={taxId}
+          onChange={(v) => setValue('tax_id', v)}
+          onLookup={handleCnpjLookup}
+          disabled={pending}
+        />
         <div>
           <label className="text-sm font-semibold text-slate-800" htmlFor="category">Segmento</label>
           <Input id="category" {...register('category')} {...field('category')} />

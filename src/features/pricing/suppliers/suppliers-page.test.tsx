@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import type { Supplier } from '@/types/database'
 
@@ -12,6 +13,12 @@ vi.mock('./supplier-queries', () => ({
   useUpdateSupplier: vi.fn(),
   useSetSupplierStatus: vi.fn(),
 }))
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+function renderPage(ui: React.ReactElement) {
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
 
 const activeSupplier: Supplier = {
   id: 'active-1', code: 'FOR-000001', name: 'Lab Norte', legal_name: null, tax_id: null, category: 'Laboratorio',
@@ -38,7 +45,7 @@ describe('SuppliersPage status actions', () => {
 
   it('confirma e inativa um fornecedor ativo', async () => {
     const user = userEvent.setup()
-    render(<SuppliersPage />)
+    renderPage(<SuppliersPage />)
 
     await user.click(screen.getByRole('button', { name: 'Inativar Lab Norte' }))
 
@@ -48,7 +55,7 @@ describe('SuppliersPage status actions', () => {
 
   it('reativa sem pedir confirmacao', async () => {
     const user = userEvent.setup()
-    render(<SuppliersPage />)
+    renderPage(<SuppliersPage />)
 
     await user.click(screen.getByRole('button', { name: 'Reativar Antigo Lab' }))
 
@@ -58,14 +65,14 @@ describe('SuppliersPage status actions', () => {
 
   it('exibe skeleton durante o carregamento', () => {
     vi.mocked(useSuppliers).mockReturnValue({ data: undefined, isLoading: true, isError: false, refetch } as unknown as ReturnType<typeof useSuppliers>)
-    render(<SuppliersPage />)
+    renderPage(<SuppliersPage />)
     expect(screen.getByRole('status', { name: 'Carregando registros' })).toBeInTheDocument()
   })
 
   it('exibe estado vazio e abre o drawer de cadastro', async () => {
     const user = userEvent.setup()
     vi.mocked(useSuppliers).mockReturnValue({ data: [], isLoading: false, isError: false, refetch } as unknown as ReturnType<typeof useSuppliers>)
-    render(<SuppliersPage />)
+    renderPage(<SuppliersPage />)
 
     expect(screen.getByRole('heading', { name: 'Nenhum fornecedor cadastrado' })).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Cadastrar fornecedor' }))
@@ -75,7 +82,7 @@ describe('SuppliersPage status actions', () => {
   it('permite tentar novamente apos erro de consulta', async () => {
     const user = userEvent.setup()
     vi.mocked(useSuppliers).mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch } as unknown as ReturnType<typeof useSuppliers>)
-    render(<SuppliersPage />)
+    renderPage(<SuppliersPage />)
 
     expect(screen.getByRole('alert')).toHaveTextContent('Nao foi possivel carregar os dados')
     await user.click(screen.getByRole('button', { name: 'Tentar novamente' }))
@@ -84,7 +91,7 @@ describe('SuppliersPage status actions', () => {
 
   it('aplica busca e apresenta estado filtrado vazio', async () => {
     const user = userEvent.setup()
-    render(<SuppliersPage />)
+    renderPage(<SuppliersPage />)
     await user.type(screen.getByPlaceholderText('Buscar fornecedor...'), 'inexistente')
     expect(screen.getByRole('heading', { name: 'Nenhum fornecedor encontrado' })).toBeInTheDocument()
   })

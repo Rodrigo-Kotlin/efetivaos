@@ -7,7 +7,9 @@ const optionalText = (max: number) => z.string().trim().max(max, `Use no maximo 
 export const supplierSchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome do fornecedor.').max(160, 'Use no maximo 160 caracteres.'),
   legal_name: optionalText(200),
-  tax_id: optionalText(32),
+  tax_id: optionalText(32).refine((val) => val === '' || /^\d{11}$|^\d{14}$/.test(val.replace(/[^\d]/g, '')), {
+    message: 'Informe CPF (11 digitos) ou CNPJ (14 digitos).',
+  }),
   category: optionalText(100),
   contact_name: optionalText(160),
   email: z.string().trim().max(254, 'Use no maximo 254 caracteres.').refine(
@@ -39,7 +41,7 @@ export function toSupplierInput(values: SupplierFormValues): SupplierInput {
   return {
     name: values.name.trim(),
     legal_name: nullable(values.legal_name),
-    tax_id: nullable(values.tax_id),
+    tax_id: nullable(values.tax_id.replace(/[^\d]/g, '')),
     category: nullable(values.category),
     contact_name: nullable(values.contact_name),
     email: nullable(values.email),

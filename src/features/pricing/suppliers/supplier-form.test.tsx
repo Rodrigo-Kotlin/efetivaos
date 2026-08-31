@@ -1,9 +1,16 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import type { Supplier } from '@/types/database'
 
 import { SupplierForm } from './supplier-form'
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+
+function renderForm(ui: React.ReactElement) {
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>)
+}
 
 const supplier: Supplier = {
   id: 'supplier-1',
@@ -27,7 +34,7 @@ describe('SupplierForm', () => {
   it('valida nome obrigatorio e e-mail opcional valido', async () => {
     const user = userEvent.setup()
     const onSubmit = vi.fn()
-    render(<SupplierForm onCancel={vi.fn()} onSubmit={onSubmit} />)
+    renderForm(<SupplierForm onCancel={vi.fn()} onSubmit={onSubmit} />)
 
     await user.type(screen.getByLabelText('E-mail'), 'email-invalido')
     await user.click(screen.getByRole('button', { name: 'Cadastrar fornecedor' }))
@@ -40,7 +47,7 @@ describe('SupplierForm', () => {
   it('envia criacao com textos aparados e opcionais vazios como null', async () => {
     const user = userEvent.setup()
     const onSubmit = vi.fn()
-    render(<SupplierForm onCancel={vi.fn()} onSubmit={onSubmit} />)
+    renderForm(<SupplierForm onCancel={vi.fn()} onSubmit={onSubmit} />)
 
     await user.type(screen.getByLabelText('Nome / Nome fantasia *'), '  Lab Norte  ')
     await user.type(screen.getByLabelText('E-mail'), ' contato@lab.test ')
@@ -55,7 +62,7 @@ describe('SupplierForm', () => {
   it('envia atualizacao com os campos editados', async () => {
     const user = userEvent.setup()
     const onSubmit = vi.fn()
-    render(<SupplierForm supplier={supplier} onCancel={vi.fn()} onSubmit={onSubmit} />)
+    renderForm(<SupplierForm supplier={supplier} onCancel={vi.fn()} onSubmit={onSubmit} />)
 
     await user.clear(screen.getByLabelText('Nome / Nome fantasia *'))
     await user.type(screen.getByLabelText('Nome / Nome fantasia *'), 'Fornecedor atual')

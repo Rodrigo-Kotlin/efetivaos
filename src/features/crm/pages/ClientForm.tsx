@@ -1,9 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FieldError, textareaClassName } from '@/components/shared/operational-ui'
+import { CnpjLookupField } from '@/features/shared/company-lookup'
+import type { CompanyLookupResult } from '@/features/shared/company-lookup'
 import type { ClientListRow } from '@/types/database'
 
 import { clientFormDefaults, clientSchema, toClientInput, type ClientFormValues, type ClientFormInput } from '@/features/crm/schemas/client-schema'
@@ -38,12 +41,28 @@ function clientDefaults(client?: ClientListRow): ClientFormValues {
 }
 
 export default function ClientForm({ client, pending = false, onCancel, onSubmit }: ClientFormProps) {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm({
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({
     resolver: zodResolver(clientSchema),
     defaultValues: clientDefaults(client),
   })
 
   const clientType = watch('client_type')
+  const taxId = watch('tax_id')
+
+  const handleCnpjLookup = useCallback((data: CompanyLookupResult) => {
+    if (data.legalName) setValue('legal_name', data.legalName)
+    if (data.tradeName) setValue('trade_name', data.tradeName)
+    if (data.email) setValue('email', data.email)
+    if (data.phone) setValue('phone', data.phone)
+    if (data.zipCode) setValue('zip_code', data.zipCode)
+    if (data.street) setValue('street', data.street)
+    if (data.number) setValue('number', data.number)
+    if (data.complement) setValue('complement', data.complement)
+    if (data.district) setValue('district', data.district)
+    if (data.city) setValue('city', data.city)
+    if (data.state) setValue('state', data.state)
+    setValue('client_type', 'company')
+  }, [setValue])
 
   const field = (name: string) => ({
     'aria-invalid': Boolean(errors[name as keyof typeof errors]),
@@ -77,10 +96,22 @@ export default function ClientForm({ client, pending = false, onCancel, onSubmit
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-slate-800" htmlFor="tax_id">
-          {clientType === 'company' ? 'CNPJ *' : 'CPF *'}
-        </label>
-        <Input id="tax_id" placeholder={clientType === 'company' ? '00.000.000/0000-00' : '000.000.000-00'} {...register('tax_id')} {...field('tax_id')} />
+        {clientType === 'company' ? (
+          <CnpjLookupField
+            id="tax_id"
+            label="CNPJ"
+            value={taxId}
+            onChange={(v) => setValue('tax_id', v)}
+            onLookup={handleCnpjLookup}
+            required
+            disabled={pending}
+          />
+        ) : (
+          <>
+            <label className="text-sm font-semibold text-slate-800" htmlFor="tax_id">CPF *</label>
+            <Input id="tax_id" placeholder="000.000.000-00" {...register('tax_id')} {...field('tax_id')} />
+          </>
+        )}
         <FieldError id="tax_id-error">{errors.tax_id?.message}</FieldError>
       </div>
 
