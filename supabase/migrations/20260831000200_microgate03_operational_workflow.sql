@@ -644,6 +644,8 @@ COMMENT ON VIEW public.financial_cashflow_forecast_v IS
 --    Add forecast date filtering.
 -- ---------------------------------------------------------------------------
 
+DROP FUNCTION IF EXISTS public.cashflow_summary(date, date, uuid, uuid, uuid);
+
 CREATE OR REPLACE FUNCTION public.cashflow_summary(
   p_from date DEFAULT NULL,
   p_to   date DEFAULT NULL,
