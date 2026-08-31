@@ -248,7 +248,7 @@ grant select on public.financial_payables_v to public;
   produzindo uma visao enganosa da liquidez.
 - Correcao proposta: depois de F-03, oferecer fluxo explicito de liquidacao com
   data e forma de pagamento, e invalidar todas as consultas afetadas.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Status: `RESOLVED` na Microgate 03. Create drawer com toggle A vista/A prazo, settlement dialog com conta financeira obrigatoria, cashflow presets, account filter corrigido.
 
 ## F-05 - Edicao de pending nao exposta na UI
 
@@ -262,7 +262,7 @@ grant select on public.financial_payables_v to public;
 - Correcao proposta: antes da UI, revisar a semantica append-only do update, que
   hoje adiciona novas entries sem estornar as anteriores; depois expor edicao
   pending com CAS e invalidacao de cache.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Status: `RESOLVED` na Microgate 03. Edit drawer com CAS obrigatório, append-only update (reverse old + generate new), invalidação centralizada.
 
 ## F-06 - Views AR/AP acessiveis por anon/PUBLIC
 
@@ -299,7 +299,7 @@ grant select on public.financial_payables_v to public;
   reversao integral de todas as entries continua pendente. A orientacao do
   estorno de `DESPESA`/`IMOBILIZADO` pending foi corrigida por ser necessaria aos
   testes de DRE append-only.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Status: `RESOLVED` na Microgate 03. Reversal copy-based de todas as entries (pending e settled), com vinculo reversal_of_entry_id e idempotência.
 
 ## F-08 - Cache AR/AP nao invalidado apos mutations
 
@@ -313,7 +313,7 @@ grant select on public.financial_payables_v to public;
   intermitente apos refetch posterior.
 - Correcao proposta: centralizar keys e invalidar AR/AP em create, settle, cancel
   e update, com testes do QueryClient.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Status: `RESOLVED` na Microgate 03. invalidateFinanceQueries() centralizada, chamada em create/update/settle/cancel/reverse.
 
 ## F-09 - Cancelled contado como settled e forecast confiando no header
 
@@ -329,7 +329,7 @@ grant select on public.financial_payables_v to public;
 - Correcao proposta: cancelled deve ter open e settled iguais a zero, com campo
   separado se um total cancelado for necessario; forecast deve reconciliar com
   contas de controle.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Status: `RESOLVED` na Microgate 03. Cancelled tem settled_amount=0, open_amount=0. Forecast usa security_invoker e exclui cancelados/revertidos. Cashflow reversal visível como movimento inverso.
 
 ## F-10 - Dashboard DRE herda F-02
 

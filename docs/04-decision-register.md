@@ -939,3 +939,49 @@ de `pending` continua append-only.
 
 **Validação:** 66/66 checks da suíte 08M, 28/28 checks de regressão F-01/F-06 e
 15/15 checks de estrutura/segurança da DRE aprovados no Supabase DEV.
+
+---
+
+### DEC-061 — Engine de reversão copy-based com tracking explícito
+
+**Status:** FECHADA
+
+**Data:** 2026-08-31 (FINANCE MICROGATE 03)
+
+**Contexto:** Microgate 02 bloqueou cancelamento de settled para evitar corrupção.
+Microgate 03 precisa entregar reversão segura para F-07 (cancelamento de settled
+estorna todas as legs), F-05 (update append-only) e F-01 (dedup reversal). A abordagem
+original "rebuild one leg by movement type" era insuficiente para settled (leg de
+caixa ficava residual). Update_existente adicionava entries sem estornar, gerando
+saldos incorretos (100→120 = 220 em vez de 120).
+
+**Decisão:** Reversão é copy-based: select todas as linhas da entry original,
+inverter debit↔credit (line por line), copiar todos os metadados (period, category,
+competence, asset_id, depreciation_run_id, origin/destination), adicionar
+`reversal_of_entry_id` (FK parcial UNIQUE) e `reversal_reason`. Constraint parcial
+garante no máximo 1 reversal por original. Trigger valida que reversal_of_entry_id
+só pode ser preenchido quando a entry é o reversal (não a original). Fluxos:
+
+- **Cancel pending:** `cancel_financial_transaction` cria reversal da competência
+  única → status=cancelled.
+- **Reverse settled:** `cancel_financial_transaction` detecta 2+ entries, cria
+  reversal de cada uma (competência + caixa, ou competência + AR/AP) →
+  status=cancelled.
+- **Update append-only:** `update_financial_transaction` (CAS obrigatório) estorna
+  todas as entries vigentes via copy-based, depois gera novas entries com os dados
+  atualizados. 100→120→150 = 150, nunca 220. Reusa `cancel_financial_transaction`
+  para o passo de estorno (evita duplicar lógica).
+
+**Motivo:** Copy-based preserva todos os dimensões (category, competence,
+asset_id, depreciation_run_id) sem inferir tipo de movimento. Tracking explícito
+(`/reversal_of_entry_id`) permite dedup e auditoria. Reutilizar cancel para
+estorno unifica a lógica e reduz superfície de bugs.
+
+**Impacto:** `financial_journal_entries` ganha 2 colunas + 1 FK parcial + 1
+trigger. `cancel_financial_transaction` e `update_financial_transaction` são
+reescritas. AR/AP views e forecast view são atualizados. 3 RPCs mantêm
+SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
+(COR-14 preservado).
+
+**Validação:** 08N ≥60 checks, 08M 66/66, 08L 28/28, 08E.1 15/15, frontend
+455/455, TS=0, build PASS.
