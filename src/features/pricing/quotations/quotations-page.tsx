@@ -63,18 +63,27 @@ export default function QuotationsPage() {
     },
   ], [])
 
+  const columnFilters = useMemo(() => [
+    { id: 'supplier' as const, value: supplier },
+    { id: 'status' as const, value: status },
+    { id: 'valid_until' as const, value: validity },
+  ], [supplier, status, validity])
+  const coreRowModel = useMemo(getCoreRowModel, [])
+  const filteredRowModel = useMemo(getFilteredRowModel, [])
+  const sortedRowModel = useMemo(getSortedRowModel, [])
+
   // TanStack Table intentionally exposes non-memoizable functions.
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: quotations,
     columns,
-    state: { globalFilter: search, columnFilters: [{ id: 'supplier', value: supplier }, { id: 'status', value: status }, { id: 'valid_until', value: validity }], sorting },
+    state: { globalFilter: search, columnFilters, sorting },
     onGlobalFilterChange: setSearch,
     onSortingChange: setSorting,
     globalFilterFn: quotationSearch,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    getCoreRowModel: coreRowModel,
+    getFilteredRowModel: filteredRowModel,
+    getSortedRowModel: sortedRowModel,
   })
   const rows = table.getRowModel().rows
   const clearFilters = () => { setSearch(''); setSupplier('all'); setStatus('all'); setValidity('all') }
