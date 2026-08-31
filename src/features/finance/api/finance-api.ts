@@ -324,11 +324,13 @@ export async function createTransaction(params: CreateTransactionParams): Promis
 export async function settleTransaction(
   transactionId: string,
   paymentDate: string,
+  financialAccountId: string,
   paymentMethodId?: string | null,
 ): Promise<void> {
   const { error } = await supabase.rpc('settle_financial_transaction', {
     p_transaction_id: transactionId,
     p_payment_date: paymentDate,
+    p_financial_account_id: financialAccountId,
     p_payment_method_id: paymentMethodId ?? null,
   })
   if (error) throw error
@@ -345,9 +347,20 @@ export async function cancelTransaction(
   if (error) throw error
 }
 
+export async function reverseTransaction(
+  transactionId: string,
+  reason: string,
+): Promise<void> {
+  const { error } = await supabase.rpc('cancel_financial_transaction', {
+    p_transaction_id: transactionId,
+    p_reason: reason,
+  })
+  if (error) throw error
+}
+
 export interface UpdateTransactionParams {
   transactionId: string
-  expectedVersion?: number
+  expectedVersion: number
   description?: string | null
   transactionDate?: string | null
   competenceDate?: string | null
@@ -361,7 +374,6 @@ export interface UpdateTransactionParams {
   serviceLineId?: string | null
   paymentMethodId?: string | null
   dueDate?: string | null
-  paymentDate?: string | null
   notes?: string | null
   principalAmount?: number | null
   interestAmount?: number | null
@@ -371,7 +383,7 @@ export async function updateTransaction(params: UpdateTransactionParams): Promis
   const { transactionId, expectedVersion, ...rest } = params
   const { error } = await supabase.rpc('update_financial_transaction', {
     p_transaction_id: transactionId,
-    p_expected_version: expectedVersion ?? null,
+    p_expected_version: expectedVersion,
     p_description: rest.description ?? null,
     p_transaction_date: rest.transactionDate ?? null,
     p_competence_date: rest.competenceDate ?? null,
@@ -385,7 +397,6 @@ export async function updateTransaction(params: UpdateTransactionParams): Promis
     p_service_line_id: rest.serviceLineId ?? null,
     p_payment_method_id: rest.paymentMethodId ?? null,
     p_due_date: rest.dueDate ?? null,
-    p_payment_date: rest.paymentDate ?? null,
     p_notes: rest.notes ?? null,
     p_principal_amount: rest.principalAmount ?? null,
     p_interest_amount: rest.interestAmount ?? null,
@@ -424,15 +435,21 @@ export async function fetchJournalLinesByEntry(entryId: string): Promise<Financi
 export interface CashflowFilters {
   from?: string | null
   to?: string | null
-  accountId?: string | null
+  financialAccountId?: string | null
   costCenterId?: string | null
   serviceLineId?: string | null
 }
 
-export async function fetchCashflowOpeningBalance(date: string, accountId?: string | null): Promise<number> {
+export async function fetchCashflowOpeningBalance(date: string, financialAccountId?: string | null): Promise<number> {
+  // Resolve financialAccountId to chart_account_id
+  let chartAccountId: string | null = null
+  if (financialAccountId) {
+    const { data: fa } = await supabase.from('financial_accounts').select('chart_account_id').eq('id', financialAccountId).single()
+    chartAccountId = fa?.chart_account_id ?? null
+  }
   const { data, error } = await supabase.rpc('cashflow_opening_balance', {
     p_date: date,
-    p_account_id: accountId ?? null,
+    p_account_id: chartAccountId,
   })
   if (error) throw error
   return Number(data ?? 0)
@@ -442,7 +459,7 @@ export async function fetchCashflowSummary(filters: CashflowFilters = {}): Promi
   const { data, error } = await supabase.rpc('cashflow_summary', {
     p_from: filters.from ?? null,
     p_to: filters.to ?? null,
-    p_account_id: filters.accountId ?? null,
+    p_financial_account_id: filters.financialAccountId ?? null,
     p_cost_center_id: filters.costCenterId ?? null,
     p_service_line_id: filters.serviceLineId ?? null,
   })
@@ -457,7 +474,11 @@ export async function fetchCashflowRealized(filters: CashflowFilters = {}): Prom
   let q = supabase.from('financial_cashflow_realized_v').select('*')
   if (filters.from) q = q.gte('entry_date', filters.from)
   if (filters.to) q = q.lte('entry_date', filters.to)
-  if (filters.accountId) q = q.contains('chart_account_ids', [filters.accountId])
+  // COR-4: resolve financialAccountId to chart_account_id
+  if (filters.financialAccountId) {
+    const { data: fa } = await supabase.from('financial_accounts').select('chart_account_id').eq('id', filters.financialAccountId).single()
+    if (fa?.chart_account_id) q = q.contains('chart_account_ids', [fa.chart_account_id])
+  }
   if (filters.costCenterId) q = q.eq('cost_center_id', filters.costCenterId)
   if (filters.serviceLineId) q = q.eq('service_line_id', filters.serviceLineId)
   q = q.order('entry_date', { ascending: true }).order('created_at', { ascending: true })

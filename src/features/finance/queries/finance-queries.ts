@@ -1,7 +1,22 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import * as api from '../api/finance-api'
-import type { ChartAccountFormValues, CostCenterFormValues, ServiceLineFormValues, CategoryFormValues, FinancialAccountFormValues, TransactionBaseFormValues } from '../schemas/finance-schemas'
+import type { ChartAccountFormValues, CostCenterFormValues, ServiceLineFormValues, CategoryFormValues, FinancialAccountFormValues, TransactionBaseFormValues, TransactionFormValues } from '../schemas/finance-schemas'
+
+// ---------------------------------------------------------------------------
+// Centralized finance query invalidation (COR-8, COR-19)
+// ---------------------------------------------------------------------------
+
+export function invalidateFinanceQueries(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: ['finance', 'transactions'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'receivables'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'payables'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'cashflow'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'income-statement'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'assets'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'balance-sheet'] })
+  void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
+}
 
 // ---------------------------------------------------------------------------
 // Chart Accounts
@@ -255,30 +270,16 @@ export function useCreateTransaction() {
       interestAmount: values.interest_amount,
       idempotencyKey: values.idempotency_key,
     }),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: TX_KEYS.all })
-      void qc.invalidateQueries({ queryKey: CF_KEYS.all })
-      void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
-      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
-      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
-      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
-    },
+    onSuccess: () => invalidateFinanceQueries(qc),
   })
 }
 
 export function useSettleTransaction() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, paymentDate, paymentMethodId }: { id: string; paymentDate: string; paymentMethodId?: string | null }) =>
-      api.settleTransaction(id, paymentDate, paymentMethodId),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: TX_KEYS.all })
-      void qc.invalidateQueries({ queryKey: CF_KEYS.all })
-      void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
-      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
-      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
-      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
-    },
+    mutationFn: ({ id, paymentDate, financialAccountId, paymentMethodId }: { id: string; paymentDate: string; financialAccountId: string; paymentMethodId?: string | null }) =>
+      api.settleTransaction(id, paymentDate, financialAccountId, paymentMethodId),
+    onSuccess: () => invalidateFinanceQueries(qc),
   })
 }
 
@@ -287,18 +288,28 @@ export function useCancelTransaction() {
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason?: string | null }) =>
       api.cancelTransaction(id, reason),
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: TX_KEYS.all })
-      void qc.invalidateQueries({ queryKey: CF_KEYS.all })
-      void qc.invalidateQueries({ queryKey: DRE_KEYS.all })
-      void qc.invalidateQueries({ queryKey: ASSET_KEYS.all })
-      void qc.invalidateQueries({ queryKey: BS_KEYS.all })
-      void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
-    },
+    onSuccess: () => invalidateFinanceQueries(qc),
   })
 }
 
 // ---------------------------------------------------------------------------
+export function useUpdateTransaction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (params: api.UpdateTransactionParams) => api.updateTransaction(params),
+    onSuccess: () => invalidateFinanceQueries(qc),
+  })
+}
+
+export function useReverseTransaction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      api.reverseTransaction(id, reason),
+    onSuccess: () => invalidateFinanceQueries(qc),
+  })
+}
+
 // Cash Flow / DFC (ETAPA 08D)
 // ---------------------------------------------------------------------------
 

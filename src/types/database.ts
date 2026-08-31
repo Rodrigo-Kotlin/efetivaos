@@ -447,7 +447,7 @@ export type FinancialTransactionList = FinancialTransaction & {
 }
 
 export type FinancialJournalEntry = {
-  id: string; transaction_id: string; entry_type: string; entry_date: string; competence_date: string; description: string; status: FinancialTransactionStatus; review_required: boolean; created_at: string; created_by: string | null
+  id: string; transaction_id: string; entry_type: string; entry_date: string; competence_date: string; description: string; status: FinancialTransactionStatus; review_required: boolean; created_at: string; created_by: string | null; reversal_of_entry_id: string | null; reversal_reason: string | null
 }
 export type FinancialJournalEntryList = FinancialJournalEntry & {
   total_debit: string; total_credit: string
@@ -1107,10 +1107,13 @@ export type Database = {
           description: string
           status?: FinancialTransactionStatus
           review_required?: boolean
+          reversal_of_entry_id?: string | null
+          reversal_reason?: string | null
         }
         Update: Partial<Omit<FinancialJournalEntry, 'id' | 'created_at' | 'created_by'>>
         Relationships: [
           { foreignKeyName: 'fje_transaction_id_fkey'; columns: ['transaction_id']; isOneToOne: false; referencedRelation: 'financial_transactions'; referencedColumns: ['id'] },
+          { foreignKeyName: 'fje_reversal_of_entry_fk'; columns: ['reversal_of_entry_id']; isOneToOne: false; referencedRelation: 'financial_journal_entries'; referencedColumns: ['id'] },
         ]
       }
       financial_journal_lines: {

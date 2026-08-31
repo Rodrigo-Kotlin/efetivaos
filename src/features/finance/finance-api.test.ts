@@ -366,15 +366,15 @@ describe('Transactions API', () => {
 
   it('settleTransaction chama RPC com parametros corretos', async () => {
     serviceMocks.rpcResults.push({ data: null, error: null })
-    await settleTransaction('tx-1', '2026-01-20', 'pm-1')
+    await settleTransaction('tx-1', '2026-01-20', 'fa-1', 'pm-1')
     const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:settle_financial_transaction')
     expect(rpcOp).toBeTruthy()
-    expect(rpcOp!.args[0]).toMatchObject({ p_transaction_id: 'tx-1', p_payment_date: '2026-01-20', p_payment_method_id: 'pm-1' })
+    expect(rpcOp!.args[0]).toMatchObject({ p_transaction_id: 'tx-1', p_payment_date: '2026-01-20', p_financial_account_id: 'fa-1', p_payment_method_id: 'pm-1' })
   })
 
   it('settleTransaction propaga erro do RPC', async () => {
     serviceMocks.rpcResults.push({ data: null, error: { message: 'Cannot settle' } })
-    await expect(settleTransaction('tx-1', '2026-01-20')).rejects.toThrow()
+    await expect(settleTransaction('tx-1', '2026-01-20', 'fa-1')).rejects.toThrow()
   })
 
   it('cancelTransaction chama RPC com reason', async () => {
