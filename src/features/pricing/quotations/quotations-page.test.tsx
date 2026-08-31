@@ -2,23 +2,31 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 
+import { useOnlineStatus } from '@/hooks/use-online-status'
+
 import QuotationsPage from './quotations-page'
-import { useQuotations } from './quotation.queries'
+import { useArchiveQuotation, useQuotations, useUnarchiveQuotation } from './quotation.queries'
 import type { QuotationListRow } from './quotation.types'
 
-vi.mock('./quotation.queries', () => ({ useQuotations: vi.fn() }))
+vi.mock('./quotation.queries', () => ({ useQuotations: vi.fn(), useArchiveQuotation: vi.fn(), useUnarchiveQuotation: vi.fn() }))
+vi.mock('@/hooks/use-online-status', () => ({ useOnlineStatus: vi.fn() }))
 
 const rows: QuotationListRow[] = [
-  { id: 'q1', reference_number: 'LAB-001', received_at: '2026-08-20', valid_until: '2020-01-01', status: 'active', updated_at: '2026-08-21T10:00:00Z', supplier: { id: 's1', name: 'Lab Norte' }, quotation_items: [{ id: 'i1' }] },
-  { id: 'q2', reference_number: null, received_at: '2026-08-21', valid_until: null, status: 'cancelled', updated_at: '2026-08-22T10:00:00Z', supplier: { id: 's2', name: 'Clinica Sul' }, quotation_items: [] },
-  { id: 'q3', reference_number: 'RASC-1', received_at: '2026-08-22', valid_until: '2099-01-01', status: 'draft', updated_at: '2026-08-23T10:00:00Z', supplier: { id: 's1', name: 'Lab Norte' }, quotation_items: [] },
+  { id: 'q1', reference_number: 'LAB-001', received_at: '2026-08-20', valid_until: '2020-01-01', status: 'active', updated_at: '2026-08-21T10:00:00Z', archived_at: null, supplier: { id: 's1', name: 'Lab Norte' }, quotation_items: [{ id: 'i1' }] },
+  { id: 'q2', reference_number: null, received_at: '2026-08-21', valid_until: null, status: 'cancelled', updated_at: '2026-08-22T10:00:00Z', archived_at: null, supplier: { id: 's2', name: 'Clinica Sul' }, quotation_items: [] },
+  { id: 'q3', reference_number: 'RASC-1', received_at: '2026-08-22', valid_until: '2099-01-01', status: 'draft', updated_at: '2026-08-23T10:00:00Z', archived_at: null, supplier: { id: 's1', name: 'Lab Norte' }, quotation_items: [] },
 ]
 
 function renderPage() { return render(<MemoryRouter><QuotationsPage /></MemoryRouter>) }
 
 describe('QuotationsPage', () => {
   const refetch = vi.fn()
-  beforeEach(() => vi.mocked(useQuotations).mockReturnValue({ data: rows, isLoading: false, isError: false, refetch } as unknown as ReturnType<typeof useQuotations>))
+  beforeEach(() => {
+    vi.mocked(useOnlineStatus).mockReturnValue(true)
+    vi.mocked(useQuotations).mockReturnValue({ data: rows, isLoading: false, isError: false, refetch } as unknown as ReturnType<typeof useQuotations>)
+    vi.mocked(useArchiveQuotation).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useArchiveQuotation>)
+    vi.mocked(useUnarchiveQuotation).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useUnarchiveQuotation>)
+  })
 
   it('exibe loading, vazio e erro com retry', async () => {
     vi.mocked(useQuotations).mockReturnValueOnce({ isLoading: true } as ReturnType<typeof useQuotations>)

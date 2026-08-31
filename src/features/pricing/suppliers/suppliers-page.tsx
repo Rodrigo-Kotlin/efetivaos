@@ -20,7 +20,7 @@ type StatusFilter = 'all' | 'active' | 'inactive'
 const supplierSearch: FilterFn<Supplier> = (row, _columnId, value: string) => {
   const term = value.toLocaleLowerCase('pt-BR').trim()
   if (!term) return true
-  return [row.original.name, row.original.legal_name, row.original.tax_id, row.original.category, row.original.contact_name, row.original.email, row.original.phone]
+  return [row.original.code, row.original.name, row.original.legal_name, row.original.tax_id, row.original.category, row.original.contact_name, row.original.email, row.original.phone]
     .some((field) => field?.toLocaleLowerCase('pt-BR').includes(term))
 }
 
@@ -42,6 +42,7 @@ function responsiveColumnClass(columnId: string) {
 
 function SupplierDetails({ supplier, onEdit }: { supplier: Supplier; onEdit: () => void }) {
   const details = [
+    ['Código', supplier.code],
     ['Razao social', supplier.legal_name],
     ['CPF/CNPJ', supplier.tax_id],
     ['Segmento', supplier.category],
@@ -101,6 +102,7 @@ export default function SuppliersPage() {
   const isStatusPending = statusMutation.isPending
 
   const columns = useMemo<ColumnDef<Supplier>[]>(() => [
+    { accessorKey: 'code', header: 'Código', cell: ({ getValue }) => <span className="font-mono text-xs text-slate-500">{getValue<string>()}</span> },
     {
       accessorKey: 'name',
       header: 'Fornecedor',
@@ -222,7 +224,7 @@ export default function SuppliersPage() {
         />
       ) : (
         <TableShell>
-          <table className="w-full min-w-[820px] text-left text-sm">
+          <table className="w-full min-w-[920px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
               {table.getHeaderGroups().map((headerGroup) => <tr key={headerGroup.id}>{headerGroup.headers.map((header) => {
                 const direction = header.column.getIsSorted()

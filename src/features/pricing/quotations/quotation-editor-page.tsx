@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { AlertTriangle, ArrowLeft, Ban, CheckCircle2, Circle, ExternalLink, Power, Save } from 'lucide-react'
+import { AlertTriangle, Archive, ArchiveRestore, ArrowLeft, Ban, CheckCircle2, Circle, ExternalLink, Power, Save } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
@@ -17,7 +17,7 @@ import type { Supplier } from '@/types/database'
 import { QuotationDetail } from './quotation-detail'
 import { QuotationHeaderForm } from './quotation-header-form'
 import { QuotationItemsGrid } from './quotation-items-grid'
-import { useActivateQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useQuotation, useSaveQuotationDraft } from './quotation.queries'
+import { useActivateQuotation, useArchiveQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useQuotation, useSaveQuotationDraft, useUnarchiveQuotation } from './quotation.queries'
 import { getQuotationAttachmentUrl } from './quotation.service'
 import { normalizeQuotationValues, parseBrlDecimal, quotationDefaults, quotationSchema, type QuotationFormValues } from './quotation.schemas'
 import { QuotationStatusBadge } from './quotation-badges'
@@ -30,7 +30,7 @@ function message(error: unknown) {
 }
 
 function supplierFallback(quotation: NonNullable<ReturnType<typeof useQuotation>['data']>): Supplier {
-  return { ...quotation.supplier, legal_name: null, tax_id: null, category: null, contact_name: null, email: null, phone: null, notes: null, created_at: quotation.created_at, created_by: null, updated_at: quotation.updated_at, updated_by: null }
+  return { ...quotation.supplier, code: 'FOR-000000', legal_name: null, tax_id: null, category: null, contact_name: null, email: null, phone: null, notes: null, created_at: quotation.created_at, created_by: null, updated_at: quotation.updated_at, updated_by: null }
 }
 
 function catalogFallbacks(quotation: NonNullable<ReturnType<typeof useQuotation>['data']>): CatalogItemRow[] {
@@ -68,6 +68,8 @@ export default function QuotationEditorPage() {
   const saveMutation = useSaveQuotationDraft()
   const activateMutation = useActivateQuotation()
   const cancelMutation = useCancelQuotation()
+  const archiveMutation = useArchiveQuotation()
+  const unarchiveMutation = useUnarchiveQuotation()
   const discardPendingAttachmentMutation = useDiscardPendingQuotationAttachment()
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string>()
@@ -75,7 +77,8 @@ export default function QuotationEditorPage() {
   const initializedQuotationId = useRef<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const quotation = query.data
-  const readonly = quotation?.status === 'active' || quotation?.status === 'cancelled'
+  const isArchived = Boolean(quotation?.archived_at)
+  const readonly = isArchived || quotation?.status === 'active' || quotation?.status === 'cancelled'
   const persistedAttachmentPending = quotation?.source_file_pending === true
 
   const form = useForm<QuotationFormValues>({ resolver: zodResolver(quotationSchema), defaultValues: quotationDefaults() })
@@ -246,11 +249,11 @@ export default function QuotationEditorPage() {
   if (editing && query.isError) return <ErrorState onRetry={() => void query.refetch()} />
   if (editing && !quotation) return null
 
-  const pending = saveMutation.isPending || activateMutation.isPending || cancelMutation.isPending || discardPendingAttachmentMutation.isPending
+  const pending = saveMutation.isPending || activateMutation.isPending || cancelMutation.isPending || archiveMutation.isPending || unarchiveMutation.isPending || discardPendingAttachmentMutation.isPending
   const title = !quotation ? 'Nova cotação' : quotation.reference_number || 'Cotação sem referência'
-  const actions = <><Button asChild variant="outline"><Link to="/pricing/quotations"><ArrowLeft className="size-4" /> Voltar</Link></Button>{!readonly && <Button type="button" variant="outline" disabled={pending || !online || persistedAttachmentPending} onClick={() => void form.handleSubmit(saveDraft)()}><Save className="size-4" /> Salvar rascunho</Button>}{!readonly && <Button type="button" disabled={pending || !online || persistedAttachmentPending || !activationReady} aria-describedby="activation-button-help" onClick={() => void form.handleSubmit(activate)()}><Power className="size-4" /> Ativar</Button>}{quotation && quotation.status !== 'cancelled' && <Button type="button" variant="destructive" disabled={pending || !online || persistedAttachmentPending} onClick={() => void cancel()}><Ban className="size-4" /> Cancelar cotação</Button>}</>
+  const actions = <><Button asChild variant="outline"><Link to="/pricing/quotations"><ArrowLeft className="size-4" /> Voltar</Link></Button>{!readonly && <Button type="button" variant="outline" disabled={pending || !online || persistedAttachmentPending} onClick={() => void form.handleSubmit(saveDraft)()}><Save className="size-4" /> Salvar rascunho</Button>}{!readonly && <Button type="button" disabled={pending || !online || persistedAttachmentPending || !activationReady} aria-describedby="activation-button-help" onClick={() => void form.handleSubmit(activate)()}><Power className="size-4" /> Ativar</Button>}{quotation && quotation.status !== 'cancelled' && !isArchived && <Button type="button" variant="destructive" disabled={pending || !online || persistedAttachmentPending} onClick={() => void cancel()}><Ban className="size-4" /> Cancelar cotação</Button>}{quotation && !isArchived && <Button type="button" variant="outline" disabled={pending || !online} onClick={() => void archiveMutation.mutateAsync(quotation.id).then(() => { toast.success('Cotação arquivada.') }).catch((error) => { toast.error(message(error)) })}><Archive className="size-4" /> Arquivar cotação</Button>}{quotation && isArchived && <Button type="button" variant="outline" disabled={pending || !online} onClick={() => void unarchiveMutation.mutateAsync(quotation.id).then(() => { toast.success('Cotação desarquivada.') }).catch((error) => { toast.error(message(error)) })}><ArchiveRestore className="size-4" /> Desarquivar cotação</Button>}</>
 
-  if (readonly && quotation) return <div className="mx-auto max-w-[1480px]"><PageHeader eyebrow="Cotações" title={title} description="Registro histórico somente para leitura." actions={actions} /><QuotationDetail quotation={quotation} onOpenAttachment={() => void openAttachment()} /></div>
+  if (readonly && quotation) return <div className="mx-auto max-w-[1480px]"><PageHeader eyebrow="Cotações" title={title} description={isArchived ? "Cotação arquivada. Desarquive para editar, ativar ou cancelar." : "Registro histórico somente para leitura."} actions={actions} /><QuotationDetail quotation={quotation} onOpenAttachment={() => void openAttachment()} /></div>
 
   const mastersLoading = suppliersQuery.isLoading || catalogQuery.isLoading
   const mastersError = suppliersQuery.isError || catalogQuery.isError
@@ -263,7 +266,7 @@ export default function QuotationEditorPage() {
 
   return <div className="mx-auto max-w-[1480px]">
     <PageHeader eyebrow="Cotações" title={title} description="Salve como rascunho, mapeie os itens e só então ative." actions={actions} />
-    {quotation && <div className="mb-5"><QuotationStatusBadge status={quotation.status} /></div>}
+    {quotation && <div className="mb-5"><QuotationStatusBadge status={quotation.status} archived={isArchived} /></div>}
     {persistedAttachmentPending && <section className="mb-5 flex flex-col gap-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between" role="alert" aria-labelledby="pending-attachment-title"><div><h2 id="pending-attachment-title" className="font-semibold">Envio de anexo pendente</h2><p className="mt-1">Um envio anterior foi interrompido ou ainda está em andamento. Descarte-o para liberar o rascunho.</p></div><Button className="shrink-0" type="button" variant="destructive" disabled={pending || !online} onClick={() => void discardPendingAttachment()}>Descartar envio pendente</Button></section>}
     {(mastersError || historicalWarning) && <div className="mb-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="alert"><AlertTriangle className="mt-0.5 size-5 shrink-0" /><span>{mastersError ? 'Não foi possível atualizar os cadastros mestres. Os vínculos históricos desta cotação foram preservados; tente novamente antes de ativar.' : 'Esta cotação possui fornecedor ou item histórico inativo. Você pode salvar o rascunho, mas deve reativar o cadastro ou selecionar outro registro antes de ativar.'}</span></div>}
     <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">

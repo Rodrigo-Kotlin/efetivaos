@@ -14,11 +14,11 @@ vi.mock('./supplier-queries', () => ({
 }))
 
 const activeSupplier: Supplier = {
-  id: 'active-1', name: 'Lab Norte', legal_name: null, tax_id: null, category: 'Laboratorio',
+  id: 'active-1', code: 'FOR-000001', name: 'Lab Norte', legal_name: null, tax_id: null, category: 'Laboratorio',
   contact_name: 'Marina', email: null, phone: '(93) 99999-0001', active: true, notes: null,
   created_at: '2026-08-23T10:00:00Z', created_by: null, updated_at: '2026-08-23T10:00:00Z', updated_by: null,
 }
-const inactiveSupplier: Supplier = { ...activeSupplier, id: 'inactive-1', name: 'Antigo Lab', active: false }
+const inactiveSupplier: Supplier = { ...activeSupplier, id: 'inactive-1', code: 'FOR-000002', name: 'Antigo Lab', active: false }
 
 describe('SuppliersPage status actions', () => {
   const mutateStatus = vi.fn()

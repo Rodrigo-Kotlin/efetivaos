@@ -28,6 +28,7 @@ export function SupplierForm({ supplier, pending = false, onCancel, onSubmit }: 
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit((values) => onSubmit(toSupplierInput(values)))} noValidate>
+      {supplier?.code && <div><label className="text-sm font-semibold text-slate-800" htmlFor="code">Código</label><Input id="code" value={supplier.code} readOnly disabled className="mt-1 font-mono text-sm" /></div>}
       <div>
         <label className="text-sm font-semibold text-slate-800" htmlFor="name">Nome / Nome fantasia *</label>
         <Input id="name" {...register('name')} {...field('name')} />

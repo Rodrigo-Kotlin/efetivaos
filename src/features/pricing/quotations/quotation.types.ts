@@ -1,6 +1,6 @@
 import type { CatalogItem, Quotation, QuotationItem, Supplier } from '@/types/database'
 
-export type QuotationListRow = Pick<Quotation, 'id' | 'reference_number' | 'received_at' | 'valid_until' | 'status' | 'updated_at'> & {
+export type QuotationListRow = Pick<Quotation, 'id' | 'reference_number' | 'received_at' | 'valid_until' | 'status' | 'updated_at' | 'archived_at'> & {
   supplier: Pick<Supplier, 'id' | 'name'>
   quotation_items: Array<Pick<QuotationItem, 'id'>>
 }

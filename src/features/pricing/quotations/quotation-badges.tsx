@@ -1,14 +1,17 @@
-import { AlertTriangle, Ban, CheckCircle2, Clock3, FileQuestion } from 'lucide-react'
+import { AlertTriangle, Archive, Ban, CheckCircle2, Clock3, FileQuestion } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import type { QuotationStatus } from '@/types/database'
 
 import { isExpired, quotationStatusLabels } from './quotation.helpers'
 
-export function QuotationStatusBadge({ status }: { status: QuotationStatus }) {
-  if (status === 'active') return <Badge><CheckCircle2 className="size-3.5" /> {quotationStatusLabels[status]}</Badge>
-  if (status === 'cancelled') return <Badge variant="warning"><Ban className="size-3.5" /> {quotationStatusLabels[status]}</Badge>
-  return <Badge variant="secondary"><Clock3 className="size-3.5" /> {quotationStatusLabels[status]}</Badge>
+export function QuotationStatusBadge({ status, archived }: { status: QuotationStatus; archived?: boolean }) {
+  return <span className="inline-flex flex-wrap gap-1">
+    {status === 'active' && <Badge><CheckCircle2 className="size-3.5" /> {quotationStatusLabels[status]}</Badge>}
+    {status === 'cancelled' && <Badge variant="warning"><Ban className="size-3.5" /> {quotationStatusLabels[status]}</Badge>}
+    {status === 'draft' && <Badge variant="secondary"><Clock3 className="size-3.5" /> {quotationStatusLabels[status]}</Badge>}
+    {archived && <Badge variant="outline"><Archive className="size-3.5" /> Arquivada</Badge>}
+  </span>
 }
 
 export function QuotationValidityBadge({ validUntil }: { validUntil: string | null }) {

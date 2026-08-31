@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import type { Supplier } from '@/types/database'
 
 import QuotationEditorPage from './quotation-editor-page'
-import { useActivateQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useQuotation, useSaveQuotationDraft } from './quotation.queries'
+import { useActivateQuotation, useArchiveQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useQuotation, useSaveQuotationDraft, useUnarchiveQuotation } from './quotation.queries'
 import type { QuotationDetail } from './quotation.types'
 import { useCatalogItems } from '../catalog/catalog.queries'
 import { useSuppliers } from '../suppliers/supplier-queries'
@@ -18,15 +18,15 @@ vi.mock('react-router-dom', async (importOriginal) => ({
   ...await importOriginal<typeof import('react-router-dom')>(),
   useNavigate: () => routerMocks.navigate,
 }))
-vi.mock('./quotation.queries', () => ({ useQuotation: vi.fn(), useSaveQuotationDraft: vi.fn(), useActivateQuotation: vi.fn(), useCancelQuotation: vi.fn(), useDiscardPendingQuotationAttachment: vi.fn() }))
+vi.mock('./quotation.queries', () => ({ useQuotation: vi.fn(), useSaveQuotationDraft: vi.fn(), useActivateQuotation: vi.fn(), useCancelQuotation: vi.fn(), useDiscardPendingQuotationAttachment: vi.fn(), useArchiveQuotation: vi.fn(), useUnarchiveQuotation: vi.fn() }))
 vi.mock('../catalog/catalog.queries', () => ({ useCatalogItems: vi.fn() }))
 vi.mock('../suppliers/supplier-queries', () => ({ useSuppliers: vi.fn() }))
 vi.mock('@/hooks/use-online-status', () => ({ useOnlineStatus: vi.fn() }))
 vi.mock('sonner', () => ({ toast: toastMocks }))
 
-const supplier = { id: 'supplier-1', name: 'Lab Norte', active: true, legal_name: null, tax_id: null, category: null, contact_name: null, email: null, phone: null, notes: null, created_at: '2026-08-20T00:00:00Z', created_by: null, updated_at: '2026-08-20T00:00:00Z', updated_by: null } satisfies Supplier
+const supplier = { id: 'supplier-1', code: 'FOR-000001', name: 'Lab Norte', active: true, legal_name: null, tax_id: null, category: null, contact_name: null, email: null, phone: null, notes: null, created_at: '2026-08-20T00:00:00Z', created_by: null, updated_at: '2026-08-20T00:00:00Z', updated_by: null } satisfies Supplier
 const catalogItem = { id: 'catalog-1', code: 'EXA-1', name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: null, active: true, updated_at: '2026-08-20T00:00:00Z', category: { id: 'category-1', name: 'Exames', active: true } }
-const saved = { id: 'quotation-1', supplier_id: supplier.id, reference_number: null, received_at: '2026-08-23', valid_until: null, status: 'draft' as const, source_file_path: null, source_file_pending: false, revision: 7, notes: null, created_at: '2026-08-23T00:00:00Z', created_by: null, updated_at: '2026-08-23T00:00:00Z', updated_by: null }
+const saved = { id: 'quotation-1', supplier_id: supplier.id, reference_number: null, received_at: '2026-08-23', valid_until: null, status: 'draft' as const, source_file_path: null, source_file_pending: false, revision: 7, notes: null, archived_at: null, archived_by: null, created_at: '2026-08-23T00:00:00Z', created_by: null, updated_at: '2026-08-23T00:00:00Z', updated_by: null }
 const detail: QuotationDetail = { ...saved, supplier: { id: supplier.id, name: supplier.name, active: true }, quotation_items: [{ id: 'line-1', quotation_id: saved.id, catalog_item_id: catalogItem.id, supplier_description: 'Hemograma', supplier_item_code: 'H-1', unit_price: '20.00', notes: null, created_at: saved.created_at, created_by: 'user-1', updated_at: saved.updated_at, updated_by: 'user-1', catalog_item: { ...catalogItem, category: { id: 'category-1', name: 'Exames' } } }] }
 
 function renderEditor(path = '/pricing/quotations/new') {
@@ -51,6 +51,8 @@ describe('QuotationEditorPage', () => {
     vi.mocked(useActivateQuotation).mockReturnValue({ mutateAsync: activate, isPending: false } as unknown as ReturnType<typeof useActivateQuotation>)
     vi.mocked(useCancelQuotation).mockReturnValue({ mutateAsync: cancel, isPending: false } as unknown as ReturnType<typeof useCancelQuotation>)
     vi.mocked(useDiscardPendingQuotationAttachment).mockReturnValue({ mutateAsync: discardPendingAttachment, isPending: false } as unknown as ReturnType<typeof useDiscardPendingQuotationAttachment>)
+    vi.mocked(useArchiveQuotation).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useArchiveQuotation>)
+    vi.mocked(useUnarchiveQuotation).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useUnarchiveQuotation>)
     save.mockReset().mockResolvedValue({ quotation: saved })
     activate.mockReset().mockResolvedValue({ ...saved, status: 'active' })
     cancel.mockReset().mockResolvedValue({ ...saved, status: 'cancelled' })

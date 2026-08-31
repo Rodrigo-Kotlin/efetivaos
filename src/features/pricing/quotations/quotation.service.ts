@@ -5,8 +5,8 @@ import type { QuotationAttachmentRecoveryInput, QuotationDetail, QuotationDraftI
 
 type ServiceError = { code?: string; message?: string; details?: string; constraint?: string }
 
-const listSelect = 'id, reference_number, received_at, valid_until, status, updated_at, supplier:suppliers!quotations_supplier_id_fkey(id, name), quotation_items(id)'
-const detailSelect = 'id, supplier_id, reference_number, received_at, valid_until, status, source_file_path, source_file_pending, revision, notes, created_at, created_by, updated_at, updated_by, supplier:suppliers!quotations_supplier_id_fkey(id, name, active), quotation_items(id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price, notes, created_at, created_by, updated_at, updated_by, catalog_item:catalog_items(id, code, name, unit, category_id, active, category:catalog_categories(id, name)))'
+const listSelect = 'id, reference_number, received_at, valid_until, status, updated_at, archived_at, supplier:suppliers!quotations_supplier_id_fkey(id, name), quotation_items(id)'
+const detailSelect = 'id, supplier_id, reference_number, received_at, valid_until, status, source_file_path, source_file_pending, revision, notes, archived_at, archived_by, created_at, created_by, updated_at, updated_by, supplier:suppliers!quotations_supplier_id_fkey(id, name, active), quotation_items(id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price, notes, created_at, created_by, updated_at, updated_by, catalog_item:catalog_items(id, code, name, unit, category_id, active, category:catalog_categories(id, name)))'
 
 export function translateQuotationError(error: ServiceError): Error {
   const text = `${error.message ?? ''} ${error.details ?? ''} ${error.constraint ?? ''}`.toLowerCase()
@@ -133,4 +133,18 @@ export async function getQuotationAttachmentUrl(path: string) {
   const { data, error } = await supabase.storage.from('supplier-quotes').createSignedUrl(path, 60)
   if (error) throw translateQuotationError(error)
   return data.signedUrl
+}
+
+export async function archiveQuotation(id: string): Promise<Quotation> {
+  const { data, error } = await supabase.rpc('archive_quotation', { p_quotation_id: id })
+  assertNoError(error)
+  if (!data) throw new Error('Nao foi possivel arquivar a cotacao.')
+  return data
+}
+
+export async function unarchiveQuotation(id: string): Promise<Quotation> {
+  const { data, error } = await supabase.rpc('unarchive_quotation', { p_quotation_id: id })
+  assertNoError(error)
+  if (!data) throw new Error('Nao foi possivel desarquivar a cotacao.')
+  return data
 }

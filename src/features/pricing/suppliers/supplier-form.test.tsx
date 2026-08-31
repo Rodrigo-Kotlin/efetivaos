@@ -7,6 +7,7 @@ import { SupplierForm } from './supplier-form'
 
 const supplier: Supplier = {
   id: 'supplier-1',
+  code: 'FOR-000001',
   name: 'Fornecedor antigo',
   legal_name: 'Fornecedor Antigo Ltda.',
   tax_id: null,

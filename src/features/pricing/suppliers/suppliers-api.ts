@@ -5,7 +5,7 @@ import type { Database, Supplier } from '@/types/database'
 
 import type { SupplierInput } from './supplier-schema'
 
-const supplierColumns = 'id, name, legal_name, tax_id, category, contact_name, email, phone, active, notes, created_at, created_by, updated_at, updated_by'
+const supplierColumns = 'id, code, name, legal_name, tax_id, category, contact_name, email, phone, active, notes, created_at, created_by, updated_at, updated_by'
 
 function supplierError(error: PostgrestError, operation: 'listar' | 'criar' | 'atualizar' | 'alterar status'): Error {
   if (error.code === '23505') return new Error('Ja existe um fornecedor com esses dados.')
