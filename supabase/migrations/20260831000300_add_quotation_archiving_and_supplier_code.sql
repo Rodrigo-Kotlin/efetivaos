@@ -119,15 +119,11 @@ as $$
   select 'FOR-' || lpad(nextval('public.supplier_code_seq')::text, 6, '0');
 $$;
 
--- B3. Column with DEFAULT
+-- B3. Column (nullable first, no DEFAULT — avoids sequence advancement before backfill)
 alter table public.suppliers
-  add column code text not null default public.generate_supplier_code();
+  add column code text;
 
--- B4. Unique constraint
-alter table public.suppliers
-  add constraint suppliers_code_unique unique (code);
-
--- B5. Backfill existing suppliers (deterministic: by created_at, then id)
+-- B4. Backfill existing suppliers (deterministic: by created_at, then id)
 with numbered as (
   select id,
          row_number() over (order by created_at, id) as rn
@@ -138,14 +134,23 @@ set code = 'FOR-' || lpad(n.rn::text, 6, '0')
 from numbered n
 where s.id = n.id;
 
--- B6. Sync sequence to continue after highest backfilled number
+-- B5. Sync sequence to continue after highest backfilled number
 select setval(
   'public.supplier_code_seq',
-  (select coalesce(max(rn), 0) from (select row_number() over (order by created_at, id) as rn from public.suppliers) sub),
+  (select coalesce(max(replace(code, 'FOR-', '')::int), 0) from public.suppliers),
   true
 );
 
--- B7. Code immutability trigger
+-- B6. Add NOT NULL + DEFAULT for new inserts
+alter table public.suppliers
+  alter column code set not null,
+  alter column code set default public.generate_supplier_code();
+
+-- B7. Unique constraint
+alter table public.suppliers
+  add constraint suppliers_code_unique unique (code);
+
+-- B8. Code immutability trigger
 create or replace function public.prevent_supplier_code_change()
 returns trigger
 language plpgsql
@@ -165,7 +170,7 @@ create trigger trg_suppliers_code_immutable
   for each row
   execute function public.prevent_supplier_code_change();
 
--- B8. Revoke direct execution of generate_supplier_code
+-- B9. Revoke direct execution of generate_supplier_code
 revoke execute on function public.generate_supplier_code() from public;
 revoke execute on function public.generate_supplier_code() from anon;
 
