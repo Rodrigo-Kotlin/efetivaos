@@ -6,18 +6,19 @@
 - Ambiente auditado: Supabase DEV
 - SHA de entrada: `b626d4e`
 - Status da auditoria: `COMPLETED_WITH_FINDINGS`
-- Escopo desta microgate: persistir a auditoria e corrigir somente F-01 e F-06
+- Escopo acumulado: Microgate 01 corrigiu F-01/F-06; Microgate 02 corrigiu
+  F-03/F-02 e revalidou F-10.
 
 ## Resumo executivo
 
-A auditoria identificou dez findings. F-01 permite que a mesma transacao seja
-apresentada simultaneamente em Contas a Receber e Contas a Pagar. F-06 expoe
-essas views ao contexto anonimo por grants amplos e por execucao com os
-privilegios do owner. Esta microgate corrige somente esses dois findings.
+A auditoria identificou dez findings. F-01/F-06 foram resolvidos na Microgate 01.
+F-03/F-02 foram resolvidos na Microgate 02 com o modelo canonico de posting a
+vista/por competencia; F-10 foi resolvido por herdar a mesma fonte DRE.
 
-F-02, F-03, F-04, F-05, F-07, F-08, F-09 e F-10 permanecem abertos. Nenhuma
-alteracao foi feita nesta etapa no engine contabil, DRE, `payment_date`, edicao,
-cancelamento/reversao, cache ou UX.
+F-04, F-05, F-07, F-08 e F-09 permanecem abertos. Nenhuma alteracao visual foi
+feita e a UI de liquidacao/edicao, o estorno integral de settled, a invalidacao
+de cache AR/AP e a semantica de `settled_amount` continuam fora do escopo
+concluido.
 
 ## Evidencia de entrada
 
@@ -208,7 +209,12 @@ grant select on public.financial_payables_v to public;
 - Correcao proposta: definir entries contabilmente validas no modelo append-only,
   incluindo estornos que devem neutralizar o original, e testar o ciclo
   pending -> settled -> cancelled.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Correcao aplicada na Microgate 02: removido o filtro por status da entry. A
+  fonte autoritativa passou a selecionar apenas linhas de contas
+  `RECEITA`/`CUSTO`/`DESPESA`, classificadas por `dre_class`, dentro de
+  `competence_date`. Entries de liquidacao sem conta de resultado ficam fora
+  naturalmente; reversoes entram com sinal inverso.
+- Status: `RESOLVED`. Validado por 66/66 checks 08M e 15/15 checks 08E.1.
 
 ## F-03 - Criacao com payment_date pode contabilizar incorretamente
 
@@ -222,9 +228,12 @@ grant select on public.financial_payables_v to public;
   desenhada para a segunda etapa de um fluxo append-only.
 - Impacto: AR/AP negativos ou orfaos, DRE incompleta, caixa no periodo errado e
   reconciliacoes incorretas.
-- Correcao proposta: criar atomicamente competencia e caixa para lancamentos a
-  vista, usando `competence_date` para reconhecimento e `payment_date` para caixa.
-- Status: `OPEN`. Nao corrigido nesta microgate.
+- Correcao aplicada na Microgate 02: `payment_date` na criacao passou a significar
+  operacao realizada a vista. O engine cria uma unica entry direta entre
+  Caixa/Banco e a conta economica/patrimonial, sem AR/AP. Operacoes a prazo
+  continuam reconhecidas contra AR/AP e settle cria somente a perna financeira,
+  agora datada por `payment_date`.
+- Status: `RESOLVED`. Validado por 66/66 checks 08M.
 
 ## F-04 - Fluxo de Caixa realizado vazio/incompleto pela UX atual
 
@@ -285,6 +294,11 @@ grant select on public.financial_payables_v to public;
 - Impacto: caixa e contas de controle podem ficar residuais ou negativos.
 - Correcao proposta: estornar line-by-line todas as entries ainda nao revertidas,
   com vinculo e idempotencia explicitos.
+- Salvaguarda da Microgate 02: cancelamento de transacao `settled` passou a ser
+  rejeitado explicitamente para impedir corrupcao do novo posting a vista. A
+  reversao integral de todas as entries continua pendente. A orientacao do
+  estorno de `DESPESA`/`IMOBILIZADO` pending foi corrigida por ser necessaria aos
+  testes de DRE append-only.
 - Status: `OPEN`. Nao corrigido nesta microgate.
 
 ## F-08 - Cache AR/AP nao invalidado apos mutations
@@ -329,7 +343,77 @@ grant select on public.financial_payables_v to public;
 - Impacto: indicadores gerenciais e alertas de resultado ficam incorretos.
 - Correcao proposta: corrigir F-02 na fonte e manter o dashboard delegado a ela,
   adicionando teste ponta a ponta de consistencia DRE/dashboard.
-- Status: `OPEN`, herdado de F-02. Nao corrigido nesta microgate.
+- Correcao aplicada na Microgate 02: o dashboard permanece delegado a
+  `get_income_statement`; com a fonte autoritativa corrigida, receita e resultado
+  passam a refletir competencia sem logica duplicada.
+- Status: `RESOLVED`, por heranca da correcao F-02.
+
+## Microgate 02 - Regra de reconhecimento financeiro
+
+### DRE BEFORE
+
+A definicao efetiva anterior estava em
+`supabase/migrations/20260826000510_fix_income_statement_permissions.sql`. O
+trecho autoritativo era:
+
+```sql
+from public.financial_journal_entries je
+join public.financial_journal_lines jl on jl.entry_id = je.id
+join public.financial_chart_accounts ca on ca.id = jl.chart_account_id
+join public.financial_transactions ft on ft.id = je.transaction_id
+where je.status = 'settled'
+  and ca.class in ('RECEITA','CUSTO','DESPESA')
+  and ca.dre_class <> ''
+  and (p_from is null or je.competence_date >= p_from)
+  and (p_to is null or je.competence_date <= p_to)
+  and (p_cost_center_id is null or ft.cost_center_id = p_cost_center_id)
+  and (p_service_line_id is null or ft.service_line_id = p_service_line_id)
+```
+
+O predicado `je.status = 'settled'` excluia as entries `competencia/pending` que
+continham Receita, Custo e Despesa. A entry de liquidacao `caixa/settled` continha
+somente Caixa/Banco e AR/AP.
+
+### Regra autoritativa AFTER
+
+- `payment_date` preenchido na criacao: operacao realizada a vista;
+- a vista: uma unica entry direta, sem AR/AP;
+- sem `payment_date`: reconhecimento por competencia contra AR/AP;
+- settle: somente Caixa/Banco contra AR/AP, sem novo resultado;
+- DRE: linhas de contas de resultado por `competence_date`;
+- Cashflow: linhas de contas `is_cash=true` por `entry_date`;
+- reversao pending: entry append-only com debitos/creditos invertidos;
+- cancelamento settled: bloqueado ate a correcao integral F-07;
+- journal entries/lines: imutaveis.
+
+### Matriz contabil
+
+| Fluxo | Debito | Credito | AR | AP | Cashflow | DRE |
+|---|---|---|---|---|---|---|
+| Receita a vista | Caixa/Banco | Receita | Nao cria | - | Entrada | Receita na competencia |
+| Despesa a vista | Custo/Despesa | Caixa/Banco | - | Nao cria | Saida | Custo/Despesa na competencia |
+| Receita a prazo | Contas a Receber | Receita | Abre | - | Zero no reconhecimento | Receita na competencia |
+| Despesa a prazo | Custo/Despesa | Contas a Pagar | - | Abre | Zero no reconhecimento | Custo/Despesa na competencia |
+| Recebimento | Caixa/Banco | Contas a Receber | Reduz/fecha | - | Entrada | Zero adicional |
+| Pagamento | Contas a Pagar | Caixa/Banco | - | Reduz/fecha | Saida | Zero adicional |
+| Transferencia | Banco destino | Banco origem | - | - | Zero consolidado | Zero |
+| Emprestimo recebido | Caixa/Banco | Emprestimos a Pagar | - | - | Entrada de financiamento | Zero |
+| Principal de emprestimo | Emprestimos a Pagar | Caixa/Banco | - | - | Saida de financiamento | Zero |
+| Juros | Despesa Financeira | Caixa/Banco ou AP | - | Conforme modalidade | Saida quando realizado | Despesa financeira |
+| Aporte | Caixa/Banco | Capital/PL | - | - | Entrada de financiamento | Zero |
+| Retirada | Distribuicoes/PL | Caixa/Banco | - | - | Saida de financiamento | Zero |
+| Ativo | Imobilizado | Caixa/Banco ou AP | - | Somente a prazo | Saida de investimento quando realizada | Zero imediato |
+| Depreciacao | Despesa de Depreciacao | Depreciacao Acumulada | - | - | Zero | Despesa de depreciacao |
+
+### Validacao Microgate 02
+
+- suite nova `08m_finance_posting_dre_checks.sql`: 66/66 PASS;
+- regressao `08l_finance_ar_ap_security_checks.sql`: 28/28 PASS;
+- regressao `08e1_microgate_tests.sql`: 15/15 PASS;
+- AR/AP overlap: zero;
+- operacoes a vista em AR/AP: zero;
+- fixtures remanescentes: zero;
+- dashboard: usa a mesma `get_income_statement`, sem calculo DRE paralelo.
 
 ## Sequencia de correcao
 
@@ -346,11 +430,16 @@ F-10 deve ser revalidado quando F-02 for corrigido.
 
 ## Findings ainda nao corrigidos
 
-- F-02: `OPEN`
-- F-03: `OPEN`
 - F-04: `OPEN`
 - F-05: `OPEN`
 - F-07: `OPEN`
 - F-08: `OPEN`
 - F-09: `OPEN`
-- F-10: `OPEN`, herdado de F-02
+
+Findings resolvidos:
+
+- F-01: `RESOLVED`
+- F-02: `RESOLVED`
+- F-03: `RESOLVED`
+- F-06: `RESOLVED`
+- F-10: `RESOLVED`, herdado de F-02

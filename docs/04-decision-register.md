@@ -900,3 +900,42 @@ Definir posteriormente se contratos recorrentes gerarão lançamentos automatica
 **Motivo:** Alinhar a interface de produção ao design aprovado sem reconstruir o CRM nem substituir regras funcionais por lógica fictícia.
 
 **Impacto:** Em conflito mock vs regra funcional, a regra funcional vence. Mudanças visuais não alteram arquitetura funcional (Pipeline, Activities First, Lista, Intelligence, segurança, histórico, mobile). Dados fictícios do mock não entram em produção.
+
+---
+
+### DEC-060 — Modelo canônico de posting à vista e por competência
+
+**Status:** FECHADA
+
+**Data:** 2026-08-31 (FINANCE MICROGATE 02)
+
+**Contexto:** O engine tratava `payment_date` como simples atalho para
+`status='settled'`. Para Receita, Despesa e Imobilizado, isso executava somente
+a perna de liquidação contra AR/AP e omitia o reconhecimento econômico. Ao mesmo
+tempo, a DRE filtrava `journal_entry.status='settled'`, embora o reconhecimento
+por competência de operações a prazo permaneça na entry `pending`.
+
+**Decisão:** `payment_date` preenchido na criação representa uma operação já
+realizada à vista. Receita à vista posta D Caixa/Banco / C Receita; Despesa à
+vista posta D Custo/Despesa / C Caixa/Banco; Imobilizado à vista posta D Ativo /
+C Caixa/Banco. Essas operações não usam AR/AP transitório. Sem `payment_date`,
+Receita, Despesa e Imobilizado são reconhecidos por competência contra AR/AP; a
+liquidação posterior movimenta somente Caixa/Banco e o título e usa
+`payment_date` como data da entry financeira. A DRE seleciona linhas de contas
+de resultado por `competence_date`, independentemente de status, tipo de entry
+ou realização financeira. O Fluxo de Caixa continua derivado exclusivamente das
+linhas em contas `is_cash=true`. O ledger permanece append-only e idempotente.
+
+**Motivo:** Separar reconhecimento econômico de realização financeira, impedir
+AR/AP artificiais em operações à vista e manter Receita/Despesa reconhecidas uma
+única vez no período correto.
+
+**Impacto:** A criação canônica usa somente o overload com idempotency key.
+Operações à vista não aparecem nas views AR/AP; títulos a prazo permanecem nas
+views após liquidação com saldo aberto zero. Cancelamento de transação `settled`
+fica explicitamente bloqueado até a correção integral F-07, evitando que o novo
+posting direto seja revertido pelo mecanismo incompleto anterior. Cancelamento
+de `pending` continua append-only.
+
+**Validação:** 66/66 checks da suíte 08M, 28/28 checks de regressão F-01/F-06 e
+15/15 checks de estrutura/segurança da DRE aprovados no Supabase DEV.
