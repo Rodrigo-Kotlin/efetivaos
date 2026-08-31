@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Pencil } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 
@@ -6,7 +6,7 @@ import { formatCurrency, formatDate, formatDateTime, isExpired } from './quotati
 import { QuotationStatusBadge, QuotationValidityBadge } from './quotation-badges'
 import type { QuotationDetail as QuotationDetailType } from './quotation.types'
 
-export function QuotationDetail({ quotation, onOpenAttachment }: { quotation: QuotationDetailType; onOpenAttachment: () => void }) {
+export function QuotationDetail({ quotation, onOpenAttachment, onEdit }: { quotation: QuotationDetailType; onOpenAttachment: () => void; onEdit?: () => void }) {
   const details = [
     ['Fornecedor', quotation.supplier.name],
     ['Referência', quotation.reference_number || 'Não informada'],
@@ -18,7 +18,7 @@ export function QuotationDetail({ quotation, onOpenAttachment }: { quotation: Qu
     {isExpired(quotation.valid_until) && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="note"><strong>Cotação histórica:</strong> a validade expirou. O registro permanece disponível para auditoria, mas não será elegível para comparação futura.</div>}
     {!quotation.valid_until && <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700" role="note">A validade não foi informada. O registro mantém esse alerta permanente no histórico.</div>}
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-wrap items-center gap-2"><QuotationStatusBadge status={quotation.status} /><QuotationValidityBadge validUntil={quotation.valid_until} /></div>
+      <div className="flex flex-wrap items-center gap-2"><QuotationStatusBadge status={quotation.status} /><QuotationValidityBadge validUntil={quotation.valid_until} />{quotation.status === 'draft' && onEdit && <Button type="button" variant="outline" size="sm" onClick={onEdit} className="ml-auto"><Pencil className="size-4" /> Editar cotação</Button>}</div>
       <dl className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{details.map(([label, value]) => <div key={label}><dt className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</dt><dd className="mt-1 text-sm font-medium text-slate-950">{value}</dd></div>)}</dl>
       {quotation.notes && <div className="mt-5 border-t border-slate-100 pt-5"><h2 className="text-xs font-bold uppercase tracking-wide text-slate-500">Observações</h2><p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{quotation.notes}</p></div>}
       {quotation.source_file_path && <Button className="mt-5" type="button" variant="outline" onClick={onOpenAttachment}><ExternalLink className="size-4" /> Abrir ou baixar anexo privado</Button>}
