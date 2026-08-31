@@ -35,6 +35,19 @@ export default function CashflowPage() {
   const { data: forecast, isLoading: lForecast } = useCashflowForecast(effectiveFilters)
   const { data: weeks, isLoading: lWeeks } = useCashflow13Weeks(dateFrom || null)
 
+  // COR-17: quick presets
+  const applyPreset = (preset: 'today' | 'month' | 'year' | 'total') => {
+    const today = new Date().toISOString().slice(0, 10)
+    const firstOfMonth = today.slice(0, 7) + '-01'
+    const firstOfYear = today.slice(0, 4) + '-01-01'
+    switch (preset) {
+      case 'today': setDateFrom(today); setDateTo(today); break
+      case 'month': setDateFrom(firstOfMonth); setDateTo(today); break
+      case 'year': setDateFrom(firstOfYear); setDateTo(today); break
+      case 'total': setDateFrom(''); setDateTo(''); break
+    }
+  }
+
   const applyFilter = (key: keyof CashflowFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value || null }))
   }
@@ -57,6 +70,13 @@ export default function CashflowPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
+        {/* COR-17: quick presets */}
+        <div className="flex gap-1">
+          <Button variant="outline" size="sm" onClick={() => applyPreset('today')}>Hoje</Button>
+          <Button variant="outline" size="sm" onClick={() => applyPreset('month')}>Mes</Button>
+          <Button variant="outline" size="sm" onClick={() => applyPreset('year')}>Ano</Button>
+          <Button variant="outline" size="sm" onClick={() => applyPreset('total')}>Total</Button>
+        </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-slate-500">De</label>
           <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-[150px]" />
@@ -69,8 +89,8 @@ export default function CashflowPage() {
           <label className="text-xs font-medium text-slate-500">Conta</label>
           <select
             className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm"
-            value={filters.accountId ?? ''}
-            onChange={e => applyFilter('accountId', e.target.value)}
+            value={filters.financialAccountId ?? ''}
+            onChange={e => applyFilter('financialAccountId', e.target.value)}
           >
             <option value="">Todas</option>
             {accounts?.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}

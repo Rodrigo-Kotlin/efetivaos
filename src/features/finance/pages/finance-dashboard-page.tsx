@@ -242,8 +242,8 @@ export default function FinanceDashboardPage() {
             <div className="flex justify-between"><span className="text-slate-600">Vence em 7 dias</span><span>{fmt(ar.due_in_7_days)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Vence em 30 dias</span><span>{fmt(ar.due_in_30_days)}</span></div>
           </div>
-          <Link to="/finance/transactions" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
-            Ver lançamentos &rarr;
+          <Link to="/finance/receivables" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
+            Ver contas a receber &rarr;
           </Link>
         </Section>
 
@@ -254,8 +254,8 @@ export default function FinanceDashboardPage() {
             <div className="flex justify-between"><span className="text-slate-600">Vence em 7 dias</span><span>{fmt(ap.due_in_7_days)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Vence em 30 dias</span><span>{fmt(ap.due_in_30_days)}</span></div>
           </div>
-          <Link to="/finance/transactions" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
-            Ver lançamentos &rarr;
+          <Link to="/finance/payables" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
+            Ver contas a pagar &rarr;
           </Link>
         </Section>
       </div>
