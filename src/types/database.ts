@@ -18,6 +18,7 @@ export type Profile = AuditFields & {
 
 export type Supplier = AuditFields & {
   id: string
+  code: string
   name: string
   legal_name: string | null
   tax_id: string | null
@@ -58,6 +59,8 @@ export type Quotation = AuditFields & {
   source_file_pending: boolean
   revision: number
   notes: string | null
+  archived_at: string | null
+  archived_by: string | null
 }
 
 export type QuotationItem = AuditFields & {
@@ -617,6 +620,7 @@ export type Database = {
         Row: Supplier
         Insert: {
           id?: string
+          code?: string
           name: string
           legal_name?: string | null
           tax_id?: string | null
@@ -742,6 +746,8 @@ export type Database = {
           source_file_pending?: boolean
           revision?: number
           notes?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           updated_at?: string
@@ -757,6 +763,8 @@ export type Database = {
           source_file_pending: boolean
           revision: number
           notes: string | null
+          archived_at: string | null
+          archived_by: string | null
           updated_at: string
           updated_by: string | null
         }>
@@ -1282,6 +1290,14 @@ export type Database = {
           p_quotation_id: string
           p_expected_revision: number
         }
+        Returns: Quotation
+      }
+      archive_quotation: {
+        Args: { p_quotation_id: string }
+        Returns: Quotation
+      }
+      unarchive_quotation: {
+        Args: { p_quotation_id: string }
         Returns: Quotation
       }
       is_admin: { Args: never; Returns: boolean }
