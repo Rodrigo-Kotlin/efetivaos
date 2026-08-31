@@ -2,8 +2,8 @@
 -- EFETIVA OS — OPERAÇÃO B: RESET OPERACIONAL CONTROLADO
 -- ============================================================================
 --
--- VERSÃO: 3.0 (corrigido conforme 6 correções do usuário)
--- DATA: 2026-08-29
+-- VERSÃO: 4.0 (corrige trigger quotation_items draft-only + supplier sequence)
+-- DATA: 2026-08-31
 -- AMBIENTE: Supabase DEV (bxviuzluxcijbqqbpyzb)
 --
 -- PRÉ-REQUISITO:
@@ -23,16 +23,19 @@
 -- SEQUÊNCIA (dentro de UMA ÚNICA TRANSAÇÃO):
 --   1.  Capturar contagens pré-reset (tabelas operacionais + estruturais)
 --   2.  Mock CRM audit (ANTES de deletar)
---   3.  DISABLE triggers imutáveis do ledger
+--   3.  DISABLE triggers: ledger (trg_fje_immutable, trg_fjl_immutable)
+--                            + quotation_items (trg_quotation_items_draft_only,
+--                              trg_quotation_items_integrity_deferred)
 --   4.  CRM cleanup
 --   5.  Finance cleanup
 --   6.  Pricing cleanup
---   7.  Verificação: tabelas operacionais = 0 (EXCEPTION se falhar)
---   8.  Verificação: estruturas preservadas, before_count = after_count
---   9.  ENABLE triggers imutáveis
---   10. Verificação: pg_trigger tgenabled = 'O'
---   11. Se qualquer gate falhar → RAISE EXCEPTION → ROLLBACK
---   12. Somente se tudo passar → COMMIT
+--   7.  Restart supplier_code_seq (if exists)
+--   8.  Verificação: tabelas operacionais = 0 (EXCEPTION se falhar)
+--   9.  Verificação: estruturas preservadas, before_count = after_count
+--   10. ENABLE triggers: ledger + quotation_items
+--   11. Verificação: pg_trigger tgenabled = 'O' para todos
+--   12. Se qualquer gate falhar → RAISE EXCEPTION → ROLLBACK
+--   13. Somente se tudo passar → COMMIT
 --
 -- SEGURO:
 --   - Transacional: erro = ROLLBACK completo
@@ -231,20 +234,36 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- FASE 3: DESABILITAR TRIGGERS IMUTÁVEIS DO LEDGER
+-- FASE 3: DESABILITAR TRIGGERS DO LEDGER + QUOTATION_ITEMS
 -- ============================================================================
--- Triggers trg_fje_immutable e trg_fjl_immutable bloqueiam DELETE.
--- Desabilitados DENTRO da transação. Reabilitados antes do COMMIT.
+-- Ledger: trg_fje_immutable e trg_fjl_immutable bloqueiam DELETE.
+-- Quotation items:
+--   trg_quotation_items_draft_only bloqueia DELETE quando quotation não é draft.
+--   trg_quotation_items_integrity_deferred bloqueia DELETE que deixaria
+--     quotation active sem itens ou com itens inválidos.
+-- Todos desabilitados DENTRO da transação. Reabilitados antes do COMMIT.
 -- Se ROLLBACK, voltam ao estado anterior automaticamente.
 
+-- Ledger
 ALTER TABLE public.financial_journal_entries
   DISABLE TRIGGER trg_fje_immutable;
 
 ALTER TABLE public.financial_journal_lines
   DISABLE TRIGGER trg_fjl_immutable;
 
+-- Quotation items (draft-only + integrity deferred)
+ALTER TABLE public.quotation_items
+  DISABLE TRIGGER trg_quotation_items_draft_only;
+
+ALTER TABLE public.quotation_items
+  DISABLE TRIGGER trg_quotation_items_integrity_deferred;
+
 DO $$ BEGIN
-  RAISE NOTICE 'Triggers imutáveis desabilitados (dentro da transação)';
+  RAISE NOTICE 'Triggers desabilitados (dentro da transação):';
+  RAISE NOTICE '  - trg_fje_immutable (ledger)';
+  RAISE NOTICE '  - trg_fjl_immutable (ledger)';
+  RAISE NOTICE '  - trg_quotation_items_draft_only (quotation items)';
+  RAISE NOTICE '  - trg_quotation_items_integrity_deferred (quotation items)';
 END $$;
 
 -- ============================================================================
@@ -301,6 +320,22 @@ DELETE FROM public.suppliers;
 
 DO $$ BEGIN
   RAISE NOTICE 'Pricing cleanup concluído';
+END $$;
+
+-- ============================================================================
+-- FASE 6.1: REINICIAR SUPPLIER CODE SEQUENCE (se existir)
+-- ============================================================================
+-- supplier_code_seq é usada por generate_supplier_code() para criar FOR-000001.
+-- Após remover todos os suppliers, reiniciar para 1 para o próximo INSERT começar em FOR-000001.
+
+DO $$
+BEGIN
+  IF to_regclass('public.supplier_code_seq') IS NOT NULL THEN
+    PERFORM setval('public.supplier_code_seq', 1, false);
+    RAISE NOTICE 'supplier_code_seq reiniciada → próximo código: FOR-000001';
+  ELSE
+    RAISE NOTICE 'supplier_code_seq não existe — nada a reiniciar';
+  END IF;
 END $$;
 
 -- ============================================================================
@@ -588,17 +623,29 @@ BEGIN
 END $$;
 
 -- ============================================================================
--- FASE 10: REABILITAR TRIGGERS IMUTÁVEIS DO LEDGER
+-- FASE 10: REABILITAR TRIGGERS (LEDGER + QUOTATION_ITEMS)
 -- ============================================================================
 
+-- Ledger
 ALTER TABLE public.financial_journal_entries
   ENABLE TRIGGER trg_fje_immutable;
 
 ALTER TABLE public.financial_journal_lines
   ENABLE TRIGGER trg_fjl_immutable;
 
+-- Quotation items (draft-only + integrity deferred)
+ALTER TABLE public.quotation_items
+  ENABLE TRIGGER trg_quotation_items_draft_only;
+
+ALTER TABLE public.quotation_items
+  ENABLE TRIGGER trg_quotation_items_integrity_deferred;
+
 DO $$ BEGIN
-  RAISE NOTICE 'Triggers imutáveis reabilitados';
+  RAISE NOTICE 'Triggers reabilitados:';
+  RAISE NOTICE '  - trg_fje_immutable (ledger)';
+  RAISE NOTICE '  - trg_fjl_immutable (ledger)';
+  RAISE NOTICE '  - trg_quotation_items_draft_only (quotation items)';
+  RAISE NOTICE '  - trg_quotation_items_integrity_deferred (quotation items)';
 END $$;
 
 -- ============================================================================
@@ -611,13 +658,16 @@ DO $$
 DECLARE
   v_fje_enabled text;
   v_fjl_enabled text;
+  v_qi_draft_enabled text;
+  v_qi_integrity_enabled text;
   v_blocker boolean := false;
 BEGIN
   RAISE NOTICE '====================================================================';
   RAISE NOTICE 'VERIFICAÇÃO DOS TRIGGERS';
   RAISE NOTICE '====================================================================';
 
-  SELECT t.tgenabled INTO v_fje_enabled
+  -- Ledger triggers
+  SELECT tgenabled INTO v_fje_enabled
   FROM pg_trigger t
   JOIN pg_class c ON c.oid = t.tgrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -625,7 +675,7 @@ BEGIN
     AND n.nspname = 'public'
     AND c.relname = 'financial_journal_entries';
 
-  SELECT t.tgenabled INTO v_fjl_enabled
+  SELECT tgenabled INTO v_fjl_enabled
   FROM pg_trigger t
   JOIN pg_class c ON c.oid = t.tgrelid
   JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -633,8 +683,27 @@ BEGIN
     AND n.nspname = 'public'
     AND c.relname = 'financial_journal_lines';
 
-  RAISE NOTICE 'trg_fje_immutable: tgenabled = %', COALESCE(v_fje_enabled, 'NOT FOUND');
-  RAISE NOTICE 'trg_fjl_immutable: tgenabled = %', COALESCE(v_fjl_enabled, 'NOT FOUND');
+  -- Quotation items triggers
+  SELECT tgenabled INTO v_qi_draft_enabled
+  FROM pg_trigger t
+  JOIN pg_class c ON c.oid = t.tgrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE t.tgname = 'trg_quotation_items_draft_only'
+    AND n.nspname = 'public'
+    AND c.relname = 'quotation_items';
+
+  SELECT tgenabled INTO v_qi_integrity_enabled
+  FROM pg_trigger t
+  JOIN pg_class c ON c.oid = t.tgrelid
+  JOIN pg_namespace n ON n.oid = c.relnamespace
+  WHERE t.tgname = 'trg_quotation_items_integrity_deferred'
+    AND n.nspname = 'public'
+    AND c.relname = 'quotation_items';
+
+  RAISE NOTICE 'trg_fje_immutable:                    tgenabled = %', COALESCE(v_fje_enabled, 'NOT FOUND');
+  RAISE NOTICE 'trg_fjl_immutable:                    tgenabled = %', COALESCE(v_fjl_enabled, 'NOT FOUND');
+  RAISE NOTICE 'trg_quotation_items_draft_only:        tgenabled = %', COALESCE(v_qi_draft_enabled, 'NOT FOUND');
+  RAISE NOTICE 'trg_quotation_items_integrity_deferred: tgenabled = %', COALESCE(v_qi_integrity_enabled, 'NOT FOUND');
 
   IF v_fje_enabled IS NULL OR v_fje_enabled != 'O' THEN
     RAISE WARNING 'BLOCKER: trg_fje_immutable não habilitado (tgenabled=%)', COALESCE(v_fje_enabled, 'NULL');
@@ -646,10 +715,20 @@ BEGIN
     v_blocker := true;
   END IF;
 
+  IF v_qi_draft_enabled IS NULL OR v_qi_draft_enabled != 'O' THEN
+    RAISE WARNING 'BLOCKER: trg_quotation_items_draft_only não habilitado (tgenabled=%)', COALESCE(v_qi_draft_enabled, 'NULL');
+    v_blocker := true;
+  END IF;
+
+  IF v_qi_integrity_enabled IS NULL OR v_qi_integrity_enabled != 'O' THEN
+    RAISE WARNING 'BLOCKER: trg_quotation_items_integrity_deferred não habilitado (tgenabled=%)', COALESCE(v_qi_integrity_enabled, 'NULL');
+    v_blocker := true;
+  END IF;
+
   IF v_blocker THEN
-    RAISE EXCEPTION 'BLOCKER: Triggers imutáveis não reabilitados. ROLLBACK.';
+    RAISE EXCEPTION 'BLOCKER: Triggers não reabilitados. ROLLBACK.';
   ELSE
-    RAISE NOTICE 'Ambos os triggers imutáveis: HABILITADOS ✓';
+    RAISE NOTICE 'Todos os triggers: HABILITADOS ✓';
   END IF;
 END $$;
 
@@ -660,8 +739,14 @@ END $$;
 COMMIT;
 
 -- ============================================================================
--- OPERAÇÃO B — RESET OPERACIONAL CONTROLADO — CONCLUÍDO
+-- OPERAÇÃO B — RESET OPERACIONAL CONTROLADO V4 — CONCLUÍDO
 -- ============================================================================
+-- V4 Changes (2026-08-31):
+--   - Disable/enable trg_quotation_items_draft_only (blocks DELETE on non-draft)
+--   - Disable/enable trg_quotation_items_integrity_deferred (blocks DELETE on active)
+--   - Restart supplier_code_seq to 1 after supplier cleanup
+--   - Verify all 4 triggers re-enabled (not just 2 ledger)
+--
 -- Próximos passos:
 -- 1. Verificar logs acima (RAISE NOTICE/WARNING/EXCEPTION)
 -- 2. Verificar no Dashboard que tabelas operacionais estão vazias
