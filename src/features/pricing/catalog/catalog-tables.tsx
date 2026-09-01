@@ -10,12 +10,14 @@ import type { CatalogCategoryRow, CatalogItemRow } from './catalog.types'
 
 const headerClassName = 'border-b border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500'
 const cellClassName = 'border-b border-slate-100 px-4 py-3.5 text-sm text-slate-700 last:border-b-0'
+const coreRowModel = getCoreRowModel()
+const sortedRowModel = getSortedRowModel()
 
 function DataTable<T>({ data, columns, label }: { data: T[]; columns: ColumnDef<T>[]; label: string }) {
   const [sorting, setSorting] = useState<SortingState>([])
   // TanStack Table intentionally exposes non-memoizable functions.
   // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({ data, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel(), getSortedRowModel: getSortedRowModel() })
+  const table = useReactTable({ data, columns, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: coreRowModel, getSortedRowModel: sortedRowModel })
 
   return (
     <TableShell>
@@ -54,7 +56,7 @@ export function CatalogItemsTable({ items, statusPending, onEdit, onStatus }: { 
   const columns = useMemo<ColumnDef<CatalogItemRow>[]>(() => [
     { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
     { accessorKey: 'name', header: 'Item / servico', cell: ({ row }) => <div><strong className="font-semibold text-slate-950">{row.original.name}</strong>{row.original.description && <p className="mt-0.5 max-w-sm truncate text-xs text-slate-500">{row.original.description}</p>}</div> },
-    { id: 'category', header: 'Categoria', cell: ({ row }) => <span>{row.original.category.name}{!row.original.category.active && <span className="ml-1 text-xs text-slate-500">(inativa)</span>}</span> },
+    { id: 'category', accessorFn: (item) => item.category.name, header: 'Categoria', cell: ({ row }) => <span>{row.original.category.name}{!row.original.category.active && <span className="ml-1 text-xs text-slate-500">(inativa)</span>}</span> },
     { accessorKey: 'unit', header: 'Unidade' },
     { accessorKey: 'active', header: 'Status', cell: ({ row }) => <StatusBadge active={row.original.active} /> },
     {

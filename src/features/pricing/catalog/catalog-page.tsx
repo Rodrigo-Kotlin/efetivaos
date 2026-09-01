@@ -1,5 +1,5 @@
 import { FolderPlus, Plus, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -52,17 +52,17 @@ export default function CatalogPage() {
   const updateCategory = useUpdateCatalogCategory()
   const setCategoryStatusMutation = useSetCatalogCategoryStatus()
 
-  const categories = categoriesQuery.data ?? []
-  const items = itemsQuery.data ?? []
+  const categories = useMemo(() => categoriesQuery.data ?? [], [categoriesQuery.data])
+  const items = useMemo(() => itemsQuery.data ?? [], [itemsQuery.data])
   const normalizedItemSearch = itemSearch.trim().toLowerCase()
   const normalizedCategorySearch = categorySearch.trim().toLowerCase()
-  const filteredItems = items.filter((item) => {
+  const filteredItems = useMemo(() => items.filter((item) => {
     const matchesSearch = !normalizedItemSearch || item.code.toLowerCase().includes(normalizedItemSearch) || item.name.toLowerCase().includes(normalizedItemSearch)
     return matchesSearch && (itemCategory === 'all' || item.category_id === itemCategory) && matchesStatus(item.active, itemStatus)
-  })
-  const filteredCategories = categories.filter((category) => {
+  }), [itemCategory, itemStatus, items, normalizedItemSearch])
+  const filteredCategories = useMemo(() => categories.filter((category) => {
     return (!normalizedCategorySearch || category.name.toLowerCase().includes(normalizedCategorySearch)) && matchesStatus(category.active, categoryStatus)
-  })
+  }), [categories, categoryStatus, normalizedCategorySearch])
 
   function openNewItem() {
     setEditingItem(null)
@@ -85,8 +85,8 @@ export default function CatalogPage() {
         await updateItem.mutateAsync({ id: editingItem.id, input })
         toast.success('Item atualizado.')
       } else {
-        await createItem.mutateAsync(input)
-        toast.success('Item cadastrado no catalogo.')
+        const created = await createItem.mutateAsync(input)
+        toast.success(`Item ${created.code} cadastrado no catalogo.`)
       }
       setItemDrawerOpen(false)
     } catch (error) {
@@ -102,6 +102,10 @@ export default function CatalogPage() {
       throw error
     }
     try {
+      const normalizedName = input.name.trim().toLocaleLowerCase('pt-BR')
+      const duplicate = categories.find((category) => category.id !== editingCategory?.id && category.name.trim().toLocaleLowerCase('pt-BR') === normalizedName)
+      if (duplicate) throw new Error('Já existe uma categoria com este nome.')
+
       if (editingCategory) {
         if (editingCategory.active && !input.active && !window.confirm(`Inativar a categoria "${editingCategory.name}"? Os itens historicos continuarao visiveis.`)) return
         await updateCategory.mutateAsync({ id: editingCategory.id, input })
@@ -201,12 +205,13 @@ export default function CatalogPage() {
         </section>
       )}
 
-      <Drawer open={itemDrawerOpen} onOpenChange={setItemDrawerOpen} title={editingItem ? 'Editar item' : 'Novo item'} description="Codigo, categoria e unidade formam a referencia canonica do catalogo.">
+      <Drawer open={itemDrawerOpen} onOpenChange={setItemDrawerOpen} title={editingItem ? 'Editar item' : 'Novo item'} description="O codigo e gerado automaticamente; categoria e unidade completam a referencia canonica.">
         {categories.every((category) => !category.active) && <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">Crie ou reative uma categoria para salvar um item.</div>}
         <CatalogItemForm
           key={editingItem?.id ?? 'new-item'}
           categories={categories}
-          defaultValues={editingItem ? { code: editingItem.code, name: editingItem.name, category_id: editingItem.category_id, unit: editingItem.unit, description: editingItem.description ?? '' } : undefined}
+          code={editingItem?.code}
+          defaultValues={editingItem ? { name: editingItem.name, category_id: editingItem.category_id, unit: editingItem.unit, description: editingItem.description ?? '' } : undefined}
           submitLabel={editingItem ? 'Salvar alteracoes' : 'Criar item'}
           onSubmit={saveItem}
           onCancel={() => setItemDrawerOpen(false)}

@@ -9,7 +9,7 @@ export type CatalogItemRow = Pick<
 
 export type CatalogCategoryRow = Pick<CatalogCategory, 'id' | 'name' | 'active' | 'updated_at'>
 
-export type CatalogItemInput = Pick<CatalogItem, 'code' | 'name' | 'category_id' | 'unit'> & {
+export type CatalogItemInput = Pick<CatalogItem, 'name' | 'category_id' | 'unit'> & {
   description?: string
 }
 

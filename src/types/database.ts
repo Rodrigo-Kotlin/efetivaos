@@ -673,7 +673,7 @@ export type Database = {
         Row: CatalogItem
         Insert: {
           id?: string
-          code: string
+          code?: string
           name: string
           category_id: string
           unit: string
@@ -685,7 +685,6 @@ export type Database = {
           updated_by?: string | null
         }
         Update: Partial<{
-          code: string
           name: string
           category_id: string
           unit: string

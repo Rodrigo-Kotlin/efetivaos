@@ -14,13 +14,14 @@ const customUnit = '__custom__'
 
 type CatalogItemFormProps = {
   categories: CatalogCategoryRow[]
+  code?: string
   defaultValues?: CatalogItemFormData
   submitLabel: string
   onSubmit: (input: CatalogItemInput) => Promise<void> | void
   onCancel: () => void
 }
 
-export function CatalogItemForm({ categories, defaultValues, submitLabel, onSubmit, onCancel }: CatalogItemFormProps) {
+export function CatalogItemForm({ categories, code, defaultValues, submitLabel, onSubmit, onCancel }: CatalogItemFormProps) {
   const initialUnit = defaultValues?.unit ?? ''
   const initialIsCustom = Boolean(initialUnit && !suggestedUnits.includes(initialUnit as (typeof suggestedUnits)[number]))
   const [customUnitSelected, setCustomUnitSelected] = useState(initialIsCustom)
@@ -32,7 +33,7 @@ export function CatalogItemForm({ categories, defaultValues, submitLabel, onSubm
     formState: { errors, isSubmitting },
   } = useForm<CatalogItemFormData>({
     resolver: zodResolver(catalogItemSchema),
-    defaultValues: defaultValues ?? { code: '', name: '', category_id: '', unit: '', description: '' },
+    defaultValues: defaultValues ?? { name: '', category_id: '', unit: '', description: '' },
   })
 
   const submit = handleSubmit(async (data) => {
@@ -47,9 +48,8 @@ export function CatalogItemForm({ categories, defaultValues, submitLabel, onSubm
     <form id="catalog-item-form" className="space-y-5" onSubmit={submit} noValidate>
       <div className="grid gap-5 sm:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-code">Codigo *</label>
-          <Input id="item-code" placeholder="EXA-001" autoComplete="off" aria-invalid={Boolean(errors.code)} aria-describedby={errors.code ? 'item-code-error' : undefined} {...register('code')} />
-          <FieldError id="item-code-error">{errors.code?.message}</FieldError>
+          <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-code">Código</label>
+          <Input id="item-code" value={code ?? 'Código gerado automaticamente'} readOnly className="font-mono text-sm text-slate-600" />
         </div>
         <div>
           <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-name">Nome *</label>

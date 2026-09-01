@@ -3,7 +3,6 @@ import { z } from 'zod'
 const requiredText = (message: string, max: number) => z.string().trim().min(1, message).max(max, `Use no maximo ${max} caracteres.`)
 
 export const catalogItemSchema = z.object({
-  code: requiredText('Informe o codigo do item.', 64),
   name: requiredText('Informe o nome do item.', 160),
   category_id: requiredText('Selecione uma categoria.', 64),
   unit: requiredText('Informe a unidade do item.', 80),
@@ -11,7 +10,7 @@ export const catalogItemSchema = z.object({
 })
 
 export const catalogCategorySchema = z.object({
-  name: requiredText('Informe o nome da categoria.', 160),
+  name: z.string().trim().min(3, 'Informe ao menos 3 caracteres.').max(160, 'Use no maximo 160 caracteres.'),
   active: z.boolean(),
 })
 

@@ -14,7 +14,6 @@ function normalizeText(value: string) {
 
 export function normalizeCatalogItemInput(input: CatalogItemInput) {
   return {
-    code: normalizeText(input.code).toUpperCase(),
     name: normalizeText(input.name),
     category_id: input.category_id,
     unit: normalizeText(input.unit).toLowerCase(),
@@ -29,7 +28,7 @@ export function translateCatalogError(error: ServiceError): Error {
     return new Error('Ja existe um item com este codigo.')
   }
   if (error.code === '23505' && text.includes('catalog_categories')) {
-    return new Error('Ja existe uma categoria com este nome.')
+    return new Error('Já existe uma categoria com este nome.')
   }
   if (error.code === '23503') {
     return new Error('A categoria selecionada nao existe mais ou possui registros relacionados.')
@@ -39,6 +38,9 @@ export function translateCatalogError(error: ServiceError): Error {
   }
   if (text.includes('categoria e unidade nao podem mudar')) {
     return new Error('A categoria e a unidade nao podem ser alteradas porque o item ja participa do historico de cotacoes.')
+  }
+  if (text.includes('codigo do item do catalogo nao pode ser alterado')) {
+    return new Error('O código do item é gerado automaticamente e não pode ser alterado.')
   }
   if (text.includes('foreign key') || text.includes('violates foreign key')) {
     return new Error('Nao foi possivel concluir porque o registro possui historico relacionado.')
