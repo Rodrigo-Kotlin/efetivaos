@@ -2,8 +2,8 @@
 -- EFETIVA OS — OPERAÇÃO A: BACKUP ANTES DO RESET OPERACIONAL
 -- ============================================================================
 --
--- VERSÃO: 1.0
--- DATA: 2026-08-29
+-- VERSÃO: 1.1 (adiciona financial_period_locks)
+-- DATA: 2026-08-29 (atualizado 2026-09-01)
 -- AMBIENTE: Supabase DEV (bxviuzluxcijbqqbpyzb)
 --
 -- OBJETIVO:
@@ -68,6 +68,7 @@ DECLARE
     'financial_import_rows',
     'financial_import_batches',
     'financial_parties',
+    'financial_period_locks',
     'price_list',
     'quotation_items',
     'margin_rules',
@@ -113,6 +114,7 @@ DECLARE
     'financial_import_rows',
     'financial_import_batches',
     'financial_parties',
+    'financial_period_locks',
     'price_list',
     'quotation_items',
     'margin_rules',

@@ -2,8 +2,8 @@
 -- EFETIVA OS — OPERAÇÃO B: RESET OPERACIONAL CONTROLADO
 -- ============================================================================
 --
--- VERSÃO: 4.0 (corrige trigger quotation_items draft-only + supplier sequence)
--- DATA: 2026-08-31
+-- VERSÃO: 5.0 (adiciona catalog_item_code_seq + financial_period_locks)
+-- DATA: 2026-08-31 (atualizado 2026-09-01)
 -- AMBIENTE: Supabase DEV (bxviuzluxcijbqqbpyzb)
 --
 -- PRÉ-REQUISITO:
@@ -65,6 +65,7 @@ DECLARE
   v_before_assets           int;  v_before_notes             int;
   v_before_import_rows      int;  v_before_import_batches    int;
   v_before_parties          int;
+  v_before_period_locks     int;
   v_before_price_list       int;  v_before_quotation_items   int;
   v_before_quotations       int;  v_before_margin_rules      int;
   v_before_catalog_items    int;  v_before_catalog_cats      int;
@@ -92,6 +93,7 @@ BEGIN
   SELECT count(*) INTO v_before_import_rows      FROM public.financial_import_rows;
   SELECT count(*) INTO v_before_import_batches   FROM public.financial_import_batches;
   SELECT count(*) INTO v_before_parties          FROM public.financial_parties;
+  SELECT count(*) INTO v_before_period_locks     FROM public.financial_period_locks;
   SELECT count(*) INTO v_before_price_list       FROM public.price_list;
   SELECT count(*) INTO v_before_quotation_items  FROM public.quotation_items;
   SELECT count(*) INTO v_before_quotations       FROM public.quotations;
@@ -128,6 +130,7 @@ BEGIN
   PERFORM set_config('app.bef_import_rows',      v_before_import_rows::text,      false);
   PERFORM set_config('app.bef_import_batches',   v_before_import_batches::text,   false);
   PERFORM set_config('app.bef_parties',          v_before_parties::text,          false);
+  PERFORM set_config('app.bef_period_locks',     v_before_period_locks::text,     false);
   PERFORM set_config('app.bef_price_list',       v_before_price_list::text,       false);
   PERFORM set_config('app.bef_quotation_items',  v_before_quotation_items::text,  false);
   PERFORM set_config('app.bef_quotations',       v_before_quotations::text,       false);
@@ -165,6 +168,7 @@ BEGIN
   RAISE NOTICE '  import_rows:             %', v_before_import_rows;
   RAISE NOTICE '  import_batches:          %', v_before_import_batches;
   RAISE NOTICE '  parties:                 %', v_before_parties;
+  RAISE NOTICE '  period_locks:            %', v_before_period_locks;
   RAISE NOTICE '  price_list:              %', v_before_price_list;
   RAISE NOTICE '  quotation_items:         %', v_before_quotation_items;
   RAISE NOTICE '  quotations:              %', v_before_quotations;
@@ -299,6 +303,7 @@ DELETE FROM public.financial_notes;
 DELETE FROM public.financial_import_rows;
 DELETE FROM public.financial_import_batches;
 DELETE FROM public.financial_parties;
+DELETE FROM public.financial_period_locks;
 
 DO $$ BEGIN
   RAISE NOTICE 'Finance cleanup concluído';
@@ -335,6 +340,22 @@ BEGIN
     RAISE NOTICE 'supplier_code_seq reiniciada → próximo código: FOR-000001';
   ELSE
     RAISE NOTICE 'supplier_code_seq não existe — nada a reiniciar';
+  END IF;
+END $$;
+
+-- ============================================================================
+-- FASE 6.2: REINICIAR CATALOG ITEM CODE SEQUENCE (se existir)
+-- ============================================================================
+-- catalog_item_code_seq é usada para gerar códigos ITEM-000001, ITEM-000002, etc.
+-- Após remover todos os catalog_items, reiniciar para 1.
+
+DO $$
+BEGIN
+  IF to_regclass('public.catalog_item_code_seq') IS NOT NULL THEN
+    PERFORM setval('public.catalog_item_code_seq', 1, false);
+    RAISE NOTICE 'catalog_item_code_seq reiniciada → próximo código: ITEM-000001';
+  ELSE
+    RAISE NOTICE 'catalog_item_code_seq não existe — nada a reiniciar';
   END IF;
 END $$;
 
@@ -396,6 +417,9 @@ BEGIN
 
   SELECT count(*) INTO v_count FROM public.financial_parties;
   IF v_count > 0 THEN v_errors := v_errors || 'parties=' || v_count || ' '; v_ok := false; END IF;
+
+  SELECT count(*) INTO v_count FROM public.financial_period_locks;
+  IF v_count > 0 THEN v_errors := v_errors || 'period_locks=' || v_count || ' '; v_ok := false; END IF;
 
   -- Pricing
   SELECT count(*) INTO v_count FROM public.price_list;
@@ -733,14 +757,70 @@ BEGIN
 END $$;
 
 -- ============================================================================
+-- FASE 11.1: VERIFICAÇÃO DAS SEQUENCES (supplier_code_seq + catalog_item_code_seq)
+-- ============================================================================
+
+DO $$
+DECLARE
+  v_supplier_last int;
+  v_supplier_called boolean;
+  v_catalog_last int;
+  v_catalog_called boolean;
+  v_blocker boolean := false;
+BEGIN
+  RAISE NOTICE '====================================================================';
+  RAISE NOTICE 'VERIFICAÇÃO DAS SEQUENCES';
+  RAISE NOTICE '====================================================================';
+
+  -- supplier_code_seq
+  IF to_regclass('public.supplier_code_seq') IS NOT NULL THEN
+    SELECT last_value, is_called INTO v_supplier_last, v_supplier_called
+    FROM public.supplier_code_seq;
+    RAISE NOTICE 'supplier_code_seq: last_value=%, is_called=%', v_supplier_last, v_supplier_called;
+    IF v_supplier_last != 1 OR v_supplier_called != false THEN
+      RAISE WARNING 'BLOCKER: supplier_code_seq não reiniciada corretamente (last_value=%, is_called=%)', v_supplier_last, v_supplier_called;
+      v_blocker := true;
+    END IF;
+  ELSE
+    RAISE NOTICE 'supplier_code_seq: NÃO EXISTE (NOT_FOUND)';
+  END IF;
+
+  -- catalog_item_code_seq
+  IF to_regclass('public.catalog_item_code_seq') IS NOT NULL THEN
+    SELECT last_value, is_called INTO v_catalog_last, v_catalog_called
+    FROM public.catalog_item_code_seq;
+    RAISE NOTICE 'catalog_item_code_seq: last_value=%, is_called=%', v_catalog_last, v_catalog_called;
+    IF v_catalog_last != 1 OR v_catalog_called != false THEN
+      RAISE WARNING 'BLOCKER: catalog_item_code_seq não reiniciada corretamente (last_value=%, is_called=%)', v_catalog_last, v_catalog_called;
+      v_blocker := true;
+    END IF;
+  ELSE
+    RAISE NOTICE 'catalog_item_code_seq: NÃO EXISTE (NOT_FOUND)';
+  END IF;
+
+  RAISE NOTICE '====================================================================';
+
+  IF v_blocker THEN
+    RAISE EXCEPTION 'BLOCKER: Sequences não reiniciadas corretamente. ROLLBACK.';
+  ELSE
+    RAISE NOTICE 'Sequences reiniciadas: OK ✓';
+  END IF;
+END $$;
+
+-- ============================================================================
 -- FASE 12: COMMIT
 -- ============================================================================
 
 COMMIT;
 
 -- ============================================================================
--- OPERAÇÃO B — RESET OPERACIONAL CONTROLADO V4 — CONCLUÍDO
+-- OPERAÇÃO B — RESET OPERACIONAL CONTROLADO V5 — CONCLUÍDO
 -- ============================================================================
+-- V5 Changes (2026-09-01):
+--   - Restart catalog_item_code_seq to 1 after catalog cleanup
+--   - Include financial_period_locks in operational cleanup
+--   - Verify both sequences reset to last_value=1, is_called=false
+--
 -- V4 Changes (2026-08-31):
 --   - Disable/enable trg_quotation_items_draft_only (blocks DELETE on non-draft)
 --   - Disable/enable trg_quotation_items_integrity_deferred (blocks DELETE on active)
