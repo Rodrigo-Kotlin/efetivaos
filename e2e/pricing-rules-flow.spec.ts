@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test'
 
-import { readFixtureState } from './fixtures'
+import { readFixtureState, serviceClient } from './fixtures'
 
 async function chooseOption(control: Locator, optionName: string) {
   await expect(control).toBeVisible()
@@ -68,6 +68,9 @@ async function createRule(
 }
 
 test('Admin gerencia regras e a comparacao reflete o calculo autoritativo', async ({ page }) => {
+  const client = serviceClient()
+  await client.from('margin_rules').update({ active: false }).eq('active', true)
+
   const fixture = await readFixtureState()
   const reference = `${fixture.prefix}_RULE`
   const receivedAt = '2026-08-23'
