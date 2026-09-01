@@ -8,7 +8,7 @@ describe('translateCatalogError', () => {
 
   it('traduz nome de categoria duplicado', () => {
     const error = translateCatalogError({ code: '23505', message: 'duplicate key', details: 'uq_catalog_categories_name_ci' })
-    expect(error.message).toBe('Ja existe uma categoria com este nome.')
+    expect(error.message).toBe('Já existe uma categoria com este nome.')
   })
 
   it('traduz bloqueio de categoria e unidade pelo historico', () => {
@@ -18,15 +18,13 @@ describe('translateCatalogError', () => {
 })
 
 describe('normalizeCatalogItemInput', () => {
-  it('normaliza textos e converte o codigo para maiusculas', () => {
+  it('normaliza textos sem gerar ou enviar codigo', () => {
     expect(normalizeCatalogItemInput({
-      code: ' exa-001 ',
       name: ' Hemograma   completo ',
       category_id: 'category-1',
       unit: ' Exame ',
       description: '  Coleta   simples ',
     })).toEqual({
-      code: 'EXA-001',
       name: 'Hemograma completo',
       category_id: 'category-1',
       unit: 'exame',

@@ -127,6 +127,15 @@ Gate:
 - 29 testes frontend e 35 testes SQL remotos aprovados;
 - deploy Cloudflare Pages publicado pela integracao Git.
 
+Follow-up de padronização do catálogo (2026-09-01):
+
+- código de item gerado no PostgreSQL por sequence no padrão `ITEM-000001`;
+- código obrigatório, único, imutável e não sobrescrevível pelo frontend;
+- presets de categoria oferecidos no Select sem seed antecipado;
+- opção “Adicionar nova categoria” preserva nomes customizados;
+- unicidade de categoria protegida por `lower(btrim(name))`;
+- migrations `20260901000100_add_catalog_item_auto_code.sql` e `20260901000110_harden_catalog_item_code_generation.sql`, com testes dedicados.
+
 ---
 
 ### Sprint 2 — Cotações + Itens

@@ -122,3 +122,58 @@ Commits técnicos:
 ## Próximo passo recomendado
 
 ETAPA 02 — Cotações e Itens de Cotação
+
+---
+
+## Follow-up — Catalog Item Codes + Category Presets
+
+**Data:** 2026-09-01
+
+### Preflight Supabase DEV
+
+- projeto auditado: `efetivaos` (`bxviuzluxcijbqqbpyzb`);
+- consulta executada antes da migration em `public.catalog_items` e `public.catalog_categories`;
+- resultado: `catalog_items = 0`, `catalog_categories = 0` e nenhuma sequence de catálogo existente;
+- portanto não havia códigos para backfill, colisões por `lower(btrim(name))` ou registros a mesclar;
+- após os testes transacionais, o pós-flight confirmou novamente zero itens/categorias e `catalog_item_code_seq` em `last_value = 1`, `is_called = false`.
+
+### Catalog Item Codes
+
+- coluna canônica: `public.catalog_items.code`;
+- formato de novos itens: `ITEM-000001`;
+- geração: sequence PostgreSQL `public.catalog_item_code_seq` por `public.generate_catalog_item_code()`;
+- características: automático, único, `NOT NULL` e imutável;
+- clientes autenticados não possuem grant para informar `code` no INSERT;
+- códigos existentes são preservados e a sequence considera códigos `ITEM-*` anteriores;
+- cadastro mostra “Código gerado automaticamente”, edição exibe código read-only e listagem/busca continuam usando a coluna.
+
+### Category Presets
+
+- estratégia MVP: presets somente na UI, sem seed de categorias não utilizadas;
+- ao salvar um preset ainda ausente, a categoria é criada normalmente;
+- `lower(btrim(name))` protege duplicidade case-insensitive e com espaços externos, inclusive sob concorrência;
+- “Outros” é categoria persistível; “+ Adicionar nova categoria” é somente ação da interface;
+- nomes customizados usam input dedicado e validação de trim/mínimo de 3 caracteres.
+
+Presets iniciais:
+
+1. Exames Laboratoriais
+2. Exames Clínicos
+3. Exames Complementares
+4. Exames de Imagem
+5. Consultas Médicas
+6. Procedimentos Ocupacionais
+7. Avaliações Ambientais
+8. Avaliações Ergonômicas
+9. Consultoria SST
+10. Laudos e Documentos SST
+11. Treinamentos
+12. Serviços de Bombeiro Civil
+13. Equipamentos
+14. EPIs
+15. Outros
+
+Migrations:
+
+- `supabase/migrations/20260901000100_add_catalog_item_auto_code.sql`;
+- `supabase/migrations/20260901000110_harden_catalog_item_code_generation.sql`.

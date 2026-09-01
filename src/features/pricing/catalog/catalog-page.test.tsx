@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 
 import CatalogPage from './catalog-page'
 import {
@@ -31,26 +32,31 @@ const items = [
 ]
 const categories = [
   { id: 'category-active', name: 'Laboratoriais', active: true, updated_at: '2026-08-23' },
+  { id: 'category-preset', name: 'Exames Laboratoriais', active: true, updated_at: '2026-08-23' },
   { id: 'category-inactive', name: 'Historica', active: false, updated_at: '2026-08-23' },
 ]
 
 describe('CatalogPage', () => {
   const setItemStatus = vi.fn()
   const setCategoryStatus = vi.fn()
+  const createItem = vi.fn()
+  const createCategory = vi.fn()
   const refetchItems = vi.fn()
   const refetchCategories = vi.fn()
 
   beforeEach(() => {
     vi.mocked(useCatalogItems).mockReturnValue({ data: items, isPending: false, isError: false, refetch: refetchItems } as unknown as ReturnType<typeof useCatalogItems>)
     vi.mocked(useCatalogCategories).mockReturnValue({ data: categories, isPending: false, isError: false, refetch: refetchCategories } as unknown as ReturnType<typeof useCatalogCategories>)
-    vi.mocked(useCreateCatalogItem).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useCreateCatalogItem>)
+    vi.mocked(useCreateCatalogItem).mockReturnValue({ mutateAsync: createItem, isPending: false } as unknown as ReturnType<typeof useCreateCatalogItem>)
     vi.mocked(useUpdateCatalogItem).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useUpdateCatalogItem>)
     vi.mocked(useSetCatalogItemStatus).mockReturnValue({ mutateAsync: setItemStatus, isPending: false } as unknown as ReturnType<typeof useSetCatalogItemStatus>)
-    vi.mocked(useCreateCatalogCategory).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useCreateCatalogCategory>)
+    vi.mocked(useCreateCatalogCategory).mockReturnValue({ mutateAsync: createCategory, isPending: false } as unknown as ReturnType<typeof useCreateCatalogCategory>)
     vi.mocked(useUpdateCatalogCategory).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useUpdateCatalogCategory>)
     vi.mocked(useSetCatalogCategoryStatus).mockReturnValue({ mutateAsync: setCategoryStatus, isPending: false } as unknown as ReturnType<typeof useSetCatalogCategoryStatus>)
     setItemStatus.mockReset().mockResolvedValue(undefined)
     setCategoryStatus.mockReset().mockResolvedValue(undefined)
+    createItem.mockReset().mockResolvedValue({ ...items[0], code: 'ITEM-000001' })
+    createCategory.mockReset().mockResolvedValue(categories[0])
     refetchItems.mockReset()
     refetchCategories.mockReset()
     vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -127,5 +133,31 @@ describe('CatalogPage', () => {
     vi.mocked(useSetCatalogItemStatus).mockReturnValue({ mutateAsync: setItemStatus, isPending: true } as unknown as ReturnType<typeof useSetCatalogItemStatus>)
     render(<CatalogPage />)
     expect(screen.getByRole('button', { name: 'Inativar item Hemograma' })).toBeDisabled()
+  })
+
+  it('cria item sem enviar code e informa o codigo retornado pelo backend', async () => {
+    const user = userEvent.setup()
+    render(<CatalogPage />)
+
+    await user.click(screen.getByRole('button', { name: 'Novo item' }))
+    await user.type(screen.getByLabelText('Nome *'), 'Hemograma completo')
+    await user.selectOptions(screen.getByLabelText('Categoria *'), 'category-active')
+    await user.selectOptions(screen.getByLabelText('Unidade *'), 'exame')
+    await user.click(screen.getByRole('button', { name: 'Criar item' }))
+
+    expect(createItem).toHaveBeenCalledWith({ name: 'Hemograma completo', category_id: 'category-active', unit: 'exame', description: '' })
+    expect(toast.success).toHaveBeenCalledWith('Item ITEM-000001 cadastrado no catalogo.')
+  })
+
+  it('impede categoria duplicada antes da mutation com mensagem amigavel', async () => {
+    const user = userEvent.setup()
+    render(<CatalogPage />)
+
+    await user.click(screen.getByRole('button', { name: 'Nova categoria' }))
+    await user.selectOptions(screen.getByLabelText('Nome *'), 'Exames Laboratoriais')
+    await user.click(screen.getByRole('button', { name: 'Criar categoria' }))
+
+    expect(createCategory).not.toHaveBeenCalled()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Já existe uma categoria com este nome.')
   })
 })

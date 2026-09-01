@@ -16,13 +16,14 @@ describe('catalog forms', () => {
     const onSubmit = vi.fn()
     render(<CatalogItemForm categories={categories} submitLabel="Criar item" onSubmit={onSubmit} onCancel={vi.fn()} />)
 
-    await user.type(screen.getByLabelText('Codigo *'), '  exa-001  ')
+    expect(screen.getByLabelText('Código')).toHaveValue('Código gerado automaticamente')
+    expect(screen.getByLabelText('Código')).toHaveAttribute('readonly')
     await user.type(screen.getByLabelText('Nome *'), '  Hemograma  ')
     await user.selectOptions(screen.getByLabelText('Categoria *'), 'category-1')
     await user.selectOptions(screen.getByLabelText('Unidade *'), 'exame')
     await user.click(screen.getByRole('button', { name: 'Criar item' }))
 
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ code: 'exa-001', name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: '' }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: '' }))
     expect(screen.queryByRole('option', { name: 'Historica' })).not.toBeInTheDocument()
   })
 
@@ -32,36 +33,57 @@ describe('catalog forms', () => {
     render(
       <CatalogItemForm
         categories={categories}
-        defaultValues={{ code: 'EXA-001', name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: '' }}
+        code="ITEM-000001"
+        defaultValues={{ name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: '' }}
         submitLabel="Salvar alteracoes"
         onSubmit={onSubmit}
         onCancel={vi.fn()}
       />,
     )
 
+    expect(screen.getByLabelText('Código')).toHaveValue('ITEM-000001')
+    expect(screen.getByLabelText('Código')).toHaveAttribute('readonly')
     await user.clear(screen.getByLabelText('Nome *'))
     await user.type(screen.getByLabelText('Nome *'), 'Hemograma completo')
     await user.selectOptions(screen.getByLabelText('Unidade *'), '__custom__')
     await user.type(screen.getByLabelText('Unidade personalizada'), 'caixa')
     await user.click(screen.getByRole('button', { name: 'Salvar alteracoes' }))
 
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ code: 'EXA-001', name: 'Hemograma completo', category_id: 'category-1', unit: 'caixa', description: '' }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ name: 'Hemograma completo', category_id: 'category-1', unit: 'caixa', description: '' }))
   })
 
-  it('envia payloads de criacao e edicao da categoria com status', async () => {
+  it('cria uma categoria a partir dos presets e trata Outros como categoria real', async () => {
     const user = userEvent.setup()
     const create = vi.fn()
     const { unmount } = render(<CatalogCategoryForm submitLabel="Criar categoria" onSubmit={create} onCancel={vi.fn()} />)
-    await user.type(screen.getByLabelText('Nome *'), '  Treinamentos  ')
-    await user.selectOptions(screen.getByLabelText('Status'), 'inactive')
+    await user.selectOptions(screen.getByLabelText('Nome *'), 'Exames Laboratoriais')
     await user.click(screen.getByRole('button', { name: 'Criar categoria' }))
-    await waitFor(() => expect(create).toHaveBeenCalledWith({ name: 'Treinamentos', active: false }))
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ name: 'Exames Laboratoriais', active: true }))
+
+    unmount()
+    const createOther = vi.fn()
+    render(<CatalogCategoryForm submitLabel="Criar categoria" onSubmit={createOther} onCancel={vi.fn()} />)
+    await user.selectOptions(screen.getByLabelText('Nome *'), 'Outros')
+    expect(screen.queryByLabelText('Nome da nova categoria')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Criar categoria' }))
+    await waitFor(() => expect(createOther).toHaveBeenCalledWith({ name: 'Outros', active: true }))
+  })
+
+  it('cria e edita categorias personalizadas', async () => {
+    const user = userEvent.setup()
+    const create = vi.fn()
+    const { unmount } = render(<CatalogCategoryForm submitLabel="Criar categoria" onSubmit={create} onCancel={vi.fn()} />)
+    await user.selectOptions(screen.getByLabelText('Nome *'), '__custom__')
+    await user.type(screen.getByLabelText('Nome da nova categoria'), '  Exames Toxicológicos  ')
+    await user.click(screen.getByRole('button', { name: 'Criar categoria' }))
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ name: 'Exames Toxicológicos', active: true }))
 
     unmount()
     const edit = vi.fn()
-    render(<CatalogCategoryForm defaultValues={{ name: 'Treinamentos', active: false }} submitLabel="Salvar alteracoes" onSubmit={edit} onCancel={vi.fn()} />)
-    await user.clear(screen.getByLabelText('Nome *'))
-    await user.type(screen.getByLabelText('Nome *'), 'Cursos e treinamentos')
+    render(<CatalogCategoryForm defaultValues={{ name: 'Cursos personalizados', active: false }} submitLabel="Salvar alteracoes" onSubmit={edit} onCancel={vi.fn()} />)
+    expect(screen.getByLabelText('Nome da nova categoria')).toHaveValue('Cursos personalizados')
+    await user.clear(screen.getByLabelText('Nome da nova categoria'))
+    await user.type(screen.getByLabelText('Nome da nova categoria'), 'Cursos e treinamentos')
     await user.selectOptions(screen.getByLabelText('Status'), 'active')
     await user.click(screen.getByRole('button', { name: 'Salvar alteracoes' }))
     await waitFor(() => expect(edit).toHaveBeenCalledWith({ name: 'Cursos e treinamentos', active: true }))

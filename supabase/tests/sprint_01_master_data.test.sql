@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(35);
+select plan(36);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -43,8 +43,8 @@ select lives_ok(
 );
 
 select lives_ok(
-  $$ insert into public.catalog_items (id, code, name, category_id, unit, description)
-     values ('10000000-0000-0000-0000-000000000030', 'ADM-001', 'Item Admin', '10000000-0000-0000-0000-000000000020', 'servico', 'Fixture transacional') $$,
+  $$ insert into public.catalog_items (id, name, category_id, unit, description)
+     values ('10000000-0000-0000-0000-000000000030', 'Item Admin', '10000000-0000-0000-0000-000000000020', 'servico', 'Fixture transacional') $$,
   'Admin insere item do catalogo'
 );
 
@@ -136,8 +136,8 @@ select lives_ok(
 );
 
 select lives_ok(
-  $$ insert into public.catalog_items (id, code, name, category_id, unit)
-     values ('10000000-0000-0000-0000-000000000031', 'EQP-001', 'Item Equipe', '10000000-0000-0000-0000-000000000021', 'unidade') $$,
+  $$ insert into public.catalog_items (id, name, category_id, unit)
+     values ('10000000-0000-0000-0000-000000000031', 'Item Equipe', '10000000-0000-0000-0000-000000000021', 'unidade') $$,
   'Equipe insere item do catalogo'
 );
 
@@ -213,10 +213,23 @@ set local role postgres;
 
 select throws_ok(
   $$ insert into public.catalog_items (code, name, category_id, unit)
-     values ('adm-001', 'Codigo duplicado', '10000000-0000-0000-0000-000000000020', 'servico') $$,
+     select lower(code), 'Codigo duplicado', '10000000-0000-0000-0000-000000000020', 'servico'
+     from public.catalog_items where id = '10000000-0000-0000-0000-000000000030' $$,
   '23505', 'duplicate key value violates unique constraint "uq_catalog_items_code_ci"',
   'Codigo do item e unico sem diferenciar caixa'
 );
+
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
+
+select throws_ok(
+  $$ insert into public.catalog_items (code, name, category_id, unit)
+     values ('MANUAL-001', 'Codigo manual', '10000000-0000-0000-0000-000000000020', 'servico') $$,
+  '42501', 'permission denied for table catalog_items',
+  'Cliente autenticado nao pode informar codigo manual'
+);
+
+set local role postgres;
 
 select throws_ok(
   $$ insert into public.catalog_categories (name) values ('categoria admin atualizada') $$,

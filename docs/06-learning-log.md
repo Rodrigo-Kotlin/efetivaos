@@ -725,3 +725,17 @@ Métodos afetados:
 **Aplicado:** RPC usa CTEs para compor cada seção e retorna tudo num único JSONB. Frontend faz uma chamada `useFinancialDashboard`.
 
 **Impacto futuro:** Padrão para dashboards que agregam múltiplas fontes — preferir RPC única com JSONB a múltiplas chamadas sequenciais.
+
+---
+
+## LL-055 — Identificadores operacionais devem nascer no banco
+
+**Data:** 2026-09-01
+
+**Contexto:** O catálogo aceitava códigos manuais e precisava de uma identidade interna neutra, sequencial e segura sob concorrência.
+
+**Aprendido:** `COUNT + 1`, `MAX + 1` e geração React não oferecem exclusão mútua. Uma sequence PostgreSQL usada por default garante valores distintos e não reutiliza números após exclusão ou rollback normal. Restringir `INSERT` na coluna impede que clientes ignorem o default.
+
+**Aplicado:** `catalog_item_code_seq`, `generate_catalog_item_code()`, default de `catalog_items.code`, trigger de imutabilidade e grant de INSERT por coluna. A sequence é sincronizada sob lock apenas com códigos legados no padrão `ITEM-*`, sem sobrescrever os demais. Testes transacionais não rebobinam a sequence, pois alterações de sequence não participam do rollback e poderiam colidir com sessões concorrentes.
+
+**Impacto futuro:** Novos códigos operacionais devem usar sequence/identity no banco, com sincronização explícita de backfill e proteção contra escrita direta quando forem canônicos.

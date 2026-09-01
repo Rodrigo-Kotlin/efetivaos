@@ -985,3 +985,19 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 
 **Validação:** 08N ≥60 checks, 08M 66/66, 08L 28/28, 08E.1 15/15, frontend
 455/455, TS=0, build PASS.
+
+---
+
+### DEC-062 — Código canônico de item e presets de categoria
+
+**Status:** FECHADA
+
+**Data:** 2026-09-01
+
+**Contexto:** O catálogo exigia digitação manual de códigos semânticos e nomes livres de categoria, o que aumentava risco de colisão e variações cadastrais.
+
+**Decisão:** Novos itens recebem `code` no PostgreSQL pelo default `generate_catalog_item_code()` e pela sequence `catalog_item_code_seq`, no formato `ITEM-000001`. O código é único, obrigatório, imutável e não pode ser informado por clientes autenticados. Códigos legados são preservados. Categorias canônicas são sugestões centralizadas na UI e só são persistidas quando escolhidas; nomes customizados continuam permitidos por “Adicionar nova categoria”. A unicidade de categoria compara `lower(btrim(name))`.
+
+**Motivo:** Sequências resolvem concorrência sem `COUNT`/`MAX`, códigos neutros não acoplam identidade a nome ou categoria e presets reduzem variações sem povoar o banco com registros não utilizados.
+
+**Impacto:** O frontend não gera nem envia código, mostra o valor como automático/read-only e pesquisa pelo código retornado. A sincronização final da sequence ocorre sob lock e o gerador rejeita perfis inativos. Criação concorrente de categorias iguais resulta em uma única linha pela proteção do banco, com mensagem de negócio para a tentativa duplicada.
