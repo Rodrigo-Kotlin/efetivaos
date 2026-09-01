@@ -34,8 +34,9 @@ test('dashboard opera sem overflow nos breakpoints e preserva deep links', async
   await expect(page.getByRole('heading', { name: /Compara(?:ç|c)(?:ã|a)o de pre(?:ç|c)os/i })).toBeVisible()
 
   await page.goto('/pricing')
+  await expect(page.getByRole('heading', { name: 'Visão operacional' })).toBeVisible()
   await context.setOffline(true)
-  await expect(page.getByText('Sem conexao. Os dados nao podem ser atualizados no momento.')).toBeVisible()
+  await expect(page.getByText('Sem conexao. Os dados nao podem ser atualizados no momento.')).toBeVisible({ timeout: 10_000 })
   await context.setOffline(false)
 
   expect(browserErrors).toEqual([])

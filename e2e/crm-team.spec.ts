@@ -4,7 +4,7 @@ test.describe('CRM Team Flow', () => {
   test('equipe can access CRM dashboard', async ({ page }) => {
     await page.goto('/crm')
     await expect(page).toHaveURL(/\/crm/)
-    await expect(page.getByRole('heading', { name: /Relacionamento com clientes/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^CRM Comercial$/i })).toBeVisible()
   })
 
   test('equipe can access clients list', async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('CRM Team Flow', () => {
   test('equipe deep-link /crm resolves', async ({ page }) => {
     await page.goto('/crm')
     await expect(page).toHaveURL(/\/crm/)
-    await expect(page.getByRole('heading', { name: /Relacionamento com clientes/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^CRM Comercial$/i })).toBeVisible()
   })
 
   test('equipe deep-link /crm/clients resolves', async ({ page }) => {

@@ -4,9 +4,9 @@ test.describe('CRM Admin Flow', () => {
   test('navigates to CRM dashboard and sees indicators', async ({ page }) => {
     await page.goto('/crm')
     await expect(page).toHaveURL(/\/crm/)
-    await expect(page.getByRole('heading', { name: /Relacionamento com clientes/i })).toBeVisible()
-    await expect(page.getByRole('main').getByRole('link', { name: 'Clientes', exact: true })).toBeVisible()
-    await expect(page.getByRole('link', { name: /Novo cliente/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^CRM Comercial$/i })).toBeVisible()
+    await expect(page.getByText('Pipeline aberto', { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Oportunidade$/i })).toBeVisible()
   })
 
   test('navigates to clients list', async ({ page }) => {
@@ -29,7 +29,7 @@ test.describe('CRM Admin Flow', () => {
   test('deep-link /crm resolves', async ({ page }) => {
     await page.goto('/crm')
     await expect(page).toHaveURL(/\/crm/)
-    await expect(page.getByRole('heading', { name: /Relacionamento com clientes/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /^CRM Comercial$/i })).toBeVisible()
   })
 
   test('deep-link /crm/clients resolves', async ({ page }) => {
