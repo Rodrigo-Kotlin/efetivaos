@@ -695,7 +695,7 @@ Gate 2C (UI):
 - E2E completo NÃO executado nesta sessão: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente; ver Findings. Navegação e shell cobertos por testes de unidade e suíte existente;
 - decision register atualizado (DEC-065) e learning log (LL-058).
 
-Commit: `pending` (referenciar commit desta etapa após push).
+Commit: `deafe65` — feat(pricing): own price proposals UI (Fase 2C / ETAPA 11).
 
 ---
 
