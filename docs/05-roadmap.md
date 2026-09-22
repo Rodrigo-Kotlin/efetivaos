@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 10 — Preços Próprios (Fase 2B, banco) — COMPLETED.
+**Status atual:** ETAPA 11 — Preços Próprios (Fase 2C, UI) — COMPLETED.
 
 ---
 
@@ -671,7 +671,31 @@ Gate 2B (banco):
 - `npm run build` sem erros TypeScript;
 - decision register atualizado (DEC-064).
 
-Próximo: Fase 2B — UI de propostas de preço próprio (criação/reajuste pela Equipe e decisão de aprovação/rejeição/aposentadoria pelo Admin, consumindo `get_own_price_proposals` + as RPCs acima; atualizar `src/types/database.ts`).
+Próximo: Fase 2C — UI de propostas de preço próprio — ENTREGUE na ETAPA 11 (abaixo).
+
+---
+
+### ETAPA 11 — Preços próprios (Fase 2C: interface)
+
+Interface completa de propostas de preço próprio, consumindo exclusivamente a estrutura da 2A e as RPCs da 2B (ver DEC-065).
+
+- Feature `src/features/pricing/own-prices/`: tipos, schemas (Zod), service (RPCs + insert autorizado em `own_price_proposals`), queries (TanStack) e página com filtros, estado derivado, cards mobile + tabela desktop;
+- Equipe: definir preço próprio (criação) e propor reajuste (exige justificativa); Admin: decidir (aprovar/recusar com observação opcional) e inativar preço aprovado (aposentadoria);
+- Consumo das RPCs `get_own_price_proposals`, `own_price_decision_token`, `approve_own_price_proposal`, `inactivate_own_price_proposal`; inserção somente via tabela autorizada (RLS), nunca `price_list` direto;
+- `internal_cost` visível apenas ao Admin; autorização no banco permanece soberana (a UI apenas oculta elementos);
+- Tokens de decisão com `staleTime: Infinity`: tela obsoleta recarrega o token e retoma; invalidação de cache de propostas + tabela comercial + comparação/disboard em sucesso **e** erro;
+- `src/types/database.ts` atualizada: tipos das fases 2A/2B + mapeamento `Functions` para as RPCs novas; colunas `price_origin`/`own_price_proposal_id` adicionadas opcionalmente em `PricingComparisonRow`/`PriceList`;
+- Rota `/pricing/own-prices` (lazy), item "Preços Próprios" no app-shell e entrada no módulo de Preços; select da comparação expõe `price_origin` e `own_price_proposal_id`;
+- Decisão da ambiguidade do §8 (recusa de pendente = `inactivate_own_price_proposal` com observação opcional) registrada — ver DEC-065 e Findings.
+
+Gate 2C (UI):
+
+- `npm test` 45 arquivos / 534 testes verdes, incluindo 4 novas suítes da feature (`own-prices-api`, `own-prices.schemas`, `own-prices-queries`, `own-prices-page`);
+- `npm run build` (tsc -b) sem erros; ESLint sem erros nos arquivos da etapa (1 warning da biblioteca RHF, padrão já existente);
+- E2E completo NÃO executado nesta sessão: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente; ver Findings. Navegação e shell cobertos por testes de unidade e suíte existente;
+- decision register atualizado (DEC-065) e learning log (LL-058).
+
+Commit: `pending` (referenciar commit desta etapa após push).
 
 ---
 

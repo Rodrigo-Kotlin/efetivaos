@@ -767,3 +767,18 @@ Métodos afetados:
 **Aplicado:** As colunas novas foram movidas para o fim do SELECT na migration `20260922000200_add_own_price_approval_rpcs.sql`; o push passou na segunda tentativa.
 
 **Impacto futuro:** Ao evoluir views mantidas por `CREATE OR REPLACE`, acrescentar apenas colunas novas ao final e revisar o contrato consumido pelo frontend antes de qualquer mudança estrutural.
+
+---
+
+## LL-058 �?"�" Fase 2C: inser��ǜo autorizada + RPCs, recusa como inativa��ǜo e token de decis��o como GC da tela obsoleta
+
+**Data:** 2026-09-22 (ETAPA 11 / FASE 2C)
+
+**Contexto:** A interface de pre��o pr��prio precisava criar propostas e decidir sobre elas sem UPDATE direto de estado nem escrita em `price_list`, e precisava evitar que o Admin decidisse sobre um valor jǭ reajustado.
+
+**Aprendido:** O caminho seguro Ǹ (1) insert autorizado pelo RLS em `own_price_proposals` para cria����ǜo (sem tocar `price_list`); (2) transi����ǜo de estado exclusivamente pelas RPCs da 2B (`approve_own_price_proposal`/`inactivate_own_price_proposal`); (3) recusa de pendente = inativa����ǜo com observa����ǜo opcional (o enum nǜo tem estado de rejei����ǜo); (4) o token de decisǜo buscado com `staleTime: Infinity` Ǹ o aviso (nǜo o bloqueio) de tela obsoleta — a tela recarrega o token e retoma, jamais decide sobre snapshot velho; (5) `internal_cost` nǜo Ǹ sequer requisitado �� API para nǜo-Admin (o grant de leitura do banco permanece soberano).
+
+**Aplicado:** Feature `own-prices/` (tipos, schemas, service, queries e pǭgina), rota lazy `/pricing/own-prices`, item "Pre��os Prǯprios" no app-shell e na tela de Pre��os; invalida����ǜo de cache em sucesso **e** erro (propostas + tabela comercial + compara����ǜo/dashboard); 45 arquivos/534 testes verdes, build e ESLint limpos.
+
+**Impacto futuro:** Ao expor decis��es administrativas na UI, manter o UPDATE de estado restrito ao banco (RPC + GUC) e usar token de snapshot + recarga (nǜo confiar em staleTime de 0 ou em esconder bot��es) para resolver tela obsoleta.
+

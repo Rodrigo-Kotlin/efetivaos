@@ -13,6 +13,7 @@ const CatalogPage = lazy(() => import('@/features/pricing/catalog/catalog-page')
 const ComparisonPage = lazy(() => import('@/features/pricing/comparison/comparison-page'))
 const PriceListPage = lazy(() => import('@/features/pricing/price-list/price-list-page'))
 const RulesPage = lazy(() => import('@/features/pricing/rules/rules-page'))
+const OwnPricesPage = lazy(() => import('@/features/pricing/own-prices/own-prices-page'))
 const QuotationsPage = lazy(() => import('@/features/pricing/quotations/quotations-page'))
 const QuotationEditorPage = lazy(() => import('@/features/pricing/quotations/quotation-editor-page'))
 const CrmPage = lazy(() => import('@/features/crm/pages/crm-page'))
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
           { path: 'pricing/catalog', element: pending(<CatalogPage />) },
           { path: 'pricing/comparison', element: pending(<ComparisonPage />) },
           { path: 'pricing/prices', element: pending(<PriceListPage />) },
+          { path: 'pricing/own-prices', element: pending(<OwnPricesPage />) },
           {
             element: <AdminRoute />,
             children: [{ path: 'pricing/rules', element: pending(<RulesPage />) }],

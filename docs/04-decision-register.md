@@ -1035,3 +1035,19 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 **Impacto:** A transição de estado passou a existir de forma autorizada e testável (31/31 na suite `2b_own_price_approval.test.sql`). Propostas inativas liberam nova proposta pendente para reajuste (a antiga permanece como histórico). A RPC de inativação não toca o preço vigente de outra proposta quando o item já foi reajustado. A interface (Fase 2B - UI) consumirá `get_own_price_proposals`, `own_price_decision_token` e as duas RPCs, sem UPDATE direto de estado.
 
 ---
+
+### DEC-065 — Fase 2C: interface de preço próprio usa insert autorizado + RPCs; recusa = inativação com observação; token de decisão é o GC da tela obsoleta
+
+**Status:** FECHADA
+
+**Data:** 2026-09-22 (FASE 2C, somente interface)
+
+**Contexto:** Com o banco da 2A e as RPCs da 2B prontos, faltava a interface. O Doc 01 (§8) deixa uma ambiguidade: a recusa de uma proposta pendente não define estado próprio de rejeição — o enum `own_price_status` só tem 'pending'/'approved'/'inactive' — então a recusa precisa neutralizar a proposta pendente dentro do vocabulário existente. Também não estava definido como a Equipe leria o custo interno (visível apenas a Admin pelo grant) nem como a tela detectaria que o Admin está decidindo sobre um valor já alterado.
+
+**Decisão:** (1) A interface nunca escreve em `price_list` nem faz UPDATE direto de estado: a criação usa INSERT em `own_price_proposals` (RLS autoriza Equipe) e toda transição usa somente as RPCs `approve_own_price_proposal`/`inactivate_own_price_proposal`. (2) **Recusa de pendente = `inactivate_own_price_proposal` com observação opcional** (`pending→inactive`), sem estado próprio; a rastreabilidade vem de `approved_by`/`approved_at`/`decision_notes`. A aposentadoria de preço aprovado usa a mesma RPC (`approved→inactive`), diferenciada na UI. (3) O token de decisão (`own_price_decision_token`) é buscado com `staleTime: Infinity`; quando indisponível, a tela exibe a mensagem canônica ("A proposta foi alterada desde que você abriu esta tela. Atualize os dados antes de continuar.") e recarrega antes de decidir; falha de mutação invalida o cache de propostas + tabela comercial + comparação/dashboard (sucesso e erro). (4) `internal_cost` não é solicitado à API para não-Admin (a UI apenas oculta; o grant do banco permanece soberano). (5) O catálogo próprio é lido por consulta dedicada (`catalog_items` com `sourcing_type='own'`), sem tocar `catalog.service`.
+
+**Motivo:** Preservar as regras 11/12/14 do Motor (nunca alterar silenciosamente preço aprovado; aprovação exclusiva de Admin; origem rastreável) sem duplicar lógica de transição no cliente; o token impede decidir um valor reajustado; o custo interno continua restrito pelo grant de leitura.
+
+**Impacto:** UI da ETAPA 11 (2C) entregue com 45 suítes/534 testes verdes, incluindo 4 suítes da feature (`own-prices-api`, `own-prices.schemas`, `own-prices-queries`, `own-prices-page`); `npm run build` e ESLint sem erros. `src/types/database.ts` ganhou os tipos da 2A/2B, o mapeamento `Functions` das RPCs novas e as colunas opcionais `price_origin`/`own_price_proposal_id` em `PricingComparisonRow`/`PriceList` (opcionais para não quebrar fixtures de testes existentes). E2E completo não executado nesta sessão por ausência das credenciais `SPRINT0_*`/`E2E_*` no ambiente.
+
+---

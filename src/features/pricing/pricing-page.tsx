@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, ClipboardList, LibraryBig, ListTree, Scale, Tag } from 'lucide-react'
+import { ArrowRight, Building2, ClipboardList, LibraryBig, ListTree, Scale, Tag, Tags } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -14,6 +14,7 @@ import { useAuth } from '@/features/auth/auth-context'
 const sections = [
   { to: '/pricing/comparison', label: 'Comparação de custos', description: 'Veja o menor custo vigente e abra o histórico de ofertas por item do Catálogo Efetiva.', icon: Scale, primary: true },
   { to: '/pricing/prices', label: 'Tabela de Preços', description: 'Consulte os preços comerciais aprovados, status e origem de cada decisão.', icon: ListTree },
+  { to: '/pricing/own-prices', label: 'Preços Próprios', description: 'Proponha e acompanhe preços de venda para serviços próprios, sem fornecedor ou cotação.', icon: Tags },
   { to: '/pricing/quotations', label: 'Cotações', description: 'Registre documentos de fornecedores e ative ou cancele cada cotação.', icon: ClipboardList },
   { to: '/pricing/suppliers', label: 'Fornecedores', description: 'Gerencie os fornecedores usados como origem das cotações.', icon: Building2 },
   { to: '/pricing/catalog', label: 'Catálogo Efetiva', description: 'Mantenha a referência canônica de itens e categorias usadas na comparação.', icon: LibraryBig },

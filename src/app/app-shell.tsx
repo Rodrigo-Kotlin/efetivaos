@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart, Receipt, CreditCard, type LucideIcon } from 'lucide-react'
+import { Building2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, Tags, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart, Receipt, CreditCard, type LucideIcon } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
@@ -49,6 +49,7 @@ const navigationGroups: NavigationGroup[] = [
       { to: '/pricing', label: 'Motor de Preços', icon: Tag, end: true },
       { to: '/pricing/comparison', label: 'Comparação', icon: CircleDollarSign },
       { to: '/pricing/prices', label: 'Tabela de Preços', icon: ListTree },
+      { to: '/pricing/own-prices', label: 'Preços Próprios', icon: Tags },
       { to: '/pricing/rules', label: 'Regras de Preço', icon: Scale, adminOnly: true },
       { to: '/pricing/quotations', label: 'Cotações', icon: ClipboardList },
       { to: '/pricing/suppliers', label: 'Fornecedores', icon: Building2 },

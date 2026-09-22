@@ -36,6 +36,9 @@ export type CatalogCategory = AuditFields & {
   active: boolean
 }
 
+export type SourcingType = 'own' | 'outsourced'
+export type PriceOrigin = 'own' | 'quotation'
+
 export type CatalogItem = AuditFields & {
   id: string
   code: string
@@ -44,6 +47,7 @@ export type CatalogItem = AuditFields & {
   unit: string
   description: string | null
   active: boolean
+  sourcing_type: SourcingType
 }
 
 export type QuotationStatus = 'draft' | 'active' | 'cancelled'
@@ -131,6 +135,8 @@ export type PricingComparisonRow = {
   best_quotation_item_id_at_approval: string | null
   best_cost_at_approval: string | null
   decision_token: string
+  price_origin?: PriceOrigin | null
+  own_price_proposal_id?: string | null
 }
 
 export type MarginScope = 'global' | 'category' | 'item'
@@ -166,6 +172,8 @@ export type PriceList = AuditFields & {
   status: PriceStatus
   approved_at: string
   approved_by: string
+  price_origin?: PriceOrigin
+  own_price_proposal_id?: string | null
 }
 
 export type QuotationOfferCandidateRow = {
@@ -184,6 +192,51 @@ export type QuotationOfferCandidateRow = {
   is_expired: boolean
   validity_not_informed: boolean
   is_eligible: boolean
+}
+
+// ---------------------------------------------------------------------------
+// Own Price Proposals (Fase 2A/2B)
+// ---------------------------------------------------------------------------
+
+export type OwnPriceStatus = 'pending' | 'approved' | 'inactive'
+
+export type OwnPriceProposal = AuditFields & {
+  id: string
+  catalog_item_id: string
+  sale_price: string
+  internal_cost: string | null
+  status: OwnPriceStatus
+  submitted_by: string
+  submitted_at: string
+  approved_by: string | null
+  approved_at: string | null
+  decision_notes: string | null
+  revision: number
+}
+
+export type OwnPriceProposalItem = {
+  id: string
+  catalog_item_id: string
+  item_code: string
+  item_name: string
+  sale_price: string
+  internal_cost: string | null
+  status: OwnPriceStatus
+  submitted_by: string
+  submitted_at: string
+  approved_by: string | null
+  approved_at: string | null
+  decision_notes: string | null
+  revision: number
+  created_at: string
+  updated_at: string
+}
+
+export type OwnPriceProposalInsert = {
+  catalog_item_id: string
+  sale_price: string
+  internal_cost?: string | null
+  decision_notes?: string | null
 }
 
 export type ClientType = 'company' | 'individual'
@@ -673,12 +726,13 @@ export type Database = {
         Row: CatalogItem
         Insert: {
           id?: string
-          code?: string
+code?: string
           name: string
           category_id: string
           unit: string
           description?: string | null
           active?: boolean
+          sourcing_type?: SourcingType
           created_at?: string
           created_by?: string | null
           updated_at?: string
@@ -690,6 +744,7 @@ export type Database = {
           unit: string
           description: string | null
           active: boolean
+          sourcing_type?: SourcingType
           updated_at: string
           updated_by?: string | null
         }>
@@ -731,6 +786,32 @@ export type Database = {
         Insert: never
         Update: never
         Relationships: []
+      }
+      own_price_proposals: {
+        Row: OwnPriceProposal
+        Insert: {
+          id?: string
+          catalog_item_id: string
+          sale_price: string | number
+          internal_cost?: string | number | null
+          status?: OwnPriceStatus
+          decision_notes?: string | null
+          revision?: number
+          created_at?: string
+          created_by?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: never
+        Relationships: [
+          {
+            foreignKeyName: 'own_price_proposals_catalog_item_id_fkey'
+            columns: ['catalog_item_id']
+            isOneToOne: false
+            referencedRelation: 'catalog_items'
+            referencedColumns: ['id']
+          },
+        ]
       }
       quotations: {
         Row: Quotation
@@ -1316,6 +1397,29 @@ export type Database = {
         Returns: PriceList
       }
       price_decision_token: { Args: { p_catalog_item_id: string }; Returns: string }
+      own_price_decision_token: { Args: { p_proposal_id: string }; Returns: string }
+      approve_own_price_proposal: {
+        Args: {
+          p_proposal_id: string
+          p_expected_decision_token: string
+        }
+        Returns: OwnPriceProposal
+      }
+      inactivate_own_price_proposal: {
+        Args: {
+          p_proposal_id: string
+          p_expected_decision_token: string
+          p_decision_notes?: string | null
+        }
+        Returns: OwnPriceProposal
+      }
+      get_own_price_proposals: {
+        Args: {
+          p_catalog_item_id?: string | null
+          p_status?: OwnPriceStatus | null
+        }
+        Returns: OwnPriceProposalItem[]
+      }
       save_quotation_draft: {
         Args: {
           p_quotation_id: string | null
