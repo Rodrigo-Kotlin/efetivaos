@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 08F — Ativos/Bens + Balanco Patrimonial — COMPLETED.
+**Status atual:** ETAPA 09 — Preços Próprios (Fase 2A, banco) — COMPLETED.
 
 ---
 
@@ -626,6 +626,31 @@ Gate:
 - 80 SQL tests executados (50 + 30);
 - 273/273 frontend tests pass;
 - handoff `docs/25-handoff-sprint-08g.md`;
+
+---
+
+### ETAPA 09 — Preços próprios (Fase 2A: somente banco)
+
+Estrutura de propostas de preço para serviços próprios (sem fornecedor/cotação), dentro do Motor de Preços. A decisão (aprovar/inativar) fica para a Fase 2B via RPC.
+
+- Enums `pricing_sourcing_type`, `price_origin`, `own_price_status`;
+- `catalog_items.sourcing_type` NOT NULL default `'outsourced'` (preserva itens existentes);
+- Tabela `own_price_proposals` (pendente/decidida/inativa, revisão crescente, auditoria, CHECK de decisão, índice único parcial para 1 pendente por item);
+- Triggers de guarda: submissão (autor + item próprio ativo + pending + revisão 1), atualização (identidade imutável, transição de estado somente via GUC da RPC 2B, conteúdo decidida imutável, revisão em reajuste) e origem do item imutável após histórico;
+- `price_list`: `price_origin` + `own_price_proposal_id`, campos de origem de cotação opcionais com CHECK de exclusividade por origem;
+- RLS: SELECT/INSERT/UPDATE para `authenticated` (escopo owner/admin; custo interno oculto por grant de coluna), sem DELETE (ver DEC-063);
+- Reader `get_own_price_proposals` (`SECURITY DEFINER`, máscara de custo interno para não-Admin);
+- 53/53 testes pgTAP validados no Supabase DEV; `npm run build` ok.
+
+Gate 2A:
+
+- migration `20260922000100_create_own_pricing_structure.sql` aplicada e validada no DEV;
+- suite `supabase/tests/2a_own_price_structure.test.sql` 53/53;
+- regressão de catálogo (auto-code) sem erros;
+- `npm run build` sem erros TypeScript;
+- decision register atualizado (DEC-063).
+
+Próximo: Fase 2B — RPCs `approve_own_price_proposal` / `inactivate_own_price_proposal` + UI.
 
 ---
 

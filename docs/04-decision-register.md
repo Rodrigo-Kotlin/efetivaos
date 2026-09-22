@@ -1001,3 +1001,19 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 **Motivo:** Sequências resolvem concorrência sem `COUNT`/`MAX`, códigos neutros não acoplam identidade a nome ou categoria e presets reduzem variações sem povoar o banco com registros não utilizados.
 
 **Impacto:** O frontend não gera nem envia código, mostra o valor como automático/read-only e pesquisa pelo código retornado. A sincronização final da sequence ocorre sob lock e o gerador rejeita perfis inativos. Criação concorrente de categorias iguais resulta em uma única linha pela proteção do banco, com mensagem de negócio para a tentativa duplicada.
+
+---
+
+### DEC-063 — Propostas de preço próprio: RLS exige policy de SELECT e colunas de decisão no grant
+
+**Status:** FECHADA
+
+**Data:** 2026-09-22 (FASE 2A)
+
+**Contexto:** A Fase 2A entrega a estrutura de preços próprios somente no banco. O desenho inicial bloqueava leitura direta (sem policy de SELECT, custo interno mascarado por função `SECURITY DEFINER`) e concedia apenas `sale_price`, `internal_cost` e `decision_notes` ao UPDATE de `authenticated`. Durante a validação, o UPDATE direto de `authenticated` em `own_price_proposals` (e em qualquer tabela com RLS) matchea **0 linhas silenciosamente** — mesmo com policy `using (true) with check (true)`, owner `postgres` e FORCE desligado. Testes de isolamento (tabela mínima, clone com `LIKE INCLUDING ALL`) reproduziram o fenômeno; a adição de uma policy de SELECT restaurou o UPDATE. Conclusão empírica do ambiente: **sob RLS, um papel `authenticated` só consegue atualizar linhas visíveis por uma policy de SELECT do mesmo escopo.**
+
+**Decisão:** `own_price_proposals` passa a ter policy `own_price_proposals_select_internal` para `authenticated` com `using (is_internal_user() and (is_admin() or submitted_by = (select auth.uid())))`, espelhando o escopo da policy de UPDATE. O custo interno permanece oculto pelo grant de coluna (a lista de SELECT não inclui `internal_cost`). O grant de UPDATE é ampliado para `(sale_price, internal_cost, decision_notes, status, approved_by, approved_at)`, de modo que toda transição de estado passe pelo gatilho de guarda (que exige `is_admin()` + GUC `efetiva_os.own_price_approval='on'`), em vez de ser silenciosamente podada pela ausência de privilégio de coluna.
+
+**Motivo:** Sem a policy de SELECT, o próprio fluxo autorizado de reajuste pendente pelo dono da proposta não funciona; sem as colunas de decisão no grant, tentativas de transição de estado viram `permission denied` genérico ou no-op silencioso em vez do erro de negócio rastreável do trigger.
+
+**Impacto:** Leitura direta via RLS fica restrita a owner/admin com escopo idêntico ao UPDATE; `internal_cost` segue somente pelo reader `get_own_price_proposals` (Admin). As asserções de imutabilidade/transição passam a se basear nos erros do trigger (`P0001`/`42501` com mensagem canônica) e a exclusão direta segue bloqueada (sem policy nem grant de DELETE). Os testes da 2A (53/53) validam o comportamento na migration `20260922000100_create_own_pricing_structure.sql`, aplicada no Supabase DEV.
