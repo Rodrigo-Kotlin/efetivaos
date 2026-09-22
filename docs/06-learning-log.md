@@ -739,3 +739,31 @@ Métodos afetados:
 **Aplicado:** `catalog_item_code_seq`, `generate_catalog_item_code()`, default de `catalog_items.code`, trigger de imutabilidade e grant de INSERT por coluna. A sequence é sincronizada sob lock apenas com códigos legados no padrão `ITEM-*`, sem sobrescrever os demais. Testes transacionais não rebobinam a sequence, pois alterações de sequence não participam do rollback e poderiam colidir com sessões concorrentes.
 
 **Impacto futuro:** Novos códigos operacionais devem usar sequence/identity no banco, com sincronização explícita de backfill e proteção contra escrita direta quando forem canônicos.
+
+---
+
+## LL-056 — Decisão administrativa de preço: RPC autoritativa com token + CAS
+
+**Data:** 2026-09-22 (ETAPA 10 / FASE 2B)
+
+**Contexto:** Aprovar/rejeitar proposta de preço próprio é ação exclusiva de Admin e precisa impedir telas obsoletas (uma proposta reajustada pela Equipe enquanto o Admin visualizava) e corrida entre leitura e escrita.
+
+**Aprendido:** A GUC `efetiva_os.own_price_approval='on'` exigida pelo gatilho de guarda garante que a transição de estado só ocorra dentro da RPC. O token (md5 do snapshot da proposta) detecta tela obsoleta; o UPDATE com `WHERE` nos valores lidos (CAS) encerra a corrida entre a leitura e a escrita. A RPC restaura a GUC ao valor anterior mesmo em sucesso e a transação abortada descarta o `SET LOCAL` em falha.
+
+**Aplicado:** `own_price_decision_token(uuid)` + `approve_own_price_proposal(uuid,text)` + `inactivate_own_price_proposal(uuid,text,text)` com `set_config('efetiva_os.own_price_approval','on',true)`, UPDATE CAS e restauração ao final; aprovado o preço entra em `price_list` com origem `'own'` (upsert por `catalog_item_id`).
+
+**Impacto futuro:** Padrão para decisões administrativas em tabelas com RLS e gatilhos de guarda: token de snapshot + CAS + GUC de autorização por RPC, nunca UPDATE direto pelo cliente.
+
+---
+
+## LL-057 — CREATE OR REPLACE VIEW só anexa colunas ao final
+
+**Data:** 2026-09-22 (ETAPA 10 / FASE 2B)
+
+**Contexto:** A view `pricing_comparison_v` precisou expor `price_origin` e `own_price_proposal_id` para o fluxo de preço próprio.
+
+**Aprendido:** `CREATE OR REPLACE VIEW` mantém o contrato (nome/posição/tipo) das colunas existentes; novas colunas só podem ser acrescentadas ao **final** da lista de SELECT. Inserir coluna no meio desloca o contrato e o banco rejeita com `42P16 "cannot change name of view column"`. Renomear, reordenar ou remover coluna exige `DROP VIEW` + recriação.
+
+**Aplicado:** As colunas novas foram movidas para o fim do SELECT na migration `20260922000200_add_own_price_approval_rpcs.sql`; o push passou na segunda tentativa.
+
+**Impacto futuro:** Ao evoluir views mantidas por `CREATE OR REPLACE`, acrescentar apenas colunas novas ao final e revisar o contrato consumido pelo frontend antes de qualquer mudança estrutural.

@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 09 — Preços Próprios (Fase 2A, banco) — COMPLETED.
+**Status atual:** ETAPA 10 — Preços Próprios (Fase 2B, banco) — COMPLETED.
 
 ---
 
@@ -650,7 +650,28 @@ Gate 2A:
 - `npm run build` sem erros TypeScript;
 - decision register atualizado (DEC-063).
 
-Próximo: Fase 2B — RPCs `approve_own_price_proposal` / `inactivate_own_price_proposal` + UI.
+---
+
+### ETAPA 10 — Preços próprios (Fase 2B: RPCs de decisão — somente banco)
+
+Canais exclusivos de transição de estado de proposta de preço próprio, aprovados por Admin, completando a decisão no banco antes da interface (ver DEC-064).
+
+- Helper `own_price_decision_token(uuid)`: snapshot md5 da proposta (valores, estado, revisão, auditoria) para detecção de tela obsoleta;
+- RPC `approve_own_price_proposal(uuid, text)`: pending → approved; cria/atualiza o preço vigente em `price_list` com origem `'own'` e referência à proposta (substitui preço de cotação se houver; uma linha por item);
+- RPC `inactivate_own_price_proposal(uuid, text, text default null)`: pending → inactive (rejeição, aceita observação) e approved → inactive (aposentadoria do preço vigente que referencia a proposta);
+- Ambas `SECURITY DEFINER`, exclusivas de Admin, com advisory lock, CAS no UPDATE sob a GUC `efetiva_os.own_price_approval='on'` (retomada para o valor anterior ao final) e `pg_advisory_xact_lock`;
+- `pricing_comparison_v` adaptada: preço próprio aprovado aparece como `approved` (sem os todos de revisão de cotação); expõe `price_origin` e `own_price_proposal_id`;
+- 31/31 testes pgTAP validados no Supabase DEV; build ok.
+
+Gate 2B (banco):
+
+- migration `20260922000200_add_own_price_approval_rpcs.sql` aplicada e validada no DEV;
+- suite `supabase/tests/2b_own_price_approval.test.sql` 31/31;
+- regressão: `supabase/tests/2a_own_price_structure.test.sql` 53/53 e `catalog_auto_code.test.sql` sem `not ok`;
+- `npm run build` sem erros TypeScript;
+- decision register atualizado (DEC-064).
+
+Próximo: Fase 2B — UI de propostas de preço próprio (criação/reajuste pela Equipe e decisão de aprovação/rejeição/aposentadoria pelo Admin, consumindo `get_own_price_proposals` + as RPCs acima; atualizar `src/types/database.ts`).
 
 ---
 

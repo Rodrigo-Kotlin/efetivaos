@@ -1017,3 +1017,21 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 **Motivo:** Sem a policy de SELECT, o próprio fluxo autorizado de reajuste pendente pelo dono da proposta não funciona; sem as colunas de decisão no grant, tentativas de transição de estado viram `permission denied` genérico ou no-op silencioso em vez do erro de negócio rastreável do trigger.
 
 **Impacto:** Leitura direta via RLS fica restrita a owner/admin com escopo idêntico ao UPDATE; `internal_cost` segue somente pelo reader `get_own_price_proposals` (Admin). As asserções de imutabilidade/transição passam a se basear nos erros do trigger (`P0001`/`42501` com mensagem canônica) e a exclusão direta segue bloqueada (sem policy nem grant de DELETE). Os testes da 2A (53/53) validam o comportamento na migration `20260922000100_create_own_pricing_structure.sql`, aplicada no Supabase DEV.
+
+---
+
+### DEC-064 — Fase 2B: RPCs de decisão são o único canal de transição de estado de preço próprio
+
+**Status:** FECHADA
+
+**Data:** 2026-09-22 (FASE 2B, somente banco)
+
+**Contexto:** O gatilho de guarda da 2A exige Admin + GUC `efetiva_os.own_price_approval='on'` para mudar o estado de decisão de uma proposta, mas nenhuma RPC existia — nada podia aprovar/inativar de forma autorizada. Faltava definir o canal seguro e o impacto na tabela comercial e na comparação.
+
+**Decisão:** As RPCs `approve_own_price_proposal(uuid, text)` e `inactivate_own_price_proposal(uuid, text, text default null)` são `SECURITY DEFINER`, exclusivas de Admin, serializadas por `pg_advisory_xact_lock` e validam tela obsoleta por token de snapshot (`own_price_decision_token`, md5 da proposta) + UPDATE com CAS (WHERE nos valores lidos). Sob `set_config('efetiva_os.own_price_approval','on',true)`, a aprovação faz pending→approved e cria/atualiza o preço vigente em `price_list` com `price_origin='own'` e referência à proposta (upsert por `catalog_item_id`, substituindo preço de cotação quando houver — uma linha por item). A inativação faz pending→inactive (rejeição, com observação opcional) e approved→inactive (aposentadoria do preço vigente que referencia aquela proposta). A GUC é restaurada ao valor anterior ao final. `pricing_comparison_v` passa a apresentar preço próprio aprovado como `approved` (sem os todos de revisão de cotação) e expõe `price_origin` e `own_price_proposal_id`.
+
+**Motivo:** Aprovação inativa ou rejeitada precisa ser rastreável (aprovador/data/observação) e jamais silenciosa; o token + CAS evita aprovar um valor reajustado depois que o Admin carregou a tela; o upsert em `price_list` mantém um único preço vigente por item, preservando o modelo de `approve_price()`/`inactivate_price()`; sem a adaptação da view, um preço próprio aprovado apareceria perpetuamente como `review_required` (todos de cotação não se aplicam a serviços próprios).
+
+**Impacto:** A transição de estado passou a existir de forma autorizada e testável (31/31 na suite `2b_own_price_approval.test.sql`). Propostas inativas liberam nova proposta pendente para reajuste (a antiga permanece como histórico). A RPC de inativação não toca o preço vigente de outra proposta quando o item já foi reajustado. A interface (Fase 2B - UI) consumirá `get_own_price_proposals`, `own_price_decision_token` e as duas RPCs, sem UPDATE direto de estado.
+
+---
