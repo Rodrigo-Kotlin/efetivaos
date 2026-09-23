@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 13D - Hardening de EXECUTE em helpers de trigger e default privileges (Fase 2H.2) - COMPLETED.
+**Status atual:** ETAPA 13E - Hardening de search_path em security definers do public (Fase 2H.3) - COMPLETED.
 
 ---
 
@@ -795,6 +795,23 @@ Gate 2H.2 (seguranca):
 - Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
 - Migration `20260923000400_harden_supplier_code_trigger_execute_and_default_acl.sql` aplicada (Push) somente no DEV; PROD nao tocado;
 - decision register atualizado (DEC-069) e learning log (LL-063).
+
+### ETAPA 13E - Hardening de search_path em security definers do public (Fase 2H.3)
+
+Fechamento do achado A4 da auditoria 2G: as 25 funcoes SECURITY DEFINER do schema `public` que ainda declaravam `search_path = 'public, pg_temp'` (padrao antigo das Etapas 02-08) foram normalizadas para `search_path = ''`. Somente banco DEV: sem alteracao de frontend, CRM, contabil, pricing ou PROD; sem reset operacional.
+
+- Inventario real em DEV: 54 security definers no public; 25 com pg_temp (lista exata da auditoria) e 29 ja vazias; todas sem entrada anon/PUBLIC na ACL (padrao 2H.2);
+- Auditoria de corpos (`pg_get_functiondef`) das 25: apenas `create_manual_journal_adjustment` referencia simbolo nao qualificado (`gen_random_uuid()`); as demais 24 usam `public.*`, `auth.uid()`, parametros e built-ins do `pg_catalog` — seguras com search_path vazio. `gen_random_uuid` existe no `pg_catalog` (core) e em extensions (pgcrypto); nao qualificada resolve para `pg_catalog`, comportamento preservado;
+- Migration `20260923000500_harden_security_definer_search_path.sql`: `CREATE OR REPLACE` so em `create_manual_journal_adjustment` (com `SET search_path TO ''` e `pg_catalog.gen_random_uuid()` + reaplicacao de REVOKE anon/public e GRANT authenticated); nas outras 24, `ALTER FUNCTION ... SET search_path = ''` — assinaturas, overloads, grants e corpos preservados; duas funcoes pre-existentes com `{search_path="",TimeZone=UTC}` (price_decision_token, own_price_decision_token) intactas.
+
+Gate 2H.3 (seguranca):
+
+- Suite nova `2h3_search_path_security.sql` 20/20 (inventario 54 preservado; 0 com pg_temp; 25 funcoes 2H.3 seguem SD sem pg_temp; create_manual_journal_adjustment qualificada/sem nao-qualificada/ACL `{postgres, authenticated, service_role}`/authenticated ok/anon sem EXECUTE; invariantes 2H.1/2H.2 0 SD por anon e PUBLIC; guards 2H.1 anon em assets/balanco; fornecedor FOR-* bloqueado; AJE funcional com search_path vazio — criacao, 2 linhas, debitos=creditos, idempotencia);
+- Regressao SQL: `pricing_schema` — os testes 40 (search_path vazio em todas as SD) e 41 (anon sem EXECUTE em nenhuma SD) que estavam pendentes desde 2G **agora PASS**; 2a 53/53, 2b 31/31, 2h1 26/26, 2h2 27/27, sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 08l 28/28, sprint_07_crm 55/55, catalog_auto_code 11/11 — sem regressao;
+- Drifts pre-existentes registrados (nao regressao): 08m (overload `settle_financial_transaction` ambiguo), 08n (sintaxe `perform` fora de plpgsql), 09a (depende de pgtap ausente na sessao), 08e 46/50 (4 falhas de formula/label), 08d (5 "no data" por ausencia de dados no ambiente);
+- Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- Migration `20260923000500_harden_security_definer_search_path.sql` aplicada (Push, dry-run transacional antes) somente no DEV; PROD nao tocado;
+- decision register atualizado (DEC-070) e learning log (LL-064).
 
 
 
