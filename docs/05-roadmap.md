@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 13B - Compatibilidade das suites historicas (Fase 2F, somente testes) - COMPLETED.
+**Status atual:** ETAPA 13C - Correcao das vulnerabilidades A1/A2 da auditoria 2G (Fase 2H.1) - COMPLETED.
 
 ---
 
@@ -762,6 +762,23 @@ Gate 2F (somente SQL):
 - Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
 - Pendencias pre-existentes FORA do escopo 2F: `pricing_schema` (tests 40/41 - hygiene de security definer de funcoes Finance/CRM/Ativos: search_path e EXECUTE anon) e suites legadas/ambiente (08c/08f/08g/08k/08m/08n/09a/hml_gate/concurrency) - sem relacao com cope de Catalogo/Cotacoes;
 - GRANTS alterados: NO; RLS alterada: NO; Dados alterados: SO em transacoes com ROLLBACK; Migration: NONE; PROD: NAO tocado.
+
+### ETAPA 13C - Correcao das vulnerabilidades A1/A2 da auditoria 2G (Fase 2H.1)
+
+Fechamento das duas vulnerabilidades de ativos/balanco encontradas pela auditoria de seguranca da Fase 2G (COMPLETED_WITH_FINDINGS). Somente banco DEV: sem alteracao de frontend, CRM, contabil, pricing ou PROD; sem reset operacional.
+
+- **A1** (mutacoes de ativos sem sessao): as 4 RPCs (`create_asset`, `update_asset`, `dispose_asset`, `post_asset_depreciation`) agora exigem `is_admin() IS TRUE` de forma mandatoria (fechado para NULL/falso, padrao "negate FALSE and NULL" da 2A/2E); antes o guard `auth.uid() IS NOT NULL AND NOT is_admin()` deixava passagem para clientes sem sessao;
+- **A2** (leitura nao autorizada do Balanco): `get_balance_sheet` convertida para plpgsql STABLE SECURITY DEFINER com `#variable_conflict use_column` e guard mandatorio `is_internal_user() IS TRUE` (`Apenas usuarios internos podem consultar o balanco patrimonial`);
+- Modeling de linha de lancamento: em `post_asset_depreciation`, debito e credito entram em UM unico INSERT multi-row (a trigger `validate_journal_entry_balance`, AFTER FOR EACH ROW, rejeita linhas separadas — `Lancamento contabil desbalanceado`); mesmo padrao da suite 08m;
+- REVOKE EXECUTE das 5 funcoes de public/anon; `authenticated` preservado. Grants efetivos confirmados por catalogo (`anon=false`, `public=false`, `authenticated=true`) nas 5 RPCs;
+
+Gate 2H.1 (seguranca):
+
+- Suite nova `2h1_asset_balance_security` 26/26 (ACL sem EXECUTE, guards A1/A2 anon/equipe, operacoes admin, balanco admin/equipe, casos base);
+- Regressao SQL: sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 2a 53/53, 2b 31/31, 2e 14/14 + 21/21, 08l 28/28, 08f reverdejada com sessao admin mock (LL-062); `pricing_schema` mantem as 2 falhas pre-existentes (tests 40/41, fora do escopo); suites legadas de Finance/Ativos (08c/08m/08n/08e1/08g/08g1) seguem com drift pre-existente da Etapa 08, NAO regressao;
+- Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- Migrations `20260923000200_harden_asset_ops_and_balance_sheet.sql` e `20260923000300_fix_2h1_asset_depreciation_multirow_and_balance_ambiguity.sql` aplicadas (Push) somente no DEV; PROD nao tocado;
+- decision register atualizado (DEC-068) e learning log (LL-062).
 
 
 

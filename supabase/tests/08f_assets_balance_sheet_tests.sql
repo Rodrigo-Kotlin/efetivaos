@@ -1,6 +1,10 @@
 -- ============================================================================
 -- ETAPA 08F — SQL Tests: Assets + Balance Sheet
 -- ============================================================================
+-- FASE 2H.1: as RPCs de ativos/balanço passaram a exigir autorização
+-- administrativa obrigatória (guards is_admin/is_internal_user). Esta suíte
+-- opera as funções como operador interno, então cria uma identidade admin de
+-- teste e configura a sessão JWT equivalentemente às suítes modernas.
 
 -- Helper
 CREATE OR REPLACE FUNCTION _08f_assert(condition boolean, msg text)
@@ -10,6 +14,17 @@ BEGIN
   RAISE NOTICE 'TEST PASS: %', msg;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Sessão de teste como admin (2H.1)
+INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+VALUES ('08f00000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '08f-admin@test.local', '', now(), '{}', '{"full_name":"08F Admin"}', now(), now())
+ON CONFLICT (id) DO NOTHING;
+
+UPDATE public.profiles SET role = 'admin'
+WHERE id = '08f00000-0000-0000-0000-000000000001';
+
+SELECT set_config('request.jwt.claim.role', 'authenticated', false);
+SELECT set_config('request.jwt.claim.sub', '08f00000-0000-0000-0000-000000000001', false);
 
 -- ---------------------------------------------------------------------------
 -- ASSETS: Create + Read
