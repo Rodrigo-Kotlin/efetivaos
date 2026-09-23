@@ -716,7 +716,7 @@ Gate 2D (integracao):
 - E2E completo NAO executado: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente (mesma limitacao das ETAPAS 08F/11);
 - decision register atualizado (DEC-066) e learning log (LL-059).
 
-Commit: pending (Fase 2D).
+Commit: `239586b` — feat(pricing): own price integrated in catalog and price list (Fase 2D / ETAPA 12).
 
 
 ---
