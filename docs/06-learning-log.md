@@ -782,3 +782,14 @@ Métodos afetados:
 
 **Impacto futuro:** Ao expor decis��es administrativas na UI, manter o UPDATE de estado restrito ao banco (RPC + GUC) e usar token de snapshot + recarga (nǜo confiar em staleTime de 0 ou em esconder bot��es) para resolver tela obsoleta.
 
+## LL-059 — Fase 2D: filtro de origem exige vocabulario alinhado ao banco; reuso de query precisa de mocks por suite
+
+**Data:** 2026-09-23 (ETAPA 12 / FASE 2D)
+
+**Contexto:** Ao integrar preco proprio no Catalogo e na Tabela de Precos, os testes precisaram mockar `useOwnPriceProposals` (subjacente a `own-prices-queries`, query com staleTime) em todas as suites que renderizam as telas. A tipagem tambem revelou um default de enum (`PriceOrigin`) que mascarava o vicio do filtro de origem do Catalogo.
+
+**Aprendido:** (1) Filtro de origem com default de enum e vocabulario diferente do banco (`sourcing_own` no codigo vs `own`/`outsourced` no banco) inverte o comportamento sem erro aparente; normalizar o tipo para o vocabulario do banco (`"all"|"own"|"outsourced"`) e cobrir cada opcao de filtro com teste evita a armadilha. (2) Hook de query reutilizado entre telas torna obrigatorio o mock do modulo de queries (mesmo caminho de import mockado) em toda suite que monta a tela, pois os testes nao usam QueryClientProvider. (3) Valores de coluna que o banco nunca entrega como string livre devem usar `as const` nas fixtures para nao estourar `tsc -b` no build. (4) Repos com baseline de lint sujo (96 erros pre-existentes fora da etapa) exigem medir o delta por arquivo alterado, nao pela contagem total.
+
+**Aplicado:** Correcao do filtro, acao own no Catalogo (navegacao para `/pricing/own-prices` quando nao ha proposta aprovada), tratamento de linhas `own` na Tabela (sem fornecedor/validade ficticia; custo interno somente Admin, ja mascarado pela RPC da 2B), rastreabilidade propria no drawer; mocks por suite; fixtures `as const`; 542 testes verdes, tsc/build limpos, 0 erros novos de lint na etapa.
+
+**Impacto futuro:** Ao reutilizar hooks de query entre telas, mockar a query (nao o servico) por suite; ao tocar enums de origem, alinhar sempre ao vocabulario do DB e testar cada opcao de filtro; medir lint por delta de arquivo em repos com baseline sujo.

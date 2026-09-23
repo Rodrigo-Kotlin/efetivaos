@@ -1051,3 +1051,19 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 **Impacto:** UI da ETAPA 11 (2C) entregue com 45 suítes/534 testes verdes, incluindo 4 suítes da feature (`own-prices-api`, `own-prices.schemas`, `own-prices-queries`, `own-prices-page`); `npm run build` e ESLint sem erros. `src/types/database.ts` ganhou os tipos da 2A/2B, o mapeamento `Functions` das RPCs novas e as colunas opcionais `price_origin`/`own_price_proposal_id` em `PricingComparisonRow`/`PriceList` (opcionais para não quebrar fixtures de testes existentes). E2E completo não executado nesta sessão por ausência das credenciais `SPRINT0_*`/`E2E_*` no ambiente.
 
 ---
+
+### DEC-066 — Fase 2D: integração de preço próprio no Catálogo e na Tabela de Preços
+
+**Status:** FECHADA
+
+**Data:** 2026-09-23 (FASE 2D, somente interface)
+
+**Contexto:** A 2C entregou a UI de propostas próprias isolada, sem integração visual com o resto do Motor. Restavam: origem visível no Catálogo (form, badge, filtro, ação de navegação), linhas `own` corretas na Tabela (fonte, custo interno restrito, validade ausente, sem fornecedor fictício) e rastreabilidade própria no drawer que hoje exibia "Cotação sem referência" para preços próprios. Um bug pré-existente invertia o filtro de origem do Catálogo (option `own` não casava com o tipo `sourcing_own`).
+
+**Decisão:** (1) O filtro de origem do Catálogo é normalizado para o vocabulário do banco (`all`/`own`/`outsourced`), corrigindo a inversão. (2) Itens `own` ganham ação no Catálogo que navega para `/pricing/own-prices` ("Definir preço próprio" quando não há proposta aprovada; "Consultar preço / propor reajuste" quando há — derivado de `useOwnPriceProposals`). (3) A mudança de origem fica disponível na edição do item (form sem `disabled`); o bloqueio de mudança incompatível continua soberano no banco (trigger 2A) e é traduzido por `translateCatalogError` com mensagem clara (spec §3/§9). (4) Na Tabela de Preços, linhas com `price_origin='own'` apresentam Fonte "Próprio — Efetiva", Custo interno somente p/ Admin (lido da RPC `get_own_price_proposals`, já mascarada para não-Admin), Validade "—" e nenhum fornecedor/manual/automática fictício; novo filtro comercial "Origens" (`all`/`own`/`quotation`) convive com o filtro de Fonte manual/automática sem confundi-los. (5) O `ReviewDrawer` recebe `ownProposal` opcional (pai — Tabela — resolve pelo `own_price_proposal_id`) e, para linhas `own`, renderiza apenas rastreabilidade própria (proposta, preço aprovado, custo restrito, aprovador, data, revisão, justificativa, histórico acessível) e esconde ofertas de cotação/previsão/aprovação de cotação; a comparariedade `comparison-page` passa `ownProposal` ausente, caindo no fallback da própria linha mais link para Preços Próprios (histórico completo fica lá).
+
+**Motivo:** Integrity de interface com a 2A/2B sem nova migration nem alteração de RPC: a view já expõe `price_origin`/`own_price_proposal_id`, e o custo interno já é mascarado pela RPC da 2B. A ação de navegação dá à Equipe um caminho claro do Catálogo ao fluxo próprio; a Tabela não expõe custo para não-Admin e não fabrica fornecedor/validade para preço próprio.
+
+**Impacto:** 45 suítes / 542 testes verdes (fix do `catalog.service.test` + novos testes de filtro/ação/forma, Tabela own e drawer próprio); `npm run build` e `tsc --noEmit` limpos; ESLint sem erros nos arquivos da etapa (96 erros pré-existentes fora da etapa permanecem — finance/crm/pdf-utils). E2E completo não executado: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente (mesma limitação das ETAPAS 11/2C).
+
+---

@@ -105,4 +105,44 @@ describe('ReviewDrawer', () => {
     expect(mutateInactivate).toHaveBeenCalledWith({ catalogItemId: 'item-1', decisionToken: 'token-1' })
     expect(onOpenChange).toHaveBeenCalledWith(false)
   })
+
+  it('exibe rastreabilidade propria sem decisoes de cotacao', () => {
+    const ownRow = { ...row, price_origin: 'own' as const, own_price_proposal_id: 'opp-1', price_list_id: 'price-1', approved_final_price: '120.00', approved_at: '2026-08-24T12:00:00Z', approved_by: 'user-1' }
+    const ownProposal = {
+      id: 'opp-1', catalog_item_id: 'item-1', item_code: 'EXA-001', item_name: 'Hemograma', sale_price: '120.00',
+      internal_cost: '60.00', status: 'approved' as const, submitted_by: 'user-1', submitted_at: '2026-08-20T10:00:00Z',
+      approved_by: 'user-1', approved_at: '2026-08-24T12:00:00Z', decision_notes: 'Custo interno validado.', revision: 1,
+      created_at: '2026-08-20T10:00:00Z', updated_at: '2026-08-24T12:00:00Z',
+    }
+    render(
+      <MemoryRouter>
+        <ReviewDrawer row={ownRow} isAdmin online onOpenChange={vi.fn()} onConfigureRule={vi.fn()} ownProposal={ownProposal} />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Rastreabilidade do preco proprio')).toBeInTheDocument()
+    expect(screen.getByText('Proprio — Efetiva')).toBeInTheDocument()
+    expect(screen.getByText('Custo interno validado.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Gerenciar em Precos Proprios/i })).toHaveAttribute('href', '/pricing/own-prices')
+    expect(screen.getByRole('link', { name: /Abrir Precos Proprios/i })).toHaveAttribute('href', '/pricing/own-prices')
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument()
+    expect(screen.queryByText('Fonte para a decisao')).not.toBeInTheDocument()
+    expect(screen.queryByText('Previa da decisao')).not.toBeInTheDocument()
+    expect(screen.queryByText('Cotacao sem referencia disponivel')).not.toBeInTheDocument()
+  })
+
+  it('restringe o custo interno do preco proprio para equipe', () => {
+    const ownRow = { ...row, price_origin: 'own' as const, own_price_proposal_id: 'opp-1', price_list_id: 'price-1', approved_final_price: '120.00' }
+    const ownProposal = {
+      id: 'opp-1', catalog_item_id: 'item-1', item_code: 'EXA-001', item_name: 'Hemograma', sale_price: '120.00',
+      internal_cost: '60.00', status: 'approved' as const, submitted_by: 'user-1', submitted_at: '2026-08-20T10:00:00Z',
+      approved_by: 'user-1', approved_at: '2026-08-24T12:00:00Z', decision_notes: null, revision: 1,
+      created_at: '2026-08-20T10:00:00Z', updated_at: '2026-08-24T12:00:00Z',
+    }
+    render(
+      <MemoryRouter>
+        <ReviewDrawer row={ownRow} isAdmin={false} online onOpenChange={vi.fn()} onConfigureRule={vi.fn()} ownProposal={ownProposal} />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('Restrito a Admin')).toBeInTheDocument()
+  })
 })

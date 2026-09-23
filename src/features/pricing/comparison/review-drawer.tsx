@@ -13,6 +13,7 @@ import { reviewReasonLabel } from './commercial-status-helpers'
 import { formatComparisonCurrency, formatComparisonDate, formatRuleScope, formatRuleValue } from './comparison-helpers'
 import { useApprovePrice, useComparisonOffers, useInactivatePrice } from './comparison-queries'
 import type { ComparisonRow } from './comparison-types'
+import type { OwnPriceProposalItem } from '@/types/database'
 
 type ReviewDrawerProps = {
   row: ComparisonRow | null
@@ -20,16 +21,19 @@ type ReviewDrawerProps = {
   isAdmin: boolean
   online: boolean
   onConfigureRule: () => void
+  ownProposal?: OwnPriceProposalItem | null
 }
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Nao foi possivel concluir a operacao.'
 }
 
-export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRule }: ReviewDrawerProps) {
+export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRule, ownProposal = null }: ReviewDrawerProps) {
   const offersQuery = useComparisonOffers(row?.catalog_item_id ?? null)
   const approveMutation = useApprovePrice()
   const inactivateMutation = useInactivatePrice()
+  const isOwnRow = row?.price_origin === 'own'
+  const proposal = isOwnRow ? ownProposal : null
   const eligible = (offersQuery.data ?? []).filter((offer) => offer.is_eligible)
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
   const approvedStillEligible = eligible.some((offer) => offer.quotation_item_id === row?.approved_source_quotation_item_id)
@@ -83,7 +87,11 @@ export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRu
       title={row ? `Decisao comercial · ${row.code}` : 'Decisao comercial'}
       description={row ? `${row.item_name} · unidade ${row.unit}` : ''}
       className="max-w-2xl"
-      footer={row && isAdmin ? (
+      footer={row && row.price_origin === 'own' ? (
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button asChild variant="outline"><Link to="/pricing/own-prices">Gerenciar em Precos Proprios</Link></Button>
+        </div>
+      ) : row && isAdmin ? (
         <div className="flex flex-wrap justify-end gap-2">
           {row.price_list_id && row.effective_status !== 'inactive' && (
             <Button type="button" variant="destructive" disabled={pending || !online} onClick={() => void inactivate()}>Inativar preco</Button>
@@ -112,8 +120,37 @@ export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRu
             {reason && <p className="mt-3 text-sm font-semibold text-amber-900">Motivo: {reason}</p>}
           </section>
 
-          {row.price_list_id && (
-            <section aria-labelledby="approved-snapshot">
+          {isOwnRow ? (
+            <section aria-labelledby="own-approved-snapshot">
+              <h3 id="own-approved-snapshot" className="font-serif text-base font-semibold text-slate-950">Rastreabilidade do preco proprio</h3>
+              <dl className="mt-3 grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4 text-sm">
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Fonte</dt><dd className="mt-1"><Badge className="bg-emerald-900 text-white">Proprio — Efetiva</Badge></dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Preco de venda aprovado</dt><dd className="mt-1 font-serif text-base font-bold text-emerald-950">{formatComparisonCurrency(row.approved_final_price)}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Custo interno</dt><dd className="mt-1">{isAdmin ? (proposal?.internal_cost ? formatComparisonCurrency(proposal.internal_cost) : '—') : 'Restrito a Admin'}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Proposta</dt><dd className="mt-1 break-all font-mono text-xs">{row.own_price_proposal_id ?? '—'}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Revisao</dt><dd className="mt-1">{proposal ? proposal.revision : '—'}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Status da proposta</dt><dd className="mt-1"><Badge variant={proposal ? (proposal.status === 'approved' ? 'default' : 'secondary') : 'default'}>{proposal ? (proposal.status === 'approved' ? 'Proposta aprovada' : `Proposta ${proposal.status}`) : 'Proposta aprovada'}</Badge></dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Aprovado em</dt><dd className="mt-1">{formatComparisonDate(row.approved_at)}</dd></div>
+                <div><dt className="text-xs font-semibold uppercase text-slate-500">Aprovador</dt><dd className="mt-1 break-all font-mono text-xs">{proposal?.approved_by ?? row.approved_by ?? '—'}</dd></div>
+                <div className="col-span-2">
+                  <dt className="text-xs font-semibold uppercase text-slate-500">Justificativa</dt>
+                  <dd className="mt-1">{proposal?.decision_notes ?? 'Nao informada.'}</dd>
+                </div>
+                <div className="col-span-2">
+                  <dt className="text-xs font-semibold uppercase text-slate-500">Historico</dt>
+                  <dd className="mt-1">
+                    <Link className="inline-flex items-center gap-1 font-semibold text-emerald-800 hover:underline" to="/pricing/own-prices">
+                      Abrir Precos Proprios para o historico completo <ExternalLink className="size-3.5" />
+                    </Link>
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-2 text-xs text-slate-500">Preco proprio nao possui fornecedor nem validade de cotacao. Decisoes de reajuste ou inativacao acontecem em Precos Proprios.</p>
+            </section>
+          ) : (
+            <>
+              {row.price_list_id && (
+                <section aria-labelledby="approved-snapshot">
               <h3 id="approved-snapshot" className="font-serif text-base font-semibold text-slate-950">Snapshot aprovado</h3>
               <dl className="mt-3 grid grid-cols-2 gap-3 rounded-xl border border-slate-200 p-4 text-sm">
                 <div><dt className="text-xs font-semibold uppercase text-slate-500">Custo aprovado</dt><dd className="mt-1 font-semibold">{formatComparisonCurrency(row.approved_cost_price)}</dd></div>
@@ -176,6 +213,8 @@ export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRu
             <p className="mt-2 text-xs text-slate-500">A sugestao nao e preco comercial. O servidor valida novamente fonte, regra e token, calcula o valor final e so entao grava a aprovacao.</p>
             {row.resolved_margin_rule_id === null && isAdmin && <Button className="mt-3" type="button" variant="outline" onClick={onConfigureRule}><ExternalLink className="size-4" /> Configurar regra</Button>}
           </section>
+            </>
+          )}
         </div>
       )}
     </Drawer>

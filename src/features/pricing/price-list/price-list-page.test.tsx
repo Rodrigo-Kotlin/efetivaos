@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { useAuth } from '@/features/auth/auth-context'
 import { useCatalogCategories } from '@/features/pricing/catalog/catalog.queries'
 import { useComparison } from '@/features/pricing/comparison/comparison-queries'
+import { useOwnPriceProposals } from '@/features/pricing/own-prices/own-prices-queries'
 
 import PriceListPage from './price-list-page'
 
@@ -16,6 +17,7 @@ vi.mock('@/features/pricing/comparison/comparison-queries', () => ({
   useApprovePrice: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
   useInactivatePrice: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
 }))
+vi.mock('@/features/pricing/own-prices/own-prices-queries', () => ({ useOwnPriceProposals: vi.fn() }))
 
 const approvedRow = {
   catalog_item_id: 'item-1', catalog_item_active: true, code: 'EXA-001', item_name: 'Hemograma', unit: 'exame', category_id: 'cat-1', category_name: 'Laboratoriais',
@@ -34,10 +36,28 @@ const inactiveRow = {
   manual_source: true, effective_status: 'review_required', review_reason: 'approved_source_ineligible',
 }
 
+const ownRow = {
+  ...approvedRow,
+  catalog_item_id: 'item-own', code: 'PRP-001', item_name: 'Exame proprio', unit: 'servico',
+  price_list_id: 'price-own', price_origin: 'own' as const, own_price_proposal_id: 'opp-1',
+  approved_cost_price: null, approved_final_price: '120.00', approved_supplier_id: null, approved_supplier_name: null,
+  approved_source_valid_until: null, best_quotation_item_id: null, best_cost: null,
+  best_supplier_id: null, best_supplier_name: null, best_valid_until: null, best_validity_not_informed: null,
+  eligible_offer_count: 0, manual_source: false,
+}
+
+const ownProposal = {
+  id: 'opp-1', catalog_item_id: 'item-own', item_code: 'PRP-001', item_name: 'Exame proprio', sale_price: '120.00',
+  internal_cost: '60.00', status: 'approved', submitted_by: 'user-1', submitted_at: '2026-08-20T10:00:00Z',
+  approved_by: 'user-1', approved_at: '2026-08-24T12:00:00Z', decision_notes: 'Custo interno validado.', revision: 1,
+  created_at: '2026-08-20T10:00:00Z', updated_at: '2026-08-24T12:00:00Z',
+}
+
 describe('PriceListPage', () => {
   beforeEach(() => {
     vi.mocked(useComparison).mockReturnValue({ data: [approvedRow], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useComparison>)
     vi.mocked(useCatalogCategories).mockReturnValue({ data: [{ id: 'cat-1', name: 'Laboratoriais' }], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogCategories>)
+    vi.mocked(useOwnPriceProposals).mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useOwnPriceProposals>)
     vi.mocked(useAuth).mockReturnValue({ profile: { role: 'equipe' } } as unknown as ReturnType<typeof useAuth>)
   })
 
@@ -84,5 +104,38 @@ describe('PriceListPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Ordem crescente' }))
     rows = within(screen.getByRole('table', { name: 'Tabela de Precos' })).getAllByRole('row')
     expect(rows[1]).toHaveTextContent('Hemograma')
+  })
+
+  it('apresenta preco proprio sem fornecedor, validade ou custo para equipe', () => {
+    vi.mocked(useComparison).mockReturnValue({ data: [ownRow], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useComparison>)
+    render(<MemoryRouter><PriceListPage /></MemoryRouter>)
+    const table = within(screen.getByRole('table', { name: 'Tabela de Precos' }))
+    expect(table.getByText('Proprio — Efetiva')).toBeInTheDocument()
+    expect(table.getByText('Restrito a Admin')).toBeInTheDocument()
+    expect(table.getByText(/120,00/)).toBeInTheDocument()
+    expect(table.queryByText('Validade nao informada')).not.toBeInTheDocument()
+    expect(table.queryByText(/Manual|Automatica/)).not.toBeInTheDocument()
+  })
+
+  it('filtra tabela por origem comercial propria', async () => {
+    vi.mocked(useComparison).mockReturnValue({ data: [approvedRow, ownRow], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useComparison>)
+    render(<MemoryRouter><PriceListPage /></MemoryRouter>)
+    await userEvent.selectOptions(screen.getByLabelText('Filtrar tabela por origem comercial'), 'own')
+    const table = within(screen.getByRole('table', { name: 'Tabela de Precos' }))
+    expect(table.getByText('Exame proprio')).toBeInTheDocument()
+    expect(table.queryByText('Hemograma')).not.toBeInTheDocument()
+  })
+
+  it('permite Admin consultar o custo interno e justificativa do preco proprio', async () => {
+    vi.mocked(useAuth).mockReturnValue({ profile: { role: 'admin' } } as unknown as ReturnType<typeof useAuth>)
+    vi.mocked(useOwnPriceProposals).mockReturnValue({ data: [ownProposal], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useOwnPriceProposals>)
+    vi.mocked(useComparison).mockReturnValue({ data: [ownRow], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useComparison>)
+    render(<MemoryRouter><PriceListPage /></MemoryRouter>)
+    const table = within(screen.getByRole('table', { name: 'Tabela de Precos' }))
+    expect(table.getByText(/60,00/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Rastreabilidade' }))
+    expect(screen.getByRole('dialog', { name: /PRP-001/i })).toBeInTheDocument()
+    expect(screen.getByText('Custo interno validado.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Abrir Precos Proprios/i })).toHaveAttribute('href', '/pricing/own-prices')
   })
 })

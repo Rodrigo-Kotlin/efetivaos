@@ -34,7 +34,7 @@ function supplierFallback(quotation: NonNullable<ReturnType<typeof useQuotation>
 }
 
 function catalogFallbacks(quotation: NonNullable<ReturnType<typeof useQuotation>['data']>): CatalogItemRow[] {
-  return quotation.quotation_items.flatMap((line) => line.catalog_item ? [{ ...line.catalog_item, description: null, updated_at: line.updated_at, category: { ...line.catalog_item.category, active: true } }] : [])
+  return quotation.quotation_items.flatMap((line) => line.catalog_item ? [{ ...line.catalog_item, description: null, updated_at: line.updated_at, sourcing_type: "outsourced" as const, category: { ...line.catalog_item.category, active: true } }] : [])
 }
 
 function PrerequisiteState({ hasSuppliers, hasCatalog }: { hasSuppliers: boolean; hasCatalog: boolean }) {

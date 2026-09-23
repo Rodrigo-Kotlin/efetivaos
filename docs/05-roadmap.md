@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 11 — Preços Próprios (Fase 2C, UI) — COMPLETED.
+**Status atual:** ETAPA 12 - Precos Proprios (Fase 2D, integracao Catalogo + Tabela) - COMPLETED.
 
 ---
 
@@ -696,6 +696,28 @@ Gate 2C (UI):
 - decision register atualizado (DEC-065) e learning log (LL-058).
 
 Commit: `deafe65` — feat(pricing): own price proposals UI (Fase 2C / ETAPA 11).
+---
+
+### ETAPA 12 - Precos proprios (Fase 2D: integracao no Catalogo e na Tabela de Precos)
+
+Integracao visual dos precos proprios (2A/2B/2C) no Catalogo e na Tabela, consumindo somente o que as fases anteriores ja expoem (`price_origin`, `own_price_proposal_id`, `get_own_price_proposals` e o insert autorizado). Sem migrations, sem alteracao de RPCs 2A/2B, sem tocar Financeiro.
+
+- Correcao do filtro de origem do Catalogo (tipo normalizado para o vocabulario do banco: `"all" | "own" | "outsourced"`); antes a opcao `own` nao casava (`sourcing_own`) e invertia o comportamento;
+- Item `own` no Catalogo ganha acao de navegacao para `/pricing/own-prices`: "Definir preco proprio" (sem proposta aprovada) ou "Consultar preco / propor reajuste" (com proposta `approved`), derivado de `useOwnPriceProposals` (2C);
+- Form do item: origem editavel (sem `disabled`), bloqueio incompativel permanece soberano no banco (trigger 2A) com erro traduzido por `translateCatalogError` (spec `§3`/`§9`);
+- Tabela de Precos: linhas `price_origin='own'` apresentam Fonte "Proprio - Efetiva", Custo interno somente para Admin (RPC ja mascarada), Validade "-", sem fornecedor/manual/automatica ficticia; novo filtro "Origens" (`all`/`own`/`quotation`) convive com o filtro de Fonte manual/automatica;
+- `ReviewDrawer` com prop opcional `ownProposal`: rastreabilidade propria (proposta, preco aprovado, custo restrito, aprovador, data, revisao, justificativa, historico via Precos Proprios) e sem ofertas/decisao de cotacao para linhas own; Tabela resolve a proposta pelo `own_price_proposal_id`, comparacao usa fallback da propria linha;
+- Limites seguem: custo interno oculto por grant de leitura (UI apenas nao solicita a API para nao-Admin); view `pricing_comparison_v` nao alterada (preco proprio apenas `approved`), pendente nao aparece como aprovado - gate de backend continua documentado nos DEC.
+
+Gate 2D (integracao):
+
+- `npm test` 45 arquivos / 542 testes verdes (inclui novas suites/cenarios: catalogo own, Tabela own, drawer proprio, filtros e formas);
+- `npm run build` (tsc -b) e `npx tsc --noEmit` limpos; ESLint: 0 erros novos nos arquivos da etapa (baseline do repo com 96 erros pre-existentes fora da etapa - finance/crm/pdf-utils);
+- E2E completo NAO executado: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente (mesma limitacao das ETAPAS 08F/11);
+- decision register atualizado (DEC-066) e learning log (LL-059).
+
+Commit: pending (Fase 2D).
+
 
 ---
 

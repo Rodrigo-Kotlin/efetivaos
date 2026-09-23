@@ -1,99 +1,232 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { FieldError, selectClassName, textareaClassName } from '@/components/shared/operational-ui'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  FieldError,
+  selectClassName,
+  textareaClassName,
+} from "@/components/shared/operational-ui";
 
-import { catalogItemSchema, type CatalogItemFormData } from './catalog.schemas'
-import type { CatalogCategoryRow, CatalogItemInput } from './catalog.types'
+import { catalogItemSchema, type CatalogItemFormData } from "./catalog.schemas";
+import type { CatalogCategoryRow, CatalogItemInput } from "./catalog.types";
 
-const suggestedUnits = ['exame', 'unidade', 'servico', 'pessoa', 'hora', 'dia', 'mes', 'pacote'] as const
-const customUnit = '__custom__'
+const suggestedUnits = [
+  "exame",
+  "unidade",
+  "servico",
+  "pessoa",
+  "hora",
+  "dia",
+  "mes",
+  "pacote",
+] as const;
+const customUnit = "__custom__";
 
 type CatalogItemFormProps = {
-  categories: CatalogCategoryRow[]
-  code?: string
-  defaultValues?: CatalogItemFormData
-  submitLabel: string
-  onSubmit: (input: CatalogItemInput) => Promise<void> | void
-  onCancel: () => void
-}
+  categories: CatalogCategoryRow[];
+  code?: string;
+  defaultValues?: CatalogItemFormData;
+  submitLabel: string;
+  onSubmit: (input: CatalogItemInput) => Promise<void> | void;
+  onCancel: () => void;
+};
 
-export function CatalogItemForm({ categories, code, defaultValues, submitLabel, onSubmit, onCancel }: CatalogItemFormProps) {
-  const initialUnit = defaultValues?.unit ?? ''
-  const initialIsCustom = Boolean(initialUnit && !suggestedUnits.includes(initialUnit as (typeof suggestedUnits)[number]))
-  const [customUnitSelected, setCustomUnitSelected] = useState(initialIsCustom)
+export function CatalogItemForm({
+  categories,
+  code,
+  defaultValues,
+  submitLabel,
+  onSubmit,
+  onCancel,
+}: CatalogItemFormProps) {
+  const initialUnit = defaultValues?.unit ?? "";
+  const initialIsCustom = Boolean(
+    initialUnit &&
+    !suggestedUnits.includes(initialUnit as (typeof suggestedUnits)[number]),
+  );
+  const [customUnitSelected, setCustomUnitSelected] = useState(initialIsCustom);
   const {
     register,
     control,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<CatalogItemFormData>({
+  } = useForm<z.input<typeof catalogItemSchema>, unknown, CatalogItemFormData>({
     resolver: zodResolver(catalogItemSchema),
-    defaultValues: defaultValues ?? { name: '', category_id: '', unit: '', description: '' },
-  })
+    defaultValues: defaultValues ?? {
+      name: "",
+      category_id: "",
+      unit: "",
+      sourcing_type: "outsourced",
+      description: "",
+    },
+  });
 
   const submit = handleSubmit(async (data) => {
     try {
-      await onSubmit(data)
+      await onSubmit(data);
     } catch (error) {
-      setError('root', { message: error instanceof Error ? error.message : 'Nao foi possivel salvar o item.' })
+      setError("root", {
+        message:
+          error instanceof Error
+            ? error.message
+            : "Nao foi possivel salvar o item.",
+      });
     }
-  })
+  });
 
   return (
-    <form id="catalog-item-form" className="space-y-5" onSubmit={submit} noValidate>
+    <form
+      id="catalog-item-form"
+      className="space-y-5"
+      onSubmit={submit}
+      noValidate
+    >
       <div className="grid gap-5 sm:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-code">Código</label>
-          <Input id="item-code" value={code ?? 'Código gerado automaticamente'} readOnly className="font-mono text-sm text-slate-600" />
+          <label
+            className="mb-2 block text-sm font-semibold text-slate-800"
+            htmlFor="item-code"
+          >
+            Código
+          </label>
+          <Input
+            id="item-code"
+            value={code ?? "Código gerado automaticamente"}
+            readOnly
+            className="font-mono text-sm text-slate-600"
+          />
         </div>
         <div>
-          <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-name">Nome *</label>
-          <Input id="item-name" placeholder="Hemograma completo" autoComplete="off" aria-invalid={Boolean(errors.name)} aria-describedby={errors.name ? 'item-name-error' : undefined} {...register('name')} />
+          <label
+            className="mb-2 block text-sm font-semibold text-slate-800"
+            htmlFor="item-name"
+          >
+            Nome *
+          </label>
+          <Input
+            id="item-name"
+            placeholder="Hemograma completo"
+            autoComplete="off"
+            aria-invalid={Boolean(errors.name)}
+            aria-describedby={errors.name ? "item-name-error" : undefined}
+            {...register("name")}
+          />
           <FieldError id="item-name-error">{errors.name?.message}</FieldError>
         </div>
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-category">Categoria *</label>
-        <select id="item-category" className={`${selectClassName} w-full`} aria-invalid={Boolean(errors.category_id)} aria-describedby={errors.category_id ? 'item-category-error' : undefined} {...register('category_id')}>
+        <label
+          className="mb-2 block text-sm font-semibold text-slate-800"
+          htmlFor="item-category"
+        >
+          Categoria *
+        </label>
+        <select
+          id="item-category"
+          className={`${selectClassName} w-full`}
+          aria-invalid={Boolean(errors.category_id)}
+          aria-describedby={
+            errors.category_id ? "item-category-error" : undefined
+          }
+          {...register("category_id")}
+        >
           <option value="">Selecione uma categoria</option>
-          {categories.filter((category) => category.active).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-          {defaultValues?.category_id && categories.some((category) => category.id === defaultValues.category_id && !category.active) && (
-            <option value={defaultValues.category_id} disabled>{categories.find((category) => category.id === defaultValues.category_id)?.name} (inativa)</option>
-          )}
+          {categories
+            .filter((category) => category.active)
+            .map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          {defaultValues?.category_id &&
+            categories.some(
+              (category) =>
+                category.id === defaultValues.category_id && !category.active,
+            ) && (
+              <option value={defaultValues.category_id} disabled>
+                {
+                  categories.find(
+                    (category) => category.id === defaultValues.category_id,
+                  )?.name
+                }{" "}
+                (inativa)
+              </option>
+            )}
         </select>
-        <FieldError id="item-category-error">{errors.category_id?.message}</FieldError>
+        <FieldError id="item-category-error">
+          {errors.category_id?.message}
+        </FieldError>
+      </div>
+
+      <div>
+        <label
+          className="mb-2 block text-sm font-semibold text-slate-800"
+          htmlFor="item-sourcing"
+        >
+          Origem *
+        </label>
+        <select
+          id="item-sourcing"
+          className={`${selectClassName} w-full`}
+          aria-describedby="item-sourcing-hint"
+          {...register("sourcing_type")}
+        >
+          <option value="outsourced">Terceirizado</option>
+          <option value="own">Proprio — Efetiva</option>
+        </select>
+        <p id="item-sourcing-hint" className="mt-1 text-xs text-slate-500">
+          {code
+            ? "A origem so muda se o item ainda nao participou de cotacao, proposta de preco proprio ou precificacao vigente."
+            : "Terceirizado usa precos de cotacoes; Proprio (Efetiva) usa recursos internos com proposta de preco proprio."}
+        </p>
       </div>
 
       <Controller
         control={control}
         name="unit"
         render={({ field }) => {
-          const isCustom = customUnitSelected || Boolean(field.value && !suggestedUnits.includes(field.value as (typeof suggestedUnits)[number]))
+          const isCustom =
+            customUnitSelected ||
+            Boolean(
+              field.value &&
+              !suggestedUnits.includes(
+                field.value as (typeof suggestedUnits)[number],
+              ),
+            );
           return (
             <div>
-              <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-unit">Unidade *</label>
+              <label
+                className="mb-2 block text-sm font-semibold text-slate-800"
+                htmlFor="item-unit"
+              >
+                Unidade *
+              </label>
               <select
                 id="item-unit"
                 className={`${selectClassName} w-full`}
                 value={isCustom ? customUnit : field.value}
                 aria-invalid={Boolean(errors.unit)}
-                aria-describedby={errors.unit ? 'item-unit-error' : undefined}
+                aria-describedby={errors.unit ? "item-unit-error" : undefined}
                 ref={field.ref}
                 onBlur={field.onBlur}
                 onChange={(event) => {
-                  const custom = event.target.value === customUnit
-                  setCustomUnitSelected(custom)
-                  field.onChange(custom ? '' : event.target.value)
+                  const custom = event.target.value === customUnit;
+                  setCustomUnitSelected(custom);
+                  field.onChange(custom ? "" : event.target.value);
                 }}
               >
                 <option value="">Selecione uma unidade</option>
-                {suggestedUnits.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+                {suggestedUnits.map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
                 <option value={customUnit}>Outra unidade...</option>
               </select>
               {isCustom && (
@@ -101,29 +234,53 @@ export function CatalogItemForm({ categories, code, defaultValues, submitLabel, 
                   className="mt-3"
                   aria-label="Unidade personalizada"
                   aria-invalid={Boolean(errors.unit)}
-                  aria-describedby={errors.unit ? 'item-unit-error' : undefined}
+                  aria-describedby={errors.unit ? "item-unit-error" : undefined}
                   placeholder="Informe a unidade"
                   value={field.value}
                   onBlur={field.onBlur}
                   onChange={field.onChange}
                 />
               )}
-              <FieldError id="item-unit-error">{errors.unit?.message}</FieldError>
+              <FieldError id="item-unit-error">
+                {errors.unit?.message}
+              </FieldError>
             </div>
-          )
+          );
         }}
       />
 
       <div>
-        <label className="mb-2 block text-sm font-semibold text-slate-800" htmlFor="item-description">Descricao <span className="font-normal text-slate-500">(opcional)</span></label>
-        <textarea id="item-description" className={textareaClassName} placeholder="Detalhes para identificar o item ou servico" {...register('description')} />
+        <label
+          className="mb-2 block text-sm font-semibold text-slate-800"
+          htmlFor="item-description"
+        >
+          Descricao{" "}
+          <span className="font-normal text-slate-500">(opcional)</span>
+        </label>
+        <textarea
+          id="item-description"
+          className={textareaClassName}
+          placeholder="Detalhes para identificar o item ou servico"
+          {...register("description")}
+        />
       </div>
 
-      {errors.root && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800" role="alert">{errors.root.message}</div>}
+      {errors.root && (
+        <div
+          className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+          role="alert"
+        >
+          {errors.root.message}
+        </div>
+      )}
       <div className="flex justify-end gap-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Salvando...' : submitLabel}</Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Salvando..." : submitLabel}
+        </Button>
       </div>
     </form>
-  )
+  );
 }
