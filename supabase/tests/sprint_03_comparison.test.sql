@@ -59,13 +59,13 @@ values
 insert into public.catalog_categories (id, name)
 values ('30000000-0000-0000-0000-000000000020', 'Comparacao Categoria');
 
-insert into public.catalog_items (id, code, name, category_id, unit, active)
+insert into public.catalog_items (id, name, category_id, unit, active)
 values
-  ('30000000-0000-0000-0000-000000000030', 'S03-EXA-1', 'Exame Comparacao Um',   '30000000-0000-0000-0000-000000000020', 'exame', true),
-  ('30000000-0000-0000-0000-000000000031', 'S03-EXA-2', 'Exame Comparacao Dois', '30000000-0000-0000-0000-000000000020', 'exame', true),
-  ('30000000-0000-0000-0000-000000000032', 'S03-EXA-3', 'Exame Comparacao Tres', '30000000-0000-0000-0000-000000000020', 'exame', true),
-  ('30000000-0000-0000-0000-000000000033', 'S03-INA',   'Item Inativo Comparacao', '30000000-0000-0000-0000-000000000020', 'exame', false),
-  ('30000000-0000-0000-0000-000000000034', 'S03-EXA-4', 'Exame Comparacao Quatro', '30000000-0000-0000-0000-000000000020', 'exame', true);
+  ('30000000-0000-0000-0000-000000000030', 'Exame Comparacao Um',   '30000000-0000-0000-0000-000000000020', 'exame', true),
+  ('30000000-0000-0000-0000-000000000031', 'Exame Comparacao Dois', '30000000-0000-0000-0000-000000000020', 'exame', true),
+  ('30000000-0000-0000-0000-000000000032', 'Exame Comparacao Tres', '30000000-0000-0000-0000-000000000020', 'exame', true),
+  ('30000000-0000-0000-0000-000000000033', 'Item Inativo Comparacao', '30000000-0000-0000-0000-000000000020', 'exame', false),
+  ('30000000-0000-0000-0000-000000000034', 'Exame Comparacao Quatro', '30000000-0000-0000-0000-000000000020', 'exame', true);
 
 -- ============================================================================
 -- Schema-level checks
@@ -492,13 +492,23 @@ select ok(
 -- ============================================================================
 insert into pg_temp.tap_results (result)
 select ok(
-  (select count(*) = 4 from public.comparison_current_v),
+  (
+    select count(*) = 4
+    from public.comparison_current_v v
+    join public.catalog_items ci on ci.id = v.catalog_item_id
+    where ci.category_id = '30000000-0000-0000-0000-000000000020'
+  ),
   'comparison_current_v lista exatamente os 4 itens ativos do catalogo'
 );
 
 insert into pg_temp.tap_results (result)
 select ok(
-  (select count(*) filter (where best_quotation_item_id is null) = 1 from public.comparison_current_v),
+  (
+    select count(*) filter (where v.best_quotation_item_id is null) = 1
+    from public.comparison_current_v v
+    join public.catalog_items ci on ci.id = v.catalog_item_id
+    where ci.category_id = '30000000-0000-0000-0000-000000000020'
+  ),
   'comparison_current_v marca como sem oferta o item 034 (cenario 9)'
 );
 
@@ -507,7 +517,12 @@ select ok(
 -- ============================================================================
 insert into pg_temp.tap_results (result)
 select is(
-  (select count(*)::text from public.comparison_current_v),
+  (
+    select count(*)::text
+    from public.comparison_current_v v
+    join public.catalog_items ci on ci.id = v.catalog_item_id
+    where ci.category_id = '30000000-0000-0000-0000-000000000020'
+  ),
   '4',
   'Admin enxerga os 4 itens ativos do catalogo via comparison_current_v'
 );
@@ -519,7 +534,12 @@ select set_config('request.jwt.claim.sub', '30000000-0000-0000-0000-000000000002
 
 insert into pg_temp.tap_results (result)
 select is(
-  (select count(*)::text from public.comparison_current_v),
+  (
+    select count(*)::text
+    from public.comparison_current_v v
+    join public.catalog_items ci on ci.id = v.catalog_item_id
+    where ci.category_id = '30000000-0000-0000-0000-000000000020'
+  ),
   '4',
   'Equipe enxerga os 4 itens ativos do catalogo via comparison_current_v'
 );

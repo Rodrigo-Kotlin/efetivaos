@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 13 - Servicos proprios x Cotacoes (Fase 2E, integridade no banco) - COMPLETED.
+**Status atual:** ETAPA 13B - Compatibilidade das suites historicas (Fase 2F, somente testes) - COMPLETED.
 
 ---
 
@@ -742,6 +742,27 @@ Gate 2E (integridade):
 - decision register atualizado (DEC-067) e learning log (LL-060).
 
 Commit: `ba69f99` — feat(pricing): block own services from supplier quotations (Fase 2E).
+
+### ETAPA 13B - Compatibilidade das suites historicas (Fase 2F: correcao de fixtures SQL)
+
+Restauracao da compatibilidade das suites historicas (`sprint_02`, `sprint_05` e varredura completa `sprint_03`, `sprint_04`) com as regras atuais de seguranca e geracao automatica de codigos do Catalogo. Somente testes: sem alteracao de regras de negocio, grants, RLS, seed, reset ou migrations.
+
+- Causa raiz do drift: a 2A passou a grantar INSERT por coluna em `catalog_items` sem `code`, e `code` ganhou default security definer `generate_catalog_item_code()` (ITEM-*) com imutabilidade por trigger; fixtures historicos inseriam `code` explicito (`S02-*`/`S05-*`/`S03-*`/`S04-*`) — `42501 permission denied for table catalog_items`;
+- Fix de fixtures: removido `code` da lista de INSERT (o default gera ITEM-*; os codigos S0x so eram valores de fixture, jamais consultados em assercoes);
+- Hardening `20260824000120` revogou EXECUTE de `is_internal_user()` do `anon`; como policies de buckets/quotations a chamam, DML anon agora eleva 42501 a nivel de funcao (nao de tabela) — mensagens esperadas atualizadas; UPDATE anon nao envolto virou `throws_ok` (intencao preservada);
+- Varredura (37 suites) detectou o MESMO padrao em `sprint_03` e `sprint_04` — corrigidos;
+- `sprint_03`: asserts de contagem `comparison_current_v` assumiam catalogo vazio; DEV acumula dados de outros contextos -> escopado por categoria do fixture (4 itens ativos da suite), preservando a intencao;
+- Comportamento atual confirmado como pretendido: authenticated nao define `code` (grants por coluna), default gera ITEM-*; anon sem EXECUTE de helpers internos (matriz de grants/hardening intacta);
+
+Gate 2F (somente SQL):
+
+- `sprint_02_quotations` 156/156; `sprint_03_comparison` 33/33; `sprint_04_rules` 28/28; `sprint_05_price_approval` 48/48;
+- `catalog_auto_code` 11/11 (finish() sem fail-marker); `sprint_01_master_data` 36/36; `sprint_07_crm` 55/55; `profiles_rls` 8/8;
+- Regressoes: `2a_own_price_structure` 53/53, `2b_own_price_approval` 31/31, `2e_quotation_own_guard` 21/21, `2e_outsourced_flow_regression` 14/14, `08l_finance_ar_ap_security_checks` 28/28;
+- Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- Pendencias pre-existentes FORA do escopo 2F: `pricing_schema` (tests 40/41 - hygiene de security definer de funcoes Finance/CRM/Ativos: search_path e EXECUTE anon) e suites legadas/ambiente (08c/08f/08g/08k/08m/08n/09a/hml_gate/concurrency) - sem relacao com cope de Catalogo/Cotacoes;
+- GRANTS alterados: NO; RLS alterada: NO; Dados alterados: SO em transacoes com ROLLBACK; Migration: NONE; PROD: NAO tocado.
+
 
 
 ## Fase 1 — Demais módulos

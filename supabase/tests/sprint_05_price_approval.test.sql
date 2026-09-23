@@ -53,11 +53,11 @@ values
 insert into public.catalog_categories (id, name)
 values ('50000000-0000-0000-0000-000000000020', 'Categoria Sprint 05');
 
-insert into public.catalog_items (id, code, name, category_id, unit)
+insert into public.catalog_items (id, name, category_id, unit)
 values
-  ('50000000-0000-0000-0000-000000000030', 'S05-A', 'Item percentual', '50000000-0000-0000-0000-000000000020', 'un'),
-  ('50000000-0000-0000-0000-000000000031', 'S05-B', 'Item fixo', '50000000-0000-0000-0000-000000000020', 'un'),
-  ('50000000-0000-0000-0000-000000000032', 'S05-C', 'Item de outra origem', '50000000-0000-0000-0000-000000000020', 'un');
+  ('50000000-0000-0000-0000-000000000030', 'Item percentual', '50000000-0000-0000-0000-000000000020', 'un'),
+  ('50000000-0000-0000-0000-000000000031', 'Item fixo', '50000000-0000-0000-0000-000000000020', 'un'),
+  ('50000000-0000-0000-0000-000000000032', 'Item de outra origem', '50000000-0000-0000-0000-000000000020', 'un');
 
 insert into public.margin_rules (
   id, scope_type, catalog_item_id, calculation_type, value

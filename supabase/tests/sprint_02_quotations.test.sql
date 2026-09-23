@@ -11,7 +11,7 @@ grant insert, select on pg_temp.tap_results to authenticated, anon;
 grant usage, select on sequence pg_temp.tap_results_seq_seq to authenticated, anon;
 
 insert into pg_temp.tap_results (result)
-select plan(155);
+select plan(156);
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -49,13 +49,13 @@ values
 insert into public.catalog_categories (id, name)
 values ('20000000-0000-0000-0000-000000000020', 'Categoria Sprint 02');
 
-insert into public.catalog_items (id, code, name, category_id, unit, active)
+insert into public.catalog_items (id, name, category_id, unit, active)
 values
-  ('20000000-0000-0000-0000-000000000030', 'S02-ADM', 'Item Admin Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true),
-  ('20000000-0000-0000-0000-000000000031', 'S02-EQP', 'Item Equipe Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true),
-  ('20000000-0000-0000-0000-000000000032', 'S02-INA', 'Item Inativo Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', false),
-  ('20000000-0000-0000-0000-000000000033', 'S02-IAT', 'Item para Inativar Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true),
-  ('20000000-0000-0000-0000-000000000034', 'S02-AUX', 'Item Auxiliar Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true);
+  ('20000000-0000-0000-0000-000000000030', 'Item Admin Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true),
+  ('20000000-0000-0000-0000-000000000031', 'Item Equipe Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true),
+  ('20000000-0000-0000-0000-000000000032', 'Item Inativo Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', false),
+  ('20000000-0000-0000-0000-000000000033', 'Item para Inativar Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true),
+  ('20000000-0000-0000-0000-000000000034', 'Item Auxiliar Sprint 02', '20000000-0000-0000-0000-000000000020', 'un', true);
 
 insert into pg_temp.tap_results (result)
 select ok(
@@ -2055,13 +2055,18 @@ insert into pg_temp.tap_results (result)
 select throws_ok(
   $$ insert into storage.objects (bucket_id, name)
      values ('supplier-quotes', 'anon/arquivo.pdf') $$,
-  '42501', 'new row violates row-level security policy for table "objects"',
+  '42501', 'permission denied for function is_internal_user',
   'Anonimo nao insere objeto no bucket privado'
 );
 
-update storage.objects
-set metadata = '{"anon":true}'::jsonb
-where bucket_id = 'supplier-quotes';
+insert into pg_temp.tap_results (result)
+select throws_ok(
+  $$ update storage.objects
+     set metadata = '{"anon":true}'::jsonb
+     where bucket_id = 'supplier-quotes' $$,
+  '42501', 'permission denied for function is_internal_user',
+  'Anonimo nao atualiza objetos do bucket privado'
+);
 
 set local role postgres;
 

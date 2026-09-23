@@ -54,12 +54,12 @@ values
   ('40000000-0000-0000-0000-000000000020', 'Categoria Regras A'),
   ('40000000-0000-0000-0000-000000000021', 'Categoria Regras B');
 
-insert into public.catalog_items (id, code, name, category_id, unit, active)
+insert into public.catalog_items (id, name, category_id, unit, active)
 values
-  ('40000000-0000-0000-0000-000000000030', 'S04-ITEM-A', 'Item Categoria A', '40000000-0000-0000-0000-000000000020', 'un', true),
-  ('40000000-0000-0000-0000-000000000031', 'S04-ITEM-B', 'Item Categoria B', '40000000-0000-0000-0000-000000000021', 'un', true),
-  ('40000000-0000-0000-0000-000000000032', 'S04-ITEM-NORULE', 'Item sem regra', '40000000-0000-0000-0000-000000000020', 'un', true),
-  ('40000000-0000-0000-0000-000000000033', 'S04-ITEM-FRACTION', 'Item Fracao', '40000000-0000-0000-0000-000000000021', 'un', true);
+  ('40000000-0000-0000-0000-000000000030', 'Item Categoria A', '40000000-0000-0000-0000-000000000020', 'un', true),
+  ('40000000-0000-0000-0000-000000000031', 'Item Categoria B', '40000000-0000-0000-0000-000000000021', 'un', true),
+  ('40000000-0000-0000-0000-000000000032', 'Item sem regra', '40000000-0000-0000-0000-000000000020', 'un', true),
+  ('40000000-0000-0000-0000-000000000033', 'Item Fracao', '40000000-0000-0000-0000-000000000021', 'un', true);
 
 -- Cotacoes: cada item tem uma oferta ativa com custo especifico
 insert into public.quotations (id, supplier_id, received_at, valid_until, status)
