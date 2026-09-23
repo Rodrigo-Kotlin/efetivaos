@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 13C - Correcao das vulnerabilidades A1/A2 da auditoria 2G (Fase 2H.1) - COMPLETED.
+**Status atual:** ETAPA 13D - Hardening de EXECUTE em helpers de trigger e default privileges (Fase 2H.2) - COMPLETED.
 
 ---
 
@@ -779,6 +779,22 @@ Gate 2H.1 (seguranca):
 - Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
 - Migrations `20260923000200_harden_asset_ops_and_balance_sheet.sql` e `20260923000300_fix_2h1_asset_depreciation_multirow_and_balance_ambiguity.sql` aplicadas (Push) somente no DEV; PROD nao tocado;
 - decision register atualizado (DEC-068) e learning log (LL-062).
+
+### ETAPA 13D - Hardening de EXECUTE em helpers de trigger e default privileges (Fase 2H.2)
+
+Fechamento das vulnerabilidades A3 (helper de trigger `prevent_supplier_code_change` com EXECUTE para anon/PUBLIC) e A6 (default privileges regenerando EXECUTE de funções novas para anon) da auditoria 2G. Somente banco DEV: sem alteracao de frontend, CRM, contabil, pricing ou PROD; sem reset operacional.
+
+- **A3** (helper de trigger exposto): `prevent_supplier_code_change()` recebeu `REVOKE EXECUTE FROM public, anon, authenticated`, alinhando a ACL ao padrao das irmas `{postgres=X, service_role=X}`. A invocacao pelo trigger `trg_suppliers_code_immutable` (BEFORE UPDATE) e interna e nao exige EXECUTE da role executora — comprovado por probe (`TRIGGER_STILL_BLOCKS`);
+- **A6** (default privileges): `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon` remove o auto-grant de anon em funcoes novas. A extensao efetivamente suportada pelo PostgreSQL foi mapeada por probe: REVOKE de PUBLIC via default privileges e NO-OP (EXECUTE publico e intrinseco ao `acldefault()` de funcoes); o combate ao PUBLIC segue pelo REVOKE explicito por funcao + invariante de regressao;
+- Evidencia empirica registrada na migration (`20260923000400`) e no LL-063: funcoes novas da pipeline perdem `anon:X` mas conservam `PUBLIC:EXECUTE` em todas as variantes de default ACL testadas (GRANT-only, REVOKE public, REVOKE anon);
+
+Gate 2H.2 (seguranca):
+
+- Suite nova `2h2_execute_and_default_acl_security.test.sql` 27/27 (ACL exata do helper, anon/authenticated/PUBLIC sem EXECUTE, 5 funcoes 2H.1 protegidas com grants authenticated preservados, invariantes de catalogo 0 security definer public executavel por anon/PUBLIC e 0 helper de trigger por PUBLIC, default privileges sem anon, funcao nova sem entrada anon e descartada no ROLLBACK, trigger bloqueia FOR-*);
+- Regressao SQL: 2h1 26/26, sprint_02 156/156, sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 2a 53/53, 2b 31/31, 2e_quotation_own_guard 21/21, 2e_outsourced 14/14, catalog_auto_code 11/11 — sem regressao; `pricing_schema` mantem a falha pre-existente (test 40, hygiene de security definer, fora do escopo 2H.2); 09a PART B verde em comportamento (B5: errcode `P0001` correto, expectativa legada malformada) e PART A segue como drift transacional legado;
+- Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- Migration `20260923000400_harden_supplier_code_trigger_execute_and_default_acl.sql` aplicada (Push) somente no DEV; PROD nao tocado;
+- decision register atualizado (DEC-069) e learning log (LL-063).
 
 
 
