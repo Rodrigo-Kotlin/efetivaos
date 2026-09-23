@@ -851,3 +851,15 @@ Métodos afetados:
 **Aplicado:** Migration `20260923000500_harden_security_definer_search_path.sql` (dry-run transacional, depois Push no DEV); suíte `2h3_search_path_security` 20/20 (post-flight 54/54 SD, 0 pg_temp, create_manual_journal_adjustment qualificada com ACL preservada); pricing_schema agora 100% (tests 40/41 que estavam pendentes desde 2G PASS); regressao (33+28+48+28+53+31+26+27+55+11) sem regressao; frontend 542 testes, tsc e build limpos.
 
 **Impacto futuro:** toda security definer nova deve nascer com `SET search_path = ''` e simbolos qualificados (`public.fn`, `pg_catalog.fn`); ao re-emitir funcao com CREATE OR REPLACE, reaplique REVOKE/GRANT apos; conferir invariante de proconfig por `unnest`/`position`, nao por `like ::text`; rodar pricing_schema apos qualquer mudanca de hygiene de security definer — os testes 40/41 sao o guard-rails dessa invariante.
+
+### LL-065 - Fase 13F: EXTRACT(EASECOND) em get_crm_pipeline_analytics era typo de EPOCH; duracao de funil em dias
+
+**Data:** 2026-09-23 (ETAPA 13F / FASE 13F, somente banco DEV)
+
+**Contexto:** A auditoria da 2H.3 (LL-064) detectou `EXTRACT(EASECOND FROM ...)` latente no corpo de `public.get_crm_pipeline_analytics`. A expressao calculava `avg_duration_days` dividindo por 86400.0 (segundos/dia) �?" a unidade pretendida era segundos totais. `EASECOND` nao existe em PostgreSQL; o campo valido para segundos totais de interval e `EPOCH`.
+
+**Aprendido:** (1) `EXTRACT(SECOND FROM interval)` retorna apenas o componente segundos (0-59) �?" nao serve para duracao total. `EXTRACT(EPOCH FROM interval)` retorna segundos totais (incluindo dias, horas, minutos) �?" e o correto para converter em dias via `/ 86400.0`. (2) O erro so aparece em tempo de execucao quando ha dados suficientes para disparar o calculo (pipeline com eventos) �?" `EASECOND` e erro de parse-time do unit name (`22023: unit "easecond" not recognized`). (3) Frontend espera `avg_duration_days: number` e exibe `${X}d media` �?" confirmando sem�ntica de dias. (4) Correcao isolada: `CREATE OR REPLACE FUNCTION` com assinatura identica, `SET search_path TO '`, reaplicacao de REVOKE/GRANT padrao DEC-031. Nao alterar outras regras do CRM/Financeiro/Pricing.
+
+**Aplicado:** Migration `20260923000600_fix_crm_pipeline_analytics_easecond.sql` (Push no DEV); teste especifico `13f_crm_pipeline_analytics_fix.test.sql` 14/14 (pipeline vazio, stages sem opps, opp sem eventos, opp com movimentacao -> duracao positiva, sem divisao por zero, authenticated ok, anon bloqueado, search_path vazio, SD, owner postgres, ACL exata, EASECOND removido, EPOCH presente); regressao: pricing_schema 46/46, 2h3 20/20, sprint_07_crm 55/55; frontend 542 testes, tsc e build limpos.
+
+**Impacto futuro:** ao calcular duracoes em funcoes analiticas, usar `EXTRACT(EPOCH FROM interval)` para segundos totais; auditar codigos legados que usem `EXTRACT(SECOND ...)` em contextos de duracao; testes de regressao devem cobrir cenarios de pipeline vazio e com movimentacao para capturar regressoes de calculo de duracao.

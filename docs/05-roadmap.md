@@ -1,22 +1,22 @@
-# 05 — Roadmap do Efetiva OS
+﻿# 05 â€” Roadmap do Efetiva OS
 
 ## Estado geral
 
 **Baseline funcional:** v0.2  
-**Baseline técnico:** v0.3  
-**Status atual:** ETAPA 13E - Hardening de search_path em security definers do public (Fase 2H.3) - COMPLETED.
+**Baseline tÃ©cnico:** v0.3  
+**Status atual:** ETAPA 13F - Correcao pontual do CRM Pipeline Analytics (EXTRACT EASECOND -> EPOCH) - COMPLETED.
 
 ---
 
-## Fase 1 — MVP
+## Fase 1 â€” MVP
 
-### Sprint 0 — Fundação técnica
+### Sprint 0 â€” FundaÃ§Ã£o tÃ©cnica
 
 **Status:** COMPLETED
 
 Escopo:
 
-- repositório GitHub;
+- repositÃ³rio GitHub;
 - estrutura inicial do projeto;
 - React + TypeScript + Vite;
 - Tailwind + shadcn/ui;
@@ -32,8 +32,8 @@ Escopo:
 - PWA manifest;
 - service worker simples;
 - Cloudflare Pages;
-- deploy público;
-- documentação no repositório.
+- deploy pÃºblico;
+- documentaÃ§Ã£o no repositÃ³rio.
 
 Gate:
 
@@ -42,21 +42,21 @@ Gate:
 - rota protegida;
 - Admin/Equipe reconhecidos;
 - RLS testado;
-- URL Cloudflare acessível.
+- URL Cloudflare acessÃ­vel.
 
 ---
 
-### Gate 00.1 — Consolidação da baseline
+### Gate 00.1 â€” ConsolidaÃ§Ã£o da baseline
 
 **Status:** COMPLETED
 
 Escopo:
 
 - identidade oficial Efetiva aplicada ao PWA;
-- especificação v0.2 e Projeto Técnico v0.3 em nomes canônicos;
-- handoff v0.3 e wireframes navegáveis versionados;
-- SQL monolítico preservado no pacote histórico;
-- migration incremental do Motor de Preços compatível com a Sprint 0;
+- especificaÃ§Ã£o v0.2 e Projeto TÃ©cnico v0.3 em nomes canÃ´nicos;
+- handoff v0.3 e wireframes navegÃ¡veis versionados;
+- SQL monolÃ­tico preservado no pacote histÃ³rico;
+- migration incremental do Motor de PreÃ§os compatÃ­vel com a Sprint 0;
 - RLS, RPCs, views, ciclo de vida e Storage revisados;
 - testes T-DB e lint executados no Supabase local;
 - sem CRUD funcional da Sprint 1.
@@ -67,38 +67,38 @@ Gate:
 - reset local das migrations aprovado;
 - 47 testes pgTAP aprovados;
 - schema lint sem erros;
-- documentação e handoff atualizados;
-- banco remoto preservado sem aplicação da migration candidata.
+- documentaÃ§Ã£o e handoff atualizados;
+- banco remoto preservado sem aplicaÃ§Ã£o da migration candidata.
 
 ---
 
-### Gate 00.2 — Rollout Supabase DEV
+### Gate 00.2 â€” Rollout Supabase DEV
 
 **Status:** COMPLETED
 
 Escopo:
 
-- credencial de banco exposta revogada e removida da versão corrente;
-- snapshot lógico pre-migration armazenado fora do Git;
-- migration incremental do Motor de Preços reavaliada para concorrência;
+- credencial de banco exposta revogada e removida da versÃ£o corrente;
+- snapshot lÃ³gico pre-migration armazenado fora do Git;
+- migration incremental do Motor de PreÃ§os reavaliada para concorrÃªncia;
 - migration `20260823000200_create_pricing_schema.sql` aplicada no Supabase DEV;
 - schema, RLS, grants, RPCs, views, triggers e Storage verificados remotamente;
-- testes de Admin, Equipe, anônimo e regras funcionais executados com rollback;
+- testes de Admin, Equipe, anÃ´nimo e regras funcionais executados com rollback;
 - nenhum CRUD funcional da Sprint 1 iniciado.
 
 Gate:
 
-- duas auditorias estáticas independentes com resultado GO;
+- duas auditorias estÃ¡ticas independentes com resultado GO;
 - dry-run confirmou somente a migration `20260823000200` pendente;
-- 40 testes SQL do Motor de Preços aprovados remotamente;
+- 40 testes SQL do Motor de PreÃ§os aprovados remotamente;
 - 8 testes SQL de profiles/roles aprovados remotamente;
 - lint remoto sem erros de schema;
-- 7 tabelas protegidas com RLS habilitada e forçada;
+- 7 tabelas protegidas com RLS habilitada e forÃ§ada;
 - banco DEV limpo, sem dados funcionais de teste persistidos.
 
 ---
 
-### Sprint 1 — Fornecedores + Categorias + Catálogo
+### Sprint 1 â€” Fornecedores + Categorias + CatÃ¡logo
 
 **Status:** COMPLETED
 
@@ -107,11 +107,11 @@ Escopo:
 - `suppliers`;
 - `catalog_categories`;
 - `catalog_items`;
-- CRUD lógico;
+- CRUD lÃ³gico;
 - busca;
-- filtros básicos;
-- inativação sem perda de histórico;
-- validações;
+- filtros bÃ¡sicos;
+- inativaÃ§Ã£o sem perda de histÃ³rico;
+- validaÃ§Ãµes;
 - testes de RLS;
 - empty/loading/error states.
 
@@ -119,26 +119,26 @@ Gate:
 
 - fornecedor ativo/inativo funcionando no Supabase DEV;
 - categorias e itens com CRUD logico, busca, filtros e ordenacao;
-- código de item único validado no frontend e no banco;
-- relação item/categoria íntegra e categorias inativas fora de novas selecoes;
+- cÃ³digo de item Ãºnico validado no frontend e no banco;
+- relaÃ§Ã£o item/categoria Ã­ntegra e categorias inativas fora de novas selecoes;
 - Admin e Equipe validados remotamente em INSERT/SELECT/UPDATE/inativacao/reativacao;
-- anônimo sem acesso e hard delete sem grant;
+- anÃ´nimo sem acesso e hard delete sem grant;
 - loading, vazio, erro, drawers, toasts e responsividade basica implementados;
 - 29 testes frontend e 35 testes SQL remotos aprovados;
 - deploy Cloudflare Pages publicado pela integracao Git.
 
-Follow-up de padronização do catálogo (2026-09-01):
+Follow-up de padronizaÃ§Ã£o do catÃ¡logo (2026-09-01):
 
-- código de item gerado no PostgreSQL por sequence no padrão `ITEM-000001`;
-- código obrigatório, único, imutável e não sobrescrevível pelo frontend;
+- cÃ³digo de item gerado no PostgreSQL por sequence no padrÃ£o `ITEM-000001`;
+- cÃ³digo obrigatÃ³rio, Ãºnico, imutÃ¡vel e nÃ£o sobrescrevÃ­vel pelo frontend;
 - presets de categoria oferecidos no Select sem seed antecipado;
-- opção “Adicionar nova categoria” preserva nomes customizados;
+- opÃ§Ã£o â€œAdicionar nova categoriaâ€ preserva nomes customizados;
 - unicidade de categoria protegida por `lower(btrim(name))`;
 - migrations `20260901000100_add_catalog_item_auto_code.sql` e `20260901000110_harden_catalog_item_code_generation.sql`, com testes dedicados.
 
 ---
 
-### Sprint 2 — Cotações + Itens
+### Sprint 2 â€” CotaÃ§Ãµes + Itens
 
 **Status:** COMPLETED_WITH_FINDINGS
 
@@ -146,14 +146,14 @@ Escopo:
 
 - `quotations`;
 - `quotation_items`;
-- criação em rascunho;
-- múltiplos itens;
-- mapeamento ao catálogo;
-- ativação;
+- criaÃ§Ã£o em rascunho;
+- mÃºltiplos itens;
+- mapeamento ao catÃ¡logo;
+- ativaÃ§Ã£o;
 - cancelamento;
 - anexo opcional;
-- validação de fornecedor ativo;
-- histórico preservado.
+- validaÃ§Ã£o de fornecedor ativo;
+- histÃ³rico preservado.
 
 Gate:
 
@@ -173,13 +173,13 @@ Gate:
 
 ---
 
-### Sprint 3 — Comparação automática
+### Sprint 3 â€” ComparaÃ§Ã£o automÃ¡tica
 
 **Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
-- view autoritativa `public.comparison_current_v` (uma única adicao ao schema);
+- view autoritativa `public.comparison_current_v` (uma Ãºnica adicao ao schema);
 - tela `/pricing/comparison` com tabela table-first, busca por codigo/item/fornecedor, filtros por categoria, fornecedor e situacao da oferta, ordenacao por item/menor custo/categoria/validade, drawer lateral de ofertas com elegiveis e historico;
 - destaque do menor custo vigente via badge textual "Melhor custo" (nao apenas cor);
 - semaforo de "Validade nao informada" mantido nas ofertas sem `valid_until`;
@@ -206,104 +206,104 @@ Findings:
 
 ---
 
-### Sprint 4 — Regras de acréscimo e cálculo do preço sugerido
+### Sprint 4 â€” Regras de acrÃ©scimo e cÃ¡lculo do preÃ§o sugerido
 
 **Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
-- gestão de regras em `/pricing/rules` (Admin): global, categoria, item; percentual ou fixo; conflito de regra ativa impedido por índice parcial; inativação e reativação;
-- hierarquia canônica `item > categoria > global` aplicada pela função `resolve_margin_rule` (SECURITY DEFINER, `search_path = ''`, `is_internal_user()`);
-- cálculo autoritativo do preço sugerido em `pricing_comparison_v` (`round(unit_price * (1 + value / 100), 2)` ou `round(unit_price + value, 2)`);
-- tela de comparação ampliada com colunas Regra, Preço sugerido e Origem; filtro `Regra` (Com regra / Sem regra); drawer de revisão do cálculo;
-- Equipe visualiza o cálculo aplicado, sem permissão de criar/editar/inativar regras (RLS `margin_rules_*_admin`).
+- gestÃ£o de regras em `/pricing/rules` (Admin): global, categoria, item; percentual ou fixo; conflito de regra ativa impedido por Ã­ndice parcial; inativaÃ§Ã£o e reativaÃ§Ã£o;
+- hierarquia canÃ´nica `item > categoria > global` aplicada pela funÃ§Ã£o `resolve_margin_rule` (SECURITY DEFINER, `search_path = ''`, `is_internal_user()`);
+- cÃ¡lculo autoritativo do preÃ§o sugerido em `pricing_comparison_v` (`round(unit_price * (1 + value / 100), 2)` ou `round(unit_price + value, 2)`);
+- tela de comparaÃ§Ã£o ampliada com colunas Regra, PreÃ§o sugerido e Origem; filtro `Regra` (Com regra / Sem regra); drawer de revisÃ£o do cÃ¡lculo;
+- Equipe visualiza o cÃ¡lculo aplicado, sem permissÃ£o de criar/editar/inativar regras (RLS `margin_rules_*_admin`).
 
 Gate:
 
-- 28 testes pgTAP remotos cobrindo os 16 cenários da Etapa 04 (R$ 6,70 + 30% = R$ 8,71, arredondamento determinístico);
+- 28 testes pgTAP remotos cobrindo os 16 cenÃ¡rios da Etapa 04 (R$ 6,70 + 30% = R$ 8,71, arredondamento determinÃ­stico);
 - 123 testes frontend aprovados (eram 102 na Sprint 3, +21);
-- suíte E2E completa 7/7: Admin cria cotação ativa, aplica regra global 20%, categoria 30% e item 35%, valida cada precedência, inativa a regra de item e confirma fallback para categoria; Equipe visualiza o cálculo, não vê ações administrativas e recebe `42501` ao tentar mutation direta;
-- ESLint, TypeScript build, lint remoto do schema e pós-flight aprovados;
-- nenhuma migration nova aplicada: o schema da Etapa 02 já entregava `margin_rules`, índices parciais de unicidade, função `resolve_margin_rule` e a view `pricing_comparison_v`; a Etapa 04 apenas reusou a infraestrutura existente.
+- suÃ­te E2E completa 7/7: Admin cria cotaÃ§Ã£o ativa, aplica regra global 20%, categoria 30% e item 35%, valida cada precedÃªncia, inativa a regra de item e confirma fallback para categoria; Equipe visualiza o cÃ¡lculo, nÃ£o vÃª aÃ§Ãµes administrativas e recebe `42501` ao tentar mutation direta;
+- ESLint, TypeScript build, lint remoto do schema e pÃ³s-flight aprovados;
+- nenhuma migration nova aplicada: o schema da Etapa 02 jÃ¡ entregava `margin_rules`, Ã­ndices parciais de unicidade, funÃ§Ã£o `resolve_margin_rule` e a view `pricing_comparison_v`; a Etapa 04 apenas reusou a infraestrutura existente.
 
 Findings:
 
 - chunk principal cresceu de 562,66 kB para 563,00 kB (+0,34 kB); o chunk `rules-page` (20,07 kB / 6,09 kB gzip) e o `comparison-page` (32,30 kB / 7,31 kB gzip) ficaram isolados via code-splitting por rota;
-- `pricing_comparison_v` foi reusada com auditoria prévia em vez de criar nova view, preservando o agrupamento canônico por `catalog_item_id` e evitando duplicação da lógica de menor custo e cálculo;
-- nenhum teste real de duas sessões concorrentes foi executado; concorrência simultânea continua como finding conhecido de DEC-024;
-- snapshot físico do banco remoto não habilitado; ponto de retorno continua sendo o snapshot lógico externo da Etapa 00.2.
+- `pricing_comparison_v` foi reusada com auditoria prÃ©via em vez de criar nova view, preservando o agrupamento canÃ´nico por `catalog_item_id` e evitando duplicaÃ§Ã£o da lÃ³gica de menor custo e cÃ¡lculo;
+- nenhum teste real de duas sessÃµes concorrentes foi executado; concorrÃªncia simultÃ¢nea continua como finding conhecido de DEC-024;
+- snapshot fÃ­sico do banco remoto nÃ£o habilitado; ponto de retorno continua sendo o snapshot lÃ³gico externo da Etapa 00.2.
 
 ---
 
-### Sprint 5 — Tabela comercial + aprovação
+### Sprint 5 â€” Tabela comercial + aprovaÃ§Ã£o
 
 **Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
 - `price_list`;
-- aprovação explícita;
+- aprovaÃ§Ã£o explÃ­cita;
 - snapshots;
-- origem do preço;
+- origem do preÃ§o;
 - status `approved`;
 - status `review_required`;
 - status `inactive`;
 - `approved_at/by`;
-- proteção contra sobrescrita automática.
+- proteÃ§Ã£o contra sobrescrita automÃ¡tica.
 
 Gate:
 
-- migrations `20260824000100_add_price_approval_cas.sql` e `20260824000110_harden_price_traceability.sql` aplicadas no Supabase DEV, preservando `price_list` como registro comercial corrente por item e exigindo token CAS nas RPCs de aprovação/inativação;
-- nova cotação, alteração de regra ou perda de elegibilidade não sobrescreve snapshots nem preço aprovado; a view deriva `review_required` e motivo estruturado;
-- Admin seleciona somente fonte elegível automática ou alternativa, aprova explicitamente e inativa; reativação exige nova aprovação com token fresco;
-- Equipe visualiza comparação, Tabela de Preços e rastreabilidade, sem controles comerciais e com mutações rejeitadas no banco; anônimo sem acesso;
-- `/pricing/comparison` distingue menor custo, sugestão e preço aprovado; `/pricing/prices` lista somente itens com registro comercial, com busca, filtros, status, origem e detalhe responsivo;
-- 48 testes SQL remotos da Etapa 05, 40 testes SQL de regressão do schema e 28 da Sprint 4 aprovados; concorrência validada em duas conexões remotas reais;
+- migrations `20260824000100_add_price_approval_cas.sql` e `20260824000110_harden_price_traceability.sql` aplicadas no Supabase DEV, preservando `price_list` como registro comercial corrente por item e exigindo token CAS nas RPCs de aprovaÃ§Ã£o/inativaÃ§Ã£o;
+- nova cotaÃ§Ã£o, alteraÃ§Ã£o de regra ou perda de elegibilidade nÃ£o sobrescreve snapshots nem preÃ§o aprovado; a view deriva `review_required` e motivo estruturado;
+- Admin seleciona somente fonte elegÃ­vel automÃ¡tica ou alternativa, aprova explicitamente e inativa; reativaÃ§Ã£o exige nova aprovaÃ§Ã£o com token fresco;
+- Equipe visualiza comparaÃ§Ã£o, Tabela de PreÃ§os e rastreabilidade, sem controles comerciais e com mutaÃ§Ãµes rejeitadas no banco; anÃ´nimo sem acesso;
+- `/pricing/comparison` distingue menor custo, sugestÃ£o e preÃ§o aprovado; `/pricing/prices` lista somente itens com registro comercial, com busca, filtros, status, origem e detalhe responsivo;
+- 48 testes SQL remotos da Etapa 05, 40 testes SQL de regressÃ£o do schema e 28 da Sprint 4 aprovados; concorrÃªncia validada em duas conexÃµes remotas reais;
 - 142 testes frontend, E2E remoto 10/10, ESLint, build e lint remoto do schema aprovados;
-- teardown remoto remove `price_list` antes das dependências e confirmou fixtures transitórias removidas;
+- teardown remoto remove `price_list` antes das dependÃªncias e confirmou fixtures transitÃ³rias removidas;
 - bundle principal em 563,35 kB / 164,72 kB gzip; chunks lazy `price-list-page` em 11,26 kB / 3,12 kB gzip e `review-drawer` em 10,78 kB / 3,21 kB gzip;
-- finding aceito: chunk principal compartilhado permanece acima do aviso de 500 kB; snapshot físico remoto continua não habilitado.
+- finding aceito: chunk principal compartilhado permanece acima do aviso de 500 kB; snapshot fÃ­sico remoto continua nÃ£o habilitado.
 
 ---
 
-### Sprint 6 — Dashboard básico + QA + PWA
+### Sprint 6 â€” Dashboard bÃ¡sico + QA + PWA
 
 **Status:** COMPLETED_WITH_FINDINGS
 
 Escopo:
 
-- indicadores básicos do Motor de Preços;
-- cotações vencendo;
-- itens em revisão;
+- indicadores bÃ¡sicos do Motor de PreÃ§os;
+- cotaÃ§Ãµes vencendo;
+- itens em revisÃ£o;
 - atalhos;
 - refinamento responsivo;
 - manifest PWA;
-- revisão do service worker;
+- revisÃ£o do service worker;
 - QA funcional;
-- testes finais dos critérios de aceite.
+- testes finais dos critÃ©rios de aceite.
 
 Gate:
 
-- dashboard `/pricing` usa dados autoritativos para preços aprovados, revisão, itens sem regra, itens sem oferta vigente e cotações vencendo em 7 dias, sem exibir zeros falsos em loading/erro;
-- atalhos e rota de regras respeitam Admin/Equipe, com autorização de banco preservada;
-- invalidações atualizam comparação, tabela e dashboard após alterações relevantes em catálogo, fornecedores, cotações, regras e decisões comerciais;
-- PWA instalável mantém somente precache estático, aviso offline e atualização por confirmação explícita;
+- dashboard `/pricing` usa dados autoritativos para preÃ§os aprovados, revisÃ£o, itens sem regra, itens sem oferta vigente e cotaÃ§Ãµes vencendo em 7 dias, sem exibir zeros falsos em loading/erro;
+- atalhos e rota de regras respeitam Admin/Equipe, com autorizaÃ§Ã£o de banco preservada;
+- invalidaÃ§Ãµes atualizam comparaÃ§Ã£o, tabela e dashboard apÃ³s alteraÃ§Ãµes relevantes em catÃ¡logo, fornecedores, cotaÃ§Ãµes, regras e decisÃµes comerciais;
+- PWA instalÃ¡vel mantÃ©m somente precache estÃ¡tico, aviso offline e atualizaÃ§Ã£o por confirmaÃ§Ã£o explÃ­cita;
 - responsividade validada sem overflow em 1440, 1280, 1024, 768, 390 e 360 px; deep-links e console validados;
 - 147 testes frontend e Playwright remoto 11/11 aprovados;
 - SQL remoto aprovado: schema 46/46, Sprint 5 48/48, Sprint 4 28/28 e profiles 8/8;
-- migration `20260824000120_harden_security_definer_grants.sql` aplicada no DEV após inventário final de funções privilegiadas;
-- lint frontend, build, lint remoto e pós-flight sem fixtures aprovados;
-- documentação e handoff final atualizados.
+- migration `20260824000120_harden_security_definer_grants.sql` aplicada no DEV apÃ³s inventÃ¡rio final de funÃ§Ãµes privilegiadas;
+- lint frontend, build, lint remoto e pÃ³s-flight sem fixtures aprovados;
+- documentaÃ§Ã£o e handoff final atualizados.
 
 Findings:
 
 - chunk principal compartilhado em 563,70 kB / 164,89 kB gzip, acima do aviso de 500 kB;
-- Supabase DEV continua sem snapshot físico/PITR habilitado;
-- possibilidade residual conhecida de objeto privado órfão se a recuperação concorrente de anexo for interrompida.
+- Supabase DEV continua sem snapshot fÃ­sico/PITR habilitado;
+- possibilidade residual conhecida de objeto privado Ã³rfÃ£o se a recuperaÃ§Ã£o concorrente de anexo for interrompida.
 
 ---
 
-### Sprint 7 / ETAPA 07 — CRM Light: Clientes e Contatos
+### Sprint 7 / ETAPA 07 â€” CRM Light: Clientes e Contatos
 
 **Status:** COMPLETED (ETAPA 07E PRODUCTION RELEASE)
 
@@ -311,9 +311,9 @@ Escopo:
 
 - base cadastral de clientes (PJ/PF);
 - contatos por cliente com contato principal;
-- validação e normalização de CPF/CNPJ;
-- RLS completo (Admin/Equipe/Anônimo/Inativo);
-- RPC atômica para contatos com proteção IDOR;
+- validaÃ§Ã£o e normalizaÃ§Ã£o de CPF/CNPJ;
+- RLS completo (Admin/Equipe/AnÃ´nimo/Inativo);
+- RPC atÃ´mica para contatos com proteÃ§Ã£o IDOR;
 - view `client_list_v` com contadores;
 - UI responsiva com Drawer, busca, filtros, loading/empty/error;
 - E2E Playwright (Admin, Equipe, Mobile);
@@ -322,35 +322,35 @@ Escopo:
 
 Gate:
 
-- lint 0 errors, 1 warning (TanStack Table — conhecido, não bloqueante);
+- lint 0 errors, 1 warning (TanStack Table â€” conhecido, nÃ£o bloqueante);
 - Vitest 147/147 aprovados;
 - build TypeScript + Vite sem erros;
 - SQL lint remoto `supabase db lint --linked --schema public --level warning` sem erros;
-- pgTAP 55 testes preparados (requer Docker para execução remota);
-- pós-flight preparado;
+- pgTAP 55 testes preparados (requer Docker para execuÃ§Ã£o remota);
+- pÃ³s-flight preparado;
 - E2E criados (crm-admin, crm-team, crm-mobile);
 - acessibilidade: labels, foco, teclado, escape, retorno de foco, aria-labels validados;
 - responsividade: 1440, 1280, 1024, 768, 390, 360 validados via source code audit;
 - deep-links /crm, /crm/clients, /crm/clients/new validados;
 - bundle: index 564.55 kB / 165.11 kB gzip;
 - CRM chunks lazy-loaded: crm-page 4.50 kB, clients-page 8.74 kB;
-- documentação e handoff finalizados.
+- documentaÃ§Ã£o e handoff finalizados.
 
 Findings:
 
-- pgTAP remoto requer Docker (pg_prove) — SQL lint remoto aprovado como alternativa;
-- ~~ClientForm, ClientDetails, ClientFormPage, ClientDetailPage são stubs (retornam null)~~ — CORRIGIDO no hotfix 2026-08-25;
-- chunk principal > 500 kB (conhecido, não bloqueante);
-- TanStack Table incompatible-library warning (conhecido, não bloqueante);
-- unicidade CPF/CNPJ é global (preservada);
-- Equipe possui mesmo CRUD que Admin (políticas idênticas);
-- ~~TanStack Table columns não memoizadas causavam render loops~~ — CORRIGIDO no hotfix 2026-08-25;
-- ~~ClientsPage formOpen condition invertida~~ — CORRIGIDO no hotfix 2026-08-25;
-- useUpdateClientMutation não existia — ADICIONADO no hotfix 2026-08-25;
-- ~~migrations 20260824000130 e 20260824000200 não aplicadas no DEV~~ — APLICADAS na ETAPA 07D;
-- ~~`__reactProps$` workaround para RHF em portal~~ — REMOVIDO na ETAPA 07D (não era necessário);
-- ~~TanStack Table filtrava colunas com 'all' inadvertidamente~~ — CORRIGIDO na ETAPA 07D;
-- ~~`client_list_v` rejeitava colunas extras em select()~~ — CORRIGIDO na ETAPA 07D;
+- pgTAP remoto requer Docker (pg_prove) â€” SQL lint remoto aprovado como alternativa;
+- ~~ClientForm, ClientDetails, ClientFormPage, ClientDetailPage sÃ£o stubs (retornam null)~~ â€” CORRIGIDO no hotfix 2026-08-25;
+- chunk principal > 500 kB (conhecido, nÃ£o bloqueante);
+- TanStack Table incompatible-library warning (conhecido, nÃ£o bloqueante);
+- unicidade CPF/CNPJ Ã© global (preservada);
+- Equipe possui mesmo CRUD que Admin (polÃ­ticas idÃªnticas);
+- ~~TanStack Table columns nÃ£o memoizadas causavam render loops~~ â€” CORRIGIDO no hotfix 2026-08-25;
+- ~~ClientsPage formOpen condition invertida~~ â€” CORRIGIDO no hotfix 2026-08-25;
+- useUpdateClientMutation nÃ£o existia â€” ADICIONADO no hotfix 2026-08-25;
+- ~~migrations 20260824000130 e 20260824000200 nÃ£o aplicadas no DEV~~ â€” APLICADAS na ETAPA 07D;
+- ~~`__reactProps$` workaround para RHF em portal~~ â€” REMOVIDO na ETAPA 07D (nÃ£o era necessÃ¡rio);
+- ~~TanStack Table filtrava colunas com 'all' inadvertidamente~~ â€” CORRIGIDO na ETAPA 07D;
+- ~~`client_list_v` rejeitava colunas extras em select()~~ â€” CORRIGIDO na ETAPA 07D;
 
 ### Hotfix: UI Stability (2026-08-25)
 
@@ -365,21 +365,21 @@ Production: `https://efetivaos.pages.dev`
 
 Escopo:
 
-- useMemo em columns de todos os 7 call sites de useReactTable (4 corrigidos, 3 já estavam OK);
-- fix ClientsPage formOpen condition (inverted → correct);
-- implementação de ClientForm, ClientDetails, ClientFormPage, ClientDetailPage (stubs → real);
-- adição de useUpdateClientMutation;
-- adição de getClient API + useClientDetail hook;
+- useMemo em columns de todos os 7 call sites de useReactTable (4 corrigidos, 3 jÃ¡ estavam OK);
+- fix ClientsPage formOpen condition (inverted â†’ correct);
+- implementaÃ§Ã£o de ClientForm, ClientDetails, ClientFormPage, ClientDetailPage (stubs â†’ real);
+- adiÃ§Ã£o de useUpdateClientMutation;
+- adiÃ§Ã£o de getClient API + useClientDetail hook;
 - useCallback em changeStatus (suppliers-page);
-- fix indentação em client-schema.ts;
-- **ETAPA 07D**: aplicação de migrations pendentes no Supabase DEV;
-- **ETAPA 07D**: correção de `client_list_v` colunas no `select()` (PGRST100);
-- **ETAPA 07D**: correção de `columnFilters` em clients-page.tsx (filtro 'all');
+- fix indentaÃ§Ã£o em client-schema.ts;
+- **ETAPA 07D**: aplicaÃ§Ã£o de migrations pendentes no Supabase DEV;
+- **ETAPA 07D**: correÃ§Ã£o de `client_list_v` colunas no `select()` (PGRST100);
+- **ETAPA 07D**: correÃ§Ã£o de `columnFilters` em clients-page.tsx (filtro 'all');
 - **ETAPA 07D**: reescrita de `ui-stability.spec.ts` sem `__reactProps$`;
-- **ETAPA 07D**: helpers `filterSearch`, `closeDrawerWithEscape` usando `dispatchEvent` + native setter (APIs Playwright públicas);
-- **ETAPA 07D**: limpeza de fixtures órfãos via `cleanupFixtureTaxIds()` (service role);
+- **ETAPA 07D**: helpers `filterSearch`, `closeDrawerWithEscape` usando `dispatchEvent` + native setter (APIs Playwright pÃºblicas);
+- **ETAPA 07D**: limpeza de fixtures Ã³rfÃ£os via `cleanupFixtureTaxIds()` (service role);
 - **ETAPA 07D**: 14/14 E2E stability tests verdes com CRUD real contra Supabase DEV;
-- **ETAPA 07E**: production release — commit `1dbb140` auto-deployed to Cloudflare Pages;
+- **ETAPA 07E**: production release â€” commit `1dbb140` auto-deployed to Cloudflare Pages;
 - **ETAPA 07E**: production route smoke 10/10 HTTP 200;
 - **ETAPA 07E**: headed smoke 8/8 green (real Chrome via `channel: 'chrome'`);
 - **ETAPA 07E**: crm-admin.spec.ts 9/9 green (4 pre-existing failures fixed);
@@ -390,10 +390,10 @@ Escopo:
 
 Gate:
 
-- lint 0 errors, 1 warning (React Hook Form watch — conhecido);
+- lint 0 errors, 1 warning (React Hook Form watch â€” conhecido);
 - Vitest 147/147 aprovados;
 - build TypeScript + Vite sem erros;
-- bundle: 564.82 kB / 165.22 kB gzip (sem mudança significativa);
+- bundle: 564.82 kB / 165.22 kB gzip (sem mudanÃ§a significativa);
 - smoke test 4/4 URLs retorna 200;
 - **ETAPA 07D**: 14/14 Playwright E2E stability tests (CRUD real contra Supabase DEV);
 - **ETAPA 07E**: production deploy verified (commit `1dbb140`, deploy `72db5c42`);
@@ -402,7 +402,7 @@ Gate:
 
 ---
 
-### ETAPA 08A — Fundação Contábil-Gerencial
+### ETAPA 08A â€” FundaÃ§Ã£o ContÃ¡bil-Gerencial
 
 **Status:** COMPLETED
 
@@ -410,12 +410,12 @@ Escopo:
 
 - Plano de Contas (6 classes, ~80 contas semente);
 - Centros de Custo (8 centros semente);
-- Linhas de Serviço (7 linhas semente);
-- Categorias Financeiras (30+ categorias com mapeamento contábil);
+- Linhas de ServiÃ§o (7 linhas semente);
+- Categorias Financeiras (30+ categorias com mapeamento contÃ¡bil);
 - Contas Financeiras (caixa/banco);
 - Formas de Pagamento (8 meios semente);
 - RLS completo (Admin CRUD, Equipe RU);
-- UI: launcher + 6 páginas CRUD com drawer, busca e filtros;
+- UI: launcher + 6 pÃ¡ginas CRUD com drawer, busca e filtros;
 - 6 rotas lazy-loaded.
 
 Gate:
@@ -430,14 +430,14 @@ Gate:
 
 Findings:
 
-- import em database.ts de módulo externo quebrava inferência TS — corrigido com tipos inline;
-- `presentation_sign` DB tipo `int4`, app `1 | -1` — cast explícito;
-- period_locks sem overlap constraint (aplicação);
+- import em database.ts de mÃ³dulo externo quebrava inferÃªncia TS â€” corrigido com tipos inline;
+- `presentation_sign` DB tipo `int4`, app `1 | -1` â€” cast explÃ­cito;
+- period_locks sem overlap constraint (aplicaÃ§Ã£o);
 - chunk finance lazy-loaded isolados.
 
 ---
 
-### ETAPA 08B — Motor de Lancamentos e Partidas Dobradas
+### ETAPA 08B â€” Motor de Lancamentos e Partidas Dobradas
 
 **Status:** COMPLETED (MICROGATE 08B.1 PASSED)
 
@@ -470,13 +470,13 @@ Findings:
 - balance trigger AFTER trigger: a soma ja inclui a nova linha, nao somar novamente;
 - reversal: swap debit/credit (nao negativo) por causa de CHECK constraint debit >= 0, credit >= 0;
 - settle/cancel append-only: ledger acumula entries (original + settled/estorno);
-- `auth.uid()` retorna NULL em testes SQL via CLI — is_admin() guard bypass quando auth.uid() IS NULL;
+- `auth.uid()` retorna NULL em testes SQL via CLI â€” is_admin() guard bypass quando auth.uid() IS NULL;
 - categorias 08A precisam de counter_account_id para o motor;
 - migration re-executavel requer DROP TRIGGER IF EXISTS para triggers;
 
 ---
 
-### ETAPA 08C — Contas a Receber e Contas a Pagar
+### ETAPA 08C â€” Contas a Receber e Contas a Pagar
 
 **Status:** COMPLETED
 
@@ -496,7 +496,7 @@ Gate:
 
 ---
 
-### ETAPA 08D — Fluxo de Caixa e DFC
+### ETAPA 08D â€” Fluxo de Caixa e DFC
 
 **Status:** COMPLETED
 
@@ -522,23 +522,23 @@ Gate:
 
 ---
 
-### ETAPA 08E — DRE Gerencial
+### ETAPA 08E â€” DRE Gerencial
 
 **Status:** COMPLETED
 
 Escopo:
 
 - Funcao `get_income_statement(p_from, p_to, p_cost_center_id, p_service_line_id)`;
-- 14 linhas DRE: Receita Bruta → Resultado Líquido;
-- Regime de competência via competence_date;
-- Cálculo via debit/credit + account nature (DEBITO → debit−credit, CREDITO → credit−debit);
+- 14 linhas DRE: Receita Bruta â†’ Resultado LÃ­quido;
+- Regime de competÃªncia via competence_date;
+- CÃ¡lculo via debit/credit + account nature (DEBITO â†’ debitâˆ’credit, CREDITO â†’ creditâˆ’debit);
 - 10 dre_class: RECEITA_BRUTA, DEDUCAO_RECEITA, RECEITA_FINANCEIRA, OUTRAS_RECEITAS, CUSTO_SERVICO, DESPESA_OPERACIONAL, DEPRECIACAO_AMORTIZACAO, DESPESA_FINANCEIRA, OUTRAS_DESPESAS, IMPOSTO_RESULTADO;
-- UI: pagina DRE com tabela vertical, KPI cards, filtros (De, Até, Centro de Custo, Linha de Serviço);
+- UI: pagina DRE com tabela vertical, KPI cards, filtros (De, AtÃ©, Centro de Custo, Linha de ServiÃ§o);
 - Sidebar e routing atualizados;
 - SECURITY DEFINER + search_path + is_internal_user() guard (admin OR equipe);
 - 50/50 SQL tests remotos + 15/15 microgate tests;
 - 218/218 frontend tests;
-- Cache invalidation nos mutations de transação;
+- Cache invalidation nos mutations de transaÃ§Ã£o;
 
 Gate:
 
@@ -549,7 +549,7 @@ Gate:
 
 ---
 
-### ETAPA 08F — Ativos/Bens + Balanco Patrimonial Gerencial
+### ETAPA 08F â€” Ativos/Bens + Balanco Patrimonial Gerencial
 
 **Status:** COMPLETED (MICROGATE 08F.2 PASSED)
 
@@ -591,7 +591,7 @@ Gate:
 
 ---
 
-### ETAPA 08G — DMPL/DLPA + DVA + Ajustes + Notas
+### ETAPA 08G â€” DMPL/DLPA + DVA + Ajustes + Notas
 
 **Status:** COMPLETED (MICROGATE 08G.1 PASSED)
 
@@ -629,73 +629,73 @@ Gate:
 
 ---
 
-### ETAPA 09 — Preços próprios (Fase 2A: somente banco)
+### ETAPA 09 â€” PreÃ§os prÃ³prios (Fase 2A: somente banco)
 
-Estrutura de propostas de preço para serviços próprios (sem fornecedor/cotação), dentro do Motor de Preços. A decisão (aprovar/inativar) fica para a Fase 2B via RPC.
+Estrutura de propostas de preÃ§o para serviÃ§os prÃ³prios (sem fornecedor/cotaÃ§Ã£o), dentro do Motor de PreÃ§os. A decisÃ£o (aprovar/inativar) fica para a Fase 2B via RPC.
 
 - Enums `pricing_sourcing_type`, `price_origin`, `own_price_status`;
 - `catalog_items.sourcing_type` NOT NULL default `'outsourced'` (preserva itens existentes);
-- Tabela `own_price_proposals` (pendente/decidida/inativa, revisão crescente, auditoria, CHECK de decisão, índice único parcial para 1 pendente por item);
-- Triggers de guarda: submissão (autor + item próprio ativo + pending + revisão 1), atualização (identidade imutável, transição de estado somente via GUC da RPC 2B, conteúdo decidida imutável, revisão em reajuste) e origem do item imutável após histórico;
-- `price_list`: `price_origin` + `own_price_proposal_id`, campos de origem de cotação opcionais com CHECK de exclusividade por origem;
+- Tabela `own_price_proposals` (pendente/decidida/inativa, revisÃ£o crescente, auditoria, CHECK de decisÃ£o, Ã­ndice Ãºnico parcial para 1 pendente por item);
+- Triggers de guarda: submissÃ£o (autor + item prÃ³prio ativo + pending + revisÃ£o 1), atualizaÃ§Ã£o (identidade imutÃ¡vel, transiÃ§Ã£o de estado somente via GUC da RPC 2B, conteÃºdo decidida imutÃ¡vel, revisÃ£o em reajuste) e origem do item imutÃ¡vel apÃ³s histÃ³rico;
+- `price_list`: `price_origin` + `own_price_proposal_id`, campos de origem de cotaÃ§Ã£o opcionais com CHECK de exclusividade por origem;
 - RLS: SELECT/INSERT/UPDATE para `authenticated` (escopo owner/admin; custo interno oculto por grant de coluna), sem DELETE (ver DEC-063);
-- Reader `get_own_price_proposals` (`SECURITY DEFINER`, máscara de custo interno para não-Admin);
+- Reader `get_own_price_proposals` (`SECURITY DEFINER`, mÃ¡scara de custo interno para nÃ£o-Admin);
 - 53/53 testes pgTAP validados no Supabase DEV; `npm run build` ok.
 
 Gate 2A:
 
 - migration `20260922000100_create_own_pricing_structure.sql` aplicada e validada no DEV;
 - suite `supabase/tests/2a_own_price_structure.test.sql` 53/53;
-- regressão de catálogo (auto-code) sem erros;
+- regressÃ£o de catÃ¡logo (auto-code) sem erros;
 - `npm run build` sem erros TypeScript;
 - decision register atualizado (DEC-063).
 
 ---
 
-### ETAPA 10 — Preços próprios (Fase 2B: RPCs de decisão — somente banco)
+### ETAPA 10 â€” PreÃ§os prÃ³prios (Fase 2B: RPCs de decisÃ£o â€” somente banco)
 
-Canais exclusivos de transição de estado de proposta de preço próprio, aprovados por Admin, completando a decisão no banco antes da interface (ver DEC-064).
+Canais exclusivos de transiÃ§Ã£o de estado de proposta de preÃ§o prÃ³prio, aprovados por Admin, completando a decisÃ£o no banco antes da interface (ver DEC-064).
 
-- Helper `own_price_decision_token(uuid)`: snapshot md5 da proposta (valores, estado, revisão, auditoria) para detecção de tela obsoleta;
-- RPC `approve_own_price_proposal(uuid, text)`: pending → approved; cria/atualiza o preço vigente em `price_list` com origem `'own'` e referência à proposta (substitui preço de cotação se houver; uma linha por item);
-- RPC `inactivate_own_price_proposal(uuid, text, text default null)`: pending → inactive (rejeição, aceita observação) e approved → inactive (aposentadoria do preço vigente que referencia a proposta);
+- Helper `own_price_decision_token(uuid)`: snapshot md5 da proposta (valores, estado, revisÃ£o, auditoria) para detecÃ§Ã£o de tela obsoleta;
+- RPC `approve_own_price_proposal(uuid, text)`: pending â†’ approved; cria/atualiza o preÃ§o vigente em `price_list` com origem `'own'` e referÃªncia Ã  proposta (substitui preÃ§o de cotaÃ§Ã£o se houver; uma linha por item);
+- RPC `inactivate_own_price_proposal(uuid, text, text default null)`: pending â†’ inactive (rejeiÃ§Ã£o, aceita observaÃ§Ã£o) e approved â†’ inactive (aposentadoria do preÃ§o vigente que referencia a proposta);
 - Ambas `SECURITY DEFINER`, exclusivas de Admin, com advisory lock, CAS no UPDATE sob a GUC `efetiva_os.own_price_approval='on'` (retomada para o valor anterior ao final) e `pg_advisory_xact_lock`;
-- `pricing_comparison_v` adaptada: preço próprio aprovado aparece como `approved` (sem os todos de revisão de cotação); expõe `price_origin` e `own_price_proposal_id`;
+- `pricing_comparison_v` adaptada: preÃ§o prÃ³prio aprovado aparece como `approved` (sem os todos de revisÃ£o de cotaÃ§Ã£o); expÃµe `price_origin` e `own_price_proposal_id`;
 - 31/31 testes pgTAP validados no Supabase DEV; build ok.
 
 Gate 2B (banco):
 
 - migration `20260922000200_add_own_price_approval_rpcs.sql` aplicada e validada no DEV;
 - suite `supabase/tests/2b_own_price_approval.test.sql` 31/31;
-- regressão: `supabase/tests/2a_own_price_structure.test.sql` 53/53 e `catalog_auto_code.test.sql` sem `not ok`;
+- regressÃ£o: `supabase/tests/2a_own_price_structure.test.sql` 53/53 e `catalog_auto_code.test.sql` sem `not ok`;
 - `npm run build` sem erros TypeScript;
 - decision register atualizado (DEC-064).
 
-Próximo: Fase 2C — UI de propostas de preço próprio — ENTREGUE na ETAPA 11 (abaixo).
+PrÃ³ximo: Fase 2C â€” UI de propostas de preÃ§o prÃ³prio â€” ENTREGUE na ETAPA 11 (abaixo).
 
 ---
 
-### ETAPA 11 — Preços próprios (Fase 2C: interface)
+### ETAPA 11 â€” PreÃ§os prÃ³prios (Fase 2C: interface)
 
-Interface completa de propostas de preço próprio, consumindo exclusivamente a estrutura da 2A e as RPCs da 2B (ver DEC-065).
+Interface completa de propostas de preÃ§o prÃ³prio, consumindo exclusivamente a estrutura da 2A e as RPCs da 2B (ver DEC-065).
 
-- Feature `src/features/pricing/own-prices/`: tipos, schemas (Zod), service (RPCs + insert autorizado em `own_price_proposals`), queries (TanStack) e página com filtros, estado derivado, cards mobile + tabela desktop;
-- Equipe: definir preço próprio (criação) e propor reajuste (exige justificativa); Admin: decidir (aprovar/recusar com observação opcional) e inativar preço aprovado (aposentadoria);
-- Consumo das RPCs `get_own_price_proposals`, `own_price_decision_token`, `approve_own_price_proposal`, `inactivate_own_price_proposal`; inserção somente via tabela autorizada (RLS), nunca `price_list` direto;
-- `internal_cost` visível apenas ao Admin; autorização no banco permanece soberana (a UI apenas oculta elementos);
-- Tokens de decisão com `staleTime: Infinity`: tela obsoleta recarrega o token e retoma; invalidação de cache de propostas + tabela comercial + comparação/disboard em sucesso **e** erro;
+- Feature `src/features/pricing/own-prices/`: tipos, schemas (Zod), service (RPCs + insert autorizado em `own_price_proposals`), queries (TanStack) e pÃ¡gina com filtros, estado derivado, cards mobile + tabela desktop;
+- Equipe: definir preÃ§o prÃ³prio (criaÃ§Ã£o) e propor reajuste (exige justificativa); Admin: decidir (aprovar/recusar com observaÃ§Ã£o opcional) e inativar preÃ§o aprovado (aposentadoria);
+- Consumo das RPCs `get_own_price_proposals`, `own_price_decision_token`, `approve_own_price_proposal`, `inactivate_own_price_proposal`; inserÃ§Ã£o somente via tabela autorizada (RLS), nunca `price_list` direto;
+- `internal_cost` visÃ­vel apenas ao Admin; autorizaÃ§Ã£o no banco permanece soberana (a UI apenas oculta elementos);
+- Tokens de decisÃ£o com `staleTime: Infinity`: tela obsoleta recarrega o token e retoma; invalidaÃ§Ã£o de cache de propostas + tabela comercial + comparaÃ§Ã£o/disboard em sucesso **e** erro;
 - `src/types/database.ts` atualizada: tipos das fases 2A/2B + mapeamento `Functions` para as RPCs novas; colunas `price_origin`/`own_price_proposal_id` adicionadas opcionalmente em `PricingComparisonRow`/`PriceList`;
-- Rota `/pricing/own-prices` (lazy), item "Preços Próprios" no app-shell e entrada no módulo de Preços; select da comparação expõe `price_origin` e `own_price_proposal_id`;
-- Decisão da ambiguidade do §8 (recusa de pendente = `inactivate_own_price_proposal` com observação opcional) registrada — ver DEC-065 e Findings.
+- Rota `/pricing/own-prices` (lazy), item "PreÃ§os PrÃ³prios" no app-shell e entrada no mÃ³dulo de PreÃ§os; select da comparaÃ§Ã£o expÃµe `price_origin` e `own_price_proposal_id`;
+- DecisÃ£o da ambiguidade do Â§8 (recusa de pendente = `inactivate_own_price_proposal` com observaÃ§Ã£o opcional) registrada â€” ver DEC-065 e Findings.
 
 Gate 2C (UI):
 
-- `npm test` 45 arquivos / 534 testes verdes, incluindo 4 novas suítes da feature (`own-prices-api`, `own-prices.schemas`, `own-prices-queries`, `own-prices-page`);
-- `npm run build` (tsc -b) sem erros; ESLint sem erros nos arquivos da etapa (1 warning da biblioteca RHF, padrão já existente);
-- E2E completo NÃO executado nesta sessão: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente; ver Findings. Navegação e shell cobertos por testes de unidade e suíte existente;
+- `npm test` 45 arquivos / 534 testes verdes, incluindo 4 novas suÃ­tes da feature (`own-prices-api`, `own-prices.schemas`, `own-prices-queries`, `own-prices-page`);
+- `npm run build` (tsc -b) sem erros; ESLint sem erros nos arquivos da etapa (1 warning da biblioteca RHF, padrÃ£o jÃ¡ existente);
+- E2E completo NÃƒO executado nesta sessÃ£o: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente; ver Findings. NavegaÃ§Ã£o e shell cobertos por testes de unidade e suÃ­te existente;
 - decision register atualizado (DEC-065) e learning log (LL-058).
 
-Commit: `deafe65` — feat(pricing): own price proposals UI (Fase 2C / ETAPA 11).
+Commit: `deafe65` â€” feat(pricing): own price proposals UI (Fase 2C / ETAPA 11).
 ---
 
 ### ETAPA 12 - Precos proprios (Fase 2D: integracao no Catalogo e na Tabela de Precos)
@@ -704,7 +704,7 @@ Integracao visual dos precos proprios (2A/2B/2C) no Catalogo e na Tabela, consum
 
 - Correcao do filtro de origem do Catalogo (tipo normalizado para o vocabulario do banco: `"all" | "own" | "outsourced"`); antes a opcao `own` nao casava (`sourcing_own`) e invertia o comportamento;
 - Item `own` no Catalogo ganha acao de navegacao para `/pricing/own-prices`: "Definir preco proprio" (sem proposta aprovada) ou "Consultar preco / propor reajuste" (com proposta `approved`), derivado de `useOwnPriceProposals` (2C);
-- Form do item: origem editavel (sem `disabled`), bloqueio incompativel permanece soberano no banco (trigger 2A) com erro traduzido por `translateCatalogError` (spec `§3`/`§9`);
+- Form do item: origem editavel (sem `disabled`), bloqueio incompativel permanece soberano no banco (trigger 2A) com erro traduzido por `translateCatalogError` (spec `Â§3`/`Â§9`);
 - Tabela de Precos: linhas `price_origin='own'` apresentam Fonte "Proprio - Efetiva", Custo interno somente para Admin (RPC ja mascarada), Validade "-", sem fornecedor/manual/automatica ficticia; novo filtro "Origens" (`all`/`own`/`quotation`) convive com o filtro de Fonte manual/automatica;
 - `ReviewDrawer` com prop opcional `ownProposal`: rastreabilidade propria (proposta, preco aprovado, custo restrito, aprovador, data, revisao, justificativa, historico via Precos Proprios) e sem ofertas/decisao de cotacao para linhas own; Tabela resolve a proposta pelo `own_price_proposal_id`, comparacao usa fallback da propria linha;
 - Limites seguem: custo interno oculto por grant de leitura (UI apenas nao solicita a API para nao-Admin); view `pricing_comparison_v` nao alterada (preco proprio apenas `approved`), pendente nao aparece como aprovado - gate de backend continua documentado nos DEC.
@@ -716,7 +716,7 @@ Gate 2D (integracao):
 - E2E completo NAO executado: credenciais `SPRINT0_*`/`E2E_*` ausentes no ambiente (mesma limitacao das ETAPAS 08F/11);
 - decision register atualizado (DEC-066) e learning log (LL-059).
 
-Commit: `239586b` — feat(pricing): own price integrated in catalog and price list (Fase 2D / ETAPA 12).
+Commit: `239586b` â€” feat(pricing): own price integrated in catalog and price list (Fase 2D / ETAPA 12).
 
 
 ---
@@ -741,16 +741,16 @@ Gate 2E (integridade):
 - Migration `20260923000100_block_quotation_items_for_own_services.sql` aplicada (Push) somente no DEV; operacional preservado; PROD nao tocado;
 - decision register atualizado (DEC-067) e learning log (LL-060).
 
-Commit: `ba69f99` — feat(pricing): block own services from supplier quotations (Fase 2E).
+Commit: `ba69f99` â€” feat(pricing): block own services from supplier quotations (Fase 2E).
 
 ### ETAPA 13B - Compatibilidade das suites historicas (Fase 2F: correcao de fixtures SQL)
 
 Restauracao da compatibilidade das suites historicas (`sprint_02`, `sprint_05` e varredura completa `sprint_03`, `sprint_04`) com as regras atuais de seguranca e geracao automatica de codigos do Catalogo. Somente testes: sem alteracao de regras de negocio, grants, RLS, seed, reset ou migrations.
 
-- Causa raiz do drift: a 2A passou a grantar INSERT por coluna em `catalog_items` sem `code`, e `code` ganhou default security definer `generate_catalog_item_code()` (ITEM-*) com imutabilidade por trigger; fixtures historicos inseriam `code` explicito (`S02-*`/`S05-*`/`S03-*`/`S04-*`) — `42501 permission denied for table catalog_items`;
+- Causa raiz do drift: a 2A passou a grantar INSERT por coluna em `catalog_items` sem `code`, e `code` ganhou default security definer `generate_catalog_item_code()` (ITEM-*) com imutabilidade por trigger; fixtures historicos inseriam `code` explicito (`S02-*`/`S05-*`/`S03-*`/`S04-*`) â€” `42501 permission denied for table catalog_items`;
 - Fix de fixtures: removido `code` da lista de INSERT (o default gera ITEM-*; os codigos S0x so eram valores de fixture, jamais consultados em assercoes);
-- Hardening `20260824000120` revogou EXECUTE de `is_internal_user()` do `anon`; como policies de buckets/quotations a chamam, DML anon agora eleva 42501 a nivel de funcao (nao de tabela) — mensagens esperadas atualizadas; UPDATE anon nao envolto virou `throws_ok` (intencao preservada);
-- Varredura (37 suites) detectou o MESMO padrao em `sprint_03` e `sprint_04` — corrigidos;
+- Hardening `20260824000120` revogou EXECUTE de `is_internal_user()` do `anon`; como policies de buckets/quotations a chamam, DML anon agora eleva 42501 a nivel de funcao (nao de tabela) â€” mensagens esperadas atualizadas; UPDATE anon nao envolto virou `throws_ok` (intencao preservada);
+- Varredura (37 suites) detectou o MESMO padrao em `sprint_03` e `sprint_04` â€” corrigidos;
 - `sprint_03`: asserts de contagem `comparison_current_v` assumiam catalogo vazio; DEV acumula dados de outros contextos -> escopado por categoria do fixture (4 itens ativos da suite), preservando a intencao;
 - Comportamento atual confirmado como pretendido: authenticated nao define `code` (grants por coluna), default gera ITEM-*; anon sem EXECUTE de helpers internos (matriz de grants/hardening intacta);
 
@@ -769,7 +769,7 @@ Fechamento das duas vulnerabilidades de ativos/balanco encontradas pela auditori
 
 - **A1** (mutacoes de ativos sem sessao): as 4 RPCs (`create_asset`, `update_asset`, `dispose_asset`, `post_asset_depreciation`) agora exigem `is_admin() IS TRUE` de forma mandatoria (fechado para NULL/falso, padrao "negate FALSE and NULL" da 2A/2E); antes o guard `auth.uid() IS NOT NULL AND NOT is_admin()` deixava passagem para clientes sem sessao;
 - **A2** (leitura nao autorizada do Balanco): `get_balance_sheet` convertida para plpgsql STABLE SECURITY DEFINER com `#variable_conflict use_column` e guard mandatorio `is_internal_user() IS TRUE` (`Apenas usuarios internos podem consultar o balanco patrimonial`);
-- Modeling de linha de lancamento: em `post_asset_depreciation`, debito e credito entram em UM unico INSERT multi-row (a trigger `validate_journal_entry_balance`, AFTER FOR EACH ROW, rejeita linhas separadas — `Lancamento contabil desbalanceado`); mesmo padrao da suite 08m;
+- Modeling de linha de lancamento: em `post_asset_depreciation`, debito e credito entram em UM unico INSERT multi-row (a trigger `validate_journal_entry_balance`, AFTER FOR EACH ROW, rejeita linhas separadas â€” `Lancamento contabil desbalanceado`); mesmo padrao da suite 08m;
 - REVOKE EXECUTE das 5 funcoes de public/anon; `authenticated` preservado. Grants efetivos confirmados por catalogo (`anon=false`, `public=false`, `authenticated=true`) nas 5 RPCs;
 
 Gate 2H.1 (seguranca):
@@ -782,16 +782,16 @@ Gate 2H.1 (seguranca):
 
 ### ETAPA 13D - Hardening de EXECUTE em helpers de trigger e default privileges (Fase 2H.2)
 
-Fechamento das vulnerabilidades A3 (helper de trigger `prevent_supplier_code_change` com EXECUTE para anon/PUBLIC) e A6 (default privileges regenerando EXECUTE de funções novas para anon) da auditoria 2G. Somente banco DEV: sem alteracao de frontend, CRM, contabil, pricing ou PROD; sem reset operacional.
+Fechamento das vulnerabilidades A3 (helper de trigger `prevent_supplier_code_change` com EXECUTE para anon/PUBLIC) e A6 (default privileges regenerando EXECUTE de funÃ§Ãµes novas para anon) da auditoria 2G. Somente banco DEV: sem alteracao de frontend, CRM, contabil, pricing ou PROD; sem reset operacional.
 
-- **A3** (helper de trigger exposto): `prevent_supplier_code_change()` recebeu `REVOKE EXECUTE FROM public, anon, authenticated`, alinhando a ACL ao padrao das irmas `{postgres=X, service_role=X}`. A invocacao pelo trigger `trg_suppliers_code_immutable` (BEFORE UPDATE) e interna e nao exige EXECUTE da role executora — comprovado por probe (`TRIGGER_STILL_BLOCKS`);
+- **A3** (helper de trigger exposto): `prevent_supplier_code_change()` recebeu `REVOKE EXECUTE FROM public, anon, authenticated`, alinhando a ACL ao padrao das irmas `{postgres=X, service_role=X}`. A invocacao pelo trigger `trg_suppliers_code_immutable` (BEFORE UPDATE) e interna e nao exige EXECUTE da role executora â€” comprovado por probe (`TRIGGER_STILL_BLOCKS`);
 - **A6** (default privileges): `ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon` remove o auto-grant de anon em funcoes novas. A extensao efetivamente suportada pelo PostgreSQL foi mapeada por probe: REVOKE de PUBLIC via default privileges e NO-OP (EXECUTE publico e intrinseco ao `acldefault()` de funcoes); o combate ao PUBLIC segue pelo REVOKE explicito por funcao + invariante de regressao;
 - Evidencia empirica registrada na migration (`20260923000400`) e no LL-063: funcoes novas da pipeline perdem `anon:X` mas conservam `PUBLIC:EXECUTE` em todas as variantes de default ACL testadas (GRANT-only, REVOKE public, REVOKE anon);
 
 Gate 2H.2 (seguranca):
 
 - Suite nova `2h2_execute_and_default_acl_security.test.sql` 27/27 (ACL exata do helper, anon/authenticated/PUBLIC sem EXECUTE, 5 funcoes 2H.1 protegidas com grants authenticated preservados, invariantes de catalogo 0 security definer public executavel por anon/PUBLIC e 0 helper de trigger por PUBLIC, default privileges sem anon, funcao nova sem entrada anon e descartada no ROLLBACK, trigger bloqueia FOR-*);
-- Regressao SQL: 2h1 26/26, sprint_02 156/156, sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 2a 53/53, 2b 31/31, 2e_quotation_own_guard 21/21, 2e_outsourced 14/14, catalog_auto_code 11/11 — sem regressao; `pricing_schema` mantem a falha pre-existente (test 40, hygiene de security definer, fora do escopo 2H.2); 09a PART B verde em comportamento (B5: errcode `P0001` correto, expectativa legada malformada) e PART A segue como drift transacional legado;
+- Regressao SQL: 2h1 26/26, sprint_02 156/156, sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 2a 53/53, 2b 31/31, 2e_quotation_own_guard 21/21, 2e_outsourced 14/14, catalog_auto_code 11/11 â€” sem regressao; `pricing_schema` mantem a falha pre-existente (test 40, hygiene de security definer, fora do escopo 2H.2); 09a PART B verde em comportamento (B5: errcode `P0001` correto, expectativa legada malformada) e PART A segue como drift transacional legado;
 - Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
 - Migration `20260923000400_harden_supplier_code_trigger_execute_and_default_acl.sql` aplicada (Push) somente no DEV; PROD nao tocado;
 - decision register atualizado (DEC-069) e learning log (LL-063).
@@ -801,13 +801,13 @@ Gate 2H.2 (seguranca):
 Fechamento do achado A4 da auditoria 2G: as 25 funcoes SECURITY DEFINER do schema `public` que ainda declaravam `search_path = 'public, pg_temp'` (padrao antigo das Etapas 02-08) foram normalizadas para `search_path = ''`. Somente banco DEV: sem alteracao de frontend, CRM, contabil, pricing ou PROD; sem reset operacional.
 
 - Inventario real em DEV: 54 security definers no public; 25 com pg_temp (lista exata da auditoria) e 29 ja vazias; todas sem entrada anon/PUBLIC na ACL (padrao 2H.2);
-- Auditoria de corpos (`pg_get_functiondef`) das 25: apenas `create_manual_journal_adjustment` referencia simbolo nao qualificado (`gen_random_uuid()`); as demais 24 usam `public.*`, `auth.uid()`, parametros e built-ins do `pg_catalog` — seguras com search_path vazio. `gen_random_uuid` existe no `pg_catalog` (core) e em extensions (pgcrypto); nao qualificada resolve para `pg_catalog`, comportamento preservado;
-- Migration `20260923000500_harden_security_definer_search_path.sql`: `CREATE OR REPLACE` so em `create_manual_journal_adjustment` (com `SET search_path TO ''` e `pg_catalog.gen_random_uuid()` + reaplicacao de REVOKE anon/public e GRANT authenticated); nas outras 24, `ALTER FUNCTION ... SET search_path = ''` — assinaturas, overloads, grants e corpos preservados; duas funcoes pre-existentes com `{search_path="",TimeZone=UTC}` (price_decision_token, own_price_decision_token) intactas.
+- Auditoria de corpos (`pg_get_functiondef`) das 25: apenas `create_manual_journal_adjustment` referencia simbolo nao qualificado (`gen_random_uuid()`); as demais 24 usam `public.*`, `auth.uid()`, parametros e built-ins do `pg_catalog` â€” seguras com search_path vazio. `gen_random_uuid` existe no `pg_catalog` (core) e em extensions (pgcrypto); nao qualificada resolve para `pg_catalog`, comportamento preservado;
+- Migration `20260923000500_harden_security_definer_search_path.sql`: `CREATE OR REPLACE` so em `create_manual_journal_adjustment` (com `SET search_path TO ''` e `pg_catalog.gen_random_uuid()` + reaplicacao de REVOKE anon/public e GRANT authenticated); nas outras 24, `ALTER FUNCTION ... SET search_path = ''` â€” assinaturas, overloads, grants e corpos preservados; duas funcoes pre-existentes com `{search_path="",TimeZone=UTC}` (price_decision_token, own_price_decision_token) intactas.
 
 Gate 2H.3 (seguranca):
 
-- Suite nova `2h3_search_path_security.sql` 20/20 (inventario 54 preservado; 0 com pg_temp; 25 funcoes 2H.3 seguem SD sem pg_temp; create_manual_journal_adjustment qualificada/sem nao-qualificada/ACL `{postgres, authenticated, service_role}`/authenticated ok/anon sem EXECUTE; invariantes 2H.1/2H.2 0 SD por anon e PUBLIC; guards 2H.1 anon em assets/balanco; fornecedor FOR-* bloqueado; AJE funcional com search_path vazio — criacao, 2 linhas, debitos=creditos, idempotencia);
-- Regressao SQL: `pricing_schema` — os testes 40 (search_path vazio em todas as SD) e 41 (anon sem EXECUTE em nenhuma SD) que estavam pendentes desde 2G **agora PASS**; 2a 53/53, 2b 31/31, 2h1 26/26, 2h2 27/27, sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 08l 28/28, sprint_07_crm 55/55, catalog_auto_code 11/11 — sem regressao;
+- Suite nova `2h3_search_path_security.sql` 20/20 (inventario 54 preservado; 0 com pg_temp; 25 funcoes 2H.3 seguem SD sem pg_temp; create_manual_journal_adjustment qualificada/sem nao-qualificada/ACL `{postgres, authenticated, service_role}`/authenticated ok/anon sem EXECUTE; invariantes 2H.1/2H.2 0 SD por anon e PUBLIC; guards 2H.1 anon em assets/balanco; fornecedor FOR-* bloqueado; AJE funcional com search_path vazio â€” criacao, 2 linhas, debitos=creditos, idempotencia);
+- Regressao SQL: `pricing_schema` â€” os testes 40 (search_path vazio em todas as SD) e 41 (anon sem EXECUTE em nenhuma SD) que estavam pendentes desde 2G **agora PASS**; 2a 53/53, 2b 31/31, 2h1 26/26, 2h2 27/27, sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 08l 28/28, sprint_07_crm 55/55, catalog_auto_code 11/11 â€” sem regressao;
 - Drifts pre-existentes registrados (nao regressao): 08m (overload `settle_financial_transaction` ambiguo), 08n (sintaxe `perform` fora de plpgsql), 09a (depende de pgtap ausente na sessao), 08e 46/50 (4 falhas de formula/label), 08d (5 "no data" por ausencia de dados no ambiente);
 - Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
 - Migration `20260923000500_harden_security_definer_search_path.sql` aplicada (Push, dry-run transacional antes) somente no DEV; PROD nao tocado;
@@ -815,32 +815,32 @@ Gate 2H.3 (seguranca):
 
 
 
-## Fase 1 — Demais módulos
+## Fase 1 â€” Demais mÃ³dulos
 
-Após estabilização do Motor de Preços:
+ApÃ³s estabilizaÃ§Ã£o do Motor de PreÃ§os:
 
 ### CRM leve
 
 - clientes;
 - contratos;
-- vigência;
-- recorrência;
+- vigÃªncia;
+- recorrÃªncia;
 - status;
 - busca e filtros.
 
-### Financeiro básico
+### Financeiro bÃ¡sico
 
 - entradas;
-- saídas;
+- saÃ­das;
 - categorias;
-- vínculo opcional a contrato;
+- vÃ­nculo opcional a contrato;
 - fluxo de caixa mensal.
 
 ### Dashboard consolidado
 
 - contratos ativos;
 - saldo;
-- recebíveis pendentes;
+- recebÃ­veis pendentes;
 - alertas operacionais.
 
 ---
@@ -849,28 +849,29 @@ Após estabilização do Motor de Preços:
 
 - DRE simplificado;
 - alertas mais completos;
-- exportação CSV/PDF;
-- precificação CUB/NR-4;
-- histórico de variação de preço;
-- importações assistidas.
+- exportaÃ§Ã£o CSV/PDF;
+- precificaÃ§Ã£o CUB/NR-4;
+- histÃ³rico de variaÃ§Ã£o de preÃ§o;
+- importaÃ§Ãµes assistidas.
 
 ---
 
 ## Fase 3
 
 - portal do cliente;
-- integrações bancárias;
-- automações de cobrança;
-- integrações comerciais mais profundas.
+- integraÃ§Ãµes bancÃ¡rias;
+- automaÃ§Ãµes de cobranÃ§a;
+- integraÃ§Ãµes comerciais mais profundas.
 
 ---
 
 ## Fora do escopo imediato
 
-- OCR/IA de cotações;
-- importação universal de planilhas;
+- OCR/IA de cotaÃ§Ãµes;
+- importaÃ§Ã£o universal de planilhas;
 - portal do fornecedor;
-- recomendação automática por SLA/qualidade;
+- recomendaÃ§Ã£o automÃ¡tica por SLA/qualidade;
 - margem bruta sobre venda;
 - aplicativo mobile nativo;
 - offline-first transacional.
+
