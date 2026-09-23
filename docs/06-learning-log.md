@@ -793,3 +793,16 @@ Métodos afetados:
 **Aplicado:** Correcao do filtro, acao own no Catalogo (navegacao para `/pricing/own-prices` quando nao ha proposta aprovada), tratamento de linhas `own` na Tabela (sem fornecedor/validade ficticia; custo interno somente Admin, ja mascarado pela RPC da 2B), rastreabilidade propria no drawer; mocks por suite; fixtures `as const`; 542 testes verdes, tsc/build limpos, 0 erros novos de lint na etapa.
 
 **Impacto futuro:** Ao reutilizar hooks de query entre telas, mockar a query (nao o servico) por suite; ao tocar enums de origem, alinhar sempre ao vocabulario do DB e testar cada opcao de filtro; medir lint por delta de arquivo em repos com baseline sujo.
+
+## LL-060 — Fase 2E: pgtap exige match exato em throws_ok; FORCE RLS bloqueia por 0 linhas; TAP via --output-format json
+
+**Data:** 2026-09-23 (FASE 2E / somente banco)
+
+**Contexto:** Na Fase 2E, a suíte `2e_quotation_own_guard.test.sql` precisou validar exceções (inserção de item próprio em cotação, mudança de origem com histórico) e a regressão do fluxo tradicional exigia capturar TAP de forma determinística no Windows.
+
+**Aprendido:** (1) `throws_ok` do pgtap trata o 3º argumento como comparação EXATA (não substring) da mensagem; quando a mensagem varia com o contexto (ex.: `permission denied for table X` para anon) o seguro é passar `NULL` e asserir apenas o SQLSTATE. (2) `quotation_items` tem FORCE ROW SECURITY com policies de draft: UPDATE/DELETE de item fora de `draft` não lança erro — a linha simplesmente não existe para a role (0 linhas); a guarda de banco só dispara quando a linha é efetivamente tocada (é o caso do INSERT sempre). Testes que esperam exceção para edição de cotação ativa estão errados por construção. (3) No PowerShell, redirecionar a saída do CLI supabase (`1>arquivo`) grava UTF-16LE e põe cabeçalhos box-drawing que confundem parsing; usar `supabase db query --output-format json -f arquivo` e ler UTF-16 no python torna a contagem TAP confiável (119 assertos verdes na Fase 2E). (4) Suítes históricas `sprint_02`/`sprint_05` quebram desde a 2A (grant de INSERT por coluna, sem `code`; fixture com `code` produz `permission denied for table catalog_items`) — drift pré-existente, NÃO regressão da 2E; a cobertura do fluxo tradicional passou a ser feita pela suíte nova `2e_outsourced_flow_regression.test.sql` (14/14).
+
+**Aplicado:** Suíte 2E com 21 assertos verdes; suíte de regressão do fluxo tradicional com 14 verdes; regressão 2A/2B intacta (53/53 e 31/31); evidência de execução em JSON por suíte.
+
+**Impacto futuro:** Ao escrever testes SQL, conferir a mensagem exata das exceções (ou usar SQLSTATE com message NULL); ao testar edição governada por RLS, asserir o efeito esperado (0 linhas) em vez de exceção; padronizar a captura de TAP com `--output-format json`.
+

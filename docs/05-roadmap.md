@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline técnico:** v0.3  
-**Status atual:** ETAPA 12 - Precos Proprios (Fase 2D, integracao Catalogo + Tabela) - COMPLETED.
+**Status atual:** ETAPA 13 - Servicos proprios x Cotacoes (Fase 2E, integridade no banco) - COMPLETED.
 
 ---
 
@@ -720,6 +720,27 @@ Commit: `239586b` — feat(pricing): own price integrated in catalog and price l
 
 
 ---
+
+
+### ETAPA 13 - Servicos proprios x Cotacoes (Fase 2E: integridade no banco)
+
+Garantia no PostgreSQL de que itens classificados como servicos proprios (`sourcing_type='own'`) nao podem receber cotacao de fornecedor pelo fluxo terceirizado, preservando preco proprio aprovado e cotacoes existentes. Somente banco: sem alteracao de frontend, sem tocar o modulo Financeiro, sem reset operacional, sem alteracao de PROD.
+
+- Auditoria de vinculos no DEV: 0 inconsistencias (nenhum `quotation_items` de item proprio; propostas/price_list sem origem cruzada); volume baixo (12 itens terceirizados, 4 quotation_items, 0 itens proprios);
+- Lacuna identificada: `enforce_quotation_item_draft_only()` nao checava `sourcing_type` (cotacao podia referenciar item proprio). Ampliado o mesmo trigger `trg_quotation_items_draft_only` para exigir `sourcing_type='outsourced'` em qualquer inclusao/edicao de `quotation_items`;
+- Guarda de origem do Catalogo (2A) continua soberana para mudanca de `sourcing_type` nos dois sentidos quando ha historico (nao duplicada);
+- Mensagem de erro em ASCII por convencao no banco; texto oficial (acentuado) para UI registrado no DEC-067;
+- Descobertas: `quotation_items` com FORCE RLS bloqueia edicao/delecao fora de draft por 0 linhas silenciosamente; suites historicas sprint_02/sprint_05 com drift pre-existente desde a 2A (grants por coluna sem `code`) - cobertura do fluxo tradicional assumida pela suite nova de regressao;
+- Auditoria baseada em `pg_trigger`/`pg_policies`/funcoes reais (definicoes), nao apenas em leitura de migrations;
+- Testes com pgtap, ROLLBACK e fixtures isoladas (prefixos `60000000-0000-0000-0000-` e `6AB00000-0000-0000-0000-`).
+
+Gate 2E (integridade):
+
+- Testes SQL: 2E `2e_quotation_own_guard` 21/21; regressao do fluxo tradicional `2e_outsourced_flow_regression` 14/14; regressao 2A `2a_own_price_structure` 53/53 e 2B `2b_own_price_approval` 31/31 (total 119 assertos verdes, todas com rollback);
+- Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- Migration `20260923000100_block_quotation_items_for_own_services.sql` aplicada (Push) somente no DEV; operacional preservado; PROD nao tocado;
+- decision register atualizado (DEC-067) e learning log (LL-060).
+
 
 ## Fase 1 — Demais módulos
 
