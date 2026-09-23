@@ -741,6 +741,8 @@ Gate 2E (integridade):
 - Migration `20260923000100_block_quotation_items_for_own_services.sql` aplicada (Push) somente no DEV; operacional preservado; PROD nao tocado;
 - decision register atualizado (DEC-067) e learning log (LL-060).
 
+Commit: `ba69f99` — feat(pricing): block own services from supplier quotations (Fase 2E).
+
 
 ## Fase 1 — Demais módulos
 
