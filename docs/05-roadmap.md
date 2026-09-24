@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline tÃ©cnico:** v0.3  
-**Status atual:** ETAPA 13F - Correcao pontual do CRM Pipeline Analytics (EXTRACT EASECOND -> EPOCH) - COMPLETED.
+**Status atual:** FASE 3B - Correcao do envio de propostas proprias pela interface - COMPLETED.
 
 ---
 
@@ -812,6 +812,19 @@ Gate 2H.3 (seguranca):
 - Frontend intocado: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
 - Migration `20260923000500_harden_security_definer_search_path.sql` aplicada (Push, dry-run transacional antes) somente no DEV; PROD nao tocado;
 - decision register atualizado (DEC-070) e learning log (LL-064).
+
+### FASE 3B - Correcao do envio de propostas proprias pela interface
+
+Correcao pontual do fluxo de criacao em `/pricing/own-prices`. O formulario e o INSERT estavam corretos, mas o encadeamento `.select('*').single()` tentava ler `internal_cost` apos a gravacao. O grant de coluna da DEC-064 proibe essa leitura direta para `authenticated`, causando HTTP 403 apesar de o INSERT ser permitido. Como nenhum consumidor usa a linha retornada, a criacao passou a executar somente o INSERT; a listagem continua sendo recarregada pela RPC mascarada via invalidacao do TanStack Query. Nenhum schema, grant, RLS, historico ou dado operacional foi alterado.
+
+Gate 3B:
+
+- teste unitario garante que a criacao nao encadeia SELECT; formulario cobre payload com/sem custo, preco invalido, erro de API, bloqueio de envio duplicado, feedback de sucesso e fechamento do drawer;
+- invalidacao de propostas e comparacao coberta apos criacao;
+- E2E isolado com fixture e cleanup: Admin passou duas vezes; Equipe passou uma vez, com `internal_cost` mascarado como `null`; cada fluxo confirmou mutation unica, HTTP 201, persistencia pending, feedback e atualizacao da linha;
+- frontend: `npm test` 45 arquivos / 546 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- regressao SQL sem mudanca de banco: `2a_own_price_structure` 53/53 e `2b_own_price_approval` 31/31;
+- PROD nao tocado; decision register inalterado; aprendizado registrado em LL-066.
 
 
 

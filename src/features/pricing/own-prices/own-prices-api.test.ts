@@ -134,11 +134,12 @@ describe('createOwnPriceProposal', () => {
   })
 
   it('insere pela tabela autorizada (RLS) sem tocar price_list', async () => {
-    serviceMocks.tableResults.push({ data: { ...proposalRow, status: 'pending', approved_by: null, approved_at: null }, error: null })
-    await expect(createOwnPriceProposal({ catalog_item_id: 'item-1', sale_price: '18,90', internal_cost: null, decision_notes: null })).resolves.toMatchObject({ catalog_item_id: 'item-1' })
+    serviceMocks.tableResults.push({ data: null, error: null })
+    await expect(createOwnPriceProposal({ catalog_item_id: 'item-1', sale_price: '18,90', internal_cost: null, decision_notes: null })).resolves.toBeUndefined()
     expect(serviceMocks.operations.filter((operation) => operation.method === 'insert')).toEqual([
       { table: 'own_price_proposals', method: 'insert', args: [{ catalog_item_id: 'item-1', sale_price: '18.90', internal_cost: null, decision_notes: null }] },
     ])
+    expect(serviceMocks.operations.some((operation) => operation.method === 'select')).toBe(false)
     expect(serviceMocks.operations.some((operation) => operation.table === 'price_list')).toBe(false)
   })
 

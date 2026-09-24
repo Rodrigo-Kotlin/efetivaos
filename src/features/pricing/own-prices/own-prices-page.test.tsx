@@ -110,8 +110,75 @@ describe('OwnPricesPage', () => {
 
     await waitFor(() => {
       expect(createMutation.mutateAsync).toHaveBeenCalledWith({ catalog_item_id: 'A', sale_price: '12,50', internal_cost: null, decision_notes: null })
-      expect(hooks.toast.success).toHaveBeenCalledWith('Proposta enviada para aprovacao.')
+      expect(hooks.toast.success).toHaveBeenCalledWith('Proposta enviada para aprovação.')
     })
+  })
+
+  it('envia custo interno e observacoes uma unica vez e mostra sucesso', async () => {
+    hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('A')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceProposals.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
+    let resolveMutation: (() => void) | undefined
+    const createMutation = {
+      isPending: false,
+      mutateAsync: vi.fn().mockImplementation(() => new Promise<void>((resolve) => { resolveMutation = resolve })),
+    }
+    hooks.useCreateOwnPriceProposal.mockReturnValue(createMutation)
+    renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Definir preco proprio' }))
+    const dialog = screen.getByRole('dialog', { name: 'Definir preco proprio' })
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Servico/), 'A')
+    await userEvent.type(within(dialog).getByLabelText('Preco de venda *'), '120,00')
+    await userEvent.type(within(dialog).getByLabelText(/Custo interno/), '70,00')
+    await userEvent.type(within(dialog).getByLabelText(/Observacoes/), 'Proposta completa')
+    const submit = within(dialog).getByRole('button', { name: 'Enviar proposta' })
+    await userEvent.click(submit)
+
+    await waitFor(() => expect(createMutation.mutateAsync).toHaveBeenCalledTimes(1))
+    expect(within(dialog).getByRole('button', { name: 'Salvando...' })).toBeDisabled()
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Salvando...' }))
+    expect(createMutation.mutateAsync).toHaveBeenCalledTimes(1)
+    expect(createMutation.mutateAsync).toHaveBeenCalledWith({
+      catalog_item_id: 'A', sale_price: '120,00', internal_cost: '70,00', decision_notes: 'Proposta completa',
+    })
+
+    resolveMutation?.()
+    await waitFor(() => expect(hooks.toast.success).toHaveBeenCalledWith('Proposta enviada para aprovação.'))
+    expect(screen.queryByRole('dialog', { name: 'Definir preco proprio' })).not.toBeInTheDocument()
+  })
+
+  it('mostra erro de preco no campo e nao chama a mutation', async () => {
+    hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('A')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceProposals.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
+    const createMutation = { isPending: false, mutateAsync: vi.fn() }
+    hooks.useCreateOwnPriceProposal.mockReturnValue(createMutation)
+    renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Definir preco proprio' }))
+    const dialog = screen.getByRole('dialog', { name: 'Definir preco proprio' })
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Servico/), 'A')
+    await userEvent.type(within(dialog).getByLabelText('Preco de venda *'), '0')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar proposta' }))
+
+    expect(within(dialog).getByText('Informe um valor maior que zero.')).toBeInTheDocument()
+    expect(createMutation.mutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('mostra erro da API e mantem o formulario aberto', async () => {
+    hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('A')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceProposals.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
+    const createMutation = { isPending: false, mutateAsync: vi.fn().mockRejectedValue(new Error('Nao foi possivel enviar a proposta.')) }
+    hooks.useCreateOwnPriceProposal.mockReturnValue(createMutation)
+    renderPage()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Definir preco proprio' }))
+    const dialog = screen.getByRole('dialog', { name: 'Definir preco proprio' })
+    await userEvent.selectOptions(within(dialog).getByLabelText(/Servico/), 'A')
+    await userEvent.type(within(dialog).getByLabelText('Preco de venda *'), '120')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Enviar proposta' }))
+
+    await waitFor(() => expect(hooks.toast.error).toHaveBeenCalledWith('Nao foi possivel enviar a proposta.'))
+    expect(screen.getByRole('dialog', { name: 'Definir preco proprio' })).toBeInTheDocument()
   })
 
   it('equipe nunca ve acoes de decisao na linha pendente', async () => {
@@ -190,7 +257,7 @@ describe('OwnPricesPage', () => {
 
     await waitFor(() => {
       expect(createMutation.mutateAsync).toHaveBeenCalledWith({ catalog_item_id: 'C', sale_price: '20,00', internal_cost: null, decision_notes: 'Reformulacao do escopo do servico' })
-      expect(hooks.toast.success).toHaveBeenCalledWith('Reajuste enviado para aprovacao.')
+      expect(hooks.toast.success).toHaveBeenCalledWith('Reajuste enviado para aprovação.')
     })
   })
 

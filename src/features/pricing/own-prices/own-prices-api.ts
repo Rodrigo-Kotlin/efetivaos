@@ -96,12 +96,10 @@ export async function listOwnCatalogItems(): Promise<OwnCatalogItem[]> {
   }))
 }
 
-export async function createOwnPriceProposal(input: OwnPriceProposalInsert): Promise<OwnPriceProposal> {
+export async function createOwnPriceProposal(input: OwnPriceProposalInsert): Promise<void> {
   const payload: Database['public']['Tables']['own_price_proposals']['Insert'] = normalizeOwnPriceProposalInput(input)
-  const { data, error } = await supabase.from('own_price_proposals').insert(payload).select('*').single()
+  const { error } = await supabase.from('own_price_proposals').insert(payload)
   if (error) throw translateOwnPriceError(error)
-  if (!data) throw new Error('O servidor nao retornou a proposta criada.')
-  return data as OwnPriceProposal
 }
 
 export async function fetchOwnPriceDecisionToken(proposalId: string): Promise<string | null> {

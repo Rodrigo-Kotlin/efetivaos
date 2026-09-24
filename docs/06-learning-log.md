@@ -863,3 +863,15 @@ Métodos afetados:
 **Aplicado:** Migration `20260923000600_fix_crm_pipeline_analytics_easecond.sql` (Push no DEV); teste especifico `13f_crm_pipeline_analytics_fix.test.sql` 14/14 (pipeline vazio, stages sem opps, opp sem eventos, opp com movimentacao -> duracao positiva, sem divisao por zero, authenticated ok, anon bloqueado, search_path vazio, SD, owner postgres, ACL exata, EASECOND removido, EPOCH presente); regressao: pricing_schema 46/46, 2h3 20/20, sprint_07_crm 55/55; frontend 542 testes, tsc e build limpos.
 
 **Impacto futuro:** ao calcular duracoes em funcoes analiticas, usar `EXTRACT(EPOCH FROM interval)` para segundos totais; auditar codigos legados que usem `EXTRACT(SECOND ...)` em contextos de duracao; testes de regressao devem cobrir cenarios de pipeline vazio e com movimentacao para capturar regressoes de calculo de duracao.
+
+### LL-066 - INSERT seguido de RETURNING herda os grants de SELECT das colunas retornadas
+
+**Data:** 2026-09-24 (FASE 3B, frontend e E2E no DEV)
+
+**Contexto:** O formulario de preco proprio era valido, disparava submit e montava o payload correto, mas a interface permanecia aberta sem criar a proposta. A mutation executava `insert(payload).select('*').single()` na tabela `own_price_proposals`.
+
+**Aprendido:** (1) No PostgREST/Supabase, encadear `.select('*')` a um INSERT gera `RETURNING *` e exige SELECT em todas as colunas retornadas, alem do grant de INSERT. (2) A DEC-064 concede SELECT por coluna a `authenticated`, mas exclui `internal_cost`; por isso o INSERT isolado e autorizado enquanto `RETURNING *` falha com `42501 permission denied`. (3) Nao se deve ampliar grant para contornar um retorno que o cliente nao usa: remover o SELECT preserva o mascaramento e reduz privilegios. (4) A listagem pode ser atualizada pela invalidacao do TanStack Query e pela RPC de leitura; para Equipe, `internal_cost` permanece mascarado como `null`. (5) Testes unitarios com mocks que aceitam qualquer encadeamento nao detectam necessariamente incompatibilidade de grants; o fluxo precisa de E2E autenticado contra o DEV.
+
+**Aplicado:** `createOwnPriceProposal` agora retorna `Promise<void>` e executa apenas o INSERT; feedback de sucesso corrigido para `Proposta enviada para aprovação.`; testes cobrem mutation unica, loading, erro de campo/API, fechamento do drawer e invalidacao da listagem; E2E permanente cobre Admin e Equipe com fixture isolada e cleanup. Resultado: Admin 2/2, Equipe 1/1, 546 testes frontend, TypeScript/build limpos, 2A 53/53 e 2B 31/31.
+
+**Impacto futuro:** antes de usar `.insert(...).select(...)`, conferir grants de SELECT por coluna e retornar somente dados realmente consumidos; em tabelas com campos mascarados, preferir INSERT sem retorno e recarregar por RPC autorizada; manter E2E autenticado para validar a combinacao real de RLS e column grants.

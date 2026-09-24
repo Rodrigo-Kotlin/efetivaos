@@ -6,21 +6,25 @@ import { comparisonKeys } from '@/features/pricing/comparison/comparison-queries
 
 const apiMocks = vi.hoisted(() => ({
   approveOwnPriceProposal: vi.fn(),
+  createOwnPriceProposal: vi.fn(),
 }))
 
 vi.mock('./own-prices-api', () => ({
   ...vi.importActual('./own-prices-api'),
   approveOwnPriceProposal: apiMocks.approveOwnPriceProposal,
+  createOwnPriceProposal: apiMocks.createOwnPriceProposal,
 }))
 
-import { useApproveOwnPriceProposal, ownPriceKeys } from './own-prices-queries'
+import { useApproveOwnPriceProposal, useCreateOwnPriceProposal, ownPriceKeys } from './own-prices-queries'
 
 type ApproveMutation = ReturnType<typeof useApproveOwnPriceProposal>
+type CreateMutation = ReturnType<typeof useCreateOwnPriceProposal>
 
 describe('invalidacao de cache das mutacoes de preco proprio', () => {
   let client: QueryClient
   let calls: { own: number; comparison: number }
   let approve: ApproveMutation
+  let create: CreateMutation
 
   function wrapper() {
     return ({ children }: { children: ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -30,10 +34,12 @@ describe('invalidacao de cache das mutacoes de preco proprio', () => {
     calls = { own: 0, comparison: 0 }
     client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     apiMocks.approveOwnPriceProposal.mockReset()
+    apiMocks.createOwnPriceProposal.mockReset()
   })
 
   function Capture() {
     approve = useApproveOwnPriceProposal()
+    create = useCreateOwnPriceProposal()
     return null
   }
 
@@ -68,6 +74,20 @@ describe('invalidacao de cache das mutacoes de preco proprio', () => {
       await approve.mutateAsync({ proposalId: 'p1', expectedDecisionToken: 't1' }).catch(() => undefined)
     })
 
+    await waitFor(() => expect(calls.own).toBe(2))
+    expect(calls.comparison).toBe(2)
+  })
+
+  it('atualiza propostas e comparacao depois de criar uma proposta', async () => {
+    apiMocks.createOwnPriceProposal.mockResolvedValue(undefined)
+    render(<><Capture /><Probe /></>, { wrapper: wrapper() })
+
+    await waitFor(() => expect(calls.own).toBe(1))
+    await act(async () => {
+      await create.mutateAsync({ catalog_item_id: 'item-1', sale_price: '120,00', internal_cost: null, decision_notes: null })
+    })
+
+    expect(apiMocks.createOwnPriceProposal).toHaveBeenCalledTimes(1)
     await waitFor(() => expect(calls.own).toBe(2))
     expect(calls.comparison).toBe(2)
   })

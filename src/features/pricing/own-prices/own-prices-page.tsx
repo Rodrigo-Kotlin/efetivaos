@@ -86,7 +86,7 @@ export default function OwnPricesPage() {
     }
     try {
       await createMutation.mutateAsync(input)
-      toast.success(form?.mode === 'reajuste' ? 'Reajuste enviado para aprovacao.' : 'Proposta enviada para aprovacao.')
+      toast.success(form?.mode === 'reajuste' ? 'Reajuste enviado para aprovação.' : 'Proposta enviada para aprovação.')
       setForm(null)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Nao foi possivel enviar a proposta.')
