@@ -1125,3 +1125,22 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 **Motivo:** Padrao DEC-031/2H.2: revogar public e anon explicitamente e preservar grants definidos por parametro. `CREATE OR REPLACE FUNCTION` foi usado somente onde o corpo precisou de tratamento (unica referencia nao qualificada); nas demais, ALTER do proconfig evita redefinicao de corpo e preserva comentarios/historia. Re-verificacao de REVOKE apos qualquer re-emissao e parte obrigatoria do padrao.
 
 **Impacto:** Migration `20260923000500_harden_security_definer_search_path.sql` aplicada apenas no DEV (Push; dry-run transacional antes). Post-flight: 54 security definers preservadas, 0 com pg_temp (antes 25), search_paths distintos apenas `{search_path=""}` (52) e `{search_path="",TimeZone=UTC}` (2), `create_manual_journal_adjustment` com `pg_catalog.gen_random_uuid` e ACL `{postgres, authenticated, service_role}` intacta. Suite nova `2h3_search_path_security.sql` com 20/20 verdes. Regressao SQL: `pricing_schema` 46/46 checks sem falhas (teste 40 search_path vazio + teste 41 anon sem EXECUTE agora PASS - antes pendentes), sprint_03 33/33, sprint_04 28/28, sprint_05 48/48, 08l 28/28, 2a 53/53, 2b 31/31, 2h1 26/26, 2h2 27/27, sprint_07_crm 55/55, catalog_auto_code 11/11 - sem regressao. Legados 08m/08n (drift transacional/sintaxe da Etapa 08) e 09a (depende de pgtap ausente na sessao) seguem documentados como drift pre-existente; 08e 46/50 (4 falhas de formula/label pre-existentes), 08d 5 falhas "no data" (espera dados que o ambiente nao tem). Frontend intacto: `npm test` 45 arquivos / 542 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok.
+
+
+---
+
+### DEC-071 — Fase 3C.1: histórico de preços próprios em drawer dedicado, reutilizado em Preços Próprios e Tabela de Preços (rastreabilidade), consumindo read-only o backend das 2A/2B
+
+**Status:** FECHADA
+
+**Data:** 2026-09-24 (FASE 3C.1, frontend e E2E no DEV; banco e PROD intocados)
+
+**Contexto:** o histórico de preços próprios existia apenas como o conjunto consumido pela rastreabilidade de linhas own (get_own_price_proposals), sem visual dedicado. A fase precisava expor cronologia, vigência, comparação com o preço anterior e custo interno (restrito a Admin) tanto em /pricing/own-prices quanto pela ação "Rastreabilidade" da Tabela de Preços, sem alterar o contrato de dados (migrations 20260922000100/20260922000200 — leitura read-only).
+
+**Decisão:** (1) criar OwnPriceHistoryDrawer reutilizável: lista cronológica decrescente de propostas, badge Preco vigente na proposta vigente, bloco de comparação com o preço aprovado anterior, justificativas, e custo interno via RPC mascarada (null para Equipe); (2) em Preços Próprios, nova ação por linha Ver historico abre o drawer com currentProposalId para o badge; (3) na Tabela de Preços, a rastreabilidade das linhas own expõe Ver historico; (4) no review-drawer do comparativo, fallback Consultar historico quando a linha own não carrega histórico via prop; (5) responsividade validada por loop E2E escopado à feature: drawer fechado vs aberto deve manter o document.documentElement.scrollWidth (openWidth <= closedWidth + 1) e o próprio dialog sem overflow horizontal (scrollWidth <= clientWidth + 1);
+
+**Motivo:** o drawer é a primitiva consistente do repo para contexto lateral; a RPC existe e já mascara custo — nenhum contrato precisa mudar; medir o documento fechado vs aberto evita atribuir à feature o overflow pré-existente da tabela min-w-[1100px] (compravado no baseline HEAD e documentado no LL-067).
+
+**Impacto:** cinco arquivos alterados (own-prices-page, own-price-history-drawer novo + tests, review-drawer, price-list-page) e um E2E permanente novo com fixture isolada e cleanup zero-resíduo. Frontend: 566 testes verdes, 
+px tsc -b limpo, 
+pm run build ok. E2E completo (55 testes): 50 passed + 5 failed — as 5 falhas são exatamente a suite pré-existente (4× crm-mobile + 1× pricing-rules-team), sem relação com a fase. Banco DEV e PROD não tocados. Documentado em LL-067.

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/features/auth/auth-context";
 import { useCatalogCategories } from "@/features/pricing/catalog/catalog.queries";
 import { useOwnPriceProposals } from "@/features/pricing/own-prices/own-prices-queries";
+import { OwnPriceHistoryDrawer } from "@/features/pricing/own-prices/own-price-history-drawer";
 import { CommercialStatusBadge } from "@/features/pricing/comparison/commercial-status";
 import { reviewReasonLabel } from "@/features/pricing/comparison/commercial-status-helpers";
 import {
@@ -177,6 +178,7 @@ export default function PriceListPage() {
   const [sortKey, setSortKey] = useState<PriceListSortKey>("item");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [traceItemId, setTraceItemId] = useState<string | null>(null);
+  const [historyItemId, setHistoryItemId] = useState<string | null>(null);
   const commercialRows = useMemo(
     () => (query.data ?? []).filter((row) => row.price_list_id !== null),
     [query.data],
@@ -192,6 +194,11 @@ export default function PriceListPage() {
     null;
   const traceRow =
     commercialRows.find((row) => row.catalog_item_id === traceItemId) ?? null;
+  const historyRow =
+    commercialRows.find((row) => row.catalog_item_id === historyItemId) ?? null;
+  const historyProposals = historyRow
+    ? ownProposalItems.filter((proposal) => proposal.catalog_item_id === historyRow.catalog_item_id)
+    : [];
   const suppliers = useMemo(() => {
     const values = new Map<string, string>();
     for (const row of commercialRows)
@@ -560,7 +567,21 @@ export default function PriceListPage() {
         onOpenChange={(open) => {
           if (!open) setTraceItemId(null);
         }}
+        onViewOwnHistory={traceRow?.price_origin === "own" ? () => {
+          setTraceItemId(null);
+          setHistoryItemId(traceRow.catalog_item_id);
+        } : undefined}
         onConfigureRule={() => navigate("/pricing/rules")}
+      />
+      <OwnPriceHistoryDrawer
+        open={Boolean(historyRow)}
+        onOpenChange={(open) => { if (!open) setHistoryItemId(null); }}
+        itemCode={historyRow?.code ?? ""}
+        itemName={historyRow?.item_name ?? ""}
+        proposals={historyProposals}
+        isAdmin={isAdmin}
+        currentProposalId={historyRow?.own_price_proposal_id ?? null}
+        viewer={profile ? { id: profile.id, fullName: profile.full_name } : null}
       />
     </div>
   );

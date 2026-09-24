@@ -875,3 +875,19 @@ Métodos afetados:
 **Aplicado:** `createOwnPriceProposal` agora retorna `Promise<void>` e executa apenas o INSERT; feedback de sucesso corrigido para `Proposta enviada para aprovação.`; testes cobrem mutation unica, loading, erro de campo/API, fechamento do drawer e invalidacao da listagem; E2E permanente cobre Admin e Equipe com fixture isolada e cleanup. Resultado: Admin 2/2, Equipe 1/1, 546 testes frontend, TypeScript/build limpos, 2A 53/53 e 2B 31/31.
 
 **Impacto futuro:** antes de usar `.insert(...).select(...)`, conferir grants de SELECT por coluna e retornar somente dados realmente consumidos; em tabelas com campos mascarados, preferir INSERT sem retorno e recarregar por RPC autorizada; manter E2E autenticado para validar a combinacao real de RLS e column grants.
+
+
+### LL-067 - Fase 3C.1: drawer position: fixed nunca alarga a pagina; toasts empilhadas quebram strict mode; medir overflow no documento e comparar aberto x fechado
+
+**Data:** 2026-09-24 (FASE 3C.1, frontend e E2E no DEV)
+
+**Contexto:** Ao validar o novo OwnPriceHistoryDrawer (position: fixed) nos 4 breakpoints, rodou-se um diagnostico de overflow a 1280px em /pricing/own-prices que acusava document.documentElement.scrollWidth bem maior que a viewport (1425+). Antes de atribuir o overflow ao drawer, mediu-se tambem o baseline HEAD (mesma pagina, sem a feature) e o drawer isolado.
+
+**Aprendido:** (1) **Overflow de pagina com dados era PRE-EXISTENTE**: a tabela min-w-[1100px] dentro de TableShell overflow-x-auto + sidebar colapsada ultrapassavam o documento a 1280 mesmo no baseline HEAD (docScrollWidth 1425); a feature adiciona zero (aberto == fechado, ex. 1409 == 1409). Pagina sem dados = 1280 limpo. (2) **Drawer position: fixed nunca contribui para o scrollWidth do documento** — medir scrollWidth do documento com o drawer aberto so faz sentido quando comparado ao mesmo valor fechado; a assertiva util e openWidth <= closedWidth + 1. (3) **Toasts empilhadas quebram strict mode**: duas toasts de sucesso identicas (Preco proprio aprovado.) visiveis simultaneamente fazem getByText(...) resolver 2 elementos; usar .last() (toast mais recente) ou, melhor, assertar o proprio sinal de sucesso (drawer fecha apenas no sucesso). (4) **Sinal confiavel de sucesso = estado que so ocorre no sucesso**: assertar 
+ot.toBeVisible no drawer apos a aprovacao e robusto contra toasts anteriores ainda na tela; uma aprovacao que falha (ex. CAS 'Decisao desatualizada') mantem o drawer aberto e exibiria a toast antiga como falso positivo.
+
+**Aplicado:** loop responsivo 375/390/768/1280 escopado a feature: fecha drawer → captura closedWidth → abre → asserta conteudo sem overflow (scrollWidth <= clientWidth + 1) → asserta openWidth <= closedWidth + 1. Aprovacoes assertam fechamento do drawer + getByText(...).last(). Diagnosticos e probes temporarios removidos; teste permanente own-price-history.spec.ts verde (Admin + Equipe, isolado e na suite completa). Suite E2E completa: 50 passed + 5 failed (pre-existentes, sem relacao).
+
+**Impacto futuro:** ao validar responsividade de dialogs sobre paginas com tabelas largas, medir o documento fechado vs aberto (a feature nunca deve alargar a pagina) e verificar overflow interno do proprio dialog; nao usar a presencia de uma toast como prova de sucesso quando o mesmo texto pode duplicar; conferir com baseline quando um diagnostico de overflow apontar a feature.
+
+**Saldo da fase:** implementacao frontend pura (sem migrations/RPCs/RLS) consumindo read-only as migrations 2A/2B; 566 testes unit/component, tsc e build limpos; DEC-071 registrada.

@@ -145,4 +145,17 @@ describe('ReviewDrawer', () => {
     )
     expect(screen.getByText('Restrito a Admin')).toBeInTheDocument()
   })
+
+  it('oferece "Ver historico" quando a origem e propria e substitui o link de precos proprios', async () => {
+    const ownRow = { ...row, price_origin: 'own' as const, own_price_proposal_id: 'opp-1', price_list_id: 'price-1', approved_final_price: '120.00' }
+    const onViewOwnHistory = vi.fn()
+    render(
+      <MemoryRouter>
+        <ReviewDrawer row={ownRow} isAdmin online onOpenChange={vi.fn()} onConfigureRule={vi.fn()} onViewOwnHistory={onViewOwnHistory} />
+      </MemoryRouter>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Ver historico' }))
+    expect(onViewOwnHistory).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('link', { name: /Abrir Precos Proprios/i })).not.toBeInTheDocument()
+  })
 })

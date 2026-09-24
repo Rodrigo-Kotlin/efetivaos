@@ -22,13 +22,14 @@ type ReviewDrawerProps = {
   online: boolean
   onConfigureRule: () => void
   ownProposal?: OwnPriceProposalItem | null
+  onViewOwnHistory?: () => void
 }
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Nao foi possivel concluir a operacao.'
 }
 
-export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRule, ownProposal = null }: ReviewDrawerProps) {
+export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRule, ownProposal = null, onViewOwnHistory }: ReviewDrawerProps) {
   const offersQuery = useComparisonOffers(row?.catalog_item_id ?? null)
   const approveMutation = useApprovePrice()
   const inactivateMutation = useInactivatePrice()
@@ -139,9 +140,13 @@ export function ReviewDrawer({ row, onOpenChange, isAdmin, online, onConfigureRu
                 <div className="col-span-2">
                   <dt className="text-xs font-semibold uppercase text-slate-500">Historico</dt>
                   <dd className="mt-1">
-                    <Link className="inline-flex items-center gap-1 font-semibold text-emerald-800 hover:underline" to="/pricing/own-prices">
-                      Abrir Precos Proprios para o historico completo <ExternalLink className="size-3.5" />
-                    </Link>
+                    {onViewOwnHistory ? (
+                      <Button type="button" variant="outline" size="sm" onClick={onViewOwnHistory}>Ver historico</Button>
+                    ) : (
+                      <Link className="inline-flex items-center gap-1 font-semibold text-emerald-800 hover:underline" to="/pricing/own-prices">
+                        Abrir Precos Proprios <ExternalLink className="size-3.5" />
+                      </Link>
+                    )}
                   </dd>
                 </div>
               </dl>

@@ -1,4 +1,4 @@
-import { Plus, Search, X } from 'lucide-react'
+import { History, Plus, Search, X } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -14,6 +14,7 @@ import { useOnlineStatus } from '@/hooks/use-online-status'
 import type { OwnPriceProposalInsert, OwnPriceProposalItem } from '@/types/database'
 
 import { OwnPriceDecisionDrawer, OwnPriceRetireDrawer } from './own-price-decision-drawer'
+import { OwnPriceHistoryDrawer } from './own-price-history-drawer'
 import { OwnPriceProposalForm } from './own-price-proposal-form'
 import { useCreateOwnPriceProposal, useOwnPriceCatalogItems, useOwnPriceProposals } from './own-prices-queries'
 import type { OwnCatalogItem, OwnPriceRowState, OwnPriceStatusFilter, OwnPriceViewRow } from './own-prices.types'
@@ -56,6 +57,7 @@ export default function OwnPricesPage() {
   const [form, setForm] = useState<FormDrawer>(null)
   const [decisionProposal, setDecisionProposal] = useState<OwnPriceProposalItem | null>(null)
   const [retireProposal, setRetireProposal] = useState<OwnPriceProposalItem | null>(null)
+  const [historyRow, setHistoryRow] = useState<OwnPriceViewRow | null>(null)
 
   const rows = useMemo(() => buildRows(catalogQuery.data ?? [], proposalsQuery.data ?? []), [catalogQuery.data, proposalsQuery.data])
   const categories = useMemo(() => {
@@ -140,7 +142,7 @@ export default function OwnPricesPage() {
                   <div><dt className="text-xs font-semibold text-slate-500">Aprovado em</dt><dd>{formatComparisonDate(row.currentApproved?.approved_at ?? null)}</dd></div>
                   {row.pending && (<div className="col-span-2"><dt className="text-xs font-semibold text-slate-500">Proposta pendente</dt><dd className="font-bold text-amber-900">{formatComparisonCurrency(row.pending.sale_price)}</dd></div>)}
                 </dl>
-                <div className="mt-4 flex flex-wrap gap-2">{renderRowActions({ row, isAdmin, online, setForm, setDecisionProposal, setRetireProposal })}</div>
+                <div className="mt-4 flex flex-wrap gap-2">{renderRowActions({ row, isAdmin, online, setForm, setDecisionProposal, setRetireProposal, setHistoryRow })}</div>
               </article>
             ))}
           </div>
@@ -154,7 +156,7 @@ export default function OwnPricesPage() {
                 <td className="px-4 py-4">{row.pending ? <span className="font-bold text-amber-900">{formatComparisonCurrency(row.pending.sale_price)}</span> : <span className="text-slate-400">—</span>}</td>
                 <td className="px-4 py-4"><StateBadge state={row.state} /></td>
                 <td className="px-4 py-4">{formatComparisonDate(row.currentApproved?.approved_at ?? null)}</td>
-                <td className="px-4 py-4"><div className="flex min-w-max justify-end gap-1">{renderRowActions({ row, isAdmin, online, setForm, setDecisionProposal, setRetireProposal })}</div></td>
+                <td className="px-4 py-4"><div className="flex min-w-max justify-end gap-1">{renderRowActions({ row, isAdmin, online, setForm, setDecisionProposal, setRetireProposal, setHistoryRow })}</div></td>
               </tr>
             ))}
           </tbody></table></TableShell></div>
@@ -181,6 +183,16 @@ export default function OwnPricesPage() {
 
       <OwnPriceDecisionDrawer proposal={decisionProposal} currentPrice={decisionRow?.currentApproved?.sale_price ?? null} online={online} onClose={() => setDecisionProposal(null)} />
       <OwnPriceRetireDrawer proposal={retireProposal} online={online} onClose={() => setRetireProposal(null)} />
+      <OwnPriceHistoryDrawer
+        open={Boolean(historyRow)}
+        onOpenChange={(open) => { if (!open) setHistoryRow(null) }}
+        itemCode={historyRow?.item.code ?? ''}
+        itemName={historyRow?.item.name ?? ''}
+        proposals={historyRow?.proposals ?? []}
+        isAdmin={isAdmin}
+        currentProposalId={historyRow?.currentApproved?.id ?? null}
+        viewer={profile ? { id: profile.id, fullName: profile.full_name } : null}
+      />
     </div>
   )
 }
@@ -192,18 +204,23 @@ function renderRowActions(params: {
   setForm: (value: FormDrawer) => void
   setDecisionProposal: (value: OwnPriceProposalItem) => void
   setRetireProposal: (value: OwnPriceProposalItem) => void
+  setHistoryRow: (value: OwnPriceViewRow) => void
 }): ReactNode {
-  const { row, isAdmin, online, setForm, setDecisionProposal, setRetireProposal } = params
+  const { row, isAdmin, online, setForm, setDecisionProposal, setRetireProposal, setHistoryRow } = params
   const itemDisabled = !row.item.active || !online
   const titleSuffix = row.item.active ? '' : ' (item do catalogo inativo)'
+  const historyAction = row.proposals.length > 0
+    ? <Button size="sm" variant="ghost" aria-label={`Ver historico de ${row.item.name}`} onClick={() => setHistoryRow(row)}><History className="size-4" /> Ver historico</Button>
+    : null
 
   if (row.state === 'no_price' || row.state === 'inactive') {
-    return <Button size="sm" disabled={itemDisabled} aria-label={`Definir preco proprio para ${row.item.name}`} onClick={() => setForm({ mode: 'create', item: row.item })}><Plus className="size-4" /> Definir{titleSuffix}</Button>
+    return <>{historyAction}<Button size="sm" disabled={itemDisabled} aria-label={`Definir preco proprio para ${row.item.name}`} onClick={() => setForm({ mode: 'create', item: row.item })}><Plus className="size-4" /> Definir{titleSuffix}</Button></>
   }
 
   if (row.state === 'approved') {
     return (
       <>
+        {historyAction}
         <Button size="sm" variant="outline" disabled={itemDisabled} aria-label={`Propor reajuste para ${row.item.name}`} onClick={() => setForm({ mode: 'reajuste', item: row.item })}>Propor reajuste</Button>
         {isAdmin && <Button size="sm" variant="outline" disabled={!row.currentApproved || !online} aria-label={`Inativar preco de ${row.item.name}`} onClick={() => { if (row.currentApproved) setRetireProposal(row.currentApproved) }}>Inativar</Button>}
       </>
@@ -212,9 +229,9 @@ function renderRowActions(params: {
 
   if (row.state === 'pending' && row.pending) {
     if (isAdmin) {
-      return <Button size="sm" disabled={!online} aria-label={`Decidir proposta de ${row.item.name}`} onClick={() => setDecisionProposal(row.pending!)}>Aprovar / Recusar</Button>
+      return <>{historyAction}<Button size="sm" disabled={!online} aria-label={`Decidir proposta de ${row.item.name}`} onClick={() => setDecisionProposal(row.pending!)}>Aprovar / Recusar</Button></>
     }
-    return <p className="px-1 text-xs font-semibold text-slate-500">Aguardando decisao do Admin</p>
+    return <>{historyAction}<p className="px-1 text-xs font-semibold text-slate-500">Aguardando decisao do Admin</p></>
   }
 
   return null

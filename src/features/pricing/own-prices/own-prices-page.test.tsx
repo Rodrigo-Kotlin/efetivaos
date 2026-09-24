@@ -336,4 +336,23 @@ describe('OwnPricesPage', () => {
 
     expect(screen.getAllByRole('button', { name: 'Definir preco proprio para Servico A' })[0]).toBeDisabled()
   })
+
+  it('abre o historico de propostas de um servico proprio', async () => {
+    hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceProposals.mockReturnValue({
+      data: [
+        proposalItem('C', { status: 'approved', sale_price: '15.00', approved_by: 'admin-1', approved_at: '2026-09-02T10:00:00Z', revision: 1 }),
+        proposalItem('C', { id: 'p-C2', status: 'approved', sale_price: '18.00', approved_by: 'admin-1', approved_at: '2026-09-10T10:00:00Z', revision: 2 }),
+      ],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    })
+    renderPage()
+
+    await userEvent.click(screen.getAllByRole('button', { name: 'Ver historico de Servico C' })[0])
+    expect(screen.getByRole('dialog', { name: /Historico de precos · SRV-C/i })).toBeInTheDocument()
+    expect(screen.getByText('Comparacao com o preco aprovado anterior')).toBeInTheDocument()
+    expect(screen.getByText('20,00%')).toBeInTheDocument()
+  })
 })

@@ -826,6 +826,24 @@ Gate 3B:
 - regressao SQL sem mudanca de banco: `2a_own_price_structure` 53/53 e `2b_own_price_approval` 31/31;
 - PROD nao tocado; decision register inalterado; aprendizado registrado em LL-066.
 
+### FASE 3C.1 - Visualizacao do historico de precos proprios (Precos Proprios e Tabela de Precos)
+
+Frontend exclusivo (sem migrations, sem RPCs, sem RLS, sem grants): o historico de precos proprios deixa de ser apenas os dados da RPC `get_own_price_proposals` consumidos pelo drawer de comparacao/revisao e ganha visualizacao dedicada e completa em `/pricing/own-prices` e na rastreabilidade da `/pricing/prices`. Nenhum contrato backend (migrations `20260922000100`/`20260922000200`) foi alterado; o backend foi consumido de forma read-only.
+
+- `OwnPriceHistoryDrawer` (novo, reutilizavel): dialog com cabecalho `Historico de precos · <codigo>`, lista cronologica decrescente de propostas (preco, status, revisao, aprovador, privado de custo interno para Equipe via RPC mascarada), badge de `Preco vigente` na proposta vigente, bloco `Comparacao com o preco aprovado anterior` (preco anterior, novo preco, diferenca, variacao %, custo interno restrito a Admin) e justificativas;
+- Precos Proprios: nova acao por linha `Ver historico` abre o drawer com o contexto do item; `currentProposalId` alimenta o badge `Preco vigente` com `preco_aprovado`;
+- Tabela de Precos: a acao `Rastreabilidade` das linhas `own` agora oferece `Ver historico`, abrindo o mesmo drawer a partir daquele item;
+- review-drawer do comparativo: botao de fallback `Consultar historico` quando a linha `own` nao carrega `ownPriceHistory` via prop;
+- responsividade 375/390/768/1280 com um unico loop no E2E: o drawer fecha, captura-se `document.documentElement.scrollWidth`, reabre-se e asseguram-se (1) sem overflow horizontal interno (scrollWidth <= clientWidth + 1) e (2) abrir o drawer nao alarga a pagina (openWidth <= closedWidth + 1) — escopo da feature, sem diagnosticar a pagina como um todo;
+
+Gate 3C.1 (frontend):
+
+- unit/component: 17 testes novos na suite do drawer; suites de pagina (own-prices, price-list, review-drawer) ampliadas; `npm test` 566 testes verdes; `npx tsc -b` limpo; `npm run build` ok;
+- E2E novo e permanente `own-price-history.spec.ts` (Admin + Equipe, fixture isolada, cleanup em `finally` com verificação de residuo zero e sem dialogo nativo): cria proposta, aprova, propoe reajuste, aprova reajuste, confere historico (ordem, valores, vigencia, comparacao) e rastreabilidade; cada aprovacao é confirmada pelo fechamento do drawer (unico sinal confiavel — a toast de sucesso pode se empilhar com a anterior e nao distingue falha);
+- suite completa `npm run test:e2e`: 55 testes, 50 passed + 5 failed — as 5 falhas sao exatamente a suite pre-existente (4x `crm-mobile` + 1x `pricing-rules-team`), sem relacao com a fase; `own-price-history` verde em chromium e team-chromium em run isolado (3 passed) e na suite completa;
+- pre-existing overflow documentado: `/pricing/own-prices` com dados em 1280 ja ultrapassava no baseline HEAD (docScrollWidth 1425, tabela `min-w-[1100px]` + sidebar); a feature adiciona zero overflow (drawer aberto = fechado na medida); pagina sem dados = limpa; nao causado pela 3C.1;
+- PROD e banco DEV nao tocados; decision register DEC-071; learning log LL-067.
+
 
 
 ## Fase 1 â€” Demais mÃ³dulos

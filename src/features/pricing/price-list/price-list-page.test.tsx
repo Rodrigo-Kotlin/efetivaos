@@ -136,6 +136,19 @@ describe('PriceListPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Rastreabilidade' }))
     expect(screen.getByRole('dialog', { name: /PRP-001/i })).toBeInTheDocument()
     expect(screen.getByText('Custo interno validado.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Abrir Precos Proprios/i })).toHaveAttribute('href', '/pricing/own-prices')
+    expect(screen.getByRole('button', { name: 'Ver historico' })).toBeInTheDocument()
+  })
+
+  it('abre o historico de precos proprios pela rastreabilidade na Tabela de Precos', async () => {
+    const olderProposal = { ...ownProposal, id: 'opp-0', sale_price: '100.00', revision: 1, submitted_at: '2026-07-01T10:00:00Z', approved_at: '2026-07-05T10:00:00Z' }
+    vi.mocked(useAuth).mockReturnValue({ profile: { role: 'admin', id: 'admin-1', full_name: 'Administrador' } } as unknown as ReturnType<typeof useAuth>)
+    vi.mocked(useOwnPriceProposals).mockReturnValue({ data: [olderProposal, ownProposal], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useOwnPriceProposals>)
+    vi.mocked(useComparison).mockReturnValue({ data: [ownRow], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useComparison>)
+    render(<MemoryRouter><PriceListPage /></MemoryRouter>)
+    await userEvent.click(screen.getByRole('button', { name: 'Rastreabilidade' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Ver historico' }))
+    expect(screen.getByRole('dialog', { name: /Historico de precos · PRP-001/i })).toBeInTheDocument()
+    expect(screen.getByText('Preco vigente')).toBeInTheDocument()
+    expect(screen.getByText('Comparacao com o preco aprovado anterior')).toBeInTheDocument()
   })
 })
