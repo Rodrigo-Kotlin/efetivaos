@@ -25,57 +25,57 @@ function ComparisonCard({ row, onOpen, onReview, isAdmin }: { row: ComparisonRow
   const hasOffer = row.best_cost !== null
   const hasRule = row.resolved_margin_rule_id !== null
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-mono text-xs font-bold uppercase tracking-wide text-emerald-900">{row.code}</p>
-          <h2 className="mt-1 font-serif text-lg font-semibold text-slate-950">{row.item_name}</h2>
-          <p className="mt-1 text-xs text-slate-500">{row.category_name} · {row.unit}</p>
+    <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="break-all font-mono text-xs font-bold uppercase tracking-wide text-emerald-900">{row.code}</p>
+          <h2 className="mt-1 break-words font-serif text-lg font-semibold text-slate-950">{row.item_name}</h2>
+          <p className="mt-1 break-words text-xs text-slate-500">{row.category_name} · {row.unit}</p>
         </div>
-        {hasOffer ? <Badge>Melhor custo</Badge> : <Badge variant="secondary">Sem oferta</Badge>}
+        {hasOffer ? <Badge className="shrink-0">Melhor custo</Badge> : <Badge className="shrink-0" variant="secondary">Sem oferta</Badge>}
       </div>
-      <dl className="mt-4 space-y-2 text-sm">
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Menor custo</dt>
-          <dd className="font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_cost)}</dd>
+      <dl className="mt-4 min-w-0 space-y-2 text-sm">
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Menor custo</dt>
+          <dd className="min-w-0 break-words font-serif text-lg font-bold text-emerald-900">{formatComparisonCurrency(row.best_cost)}</dd>
         </div>
-        <div className="flex items-baseline justify-between gap-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preco aprovado</dt>
-          <dd className="text-right font-serif text-lg font-bold text-emerald-950">{row.approved_final_price === null ? 'Ainda nao aprovado' : formatComparisonCurrency(row.approved_final_price)}</dd>
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Preco aprovado</dt>
+          <dd className="min-w-0 break-words text-right font-serif text-lg font-bold text-emerald-950">{row.approved_final_price === null ? 'Ainda nao aprovado' : formatComparisonCurrency(row.approved_final_price)}</dd>
         </div>
-        <div className="flex items-start justify-between gap-3">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status comercial</dt>
-          <dd className="text-right"><CommercialStatusBadge status={row.effective_status} />{row.review_reason && <p className="mt-1 max-w-48 text-xs text-amber-800">{reviewReasonLabel(row.review_reason)}</p>}</dd>
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Status comercial</dt>
+          <dd className="min-w-0 text-right"><CommercialStatusBadge status={row.effective_status} />{row.review_reason && <p className="mt-1 max-w-48 break-words text-xs text-amber-800">{reviewReasonLabel(row.review_reason)}</p>}</dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Fornecedor</dt>
-          <dd className="text-sm font-medium text-slate-800">{row.best_supplier_name ?? '—'}</dd>
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Fornecedor</dt>
+          <dd className="min-w-0 break-words text-sm font-medium text-slate-800">{row.best_supplier_name ?? '—'}</dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Validade</dt>
-          <dd className="text-sm font-medium text-slate-800">
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Validade</dt>
+          <dd className="min-w-0 break-words text-sm font-medium text-slate-800">
             {row.best_validity_not_informed || row.best_valid_until === null
               ? <span className="text-amber-800">Validade nao informada</span>
               : formatComparisonDate(row.best_valid_until)}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Regra</dt>
-          <dd className="text-sm font-medium text-slate-800">
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Regra</dt>
+          <dd className="min-w-0 break-words text-sm font-medium text-slate-800">
             {hasOffer ? (hasRule ? 'Aplicada' : <span className="text-amber-800">Sem regra</span>) : '—'}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Preco sugerido</dt>
-          <dd>
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Preco sugerido</dt>
+          <dd className="min-w-0">
             {row.suggested_price === null
               ? <span className="text-sm font-medium text-amber-800">Sem regra</span>
-              : <button type="button" className="font-serif text-lg font-bold text-emerald-900 hover:underline" onClick={() => onReview(row)}>{formatComparisonCurrency(row.suggested_price)}</button>}
+              : <button type="button" className="break-words font-serif text-lg font-bold text-emerald-900 hover:underline" onClick={() => onReview(row)}>{formatComparisonCurrency(row.suggested_price)}</button>}
           </dd>
         </div>
-        <div className="flex items-baseline justify-between">
-          <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Outras ofertas</dt>
-          <dd>
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <dt className="min-w-0 text-xs font-semibold uppercase tracking-wide text-slate-500">Outras ofertas</dt>
+          <dd className="min-w-0">
             {row.eligible_offer_count === 0
               ? <span className="text-xs text-slate-500">—</span>
               : (
@@ -86,7 +86,7 @@ function ComparisonCard({ row, onOpen, onReview, isAdmin }: { row: ComparisonRow
           </dd>
         </div>
       </dl>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex min-w-0 flex-wrap gap-2">
         <Button className="flex-1" type="button" variant="outline" onClick={() => onOpen(row)}>Ver ofertas</Button>
         {(row.suggested_price !== null || row.price_list_id !== null) && (
           <Button className="flex-1" type="button" variant="ghost" onClick={() => onReview(row)}>{isAdmin ? 'Decidir preco' : 'Ver detalhes'}</Button>
@@ -209,7 +209,7 @@ export default function ComparisonPage() {
   const mobileSortValue = `${sortKey}:${sortDir}`
 
   return (
-    <div className="mx-auto max-w-[1480px]">
+    <div className="mx-auto min-w-0 max-w-[1480px]">
       <PageHeader
         eyebrow="Motor de Precos"
         title="Comparacao de precos"
@@ -245,27 +245,27 @@ export default function ComparisonPage() {
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">Sem oferta / vencendo 7 dias</p><p className="mt-2 font-serif text-2xl font-semibold text-slate-950">{itemsWithoutOffer} / {expiringSoon.length}</p></article>
       </section>
 
-      <div className="mb-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_repeat(3,14rem)_12rem]">
-        <label className="relative">
+      <div className="mb-4 grid min-w-0 gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_repeat(3,minmax(0,1fr))_minmax(0,auto)]">
+        <label className="relative min-w-0">
           <span className="sr-only">Buscar por código, item ou fornecedor</span>
           <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-slate-400" />
-          <Input className="pl-9" placeholder="Buscar item, código ou fornecedor..." value={search} onChange={(event) => setSearch(event.target.value)} />
+          <Input className="min-w-0 pl-9" placeholder="Buscar item, código ou fornecedor..." value={search} onChange={(event) => setSearch(event.target.value)} />
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar por categoria</span>
           <select className={`${selectClassName} w-full`} value={category} onChange={(event) => setCategory(event.target.value)}>
             <option value="all">Categorias: todas</option>
             {categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar por fornecedor</span>
           <select className={`${selectClassName} w-full`} value={supplier} onChange={(event) => setSupplier(event.target.value)}>
             <option value="all">Fornecedores: todos</option>
             {suppliers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar por situação da oferta</span>
           <select className={`${selectClassName} w-full`} value={offer} onChange={(event) => setOffer(event.target.value as OfferFilter)}>
             <option value="all">Situacao: todas</option>
@@ -279,7 +279,7 @@ export default function ComparisonPage() {
             <option value="inactive">Preco inativo</option>
           </select>
         </label>
-        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Ordenar por">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5" role="group" aria-label="Ordenar por">
           {([
             ['item', 'Item'],
             ['best_cost', 'Menor custo'],
@@ -322,10 +322,10 @@ export default function ComparisonPage() {
         />
       ) : (
         <>
-          <div className="space-y-3 md:hidden" aria-label="Comparacao em cartoes">
+          <div className="min-w-0 space-y-3 md:hidden" aria-label="Comparacao em cartoes">
             {sorted.map((row) => <ComparisonCard key={row.catalog_item_id} row={row} onOpen={(item) => setDrawerItemId(item.catalog_item_id)} onReview={(item) => setReviewItemId(item.catalog_item_id)} isAdmin={isAdmin} />)}
           </div>
-          <div className="hidden md:block">
+          <div className="hidden min-w-0 md:block">
             <ComparisonTable
               rows={sorted}
               sorting={[{ id: sortKey, desc: sortDir === 'desc' }]}

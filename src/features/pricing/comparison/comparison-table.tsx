@@ -34,7 +34,7 @@ function statusForRow(row: ComparisonRow): ComparisonStatus {
 }
 
 function responsiveClass(id: string) {
-  if (id === 'actions') return 'sticky right-0 bg-white shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)]'
+  if (id === 'actions') return 'relative sticky right-0 bg-white shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)]'
   if (id === 'unit') return 'hidden md:table-cell'
   if (id === 'category' || id === 'validity') return 'hidden lg:table-cell'
   if (id === 'other_offers' || id === 'rule') return 'hidden md:table-cell'
@@ -44,9 +44,9 @@ function responsiveClass(id: string) {
 
 export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, onOpenOffers, onOpenReview, canEditRules, isAdmin, onEditRule }: ComparisonTableProps) {
   const columns = useMemo<ColumnDef<ComparisonRow>[]>(() => [
-    { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
-    { id: 'item', accessorFn: (row) => row.item_name, header: 'Item / servico', cell: ({ row }) => <strong className="font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
-    { id: 'category', accessorFn: (row) => row.category_name, header: 'Categoria', cell: ({ row }) => row.original.category_name },
+    { accessorKey: 'code', header: 'Codigo', cell: ({ row }) => <span className="break-all font-mono text-xs font-bold text-emerald-900">{row.original.code}</span> },
+    { id: 'item', accessorFn: (row) => row.item_name, header: 'Item / servico', cell: ({ row }) => <strong className="break-words font-semibold text-slate-950">{row.original.item_name}</strong>, sortingFn: 'alphanumeric' },
+    { id: 'category', accessorFn: (row) => row.category_name, header: 'Categoria', cell: ({ row }) => <span className="break-words">{row.original.category_name}</span> },
     { id: 'unit', accessorKey: 'unit', header: 'Unidade' },
     {
       id: 'approved_price',
@@ -68,7 +68,7 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
         return (
           <div className="space-y-0.5">
             <p className="font-serif text-base font-bold text-slate-950">{formatComparisonCurrency(item.best_cost)}</p>
-            <p className="text-xs font-semibold text-slate-600">{item.best_supplier_name}</p>
+            <p className="break-words text-xs font-semibold text-slate-600">{item.best_supplier_name}</p>
           </div>
         )
       },
@@ -87,7 +87,7 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
         return (
           <div className="space-y-0.5">
             <p className="text-sm font-semibold text-slate-800">{formatRuleValue(item.resolved_adjustment_type, item.resolved_adjustment_value)}</p>
-            <p className="text-xs text-slate-500">{formatRuleScope(item.resolved_rule_scope, { category_name: item.category_name, item_name: item.item_name })}</p>
+            <p className="break-words text-xs text-slate-500">{formatRuleScope(item.resolved_rule_scope, { category_name: item.category_name, item_name: item.item_name })}</p>
           </div>
         )
       },
@@ -132,7 +132,7 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
       cell: ({ row }) => {
         const item = row.original
         const reason = reviewReasonLabel(item.review_reason)
-        if (item.effective_status) return <div className="space-y-1"><CommercialStatusBadge status={item.effective_status} />{reason && <p className="max-w-40 text-xs text-amber-800">{reason}</p>}</div>
+        if (item.effective_status) return <div className="min-w-0 space-y-1"><CommercialStatusBadge status={item.effective_status} />{reason && <p className="max-w-40 break-words text-xs text-amber-800">{reason}</p>}</div>
         return <ComparisonStatusBadge status={statusForRow(item)} />
       },
     },
@@ -192,7 +192,7 @@ export function ComparisonTable({ rows, sorting, onSortingChange, globalFilter, 
   })
 
   return (
-    <TableShell>
+    <TableShell className="min-w-0">
       <table className="w-full min-w-[1360px] text-left text-sm" aria-label="Comparacao de precos">
         <thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
           {table.getHeaderGroups().map((group) => (

@@ -905,3 +905,17 @@ ot.toBeVisible no drawer apos a aprovacao e robusto contra toasts anteriores ain
 **Impacto futuro:** quando for traduzir erro de API no frontend, depender da mensagem e de ambos os conjuntos de caracteres; ao diagnosticar overflow, conferir o pai mais proximo do elemento absoluto antes de tocar na tabela/pagina (e nunca aplicar overflow-x-hidden global, que quebra scroll local e mobile); preferir E2E que exercite acoes reais do usuario a injetar estado no DOM quando a reconciliacao do framework puder invalidar a injecao; em suites grandes sob carga, confirmar falhas de actionability com rerun isolado antes de tratar como regressao.
 
 **Saldo da fase:** frontend puro (sem migrations/RPCs/RLS); 569 testes unit/component, tsc e build limpos; E2E de escopo verdes; DEC-072 registrada.
+
+### LL-069 - Fase 3C.4: sidebar fixa e tracks minimos causavam overflow global; scroll local de tabela deve ser testado separadamente
+
+**Data:** 2026-09-25 (FASE 3C.4, frontend e E2E com fixtures temporárias no DEV)
+
+**Contexto:** a validacao responsiva do editor de cotacoes, comparacao e tabela de precos encontrou documento mais largo que a viewport em 1280/1440 com conteudo longo. As tabelas ja possuiam `TableShell` com `overflow-x-auto`, mas os filtros desktop usavam tracks com larguras minimas fixas.
+
+**Aprendizado:** (1) a sidebar fixa (`w-64` ou `w-[76px]` quando colapsada) reduz a area util antes mesmo de o padding do shell ser considerado; a correcao deve olhar o grid do conteudo, nao apenas a tabela. (2) `minmax(0, 1fr)` permite que os filtros reduzam sem criar overflow no documento, enquanto `min-w-0` e `break-words` contem campos e textos longos nos wrappers. (3) `overflow-x-auto` deve permanecer no `TableShell`: o scroll interno e comportamento esperado para colunas desktop, e nao deve ser substituido por `overflow-x-hidden` global. (4) seletores E2E precisam escolher a representacao visivel do breakpoint: o DOM pode manter a tabela desktop oculta enquanto o card mobile esta visivel. (5) a tabela de precos lista somente registros aprovados; fixtures de teste que precisam exercitar scroll local devem aprovar o item no setup, sem transformar a Equipe em usuaria com permissao comercial.
+
+**Aplicado:** filtros de comparacao e precos passaram a usar tracks `minmax(0, ...)`; componentes relevantes ganharam `min-w-0`/quebra de texto; os testes responsivos Admin e Equipe passaram por 375/390/768/1024/1280/1440, verificando documento sem overflow global e `TableShell` com `overflow-x: auto`, `scrollWidth > clientWidth` e `scrollLeft > 0`; `npm test` 569/569, `tsc --noEmit`, build e lint escopado concluidos. A sonda pos-build encontrou zero overflow global nas 18 combinacoes.
+
+**Impacto futuro:** ao adicionar filtros, campos ou tabelas a uma tela operacional, medir a largura disponivel depois da sidebar e testar o limite de reducao dos tracks; preservar tabelas largas em containers locais; em E2E responsivo, usar o locator da variante mobile no mobile e da tabela no desktop; separar claramente a preparação de fixture de uma ação de negócio permitida ao perfil testado.
+
+**Saldo da fase:** frontend puro (sem migrations/RPCs/RLS), fixtures `E2E_3C3_*` temporárias removidas do DEV com zero resíduos, PROD intocado; 46 arquivos / 569 testes unitarios verdes, E2E de homologacao verde no escopo e DEC-073 registrada.

@@ -5,18 +5,18 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-export const selectClassName = 'h-11 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 disabled:cursor-not-allowed disabled:opacity-50'
-export const textareaClassName = 'min-h-24 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 disabled:cursor-not-allowed disabled:opacity-50'
+export const selectClassName = 'h-11 min-w-0 max-w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 disabled:cursor-not-allowed disabled:opacity-50'
+export const textareaClassName = 'min-h-24 min-w-0 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 disabled:cursor-not-allowed disabled:opacity-50'
 
 export function PageHeader({ eyebrow, title, description, actions }: { eyebrow: string; title: string; description: string; actions: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-      <div>
+    <div className="mb-6 flex min-w-0 flex-col justify-between gap-5 md:flex-row md:items-end">
+      <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">{eyebrow}</p>
-        <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{title}</h1>
+        <h1 className="mt-2 break-words font-serif text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">{description}</p>
       </div>
-      <div className="flex flex-wrap gap-2">{actions}</div>
+      <div className="flex min-w-0 flex-wrap gap-2">{actions}</div>
     </div>
   )
 }
@@ -63,5 +63,5 @@ export function FieldError({ id, children }: { id: string; children?: ReactNode 
 }
 
 export function TableShell({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm', className)}>{children}</div>
+  return <div className={cn('min-w-0 max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm', className)}>{children}</div>
 }

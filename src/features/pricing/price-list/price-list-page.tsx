@@ -43,8 +43,8 @@ function SourceValidity({ validUntil }: { validUntil: string | null }) {
     return <Badge variant="warning">Validade nao informada</Badge>;
   const expired = isExpired(validUntil);
   return (
-    <div>
-      <span>{formatComparisonDate(validUntil)}</span>
+    <div className="min-w-0">
+      <span className="break-words">{formatComparisonDate(validUntil)}</span>
       <p
         className={`text-xs font-semibold ${expired ? "text-amber-800" : "text-emerald-800"}`}
       >
@@ -70,14 +70,14 @@ function PriceCard({
   const internalCostVisible =
     isAdmin && internalCost !== null ? internalCost : null;
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-mono text-xs font-bold text-emerald-900">
+    <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="break-all font-mono text-xs font-bold text-emerald-900">
             {row.code}
           </p>
-          <h2 className="font-serif text-lg font-semibold">{row.item_name}</h2>
-          <p className="text-xs text-slate-500">
+          <h2 className="break-words font-serif text-lg font-semibold">{row.item_name}</h2>
+          <p className="break-words text-xs text-slate-500">
             {row.category_name} · {row.unit}
           </p>
           {!row.catalog_item_active && (
@@ -86,16 +86,18 @@ function PriceCard({
             </Badge>
           )}
         </div>
-        <CommercialStatusBadge status={row.effective_status} />
+        <div className="shrink-0">
+          <CommercialStatusBadge status={row.effective_status} />
+        </div>
       </div>
       <p className="mt-5 text-xs font-bold uppercase tracking-wide text-slate-500">
         Preco final aprovado
       </p>
-      <p className="font-serif text-2xl font-bold text-emerald-950">
+      <p className="break-words font-serif text-2xl font-bold text-emerald-950">
         {formatComparisonCurrency(row.approved_final_price)}
       </p>
-      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <div>
+      <dl className="mt-4 grid min-w-0 grid-cols-2 gap-3 text-sm">
+        <div className="min-w-0">
           <dt className="text-xs font-semibold text-slate-500">
             {isOwn ? "Custo interno" : "Custo aprovado"}
           </dt>
@@ -109,9 +111,9 @@ function PriceCard({
               : formatComparisonCurrency(row.approved_cost_price)}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs font-semibold text-slate-500">Fonte</dt>
-          <dd>
+          <dd className="min-w-0 break-words">
             {isOwn ? (
               <strong className="font-semibold text-emerald-900">
                 Proprio — Efetiva
@@ -121,24 +123,24 @@ function PriceCard({
             )}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs font-semibold text-slate-500">Acrescimo</dt>
-          <dd>
+          <dd className="min-w-0 break-words">
             {formatRuleValue(
               row.approved_adjustment_type,
               row.approved_adjustment_value,
             )}
           </dd>
         </div>
-        <div>
+        <div className="min-w-0">
           <dt className="text-xs font-semibold text-slate-500">Aprovado em</dt>
-          <dd>{formatComparisonDate(row.approved_at)}</dd>
+          <dd className="min-w-0 break-words">{formatComparisonDate(row.approved_at)}</dd>
         </div>
-        <div className="col-span-2">
+        <div className="col-span-2 min-w-0">
           <dt className="text-xs font-semibold text-slate-500">
             Validade da fonte
           </dt>
-          <dd className="mt-1">
+          <dd className="mt-1 min-w-0 break-words">
             {isOwn ? (
               <span className="text-slate-400">—</span>
             ) : (
@@ -148,7 +150,7 @@ function PriceCard({
         </div>
       </dl>
       {reason && (
-        <p className="mt-3 text-xs font-semibold text-amber-900">{reason}</p>
+        <p className="mt-3 break-words text-xs font-semibold text-amber-900">{reason}</p>
       )}
       <Button
         className="mt-4 w-full"
@@ -269,7 +271,7 @@ export default function PriceListPage() {
   const isAdmin = profile?.role === "admin";
 
   return (
-    <div className="mx-auto max-w-[1480px]">
+    <div className="mx-auto min-w-0 max-w-[1480px]">
       <PageHeader
         eyebrow="Motor de Precos"
         title="Tabela de Precos"
@@ -280,18 +282,18 @@ export default function PriceListPage() {
           </Button>
         }
       />
-      <div className="mb-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_repeat(6,minmax(10rem,13rem))_auto]">
-        <label className="relative">
+      <div className="mb-4 grid min-w-0 gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_repeat(6,minmax(0,1fr))_minmax(0,auto)]">
+        <label className="relative min-w-0">
           <span className="sr-only">Buscar na tabela de precos</span>
           <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-slate-400" />
           <Input
-            className="pl-9"
+            className="min-w-0 pl-9"
             placeholder="Buscar item, codigo ou fonte..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar tabela por categoria</span>
           <select
             className={`${selectClassName} w-full`}
@@ -306,7 +308,7 @@ export default function PriceListPage() {
             ))}
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar tabela por status</span>
           <select
             className={`${selectClassName} w-full`}
@@ -321,7 +323,7 @@ export default function PriceListPage() {
             <option value="inactive">Inativo</option>
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar tabela por fonte</span>
           <select
             className={`${selectClassName} w-full`}
@@ -335,7 +337,7 @@ export default function PriceListPage() {
             <option value="manual">Manual</option>
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar tabela por origem comercial</span>
           <select
             className={`${selectClassName} w-full`}
@@ -349,7 +351,7 @@ export default function PriceListPage() {
             <option value="quotation">Precos de cotacao</option>
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Filtrar tabela por fornecedor</span>
           <select
             className={`${selectClassName} w-full`}
@@ -364,7 +366,7 @@ export default function PriceListPage() {
             ))}
           </select>
         </label>
-        <label>
+        <label className="min-w-0">
           <span className="sr-only">Ordenar tabela de precos por</span>
           <select
             className={`${selectClassName} w-full`}
@@ -379,6 +381,7 @@ export default function PriceListPage() {
           </select>
         </label>
         <Button
+          className="min-w-0"
           type="button"
           variant="outline"
           aria-label={
@@ -424,7 +427,7 @@ export default function PriceListPage() {
         />
       ) : (
         <>
-          <div className="space-y-3 md:hidden">
+          <div className="min-w-0 space-y-3 md:hidden">
             {filtered.map((row) => (
               <PriceCard
                 key={row.catalog_item_id}
@@ -435,7 +438,7 @@ export default function PriceListPage() {
               />
             ))}
           </div>
-          <div className="hidden md:block">
+          <div className="hidden min-w-0 md:block">
             <TableShell>
               <table
                 className="w-full min-w-[1240px] text-left text-sm"
@@ -452,7 +455,7 @@ export default function PriceListPage() {
                     <th className="px-4 py-3">Preco final aprovado</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Aprovacao</th>
-                    <th className="px-4 py-3">
+                    <th className="relative px-4 py-3">
                       <span className="sr-only">Acoes</span>
                     </th>
                   </tr>
@@ -474,7 +477,7 @@ export default function PriceListPage() {
                           </Badge>
                         )}
                       </td>
-                      <td className="px-4 py-4">{row.category_name}</td>
+                      <td className="min-w-0 break-words px-4 py-4">{row.category_name}</td>
                       <td className="px-4 py-4">
                         {row.price_origin === "own" ? (
                           isAdmin ? (
@@ -527,7 +530,7 @@ export default function PriceListPage() {
                       <td className="px-4 py-4">
                         <CommercialStatusBadge status={row.effective_status} />
                         {row.review_reason && (
-                          <p className="mt-1 max-w-44 text-xs text-amber-800">
+                          <p className="mt-1 max-w-44 break-words text-xs text-amber-800">
                             {reviewReasonLabel(row.review_reason)}
                           </p>
                         )}

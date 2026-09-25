@@ -1160,3 +1160,19 @@ pm run build ok. E2E completo (55 testes): 50 passed + 5 failed — as 5 falhas 
 **Motivo:** alinhar o frontend à regra de negócio já imposta no banco (evitar que o usuário erre no submit e receba erro de API); itens vinculados a cotações existentes não podem sumir do seletor ao editar; erro de API só carrega message (sem SQLSTATE confiável), portanto a tradução precisa casar com o texto exato; medidas locais de overflow (acentrado no th, sem mudar TableShell) eliminam o extravasamento sem abrir mão do scroll horizontal local das tabelas largas (460+ colunas de ações) nem vetam o scroll de página no mobile.
 
 **Impacto:** sete fontes + testes alterados (quotation-items-grid, quotation-editor-page, quotation.service/translateQuotationError, quotation.types/sourcing_type no Pick do item de linha, own-prices-page, own-price-proposal.spec.ts, playwright.config) e um E2E permanente novo (quotation-eligibility.spec.ts) com fixture isolada, marker e cleanup zero-resíduo. Frontend: 569 testes verdes, `npx tsc --noEmit` limpo, `npm run build` ok. E2E escopo: overflow de Preços Próprios verde em chromium e team-chromium (loop 375/390/768/1024/1280/1440 com dados), quotation-draft, quotation-eligibility e own-price-history verdes; suite completa chromium: 29 passed + 3 failed (ui-stability TEST 4/5 em uma execução carregada — revertido na rerun isolada: TEST 4 passou com e sem as mudanças, confirmando flakiness de ambiente, sem relação com a fase). Banco DEV e PROD não tocados. Documentado em LL-068.
+
+---
+
+### DEC-073 - Fase 3C.4: contenção horizontal com tracks flexíveis e scroll local de tabelas
+
+**Status:** FECHADA
+
+**Data:** 2026-09-25 (FASE 3C.4, frontend e E2E com fixtures temporárias no DEV; sem migrations; PROD intocado)
+
+**Contexto:** a validação com conteúdo longo no editor de cotações, comparação e tabela de preços encontrou overflow global em larguras desktop. A sidebar fixa, o padding do shell e os tracks minimos fixos dos filtros reduziam a area util sem permitir que os controles encolhessem; o scroll das tabelas largas, por outro lado, ja era intencional e local.
+
+**Decisão:** (1) usar `minmax(0, 1fr)` nos tracks flexíveis dos filtros desktop de comparação e tabela de preços; (2) reforçar `min-w-0` e quebra de texto nos containers de cards, formulários, inputs, badges e cabeçalhos relevantes; (3) preservar `TableShell` com `overflow-x-auto` e as larguras mínimas das tabelas, sem `overflow-x-hidden` global; (4) registrar regressão E2E com fixtures longas nos seis breakpoints, validando separadamente o documento e o shell local da tabela.
+
+**Motivo:** a solução elimina a causa do scroll do documento sem sacrificar colunas nem alterar regras de negócio, RLS ou contratos de banco. A separação entre overflow de página e overflow de tabela torna o teste determinístico e preserva o padrão table-first.
+
+**Impacto:** nove fontes frontend, dois specs E2E e utilitários de homologação alterados; `npm test` 569/569, `npx tsc --noEmit`, build e lint escopado sem erros; E2E responsivo Admin/Equipe verde. Fixtures `E2E_3C3_*` foram criadas e removidas temporariamente no DEV, com zero resíduos; sem migrations, schema ou dados permanentes; PROD não tocado.

@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline tÃ©cnico:** v0.3  
-**Status atual:** FASE 3C.2 - Elegibilidade de itens terceirizados/ativos nas cotacoes + correcao do overflow pre-existente em Precos Proprios - COMPLETED.
+**Status atual:** FASE 3C.4 - Contencao horizontal do editor, comparacao e tabela de precos - COMPLETED_WITH_FINDINGS.
 
 ---
 
@@ -863,6 +863,25 @@ Gate 3C.2 (frontend):
 - overflow: regression test em `own-price-proposal.spec.ts` com dados e loop 375/390/768/1024/1280/1440 (scrollWidth == clientWidth == bodyScrollWidth) — verde em chromium e team-chromium (run isolada ~31s);
 - escopo E2E: `own-price-proposal`, `own-price-history`, `quotation-draft` e `quotation-eligibility` verdes; execucao da suite chromium sob carga acusou 3 falhas de actionability em `ui-stability` (TEST 4/5/13b: `#tax_id` fill) — reruns isoladas passaram (TEST 4 verde com e sem as mudancas da fase via stash+rebuild), confirmando flakiness de ambiente sem relacao com o escopo;
 - PROD e banco DEV nao tocados; decision register DEC-072; learning log LL-068.
+
+### FASE 3C.4 - Contencao horizontal do editor, comparacao e tabela de precos
+
+Frontend exclusivo (sem migrations, sem RPCs, sem RLS, sem grants): corrige o overflow horizontal global das tres telas operacionais sem esconder colunas nem remover o scroll local das tabelas. A causa era a combinacao de sidebar fixa, padding do shell e tracks minimos fixos nos filtros desktop; as tabelas largas continuam restritas ao `TableShell` com `overflow-x-auto`.
+
+- filtros desktop de comparacao e precos usam `minmax(0, 1fr)` e `min-w-0`/`break-words` para permitir reducao dos controles dentro da area util;
+- cards, formularios, inputs, badges e cabecalhos mantem `min-w-0` e quebra de texto para conteudo longo;
+- `TableShell` preserva `overflow-x-auto` e as tabelas mantem `min-w-[1240px]`/`min-w-[1360px]`, sem `overflow-x-hidden` global;
+- E2E permanente com fixture longa e cleanup zero-residuo cobre editor, comparacao e tabela de precos em 375/390/768/1024/1280/1440, validando `scrollWidth` do documento e scroll local da tabela nos breakpoints de tabela.
+
+Gate 3C.4 (frontend):
+
+- `npm test`: 46 arquivos / 569 testes verdes;
+- `npx tsc --noEmit`: limpo;
+- ESLint dos arquivos da etapa: 0 erros; permanece 1 warning preexistente em `price-list-page.tsx` e 96 erros globais preexistentes fora do escopo;
+- `npm run build`: aprovado, 2235 modulos e PWA gerado;
+- E2E de homologacao: novo cenario responsivo Admin verde; Equipe responsivo 2/2; suite Admin 5/6 na primeira execucao e o caso flaky de item proprio verde no rerun isolado, sem regressao funcional observada;
+- sonda DOM pos-build: 18 combinacoes sem overflow global; elementos internos listados permanecem dentro de shells com `overflow-x-auto`;
+- fixtures `E2E_3C3_*` temporárias no DEV, com cleanup e zero resíduos; sem migrations/schema ou dados permanentes; PROD intocado; decision register DEC-073; learning log LL-069.
 
 
 
