@@ -129,9 +129,9 @@ export default function OwnPricesPage() {
             {filtered.map((row) => (
               <article key={row.item.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-mono text-xs font-bold text-emerald-900">{row.item.code}</p>
-                    <h2 className="font-serif text-lg font-semibold">{row.item.name}</h2>
+                    <h2 className="break-words font-serif text-lg font-semibold">{row.item.name}</h2>
                     <p className="text-xs text-slate-500">{row.item.category_name ?? 'Sem categoria'} · {row.item.unit}</p>
                     {!row.item.active && <Badge className="mt-2" variant="secondary">Item do catalogo inativo</Badge>}
                   </div>
@@ -147,7 +147,7 @@ export default function OwnPricesPage() {
             ))}
           </div>
 
-          <div className="hidden md:block"><TableShell><table className="w-full min-w-[1100px] text-left text-sm" aria-label="Precos Proprios"><thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500"><tr><th className="px-4 py-3">Servico</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Preco atual</th><th className="px-4 py-3">Proposta pendente</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ultima aprovacao</th><th className="px-4 py-3"><span className="sr-only">Acoes</span></th></tr></thead><tbody className="divide-y divide-slate-100">
+          <div className="hidden md:block"><TableShell><table className="w-full min-w-[1100px] text-left text-sm" aria-label="Precos Proprios"><thead className="border-b border-slate-200 bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500"><tr><th className="px-4 py-3">Servico</th><th className="px-4 py-3">Categoria</th><th className="px-4 py-3">Preco atual</th><th className="px-4 py-3">Proposta pendente</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Ultima aprovacao</th><th className="relative px-4 py-3"><span className="sr-only">Acoes</span></th></tr></thead><tbody className="divide-y divide-slate-100">
             {filtered.map((row) => (
               <tr key={row.item.id}>
                 <td className="px-4 py-4"><p className="font-mono text-xs font-bold text-emerald-900">{row.item.code}</p><strong>{row.item.name}</strong>{row.item.unit && <p className="text-xs text-slate-500">Unidade: {row.item.unit}</p>}{!row.item.active && <Badge className="mt-1 block w-fit" variant="secondary">Catalogo inativo</Badge>}</td>

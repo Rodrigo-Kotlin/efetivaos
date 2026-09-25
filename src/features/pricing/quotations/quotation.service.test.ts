@@ -48,6 +48,7 @@ describe('translateQuotationError', () => {
     [{ message: 'O anexo da cotacao esta sendo enviado. Aguarde o envio terminar antes de salvar novamente.' }, 'conclua ou descarte'],
     [{ message: 'Um item informado nao pertence a esta cotacao' }, 'nao pertence'],
     [{ message: 'O mesmo item de cotacao foi informado mais de uma vez' }, 'mais de uma vez'],
+    [{ message: 'Servicos proprios da Efetiva nao podem ser incluidos em cotacoes de fornecedores.' }, 'Serviços próprios da Efetiva'],
     [{ message: 'Os itens da cotacao devem ser informados como um array JSON' }, 'formato invalido'],
   ])('traduz erros de negocio %#', (source, expected) => expect(translateQuotationError(source).message).toContain(expected))
 })

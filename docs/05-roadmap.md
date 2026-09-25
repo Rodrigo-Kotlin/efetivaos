@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline tÃ©cnico:** v0.3  
-**Status atual:** FASE 3B - Correcao do envio de propostas proprias pela interface - COMPLETED.
+**Status atual:** FASE 3C.2 - Elegibilidade de itens terceirizados/ativos nas cotacoes + correcao do overflow pre-existente em Precos Proprios - COMPLETED.
 
 ---
 
@@ -843,6 +843,26 @@ Gate 3C.1 (frontend):
 - suite completa `npm run test:e2e`: 55 testes, 50 passed + 5 failed — as 5 falhas sao exatamente a suite pre-existente (4x `crm-mobile` + 1x `pricing-rules-team`), sem relacao com a fase; `own-price-history` verde em chromium e team-chromium em run isolado (3 passed) e na suite completa;
 - pre-existing overflow documentado: `/pricing/own-prices` com dados em 1280 ja ultrapassava no baseline HEAD (docScrollWidth 1425, tabela `min-w-[1100px]` + sidebar); a feature adiciona zero overflow (drawer aberto = fechado na medida); pagina sem dados = limpa; nao causado pela 3C.1;
 - PROD e banco DEV nao tocados; decision register DEC-071; learning log LL-067.
+
+---
+
+### FASE 3C.2 - Elegibilidade de itens terceirizados/ativos nas cotacoes + correcao do overflow pre-existente em Precos Proprios
+
+Frontend exclusivo (sem migrations, sem RPCs, sem RLS, sem grants): integra no editor de cotacoes a regra DEC-067 que o banco ja impoe (servicos proprios da Efetiva nao podem entrar em cotacoes de fornecedores) e corrige o overflow de pagina pre-existente das acoes de linha de /pricing/own-prices, documentado no baseline desde a 3C.1 (LL-067).
+
+- seletor de itens do editor: oferece apenas itens `active` e `sourcing_type = "outsourced"`; itens proprios/inativos ja vinculados a cotacoes existentes sao preservados com sufixo "(inativo - histórico)" / "(serviço próprio)" e bloqueiam a ativacao (checklist "Apenas itens terceirizados nas linhas");
+- `hasActiveCatalog` exige ao menos um item `outsourced` ativo; copia do estado de prerequisito ajustada para "item terceirizado ativo no Catalogo Efetiva";
+- `translateQuotationError` traduz o erro do backend casando por mensagem (ASCII e acentuacao oficial), sem depender de SQLSTATE;
+- overflow: th das acoes do own-prices com `relative px-4 py-3` ancora o span sr-only "Acoes" dentro do overflow-x-auto do TableShell; coluna do cartao mobile com `min-w-0` + `break-words`; sem overflow-x-hidden global; local table scroll mantido;
+- DROPPED: injecao do erro de backend via DOM em E2E — reconciliacao de options do React invalida a injecao; caminho backend coberto por suite SQL + traducao em teste unitario;
+
+Gate 3C.2 (frontend):
+
+- unit/component: suites de quotations ampliadas (traducao do erro, seletor sem itens proprios em cotacao nova, item proprio vinculado preservado + bloqueio de ativacao); `npm test` 46 arquivos / 569 testes verdes; `npx tsc --noEmit` limpo; `npm run build` ok;
+- E2E novo e permanente `quotation-eligibility.spec.ts` (fixture isolada com marker `E2E_3C2_*`, cleanup em `finally` zero-residuo): seletor so oferece itens terceirizados e o draft persiste; unit de bloqueio de ativacao com item proprio vinculado;
+- overflow: regression test em `own-price-proposal.spec.ts` com dados e loop 375/390/768/1024/1280/1440 (scrollWidth == clientWidth == bodyScrollWidth) — verde em chromium e team-chromium (run isolada ~31s);
+- escopo E2E: `own-price-proposal`, `own-price-history`, `quotation-draft` e `quotation-eligibility` verdes; execucao da suite chromium sob carga acusou 3 falhas de actionability em `ui-stability` (TEST 4/5/13b: `#tax_id` fill) — reruns isoladas passaram (TEST 4 verde com e sem as mudancas da fase via stash+rebuild), confirmando flakiness de ambiente sem relacao com o escopo;
+- PROD e banco DEV nao tocados; decision register DEC-072; learning log LL-068.
 
 
 

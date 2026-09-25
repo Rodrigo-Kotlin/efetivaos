@@ -25,7 +25,7 @@ vi.mock('@/hooks/use-online-status', () => ({ useOnlineStatus: vi.fn() }))
 vi.mock('sonner', () => ({ toast: toastMocks }))
 
 const supplier = { id: 'supplier-1', code: 'FOR-000001', name: 'Lab Norte', active: true, legal_name: null, tax_id: null, category: null, contact_name: null, email: null, phone: null, notes: null, created_at: '2026-08-20T00:00:00Z', created_by: null, updated_at: '2026-08-20T00:00:00Z', updated_by: null } satisfies Supplier
-const catalogItem = { id: 'catalog-1', code: 'EXA-1', name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: null, active: true, updated_at: '2026-08-20T00:00:00Z', category: { id: 'category-1', name: 'Exames', active: true } }
+const catalogItem = { id: 'catalog-1', code: 'EXA-1', name: 'Hemograma', category_id: 'category-1', unit: 'exame', description: null, active: true, sourcing_type: 'outsourced' as const, updated_at: '2026-08-20T00:00:00Z', category: { id: 'category-1', name: 'Exames', active: true } }
 const saved = { id: 'quotation-1', supplier_id: supplier.id, reference_number: null, received_at: '2026-08-23', valid_until: null, status: 'draft' as const, source_file_path: null, source_file_pending: false, revision: 7, notes: null, archived_at: null, archived_by: null, created_at: '2026-08-23T00:00:00Z', created_by: null, updated_at: '2026-08-23T00:00:00Z', updated_by: null }
 const detail: QuotationDetail = { ...saved, supplier: { id: supplier.id, name: supplier.name, active: true }, quotation_items: [{ id: 'line-1', quotation_id: saved.id, catalog_item_id: catalogItem.id, supplier_description: 'Hemograma', supplier_item_code: 'H-1', unit_price: '20.00', notes: null, created_at: saved.created_at, created_by: 'user-1', updated_at: saved.updated_at, updated_by: 'user-1', catalog_item: { ...catalogItem, category: { id: 'category-1', name: 'Exames' } } }] }
 
@@ -255,7 +255,7 @@ describe('QuotationEditorPage', () => {
     renderEditor()
     expect(screen.getByText('Você precisa cadastrar um fornecedor ativo antes de criar uma cotação.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ir para Fornecedores' })).toHaveAttribute('href', '/pricing/suppliers')
-    expect(screen.getByText('Você precisa cadastrar itens no Catálogo Efetiva antes de adicionar produtos ou serviços à cotação.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhum item terceirizado ativo no Catálogo Efetiva')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Ir para o Catálogo Efetiva' })).toHaveAttribute('href', '/pricing/catalog')
   })
 
@@ -269,6 +269,31 @@ describe('QuotationEditorPage', () => {
     expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveValue(catalogItem.id)
     expect(screen.getByText(/vínculos históricos desta cotação foram preservados/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ativar' })).toBeDisabled()
+  })
+
+  it('não oferece itens próprios na seleção de itens de uma nova cotação', async () => {
+    const user = userEvent.setup()
+    const ownItem = { ...catalogItem, id: 'catalog-own', code: 'OWN-1', name: 'Vigilância', sourcing_type: 'own' as const }
+    vi.mocked(useCatalogItems).mockReturnValue({ data: [catalogItem, ownItem], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
+    renderEditor()
+    await fillHeader(user)
+    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
+    const catalog = screen.getByLabelText('Item do Catálogo Efetiva 1')
+    const options = Array.from(catalog.querySelectorAll('option')).map((option) => option.textContent ?? '')
+    expect(options).toContain('EXA-1 - Hemograma | Exames | exame')
+    expect(options.some((label) => label.includes('OWN-1'))).toBe(false)
+  })
+
+  it('preserva item próprio vinculado a uma cotação existente e bloqueia a ativação', async () => {
+    const ownItem = { ...catalogItem, id: 'catalog-own', code: 'OWN-1', name: 'Vigilância', sourcing_type: 'own' as const }
+    const ownDetail = { ...detail, quotation_items: [{ ...detail.quotation_items[0], catalog_item_id: ownItem.id, catalog_item: ownItem }] }
+    vi.mocked(useQuotation).mockReturnValue({ data: ownDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useQuotation>)
+    vi.mocked(useCatalogItems).mockReturnValue({ data: [], isLoading: false, isError: true, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
+    renderEditor(`/pricing/quotations/${saved.id}`)
+    expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveValue(ownItem.id)
+    expect(screen.getByText('Serviços próprios da Efetiva não podem ser incluídos em cotações de fornecedores.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ativar' })).toBeDisabled()
+    expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveAttribute('aria-invalid', 'true')
   })
 
   it('não descarta formulário nem arquivo selecionado em refetch da mesma cotação', async () => {

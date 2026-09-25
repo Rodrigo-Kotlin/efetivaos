@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      testMatch: /(quotation-draft|comparison-flow|pricing-rules-flow|price-approval-admin|pricing-dashboard|crm-admin|ui-stability|own-price-proposal|own-price-history)\.spec\.ts/,
+      testMatch: /(quotation-draft|quotation-eligibility|comparison-flow|pricing-rules-flow|price-approval-admin|pricing-dashboard|crm-admin|ui-stability|own-price-proposal|own-price-history)\.spec\.ts/,
       dependencies: ['authenticate'],
       use: {
         ...devices['Desktop Chrome'],

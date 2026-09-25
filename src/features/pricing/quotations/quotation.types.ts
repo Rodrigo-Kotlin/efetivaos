@@ -6,7 +6,7 @@ export type QuotationListRow = Pick<Quotation, 'id' | 'reference_number' | 'rece
 }
 
 export type QuotationItemRow = QuotationItem & {
-  catalog_item: (Pick<CatalogItem, 'id' | 'code' | 'name' | 'unit' | 'category_id' | 'active'> & {
+  catalog_item: (Pick<CatalogItem, 'id' | 'code' | 'name' | 'unit' | 'category_id' | 'active' | 'sourcing_type'> & {
     category: { id: string; name: string }
   }) | null
 }

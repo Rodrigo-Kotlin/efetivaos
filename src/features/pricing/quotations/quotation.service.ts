@@ -6,7 +6,7 @@ import type { QuotationAttachmentRecoveryInput, QuotationDetail, QuotationDraftI
 type ServiceError = { code?: string; message?: string; details?: string; constraint?: string }
 
 const listSelect = 'id, reference_number, received_at, valid_until, status, updated_at, archived_at, supplier:suppliers!quotations_supplier_id_fkey(id, name), quotation_items(id)'
-const detailSelect = 'id, supplier_id, reference_number, received_at, valid_until, status, source_file_path, source_file_pending, revision, notes, archived_at, archived_by, created_at, created_by, updated_at, updated_by, supplier:suppliers!quotations_supplier_id_fkey(id, name, active), quotation_items(id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price, notes, created_at, created_by, updated_at, updated_by, catalog_item:catalog_items(id, code, name, unit, category_id, active, category:catalog_categories(id, name)))'
+const detailSelect = 'id, supplier_id, reference_number, received_at, valid_until, status, source_file_path, source_file_pending, revision, notes, archived_at, archived_by, created_at, created_by, updated_at, updated_by, supplier:suppliers!quotations_supplier_id_fkey(id, name, active), quotation_items(id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price, notes, created_at, created_by, updated_at, updated_by, catalog_item:catalog_items(id, code, name, unit, category_id, active, sourcing_type, category:catalog_categories(id, name)))'
 
 export function translateQuotationError(error: ServiceError): Error {
   const text = `${error.message ?? ''} ${error.details ?? ''} ${error.constraint ?? ''}`.toLowerCase()
@@ -16,6 +16,7 @@ export function translateQuotationError(error: ServiceError): Error {
   if (text.includes('item') && text.includes('inativ')) return new Error('Um item selecionado esta inativo no Catalogo Efetiva.')
   if (text.includes('ao menos um item')) return new Error('Adicione ao menos um item antes de ativar a cotacao.')
   if (text.includes('mape') || text.includes('catalogo efetiva')) return new Error('Vincule todos os itens ao Catalogo Efetiva antes de ativar.')
+  if (text.includes('servicos proprios da efetiva') || text.includes('serviços próprios da efetiva') || text.includes('servicos proprios nao podem') || text.includes('serviços próprios não podem')) return new Error('Serviços próprios da Efetiva não podem ser incluídos em cotações de fornecedores.')
   const pendingAttachmentMissing = (text.includes('anexo pendente') || text.includes('envio pendente') || text.includes('source_file_pending')) && (text.includes('not pending') || text.includes('nao possui') || text.includes('não possui') || text.includes('nao esta') || text.includes('não está') || text.includes('nao encontrado') || text.includes('não encontrado'))
   if (pendingAttachmentMissing) return new Error('Esta cotacao nao possui um envio de anexo pendente. Recarregue a pagina para obter o estado atual.')
   if ((text.includes('anexo') && text.includes('ainda nao foi armazenado')) || (text.includes('anexo') && text.includes('ainda não foi armazenado')) || (text.includes('anexo') && text.includes('sendo enviado'))) return new Error('O anexo ainda nao foi concluido. Recarregue a pagina e conclua ou descarte o envio pendente antes de ativar ou cancelar a cotacao.')

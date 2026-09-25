@@ -34,13 +34,13 @@ function supplierFallback(quotation: NonNullable<ReturnType<typeof useQuotation>
 }
 
 function catalogFallbacks(quotation: NonNullable<ReturnType<typeof useQuotation>['data']>): CatalogItemRow[] {
-  return quotation.quotation_items.flatMap((line) => line.catalog_item ? [{ ...line.catalog_item, description: null, updated_at: line.updated_at, sourcing_type: "outsourced" as const, category: { ...line.catalog_item.category, active: true } }] : [])
+  return quotation.quotation_items.flatMap((line) => line.catalog_item ? [{ ...line.catalog_item, description: null, updated_at: line.updated_at, sourcing_type: line.catalog_item.sourcing_type, category: { ...line.catalog_item.category, active: true } }] : [])
 }
 
 function PrerequisiteState({ hasSuppliers, hasCatalog }: { hasSuppliers: boolean; hasCatalog: boolean }) {
   return <div className="mx-auto max-w-3xl space-y-4">
     {!hasSuppliers && <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6"><h1 className="font-serif text-2xl font-semibold text-amber-950">Nenhum fornecedor ativo disponível</h1><p className="mt-2 text-sm text-amber-900">Você precisa cadastrar um fornecedor ativo antes de criar uma cotação.</p><Button className="mt-5" asChild><Link to="/pricing/suppliers">Ir para Fornecedores</Link></Button></section>}
-    {!hasCatalog && <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6"><h1 className="font-serif text-2xl font-semibold text-amber-950">Nenhum item ativo no Catálogo Efetiva</h1><p className="mt-2 text-sm text-amber-900">Você precisa cadastrar itens no Catálogo Efetiva antes de adicionar produtos ou serviços à cotação.</p><Button className="mt-5" asChild><Link to="/pricing/catalog">Ir para o Catálogo Efetiva</Link></Button></section>}
+    {!hasCatalog && <section className="rounded-2xl border border-amber-200 bg-amber-50 p-6"><h1 className="font-serif text-2xl font-semibold text-amber-950">Nenhum item terceirizado ativo no Catálogo Efetiva</h1><p className="mt-2 text-sm text-amber-900">Cotações de fornecedores aceitam apenas itens ativos marcados como terceirizados. Serviços próprios da Efetiva não podem ser incluídos em cotações de fornecedores.</p><Button className="mt-5" asChild><Link to="/pricing/catalog">Ir para o Catálogo Efetiva</Link></Button></section>}
   </div>
 }
 
@@ -52,6 +52,7 @@ function ActivationChecklist({ issues, onReview }: { issues: Record<string, stri
     ['mapping', 'Todos os itens vinculados ao Catálogo Efetiva', issues.mapping],
     ['prices', 'Todos os valores unitários válidos', issues.prices],
     ['catalog', 'Todos os itens do catálogo ativos', issues.catalog],
+    ['own', 'Apenas itens terceirizados nas linhas', issues.own],
   ]
   const invalid = checks.some((check) => check[2])
   return <aside className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-label="Requisitos para ativação"><h2 className="font-serif text-xl font-semibold">Regras antes de ativar</h2><ul className="mt-4 space-y-3">{checks.map(([key, label, issue]) => <li className={`flex gap-3 rounded-lg p-3 text-sm ${issue ? 'bg-amber-50 text-amber-950' : 'bg-emerald-50 text-emerald-950'}`} key={key}>{issue ? <Circle className="mt-0.5 size-4 shrink-0" /> : <CheckCircle2 className="mt-0.5 size-4 shrink-0" />}<span><strong>{label}</strong>{issue && <span className="mt-0.5 block">{issue}</span>}</span></li>)}</ul>{invalid && <Button className="mt-4 w-full" type="button" variant="outline" onClick={onReview}>Revisar pendências</Button>}</aside>
@@ -139,8 +140,11 @@ export default function QuotationEditorPage() {
   if (invalidPrices.length) activationIssues.prices = `Valor inválido nas linhas ${invalidPrices.map((index) => index + 1).join(', ')}.`
   const inactiveItems = selectedItems.map((item, index) => item && !item.active ? index : -1).filter((index) => index >= 0)
   if (inactiveItems.length) activationIssues.catalog = `Item inativo nas linhas ${inactiveItems.map((index) => index + 1).join(', ')}. Reative-o no catálogo ou selecione outro item.`
+  const ownItems = selectedItems.map((item, index) => item && item.sourcing_type === 'own' ? index : -1).filter((index) => index >= 0)
+  if (ownItems.length) activationIssues.own = 'Serviços próprios da Efetiva não podem ser incluídos em cotações de fornecedores.'
   unmapped.forEach((index) => { activationIssues[`items.${index}.catalog_item_id`] = `Linha ${index + 1}: vincule um item do Catálogo Efetiva.` })
   inactiveItems.forEach((index) => { activationIssues[`items.${index}.catalog_item_id`] = `Linha ${index + 1}: o item selecionado está inativo.` })
+  ownItems.forEach((index) => { activationIssues[`items.${index}.catalog_item_id`] = `Linha ${index + 1}: serviço próprio da Efetiva não pode ser incluído em cotação de fornecedor.` })
   invalidPrices.forEach((index) => { activationIssues[`items.${index}.unit_price`] = `Linha ${index + 1}: informe um valor positivo com até duas casas decimais.` })
   const activationReady = Object.keys(activationIssues).length === 0
 
@@ -152,6 +156,7 @@ export default function QuotationEditorPage() {
     else if (activationIssues.mapping) form.setFocus(`items.${unmapped[0] >= 0 ? unmapped[0] : 0}.catalog_item_id`)
     else if (activationIssues.prices) form.setFocus(`items.${invalidPrices[0]}.unit_price`)
     else if (activationIssues.catalog) form.setFocus(`items.${inactiveItems[0]}.catalog_item_id`)
+    else if (activationIssues.own) form.setFocus(`items.${ownItems[0]}.catalog_item_id`)
   }
 
   function chooseFile(selected?: File) {
@@ -260,7 +265,7 @@ export default function QuotationEditorPage() {
   if (!editing && mastersLoading) return <TableSkeleton columns={3} />
   if (!editing && mastersError) return <ErrorState onRetry={() => { void suppliersQuery.refetch(); void catalogQuery.refetch() }} />
   const hasActiveSuppliers = suppliers.some((supplier) => supplier.active)
-  const hasActiveCatalog = catalogItems.some((item) => item.active)
+  const hasActiveCatalog = catalogItems.some((item) => item.active && item.sourcing_type === 'outsourced')
   if (!editing && (!hasActiveSuppliers || !hasActiveCatalog)) return <PrerequisiteState hasSuppliers={hasActiveSuppliers} hasCatalog={hasActiveCatalog} />
   const historicalWarning = quotation && (!quotation.supplier.active || quotation.quotation_items.some((line) => line.catalog_item && !line.catalog_item.active))
 

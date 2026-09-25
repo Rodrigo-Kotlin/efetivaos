@@ -1144,3 +1144,19 @@ SECURITY DEFINER (Admin-only). Nenhuma alteração no modelo de authorization
 **Impacto:** cinco arquivos alterados (own-prices-page, own-price-history-drawer novo + tests, review-drawer, price-list-page) e um E2E permanente novo com fixture isolada e cleanup zero-resíduo. Frontend: 566 testes verdes, 
 px tsc -b limpo, 
 pm run build ok. E2E completo (55 testes): 50 passed + 5 failed — as 5 falhas são exatamente a suite pré-existente (4× crm-mobile + 1× pricing-rules-team), sem relação com a fase. Banco DEV e PROD não tocados. Documentado em LL-067.
+
+---
+
+### DEC-072 — Fase 3C.2: elegibilidade terceirizado/ativo nas cotações + correção do overflow de página pré-existente em Preços Próprios
+
+**Status:** FECHADA
+
+**Data:** 2026-09-24 (FASE 3C.2, frontend e E2E no DEV; banco e PROD intocados)
+
+**Contexto:** o editor de cotações listava no seletor de itens todos os itens do Catálogo Efetiva, incluindo itens `own`. O banco já bloqueia a inserção de itens próprios em `quotation_items` (trigger DEC-067) com erro ASCII, mas o frontend deixava o usuário chegar até esse erro sem orientação prévia; além disso, a página /pricing/own-prices com dados ultrapassava a largura da viewport em determinados breakpoints (problema pré-existente documentado no LL-067, não causado pelas fases 3C.1/3C.2).
+
+**Decisão:** (1) no seletor de itens do editor de cotações, oferecer apenas itens `active` e com `sourcing_type = "outsourced"`, preservando itens próprios/inativos já vinculados a cotações existentes (sufixo "inativo - histórico" / "serviço próprio") e bloqueando a ativação quando houver item próprio (checklist "Apenas itens terceirizados nas linhas", erros traduzidos a partir da mensagem do backend ASCII e acentuações); (2) `hasActiveCatalog` passa a exigir ao menos um item `outsourced` ativo; (3) corrigir o overflow de página pré-existente das ações de linha de Preços Próprios ancorando o span sr-only "Acoes" no th (relative px-4 py-3) e habilitando quebra de texto na coluna do cartão mobile (min-w-0 + break-words), sem aplicar overflow-x-hidden global; (4) DROPPED: não injetar erro do backend no DOM nos E2E — o caminho backend já é coberto pela suíte SQL e a tradução por teste unitário, e a injeção via DOM é frágil com a reconciliação de options do React.
+
+**Motivo:** alinhar o frontend à regra de negócio já imposta no banco (evitar que o usuário erre no submit e receba erro de API); itens vinculados a cotações existentes não podem sumir do seletor ao editar; erro de API só carrega message (sem SQLSTATE confiável), portanto a tradução precisa casar com o texto exato; medidas locais de overflow (acentrado no th, sem mudar TableShell) eliminam o extravasamento sem abrir mão do scroll horizontal local das tabelas largas (460+ colunas de ações) nem vetam o scroll de página no mobile.
+
+**Impacto:** sete fontes + testes alterados (quotation-items-grid, quotation-editor-page, quotation.service/translateQuotationError, quotation.types/sourcing_type no Pick do item de linha, own-prices-page, own-price-proposal.spec.ts, playwright.config) e um E2E permanente novo (quotation-eligibility.spec.ts) com fixture isolada, marker e cleanup zero-resíduo. Frontend: 569 testes verdes, `npx tsc --noEmit` limpo, `npm run build` ok. E2E escopo: overflow de Preços Próprios verde em chromium e team-chromium (loop 375/390/768/1024/1280/1440 com dados), quotation-draft, quotation-eligibility e own-price-history verdes; suite completa chromium: 29 passed + 3 failed (ui-stability TEST 4/5 em uma execução carregada — revertido na rerun isolada: TEST 4 passou com e sem as mudanças, confirmando flakiness de ambiente, sem relação com a fase). Banco DEV e PROD não tocados. Documentado em LL-068.
