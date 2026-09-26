@@ -4,7 +4,7 @@
 
 **Baseline funcional:** v0.2  
 **Baseline tÃ©cnico:** v0.3  
-**Status atual:** FASE 3C.4 - Contencao horizontal do editor, comparacao e tabela de precos - COMPLETED_WITH_FINDINGS.
+**Status atual:** FASE 3C.5 - Registro da homologacao responsiva da Fase 3C.4 - COMPLETED.
 
 ---
 
@@ -882,6 +882,30 @@ Gate 3C.4 (frontend):
 - E2E de homologacao: novo cenario responsivo Admin verde; Equipe responsivo 2/2; suite Admin 5/6 na primeira execucao e o caso flaky de item proprio verde no rerun isolado, sem regressao funcional observada;
 - sonda DOM pos-build: 18 combinacoes sem overflow global; elementos internos listados permanecem dentro de shells com `overflow-x-auto`;
 - fixtures `E2E_3C3_*` temporárias no DEV, com cleanup e zero resíduos; sem migrations/schema ou dados permanentes; PROD intocado; decision register DEC-073; learning log LL-069.
+
+Homologacao responsiva da Fase 3C.4 (aprovada em 2026-09-26, sem alteracao de codigo):
+
+- commit `7a37bea` reconfirmado em `main` e sincronizado com `origin/main` (0/0); `npm run build` reexecutado a partir do commit, bundle `index-LYuhL5kl.js` servido no preview local;
+- ver escopo exclusivamente de validacao: nenhuma alteracao em componentes, specs E2E, banco ou regra de negocio; PROD intocado;
+- 18 combinacoes (3 telas x 6 breakpoints) sem overflow global, com assercao de igualdade exata entre `documentElement.scrollWidth`, `documentElement.clientWidth`, `document.body.scrollWidth` e `document.scrollingElement.scrollWidth` contra a largura do breakpoint;
+- rolagem local das tabelas funcional em 768/1024/1280/1440 nas telas de Comparacao e Tabela de Precos (`overflow-x: auto`, `scrollWidth > clientWidth`, `scrollLeft > 0` ao alcancar o fim, `clientWidth` do shell dentro da viewport);
+- acessibilidade conferida com dados preenchidos: Editor com o seletor de item e `Salvar rascunho` visiveis nos seis breakpoints; Equipe sem qualquer acao `Decidir` e com drawer em somente leitura;
+- residuos desta execucao: 0.
+
+### FASE 3C.5 - Registro da homologacao responsiva e versionamento do wiring E2E
+
+Escopo restrito a `playwright.config.ts`, este roadmap e o log de aprendizado. Sem componentes, sem specs E2E, sem banco, sem regra de negocio e sem PROD.
+
+- preflight: `main` em `7a37bea`, `origin/main` identico (0/0 apos `git fetch`); unica alteracao local era `playwright.config.ts`; artefatos locais (`ctx-*.txt`, `log-*.txt`) preservados fora do commit;
+- configuracao: `testMatch` do projeto `chromium` passou a reconhecer `quotation-homologation-admin.spec.ts` e o do `team-chromium` a reconhecer `quotation-homologation-team.spec.ts`; os demais `testMatch`, projetos, `baseURL` e `webServer` preservados, sem qualquer URL de PROD;
+- descoberta: `npx playwright test --list` lista 6 testes de `quotation-homologation-admin.spec.ts` em `chromium` e 2 de `quotation-homologation-team.spec.ts` em `team-chromium` (66 testes em 20 arquivos no total);
+- execucao individual contra o DEV autorizado: Admin 8/8 (2 de `authenticate` + 6 do spec, incluindo o cenario responsivo das 3 telas) e Equipe 2/2 (incluindo o cenario responsivo de Comparacao e Tabela de Precos);
+- pos-flight: 0 residuos `E2E_3C3_*` em `suppliers`, `catalog_categories`, `catalog_items`, `quotations`, `quotation_items` e `margin_rules`; 0 linhas criadas em 2026-09-26 com prefixo `E2E_*` em nenhuma tabela auditada;
+- limitacoes de cobertura observadas (nao corrigidas nesta fase): o cenario do Editor nao assere visibilidade de `Ativar` nem rolagem local (o grid de itens e `article` por linha, com colunas em `md`/`xl`, nao tabela) e o cenario da Equipe nao cobre o Editor.
+
+Pendencia registrada (nao excluida, nao limpa):
+
+- fixtures antigas `E2E_S2_*` remanescentes no DEV, todas criadas em 2026-09-24 (4 lotes as 14:58, 20:48, 21:52 e 22:09 UTC): 12 fornecedores, 8 categorias, 8 itens de catalogo, 7 cotacoes e 1 `price_list` inativa aprovada em 2026-09-24. O prefixo `E2E_S2_*` e o mesmo usado por `e2e/fixtures.ts` no `globalSetup` das execucoes atuais, mas nenhuma linha dessas quantidades foi criada nas execucoes desta fase (0 com `created_at` em 2026-09-26). A limpeza fica pendente para etapa propria; o prefixo `E2E_S2_*` deve ser mantido para nao misturar o residuo antigo com a telemetria de execucoes futuras.
 
 
 

@@ -37,7 +37,7 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      testMatch: /(quotation-draft|quotation-eligibility|comparison-flow|pricing-rules-flow|price-approval-admin|pricing-dashboard|crm-admin|ui-stability|own-price-proposal|own-price-history)\.spec\.ts/,
+      testMatch: /(quotation-draft|quotation-eligibility|comparison-flow|pricing-rules-flow|price-approval-admin|pricing-dashboard|crm-admin|ui-stability|own-price-proposal|own-price-history|quotation-homologation-admin)\.spec\.ts/,
       dependencies: ['authenticate'],
       use: {
         ...devices['Desktop Chrome'],
@@ -65,7 +65,7 @@ export default defineConfig({
     },
     {
       name: 'team-chromium',
-      testMatch: /(pricing-rules-team|price-approval-team|crm-team|own-price-proposal|own-price-history)\.spec\.ts/,
+      testMatch: /(pricing-rules-team|price-approval-team|crm-team|own-price-proposal|own-price-history|quotation-homologation-team)\.spec\.ts/,
       dependencies: ['chromium'],
       use: {
         ...devices['Desktop Chrome'],
