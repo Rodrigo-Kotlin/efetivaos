@@ -9,6 +9,7 @@ import {
   fetchProfileName,
   inactivateOwnPriceProposal,
   listOwnCatalogItems,
+  listOwnPriceCommercialStatus,
   listOwnPriceProposals,
 } from './own-prices-api'
 
@@ -26,6 +27,10 @@ export function useOwnPriceProposals() {
 
 export function useOwnPriceCatalogItems() {
   return useQuery({ queryKey: ownPriceKeys.catalog(), queryFn: listOwnCatalogItems })
+}
+
+export function useOwnPriceCommercialStatus() {
+  return useQuery({ queryKey: [...ownPriceKeys.all, 'commercial-status'], queryFn: listOwnPriceCommercialStatus })
 }
 
 export function useOwnPriceDecisionToken(proposalId: string | null) {

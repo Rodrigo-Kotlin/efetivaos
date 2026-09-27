@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/types/database'
-import type { OwnPriceProposal, OwnPriceProposalInsert, OwnPriceProposalItem, OwnPriceStatus } from '@/types/database'
+import type { OwnPriceProposal, OwnPriceProposalInsert, OwnPriceProposalItem, OwnPriceStatus, PriceList } from '@/types/database'
 
 import type { OwnCatalogItem } from './own-prices.types'
 
@@ -93,6 +93,33 @@ export async function listOwnCatalogItems(): Promise<OwnCatalogItem[]> {
     category_id: row.category_id,
     category_name: row.category?.name ?? null,
     active: row.active,
+  }))
+}
+
+export type OwnPriceCommercialStatus = {
+  catalog_item_id: string
+  price_list_id: string | null
+  status: 'approved' | 'inactive' | null
+  own_price_proposal_id: string | null
+  final_price: string | null
+  approved_at: string | null
+}
+
+const commercialStatusSelect = 'catalog_item_id, id, status, own_price_proposal_id, final_price, approved_at'
+
+export async function listOwnPriceCommercialStatus(): Promise<OwnPriceCommercialStatus[]> {
+  const { data, error } = await supabase
+    .from('price_list')
+    .select(commercialStatusSelect)
+    .eq('price_origin', 'own')
+  if (error) throw translateOwnPriceError(error)
+  return (data ?? []).map((row) => ({
+    catalog_item_id: row.catalog_item_id,
+    price_list_id: row.id,
+    status: row.status === 'approved' ? 'approved' : row.status === 'inactive' ? 'inactive' : null,
+    own_price_proposal_id: row.own_price_proposal_id ?? null,
+    final_price: row.final_price,
+    approved_at: row.approved_at,
   }))
 }
 

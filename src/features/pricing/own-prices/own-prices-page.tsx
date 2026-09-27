@@ -16,8 +16,8 @@ import type { OwnPriceProposalInsert, OwnPriceProposalItem } from '@/types/datab
 import { OwnPriceDecisionDrawer, OwnPriceRetireDrawer } from './own-price-decision-drawer'
 import { OwnPriceHistoryDrawer } from './own-price-history-drawer'
 import { OwnPriceProposalForm } from './own-price-proposal-form'
-import { useCreateOwnPriceProposal, useOwnPriceCatalogItems, useOwnPriceProposals } from './own-prices-queries'
-import type { OwnCatalogItem, OwnPriceRowState, OwnPriceStatusFilter, OwnPriceViewRow } from './own-prices.types'
+import { useCreateOwnPriceProposal, useOwnPriceCatalogItems, useOwnPriceCommercialStatus, useOwnPriceProposals } from './own-prices-queries'
+import type { OwnCatalogItem, OwnPriceRowState, OwnPriceStatusFilter, OwnPriceViewRow, OwnPriceCommercialStatus } from './own-prices.types'
 
 type FormDrawer = { mode: 'create' | 'reajuste'; item: OwnCatalogItem | null } | null
 
@@ -28,17 +28,32 @@ function StateBadge({ state }: { state: OwnPriceRowState }) {
   return <Badge variant="outline">Sem preco</Badge>
 }
 
-function buildRows(items: OwnCatalogItem[], proposals: OwnPriceProposalItem[]): OwnPriceViewRow[] {
+function buildRows(
+  items: OwnCatalogItem[],
+  proposals: OwnPriceProposalItem[],
+  commercialStatusList: OwnPriceCommercialStatus[]
+): OwnPriceViewRow[] {
+  const commercialStatusByItem = new Map(commercialStatusList.map((cs) => [cs.catalog_item_id, cs]))
+
   return items.map((item) => {
     const itemProposals = proposals.filter((proposal) => proposal.catalog_item_id === item.id)
     const pending = itemProposals.find((proposal) => proposal.status === 'pending') ?? null
-    const approvedList = itemProposals
-      .filter((proposal) => proposal.status === 'approved')
-      .sort((a, b) => (b.approved_at ?? '').localeCompare(a.approved_at ?? ''))
-    const currentApproved = approvedList[0] ?? null
+    const commercialStatus = commercialStatusByItem.get(item.id) ?? null
+    const hasActiveCommercialPrice = commercialStatus?.status === 'approved' && commercialStatus.own_price_proposal_id
+    const currentApproved = hasActiveCommercialPrice
+      ? itemProposals.find((p) => p.id === commercialStatus.own_price_proposal_id) ?? null
+      : null
     const hasInactive = itemProposals.some((proposal) => proposal.status === 'inactive')
-    const state: OwnPriceRowState = pending ? 'pending' : currentApproved ? 'approved' : hasInactive ? 'inactive' : 'no_price'
-    return { item, state, currentApproved, pending, proposals: itemProposals }
+    const state: OwnPriceRowState = pending
+      ? 'pending'
+      : hasActiveCommercialPrice
+      ? 'approved'
+      : commercialStatus?.status === 'inactive'
+      ? 'inactive'
+      : hasInactive
+      ? 'inactive'
+      : 'no_price'
+    return { item, state, currentApproved, pending, proposals: itemProposals, commercialStatus }
   })
 }
 
@@ -49,6 +64,7 @@ export default function OwnPricesPage() {
 
   const catalogQuery = useOwnPriceCatalogItems()
   const proposalsQuery = useOwnPriceProposals()
+  const commercialStatusQuery = useOwnPriceCommercialStatus()
   const createMutation = useCreateOwnPriceProposal()
 
   const [search, setSearch] = useState('')
@@ -59,7 +75,10 @@ export default function OwnPricesPage() {
   const [retireProposal, setRetireProposal] = useState<OwnPriceProposalItem | null>(null)
   const [historyRow, setHistoryRow] = useState<OwnPriceViewRow | null>(null)
 
-  const rows = useMemo(() => buildRows(catalogQuery.data ?? [], proposalsQuery.data ?? []), [catalogQuery.data, proposalsQuery.data])
+  const rows = useMemo(
+    () => buildRows(catalogQuery.data ?? [], proposalsQuery.data ?? [], commercialStatusQuery.data ?? []),
+    [catalogQuery.data, proposalsQuery.data, commercialStatusQuery.data]
+  )
   const categories = useMemo(() => {
     const values = new Map<string, string>()
     for (const row of rows) if (row.item.category_name) values.set(row.item.category_id, row.item.category_name)
@@ -95,9 +114,9 @@ export default function OwnPricesPage() {
     }
   }
 
-  const isLoading = catalogQuery.isLoading || proposalsQuery.isLoading
-  const isError = catalogQuery.isError || proposalsQuery.isError
-  const retry = () => { void catalogQuery.refetch(); void proposalsQuery.refetch() }
+  const isLoading = catalogQuery.isLoading || proposalsQuery.isLoading || commercialStatusQuery.isLoading
+  const isError = catalogQuery.isError || proposalsQuery.isError || commercialStatusQuery.isError
+  const retry = () => { void catalogQuery.refetch(); void proposalsQuery.refetch(); void commercialStatusQuery.refetch() }
 
   return (
     <div className="mx-auto max-w-[1480px]">

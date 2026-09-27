@@ -7,6 +7,7 @@ import type { OwnPriceProposalItem } from '@/types/database'
 const hooks = vi.hoisted(() => ({
   useOwnPriceCatalogItems: vi.fn(),
   useOwnPriceProposals: vi.fn(),
+  useOwnPriceCommercialStatus: vi.fn(),
   useCreateOwnPriceProposal: vi.fn(),
   useApproveOwnPriceProposal: vi.fn(),
   useInactivateOwnPriceProposal: vi.fn(),
@@ -23,6 +24,7 @@ vi.mock('sonner', () => ({ toast: hooks.toast }))
 vi.mock('./own-prices-queries', () => ({
   useOwnPriceCatalogItems: hooks.useOwnPriceCatalogItems,
   useOwnPriceProposals: hooks.useOwnPriceProposals,
+  useOwnPriceCommercialStatus: hooks.useOwnPriceCommercialStatus,
   useCreateOwnPriceProposal: hooks.useCreateOwnPriceProposal,
   useApproveOwnPriceProposal: hooks.useApproveOwnPriceProposal,
   useInactivateOwnPriceProposal: hooks.useInactivateOwnPriceProposal,
@@ -46,11 +48,24 @@ function proposalItem(id: string, overrides: Partial<OwnPriceProposalItem> = {})
   }
 }
 
+function commercialStatusItem(catalogItemId: string, overrides: Record<string, unknown> = {}) {
+  return {
+    catalog_item_id: catalogItemId,
+    price_list_id: `pl-${catalogItemId}`,
+    status: 'approved' as const,
+    own_price_proposal_id: `p-${catalogItemId}`,
+    final_price: '15.00',
+    approved_at: '2026-09-02T10:00:00Z',
+    ...overrides,
+  }
+}
+
 function defaults() {
   hooks.useAuth.mockReturnValue({ profile: { id: 'user-1', role: 'admin', full_name: 'Admin' } })
   hooks.useOnlineStatus.mockReturnValue(true)
   hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
   hooks.useOwnPriceProposals.mockReturnValue({ data: [proposalItem('B', { status: 'pending' }), proposalItem('C', { status: 'approved', approved_by: 'admin-1', approved_at: '2026-09-02T10:00:00Z' }), proposalItem('D', { status: 'inactive' })], isLoading: false, isError: false, refetch: vi.fn() })
+  hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [commercialStatusItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
   hooks.useCreateOwnPriceProposal.mockReturnValue({ isPending: false, mutateAsync: vi.fn().mockResolvedValue(null) })
   hooks.useApproveOwnPriceProposal.mockReturnValue({ isPending: false, mutateAsync: vi.fn().mockResolvedValue(null) })
   hooks.useInactivateOwnPriceProposal.mockReturnValue({ isPending: false, mutateAsync: vi.fn().mockResolvedValue(null) })
@@ -82,6 +97,7 @@ describe('OwnPricesPage', () => {
 
   it('mostra o estado derivado de cada servico proprio na tabela', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('A'), ownItem('B'), ownItem('C'), ownItem('D')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [commercialStatusItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
     renderPage()
 
     const rows = table().getAllByRole('row')
@@ -241,6 +257,7 @@ describe('OwnPricesPage', () => {
 
   it('reajuste exige justificativa e submete com a nota', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [commercialStatusItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
     const createMutation = { isPending: false, mutateAsync: vi.fn().mockResolvedValue(null) }
     hooks.useCreateOwnPriceProposal.mockReturnValue(createMutation)
     renderPage()
@@ -263,6 +280,7 @@ describe('OwnPricesPage', () => {
 
   it('admin inativa um preco proprio aprovado', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [commercialStatusItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
     const inactivateMutation = { isPending: false, mutateAsync: vi.fn().mockResolvedValue(null) }
     hooks.useInactivateOwnPriceProposal.mockReturnValue(inactivateMutation)
     renderPage()
@@ -293,6 +311,7 @@ describe('OwnPricesPage', () => {
   it('filtros por status e busca vazia', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('A'), ownItem('B')], isLoading: false, isError: false, refetch: vi.fn() })
     hooks.useOwnPriceProposals.mockReturnValue({ data: [proposalItem('B', { status: 'pending' })], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
     renderPage()
 
     await userEvent.type(screen.getByPlaceholderText('Buscar servico, codigo ou categoria...'), 'nao-existe')
@@ -316,12 +335,14 @@ describe('OwnPricesPage', () => {
 
   it('mostra esqueleto enquanto carrega e permite nova tentativa em erro', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: undefined, isLoading: true, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: undefined, isLoading: true, isError: false, refetch: vi.fn() })
     const proposalsRefetch = hooks.useOwnPriceProposals.mockReturnValue({ data: undefined, isLoading: true, isError: false, refetch: vi.fn() })
 
     const { rerender } = renderPage()
     expect(screen.getByText('Carregando...')).toBeInTheDocument()
 
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: vi.fn() })
     hooks.useOwnPriceProposals.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: proposalsRefetch })
     rerender(<MemoryRouter><OwnPricesPage /></MemoryRouter>)
     await userEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
@@ -332,6 +353,7 @@ describe('OwnPricesPage', () => {
   it('bloqueia acoes quando o item esta inativo no catalogo', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('A', { active: false })], isLoading: false, isError: false, refetch: vi.fn() })
     hooks.useOwnPriceProposals.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [], isLoading: false, isError: false, refetch: vi.fn() })
     renderPage()
 
     expect(screen.getAllByRole('button', { name: 'Definir preco proprio para Servico A' })[0]).toBeDisabled()
@@ -339,6 +361,7 @@ describe('OwnPricesPage', () => {
 
   it('abre o historico de propostas de um servico proprio', async () => {
     hooks.useOwnPriceCatalogItems.mockReturnValue({ data: [ownItem('C')], isLoading: false, isError: false, refetch: vi.fn() })
+    hooks.useOwnPriceCommercialStatus.mockReturnValue({ data: [commercialStatusItem('C', { own_price_proposal_id: 'p-C2', final_price: '18.00', approved_at: '2026-09-10T10:00:00Z' })], isLoading: false, isError: false, refetch: vi.fn() })
     hooks.useOwnPriceProposals.mockReturnValue({
       data: [
         proposalItem('C', { status: 'approved', sale_price: '15.00', approved_by: 'admin-1', approved_at: '2026-09-02T10:00:00Z', revision: 1 }),
