@@ -23,6 +23,8 @@ describe('quotation validation', () => {
     expect(quotationSchema.safeParse(values).success).toBe(true)
     expect(validateActivation(values)).toEqual({ 'items.0.catalog_item_id': 'Linha 1: vincule um item do Catalogo Efetiva.' })
     expect(normalizeQuotationValues(values).items[0].unit_price).toBe('25.90')
+    expect(normalizeQuotationValues(values).notes).toBeNull()
+    expect(normalizeQuotationValues(values).items[0].supplier_item_code).toBeNull()
   })
 
   it('rejeita item canonico duplicado', () => {

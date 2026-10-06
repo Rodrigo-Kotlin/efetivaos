@@ -89,8 +89,8 @@ export function QuotationItemsGrid({ fields, register, errors, catalogItems, sel
     </div>
     <FieldError id="items-error">{arrayError}</FieldError>
     {fields.length === 0 ? <p className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhum item adicionado.</p> : <>
-      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 text-sm" role="table" aria-label="Itens da cotação">
-        <div className="hidden grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(8rem,1fr)_5rem] gap-3 border-b border-slate-200 bg-slate-50 px-3 py-3 text-xs uppercase tracking-wide text-slate-500 md:grid" role="row"><span role="columnheader">Item do catálogo</span><span role="columnheader">Código do fornecedor</span><span role="columnheader">Preço unitário</span><span role="columnheader" className="text-right">Ação</span></div>
+      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 text-sm" role="table" aria-label="Itens da cotação">
+        <div className="hidden grid-cols-[minmax(0,1fr)_10rem_3.5rem] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs uppercase tracking-wide text-slate-500 md:grid" role="row"><span role="columnheader">Item</span><span role="columnheader">Preço unitário</span><span role="columnheader" className="text-center">Ação</span></div>
         {fields.map((field, index) => <QuotationItemRow key={field.id} field={field} index={index} register={register} errors={errors} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} activationIssues={activationIssues} onRemove={onRemove} />)}
       </div>
     </>}
@@ -101,13 +101,12 @@ export function QuotationItemsGrid({ fields, register, errors, catalogItems, sel
 type RowProps = Omit<Props, 'fields' | 'onAdd'> & { field: FieldArrayWithId<QuotationFormValues, 'items'>; index: number }
 
 function QuotationItemRow({ field, index, register, errors, catalogItems, selectedCatalogIds, activationIssues, onRemove }: RowProps) {
-  return <div className="grid gap-3 border-b border-slate-100 p-3 last:border-0 md:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(8rem,1fr)_5rem] md:items-start" role="row">
-    <div role="cell">
+  return <div className="grid gap-3 border-b border-slate-100 p-3 last:border-0 md:grid-cols-[minmax(0,1fr)_10rem_3.5rem] md:items-center md:gap-4 md:px-4 md:py-2.5" role="row">
+    <div className="min-w-0" role="cell">
       <CatalogCell field={field} index={index} register={register} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} errors={errors} activationIssues={activationIssues} />
     </div>
-    <div role="cell"><label className="text-xs font-bold uppercase tracking-wide md:sr-only" htmlFor={`items.${index}.supplier_item_code`}>Código do fornecedor</label><Input id={`items.${index}.supplier_item_code`} className="mt-1 md:mt-0" aria-label={`Código do fornecedor ${index + 1}`} {...register(`items.${index}.supplier_item_code`)} /></div>
     <div role="cell"><PriceCell index={index} register={register} errors={errors} activationIssues={activationIssues} /></div>
-    <div role="cell" className="flex justify-end md:justify-center"><Button className="w-full md:w-auto" type="button" variant="outline" aria-label={`Remover item ${index + 1}`} onClick={() => onRemove(index)}><Trash2 className="size-4" /> Excluir</Button></div>
+    <div role="cell" className="flex justify-end md:justify-center"><Button className="size-10 shrink-0 p-0 text-slate-500 hover:text-red-700" type="button" variant="ghost" title="Remover item" aria-label={`Remover item ${index + 1}`} onClick={() => onRemove(index)}><Trash2 className="size-4" /></Button></div>
   </div>
 }
 
@@ -117,13 +116,12 @@ function CatalogCell({ field, index, register, catalogItems, selectedCatalogIds,
   const catalogError = errors.items?.[index]?.catalog_item_id?.message || activationIssues[`items.${index}.catalog_item_id`]
   const options = catalogItems.filter((item) => item.active && item.sourcing_type === 'outsourced' && (!selectedCatalogIds.includes(item.id) || item.id === selectedId))
   return <div className="min-w-0">
-    <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Item do catálogo</span>
-    {selectedItem ? <><input type="hidden" defaultValue={selectedItem.id} {...register(`items.${index}.catalog_item_id`)} /><p className="mt-1 break-words font-semibold text-slate-900">{itemLabel(selectedItem)}<span className="block text-xs font-normal text-slate-500">{selectedItem.category.name} · {selectedItem.unit}{historicalLabel(selectedItem)}</span></p></> : <select aria-label={`Item do Catálogo Efetiva ${index + 1}`} className={`${selectClassName} mt-1 w-full`} aria-invalid={Boolean(catalogError) || undefined} {...register(`items.${index}.catalog_item_id`)}><option value="">Mapear item do catálogo...</option>{options.map((item) => <option key={item.id} value={item.id}>{itemLabel(item)}</option>)}</select>}
+    {selectedItem ? <><input type="hidden" defaultValue={selectedItem.id} {...register(`items.${index}.catalog_item_id`)} /><p className="break-words font-semibold leading-5 text-slate-900">{itemLabel(selectedItem)}<span className="block text-xs font-normal leading-4 text-slate-500">{selectedItem.category.name} · {selectedItem.unit}{historicalLabel(selectedItem)}</span></p></> : <select aria-label={`Item do Catálogo Efetiva ${index + 1}`} className={`${selectClassName} w-full`} aria-invalid={Boolean(catalogError) || undefined} {...register(`items.${index}.catalog_item_id`)}><option value="">Mapear item do catálogo...</option>{options.map((item) => <option key={item.id} value={item.id}>{itemLabel(item)}</option>)}</select>}
     <FieldError id={`item-${index}-catalog-error`}>{catalogError}</FieldError>
   </div>
 }
 
 function PriceCell({ index, register, errors, activationIssues }: Pick<RowProps, 'index' | 'register' | 'errors' | 'activationIssues'>) {
   const priceError = errors.items?.[index]?.unit_price?.message || activationIssues[`items.${index}.unit_price`]
-  return <div><label className="text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.unit_price`}>Preço unitário *</label><Input id={`items.${index}.unit_price`} className="mt-1" inputMode="decimal" placeholder="0,00" aria-invalid={Boolean(priceError) || undefined} aria-describedby={priceError ? `item-${index}-price-error unit-normalization-warning` : 'unit-normalization-warning'} {...register(`items.${index}.unit_price`)} /><FieldError id={`item-${index}-price-error`}>{priceError}</FieldError></div>
+  return <div><label className="text-xs font-bold uppercase tracking-wide text-slate-500" htmlFor={`items.${index}.unit_price`}>Preço unitário *</label><Input id={`items.${index}.unit_price`} className="mt-1 h-10 font-medium tabular-nums" inputMode="decimal" placeholder="R$ 0,00" aria-invalid={Boolean(priceError) || undefined} aria-describedby={priceError ? `item-${index}-price-error unit-normalization-warning` : 'unit-normalization-warning'} {...register(`items.${index}.unit_price`)} /><FieldError id={`item-${index}-price-error`}>{priceError}</FieldError></div>
 }

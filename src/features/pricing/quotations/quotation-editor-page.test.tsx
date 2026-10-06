@@ -171,6 +171,11 @@ describe('QuotationEditorPage', () => {
     await addCatalogItem(user)
     expect(screen.queryByLabelText('Descrição do fornecedor')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Observação da linha')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Observações')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Código do fornecedor/)).not.toBeInTheDocument()
+    expect(screen.getByText('EXA-1 · Hemograma')).toBeInTheDocument()
+    expect(screen.getByText('Exames · exame')).toBeInTheDocument()
+    expect(screen.getByTitle('Remover item')).toBeInTheDocument()
   })
 
   it('adiciona itens em sequência, remove o item das opções e o devolve após exclusão', async () => {
