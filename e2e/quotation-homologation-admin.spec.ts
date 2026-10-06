@@ -26,8 +26,10 @@ async function chooseByName(control: Locator, name: string) {
   await control.selectOption((await option.getAttribute('value')) ?? '')
 }
 
-function itemSelect(page: Page, index: number) {
-  return page.getByLabel(`Item do Catálogo Efetiva ${index}`, { exact: true })
+async function chooseCatalogItem(page: Page, itemName: string) {
+  const search = page.getByPlaceholder('Buscar item por código ou nome...')
+  await search.fill(itemName)
+  await page.getByRole('option', { name: new RegExp(itemName) }).click()
 }
 
 async function createAndActivateQuotation(page: Page, supplierName: string, item: CatalogItemFixture, reference: string, receivedAt: string, unitPrice: string) {
@@ -38,12 +40,7 @@ async function createAndActivateQuotation(page: Page, supplierName: string, item
   await page.getByLabel(/N.mero\s*\/\s*refer.ncia|Refer.ncia/i).first().fill(reference)
   await page.getByLabel(/Data recebida/i).first().fill(receivedAt)
 
-  let catalog = itemSelect(page, 1)
-  if (!(await catalog.count())) {
-    await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-    catalog = itemSelect(page, 1)
-  }
-  await chooseByName(catalog, item.name)
+  await chooseCatalogItem(page, item.name)
   await page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first().fill(unitPrice)
 
   await page.getByRole('button', { name: /Salvar rascunho/i }).click()
@@ -152,13 +149,12 @@ test('Seletor oferece somente itens terceirizados ativos e o banco ainda bloquei
 
     await page.goto('/pricing/quotations/new')
     await expect(page.getByRole('heading', { name: /Nova cota(?:ç|c)(?:ã|a)o/i })).toBeVisible()
-    await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-    const catalog = itemSelect(page, 1)
-    await expect(catalog).toBeVisible()
-    await expect(catalog.locator('option', { hasText: ownActive.name })).toHaveCount(0)
-    await expect(catalog.locator('option', { hasText: ownInactive.name })).toHaveCount(0)
-    await expect(catalog.locator('option', { hasText: outsourcedInactive.name })).toHaveCount(0)
-    await expect(catalog.locator('option', { hasText: outsourcedActive.name })).toHaveCount(1)
+     const search = page.getByPlaceholder('Buscar item por código ou nome...')
+     await search.click()
+     await expect(page.getByRole('option', { name: new RegExp(ownActive.name) })).toHaveCount(0)
+     await expect(page.getByRole('option', { name: new RegExp(ownInactive.name) })).toHaveCount(0)
+     await expect(page.getByRole('option', { name: new RegExp(outsourcedInactive.name) })).toHaveCount(0)
+     await expect(page.getByRole('option', { name: new RegExp(outsourcedActive.name) })).toHaveCount(1)
 
     const quotationId = await provisionDraftQuotation(service, {
       supplierId: collection.supplierIds[0],
@@ -226,21 +222,18 @@ test('Editor preserva item histórico inativo, não inclui incompatíveis e bloq
 
     await page.goto(`/pricing/quotations/${quotationId}`)
     await expect(page.getByRole('heading', { name: `${prefix}_QUOTE`, exact: true })).toBeVisible()
-    const catalog = itemSelect(page, 1)
-    await expect(catalog).toBeVisible()
-    await expect(catalog.locator('option:checked')).toContainText(inactiveItem.name)
-    await expect(catalog.locator('option:checked')).toContainText('(inativo - histórico)')
+     await expect(page.getByText(new RegExp(`${inactiveItem.code} · ${inactiveItem.name}`)).first()).toBeVisible()
+     await expect(page.getByText('(inativo - histórico)').first()).toBeVisible()
     await expect(
       page.getByText('Esta cotação possui fornecedor ou item histórico inativo. Você pode salvar o rascunho, mas deve reativar o cadastro ou selecionar outro registro antes de ativar.', { exact: true }),
     ).toBeVisible()
     await expect(page.getByText('Item inativo nas linhas 1. Reative-o no catálogo ou selecione outro item.', { exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: /^Ativar$/i })).toBeDisabled()
 
-    await page.getByRole('button', { name: /^Adicionar item$/i }).click()
-    const secondLine = itemSelect(page, 2)
-    await expect(secondLine).toBeVisible()
-    await expect(secondLine.locator('option', { hasText: inactiveItem.name })).toHaveCount(0)
-    await expect(secondLine.locator('option', { hasText: activeItem.name })).toHaveCount(1)
+     const search = page.getByPlaceholder('Buscar item por código ou nome...')
+     await search.fill(activeItem.name)
+     await expect(page.getByRole('option', { name: new RegExp(activeItem.name) })).toHaveCount(1)
+     await expect(page.getByRole('option', { name: new RegExp(inactiveItem.name) })).toHaveCount(0)
   } finally {
     await cleanupHomologation(service, collection)
     const residue = await captureResidue(service, collection)
@@ -282,7 +275,7 @@ commit;
     await page.goto(`/pricing/quotations/${quotationId}`)
     await expect(page.getByRole('heading', { name: `${prefix}_QUOTE`, exact: true })).toBeVisible()
     await expect(page.getByText('Serviços próprios da Efetiva não podem ser incluídos em cotações de fornecedores.', { exact: true })).toBeVisible()
-    await expect(page.locator('option:checked').filter({ hasText: '(serviço próprio)' })).toHaveCount(1)
+     await expect(page.getByText('(serviço próprio)').first()).toBeVisible()
     await expect(page.getByText('Linha 2: serviço próprio da Efetiva não pode ser incluído em cotação de fornecedor.', { exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: /^Ativar$/i })).toBeDisabled()
   } finally {
@@ -307,8 +300,7 @@ test('Admin bloqueia ativação por requisitos e trata indisponibilidade de rede
     await test.step('sem fornecedor, ativação fica indisponível', async () => {
       await page.goto('/pricing/quotations/new')
       await expect(page.getByRole('heading', { name: /Nova cota(?:ç|c)(?:ã|a)o/i })).toBeVisible()
-      await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-      await chooseByName(itemSelect(page, 1), item.name)
+       await chooseCatalogItem(page, item.name)
       await page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first().fill('30,00')
       await expect(page.getByLabel('Requisitos para ativação').getByText('Selecione um fornecedor.', { exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Revisar pendências' })).toBeVisible()
@@ -329,8 +321,7 @@ test('Admin bloqueia ativação por requisitos e trata indisponibilidade de rede
       await chooseByName(page.getByLabel(/Fornecedor/i).first(), `${prefix}_SUPPLIER`)
       await page.getByLabel(/Data recebida/i).first().fill('2026-09-30')
       await page.getByLabel(/Validade/i).first().fill('2026-09-01')
-      await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-      await chooseByName(itemSelect(page, 1), item.name)
+       await chooseCatalogItem(page, item.name)
       await page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first().fill('30,00')
       await expect(page.getByLabel('Requisitos para ativação').getByText('A validade deve ser igual ou posterior ao recebimento.', { exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: /^Ativar$/i })).toBeDisabled()
@@ -341,8 +332,7 @@ test('Admin bloqueia ativação por requisitos e trata indisponibilidade de rede
       await expect(page.getByRole('heading', { name: /Nova cota(?:ç|c)(?:ã|a)o/i })).toBeVisible()
       await chooseByName(page.getByLabel(/Fornecedor/i).first(), `${prefix}_SUPPLIER`)
       await page.getByLabel(/Data recebida/i).first().fill('2026-09-24')
-      await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-      await chooseByName(itemSelect(page, 1), item.name)
+       await chooseCatalogItem(page, item.name)
       await page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first().fill('30,00')
       await page.context().setOffline(true)
       try {
@@ -466,7 +456,7 @@ test('Editor, comparação e tabela de preços não excedem a largura da viewpor
       await page.setViewportSize({ width, height: 900 })
       await page.goto(`/pricing/quotations/${draftId}`)
       await openAndWait(() => page.getByRole('heading', { name: `${longText}_DRAFT`, exact: true }))
-      await expect(itemSelect(page, 1)).toBeVisible()
+       await expect(page.getByText(new RegExp(item.code)).first()).toBeVisible()
       await expect(page.getByRole('button', { name: /Salvar rascunho/i })).toBeVisible()
       await assertNoGlobalOverflow(width, 'editor de cotação')
 

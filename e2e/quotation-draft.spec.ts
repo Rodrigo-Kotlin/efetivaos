@@ -24,6 +24,12 @@ async function expectSelected(control: Locator, optionName: string) {
   await expect(control).toContainText(optionName)
 }
 
+async function chooseCatalogItem(page: Page, itemName: string) {
+  const search = page.getByPlaceholder('Buscar item por código ou nome...')
+  await search.fill(itemName)
+  await page.getByRole('option', { name: new RegExp(itemName) }).click()
+}
+
 async function openQuotations(page: Page) {
   const link = page.getByRole('link', { name: /^Cota(?:ç|c)(?:õ|o)es$/i }).first()
   if (await link.count()) await link.click()
@@ -50,12 +56,7 @@ test('admin saves and reopens an isolated quotation draft', async ({ page }) => 
   await reference.fill(fixture.quotationReference)
   await received.fill(receivedAt)
 
-  let catalogItem = page.getByLabel(/Item do cat.logo|Cat.logo Efetiva/i).first()
-  if (!(await catalogItem.count())) {
-    await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-    catalogItem = page.getByLabel(/Item do cat.logo|Cat.logo Efetiva/i).first()
-  }
-  await chooseOption(catalogItem, fixture.catalogItemName)
+   await chooseCatalogItem(page, fixture.catalogItemName)
 
   const value = page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first()
   await value.fill(unitPrice)
@@ -76,13 +77,13 @@ test('admin saves and reopens an isolated quotation draft', async ({ page }) => 
   const reopenedSupplier = page.getByLabel(/Fornecedor/i).first()
   const reopenedReference = page.getByLabel(/N.mero\s*\/\s*refer.ncia|Refer.ncia/i).first()
   const reopenedReceived = page.getByLabel(/Data recebida/i).first()
-  const reopenedItem = page.getByLabel(/Item do cat.logo|Cat.logo Efetiva/i).first()
+   const reopenedItem = page.getByText(new RegExp(fixture.catalogItemCode), { exact: false }).first()
   const reopenedValue = page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first()
 
   await expect(reopenedReference).toHaveValue(fixture.quotationReference)
   await expect(reopenedReceived).toHaveValue(receivedAt)
   await expectSelected(reopenedSupplier, fixture.supplierName)
-  await expectSelected(reopenedItem, fixture.catalogItemName)
+   await expect(reopenedItem).toContainText(fixture.catalogItemName)
   await expect(reopenedValue).toHaveValue(/^137[.,]45$/)
   await expect(page.getByText('Rascunho', { exact: false }).first()).toBeVisible()
   const attachmentButton = page.getByRole('button', { name: /Abrir anexo atual/i })

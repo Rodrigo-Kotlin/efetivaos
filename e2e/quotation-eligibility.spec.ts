@@ -8,14 +8,16 @@ import { readFixtureState } from './fixtures'
 
 assertRemoteMutationAllowed()
 
-async function chooseOption(control: Locator, optionValue: string) {
-  await control.selectOption(optionValue)
-}
-
 async function chooseByName(control: Locator, name: string) {
   const option = control.locator('option').filter({ hasText: name }).first()
   await expect(option).toBeAttached()
   await control.selectOption(await option.getAttribute('value') ?? '')
+}
+
+async function chooseCatalogItem(page: import('@playwright/test').Page, itemName: string) {
+  const search = page.getByPlaceholder('Buscar item por código ou nome...')
+  await search.fill(itemName)
+  await page.getByRole('option', { name: new RegExp(itemName) }).click()
 }
 
 test('offers only outsourced catalog items in a new quotation', async ({ page }) => {
@@ -49,16 +51,11 @@ test('offers only outsourced catalog items in a new quotation', async ({ page })
     await chooseByName(page.getByLabel(/Fornecedor/i).first(), fixture.supplierName)
     await page.getByLabel(/N.mero\s*\/\s*refer.ncia|Refer.ncia/i).first().fill(`${marker}_QUOTE`)
     await page.getByLabel(/Data recebida/i).first().fill('2026-09-24')
-    await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-
-    const catalog = page.getByLabel(/Item do cat.logo|Cat.logo Efetiva/i).first()
-    await expect(catalog).toBeVisible()
-    const ownOptions = catalog.locator('option', { hasText: `${marker}_OWN_ITEM` })
-    await expect(ownOptions).toHaveCount(0)
-    const outsourcedOptions = catalog.locator('option', { hasText: `${marker}_OUTSOURCED_ITEM` })
-    await expect(outsourcedOptions).toHaveCount(1)
-
-    await chooseOption(catalog, outsourcedItem.data!.id)
+     const search = page.getByPlaceholder('Buscar item por código ou nome...')
+     await search.click()
+     await expect(page.getByRole('option', { name: new RegExp(`${marker}_OUTSOURCED_ITEM`) })).toHaveCount(1)
+     await expect(page.getByRole('option', { name: new RegExp(`${marker}_OWN_ITEM`) })).toHaveCount(0)
+     await chooseCatalogItem(page, `${marker}_OUTSOURCED_ITEM`)
     await page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first().fill('25,00')
     await page.getByRole('button', { name: /Salvar rascunho/i }).click()
     await expect(page.getByText('Cotação salva como rascunho.', { exact: true })).toBeVisible()

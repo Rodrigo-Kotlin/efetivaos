@@ -23,8 +23,10 @@ async function chooseByName(control: Locator, name: string) {
   await control.selectOption((await option.getAttribute('value')) ?? '')
 }
 
-function itemSelect(page: Page, index: number) {
-  return page.getByLabel(`Item do Catálogo Efetiva ${index}`, { exact: true })
+async function chooseCatalogItem(page: Page, itemName: string) {
+  const search = page.getByPlaceholder('Buscar item por código ou nome...')
+  await search.fill(itemName)
+  await page.getByRole('option', { name: new RegExp(itemName) }).click()
 }
 
 test('Equipe cria e ativa cotação, consulta comparação sem decidir e backend rejeita aprovação e regra', async ({ page }) => {
@@ -47,8 +49,7 @@ test('Equipe cria e ativa cotação, consulta comparação sem decidir e backend
     await page.getByLabel(/N.mero\s*\/\s*refer.ncia|Refer.ncia/i).first().fill(`${prefix}_QUOTE`)
     await page.getByLabel(/Data recebida/i).first().fill('2026-09-24')
     await page.getByLabel(/Validade/i).first().fill('2027-09-24')
-    await page.getByRole('button', { name: /Adicionar item|Novo item/i }).click()
-    await chooseByName(itemSelect(page, 1), item.name)
+    await chooseCatalogItem(page, item.name)
     await page.getByLabel(/Valor unit.rio|Pre.o unit.rio/i).first().fill('100,00')
     await page.getByRole('button', { name: /Salvar rascunho/i }).click()
     await expect(page.getByText('Cotação salva como rascunho.', { exact: true })).toBeVisible()

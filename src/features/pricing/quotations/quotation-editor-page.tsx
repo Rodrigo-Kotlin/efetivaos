@@ -75,6 +75,7 @@ export default function QuotationEditorPage() {
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string>()
   const [navigationAllowed, setNavigationAllowed] = useState(false)
+  const [duplicateItemMessage, setDuplicateItemMessage] = useState<string>()
   const initializedQuotationId = useRef<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const quotation = query.data
@@ -148,11 +149,22 @@ export default function QuotationEditorPage() {
   invalidPrices.forEach((index) => { activationIssues[`items.${index}.unit_price`] = `Linha ${index + 1}: informe um valor positivo com até duas casas decimais.` })
   const activationReady = Object.keys(activationIssues).length === 0
 
+  function addCatalogItem(item: CatalogItemRow) {
+    if (values.items.some((line) => line.catalog_item_id === item.id)) {
+      setDuplicateItemMessage('Este item já está incluído na cotação.')
+      return
+    }
+    setDuplicateItemMessage(undefined)
+    const index = fields.length
+    append({ catalog_item_id: item.id, supplier_description: '', supplier_item_code: '', unit_price: '', notes: '' })
+    window.setTimeout(() => document.getElementById(`items.${index}.unit_price`)?.focus(), 0)
+  }
+
   function focusFirstActivationIssue() {
     if (activationIssues.supplier) form.setFocus('supplier_id')
     else if (activationIssues.received) form.setFocus('received_at')
     else if (activationIssues.validity) form.setFocus('valid_until')
-    else if (activationIssues.items) document.getElementById('add-quotation-item')?.focus()
+    else if (activationIssues.items) document.getElementById('quotation-item-search')?.focus()
     else if (activationIssues.mapping) form.setFocus(`items.${unmapped[0] >= 0 ? unmapped[0] : 0}.catalog_item_id`)
     else if (activationIssues.prices) form.setFocus(`items.${invalidPrices[0]}.unit_price`)
     else if (activationIssues.catalog) form.setFocus(`items.${inactiveItems[0]}.catalog_item_id`)
@@ -270,7 +282,7 @@ export default function QuotationEditorPage() {
   const historicalWarning = quotation && (!quotation.supplier.active || quotation.quotation_items.some((line) => line.catalog_item && !line.catalog_item.active))
 
   return <div className="mx-auto min-w-0 max-w-[1480px]">
-    <PageHeader eyebrow="Cotações" title={title} description="Salve como rascunho, mapeie os itens e só então ative." actions={actions} />
+     <PageHeader eyebrow="Cotações" title={title} description="Salve como rascunho, mapeie os itens e só então ative." actions={actions} actionsClassName="sticky top-20 z-20 rounded-xl bg-[#f4f6f3]/95 p-2 backdrop-blur md:static md:bg-transparent md:p-0" />
     {quotation && <div className="mb-5"><QuotationStatusBadge status={quotation.status} archived={isArchived} /></div>}
     {persistedAttachmentPending && <section className="mb-5 flex flex-col gap-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between" role="alert" aria-labelledby="pending-attachment-title"><div><h2 id="pending-attachment-title" className="font-semibold">Envio de anexo pendente</h2><p className="mt-1">Um envio anterior foi interrompido ou ainda está em andamento. Descarte-o para liberar o rascunho.</p></div><Button className="shrink-0" type="button" variant="destructive" disabled={pending || !online} onClick={() => void discardPendingAttachment()}>Descartar envio pendente</Button></section>}
     {(mastersError || historicalWarning) && <div className="mb-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950" role="alert"><AlertTriangle className="mt-0.5 size-5 shrink-0" /><span>{mastersError ? 'Não foi possível atualizar os cadastros mestres. Os vínculos históricos desta cotação foram preservados; tente novamente antes de ativar.' : 'Esta cotação possui fornecedor ou item histórico inativo. Você pode salvar o rascunho, mas deve reativar o cadastro ou selecionar outro registro antes de ativar.'}</span></div>}
@@ -278,7 +290,8 @@ export default function QuotationEditorPage() {
       <form className="min-w-0 space-y-5" noValidate onSubmit={(event) => event.preventDefault()}>
         <QuotationHeaderForm register={form.register} errors={form.formState.errors} suppliers={suppliers} currentSupplierId={quotation?.supplier_id} supplierWarning={!selectedSupplier?.active && values.supplier_id ? activationIssues.supplier : undefined} />
         <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><label className="break-words text-sm font-semibold" htmlFor="source_file">Arquivo original (opcional)</label><input ref={fileInputRef} id="source_file" className="mt-2 block min-w-0 w-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:font-semibold file:text-emerald-900" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" disabled={pending || persistedAttachmentPending} aria-invalid={Boolean(fileError) || undefined} aria-describedby="source-file-help source-file-error" aria-errormessage={fileError ? 'source-file-error' : undefined} onChange={(event) => chooseFile(event.target.files?.[0])} /><p id="source-file-help" className="mt-2 text-xs text-slate-500">PDF, JPEG, PNG ou WEBP, até 10 MB. Armazenamento privado, sem OCR.</p><p id="source-file-error" className="mt-2 text-sm text-red-700">{fileError}</p>{quotation?.source_file_path && <Button className="mt-3" type="button" variant="outline" disabled={persistedAttachmentPending} onClick={() => void openAttachment()}><ExternalLink className="size-4" /> Abrir anexo atual</Button>}</section>
-        <QuotationItemsGrid fields={fields} register={form.register} errors={form.formState.errors} catalogItems={catalogItems} selectedCatalogIds={values.items.map((item) => item.catalog_item_id)} activationIssues={activationIssues} onAdd={() => { const index = fields.length; append({ catalog_item_id: '', supplier_description: '', supplier_item_code: '', unit_price: '', notes: '' }); window.setTimeout(() => document.getElementById(`items.${index}.catalog_item_id`)?.focus(), 0) }} onRemove={remove} />
+         <QuotationItemsGrid fields={fields} register={form.register} errors={form.formState.errors} catalogItems={catalogItems} selectedCatalogIds={values.items.map((item) => item.catalog_item_id)} activationIssues={activationIssues} onAdd={addCatalogItem} onRemove={remove} />
+         {duplicateItemMessage && <p className="-mt-3 text-sm text-red-700" role="alert">{duplicateItemMessage}</p>}
       </form>
       <div className="min-w-0 xl:sticky xl:top-24"><ActivationChecklist issues={activationIssues} onReview={focusFirstActivationIssue} /><p id="activation-button-help" className="mt-2 text-xs text-slate-500">A ativação fica disponível quando todos os requisitos forem atendidos.</p></div>
     </div>

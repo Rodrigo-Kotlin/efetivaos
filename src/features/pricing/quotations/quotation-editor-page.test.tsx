@@ -64,16 +64,23 @@ describe('QuotationEditorPage', () => {
     await user.type(screen.getByLabelText('Data recebida *'), '2026-08-23')
   }
 
+  async function addCatalogItem(user: ReturnType<typeof userEvent.setup>, name = catalogItem.name) {
+    const search = screen.getByPlaceholderText('Buscar item por código ou nome...')
+    await user.clear(search)
+    await user.type(search, name)
+    await user.click(screen.getByRole('option', { name: new RegExp(name) }))
+    return search
+  }
+
   it('valida fornecedor e data obrigatórios e adiciona/remove item com foco e ARIA', async () => {
     const user = userEvent.setup()
     renderEditor()
     await user.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
     expect(await screen.findByText('Selecione o fornecedor.')).toBeInTheDocument()
     expect(screen.getAllByText('Informe a data de recebimento.').length).toBeGreaterThan(0)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
-    const catalog = screen.getByLabelText('Item do Catálogo Efetiva 1')
-    expect(catalog).toHaveFocus()
-    expect(catalog).toHaveAttribute('aria-describedby', 'item-0-catalog-error')
+    await addCatalogItem(user)
+    const price = screen.getByLabelText('Preço unitário *')
+    await waitFor(() => expect(price).toHaveFocus())
     expect(screen.getByLabelText('Preço unitário *')).toHaveAttribute('aria-describedby', expect.stringContaining('unit-normalization-warning'))
     await user.click(screen.getByRole('button', { name: 'Remover item 1' }))
     expect(screen.getByText('Nenhum item adicionado.')).toBeInTheDocument()
@@ -83,10 +90,10 @@ describe('QuotationEditorPage', () => {
     const user = userEvent.setup()
     renderEditor()
     await fillHeader(user)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
+    await addCatalogItem(user)
     await user.type(screen.getByLabelText('Preço unitário *'), '25,90')
     await user.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
-    await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ supplier_id: supplier.id, items: [expect.objectContaining({ catalog_item_id: null, unit_price: '25.90' })] })))
+    await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ supplier_id: supplier.id, items: [expect.objectContaining({ catalog_item_id: catalogItem.id, unit_price: '25.90', supplier_description: null, notes: null })] })))
   })
 
   it('navega para o primeiro rascunho e avisa quando o upload falha', async () => {
@@ -109,38 +116,34 @@ describe('QuotationEditorPage', () => {
     const user = userEvent.setup()
     renderEditor()
     await fillHeader(user)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
+    await addCatalogItem(user)
     await user.type(screen.getByLabelText('Preço unitário *'), '0')
     expect(screen.getByRole('button', { name: 'Ativar' })).toBeDisabled()
-    expect(screen.getByText('Mapeamento pendente nas linhas 1.')).toBeInTheDocument()
     expect(screen.getByText('Valor inválido nas linhas 1.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Preço unitário *')).toHaveAttribute('aria-errormessage', 'item-0-price-error')
+    expect(screen.getByLabelText('Preço unitário *')).toHaveAttribute('aria-describedby', expect.stringContaining('item-0-price-error'))
     await user.click(screen.getByRole('button', { name: 'Revisar pendências' }))
-    expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveFocus()
+    expect(screen.getByLabelText('Preço unitário *')).toHaveFocus()
     expect(save).not.toHaveBeenCalled()
     await user.clear(screen.getByLabelText('Preço unitário *'))
     await user.type(screen.getByLabelText('Preço unitário *'), '10')
-    await user.selectOptions(screen.getByLabelText('Item do Catálogo Efetiva 1'), catalogItem.id)
     expect(screen.getByRole('button', { name: 'Ativar' })).toBeEnabled()
   })
 
-  it('foca Adicionar item quando a cotação ainda não possui linhas', async () => {
+  it('foca o seletor quando a cotação ainda não possui linhas', async () => {
     const user = userEvent.setup()
     renderEditor()
     await fillHeader(user)
-    const addItem = screen.getByRole('button', { name: 'Adicionar item' })
-    expect(addItem).toHaveAttribute('id', 'add-quotation-item')
+    const addItem = screen.getByPlaceholderText('Buscar item por código ou nome...')
     await user.click(screen.getByRole('button', { name: 'Revisar pendências' }))
     expect(addItem).toHaveFocus()
-    expect(addItem).toHaveAttribute('aria-describedby', 'items-error')
+    expect(screen.getAllByText('Adicione ao menos um item.').length).toBeGreaterThan(0)
   })
 
   it('salva e ativa uma cotacao valida', async () => {
     const user = userEvent.setup()
     renderEditor()
     await fillHeader(user)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
-    await user.selectOptions(screen.getByLabelText('Item do Catálogo Efetiva 1'), catalogItem.id)
+    await addCatalogItem(user)
     await user.type(screen.getByLabelText('Preço unitário *'), '100,50')
     await user.click(screen.getByRole('button', { name: 'Ativar' }))
     await waitFor(() => expect(save).toHaveBeenCalled())
@@ -152,8 +155,7 @@ describe('QuotationEditorPage', () => {
     save.mockResolvedValue({ quotation: saved, attachmentWarning: 'Envio pendente. Recarregue e recupere o anexo.' })
     renderEditor()
     await fillHeader(user)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
-    await user.selectOptions(screen.getByLabelText('Item do Catálogo Efetiva 1'), catalogItem.id)
+    await addCatalogItem(user)
     await user.type(screen.getByLabelText('Preço unitário *'), '10')
     await user.click(screen.getByRole('button', { name: 'Ativar' }))
 
@@ -162,20 +164,32 @@ describe('QuotationEditorPage', () => {
     expect(toastMocks.warning).toHaveBeenCalledWith(expect.stringContaining('Envio pendente'))
   })
 
-  it('mostra e associa erro de descricao do fornecedor acima do limite', async () => {
+  it('remove descrição do fornecedor e observação da linha da interface', async () => {
     const user = userEvent.setup()
     renderEditor()
     await fillHeader(user)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
-    const description = screen.getByLabelText('Descrição do fornecedor')
-    fireEvent.change(description, { target: { value: 'a'.repeat(501) } })
-    await user.click(screen.getByRole('button', { name: 'Salvar rascunho' }))
+    await addCatalogItem(user)
+    expect(screen.queryByLabelText('Descrição do fornecedor')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Observação da linha')).not.toBeInTheDocument()
+  })
 
-    expect(await screen.findByText('Use no maximo 500 caracteres.')).toHaveAttribute('id', 'item-0-description-error')
-    expect(description).toHaveAttribute('aria-invalid', 'true')
-    expect(description).toHaveAttribute('aria-describedby', 'item-0-description-error')
-    expect(description).toHaveAttribute('aria-errormessage', 'item-0-description-error')
-    expect(save).not.toHaveBeenCalled()
+  it('adiciona itens em sequência, remove o item das opções e o devolve após exclusão', async () => {
+    const user = userEvent.setup()
+    const secondItem = { ...catalogItem, id: 'catalog-2', code: 'EXA-2', name: 'Glicemia' }
+    vi.mocked(useCatalogItems).mockReturnValue({ data: [catalogItem, secondItem], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
+    renderEditor()
+
+    await addCatalogItem(user)
+    const search = screen.getByPlaceholderText('Buscar item por código ou nome...')
+    await user.click(search)
+    expect(screen.queryByRole('option', { name: /EXA-1 · Hemograma/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /EXA-2 · Glicemia/ })).toBeInTheDocument()
+
+    await addCatalogItem(user, secondItem.name)
+    expect(screen.getAllByText(/EXA-[12] ·/).length).toBeGreaterThanOrEqual(2)
+    await user.click(screen.getByRole('button', { name: 'Remover item 1' }))
+    await user.click(search)
+    expect(screen.getByRole('option', { name: /EXA-1 · Hemograma/ })).toBeInTheDocument()
   })
 
   it('mostra detalhe cancelado sem depender das consultas mestres', () => {
@@ -186,7 +200,7 @@ describe('QuotationEditorPage', () => {
     expect(screen.getByText('Cancelada')).toBeInTheDocument()
     expect(screen.getByText('Validade não informada')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Itens da cotação' })).toBeInTheDocument()
-    expect(screen.getAllByText('EXA-1 - Hemograma').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('EXA-1 · Hemograma').length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Auditoria' })).toBeInTheDocument()
     expect(screen.queryByLabelText('Fornecedor *')).not.toBeInTheDocument()
   })
@@ -266,7 +280,7 @@ describe('QuotationEditorPage', () => {
     vi.mocked(useCatalogItems).mockReturnValue({ data: [], isLoading: false, isError: true, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
     renderEditor(`/pricing/quotations/${saved.id}`)
     expect(screen.getByLabelText('Fornecedor *')).toHaveValue(supplier.id)
-    expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveValue(catalogItem.id)
+    expect(screen.getAllByText('EXA-1 · Hemograma').length).toBeGreaterThan(0)
     expect(screen.getByText(/vínculos históricos desta cotação foram preservados/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ativar' })).toBeDisabled()
   })
@@ -277,11 +291,10 @@ describe('QuotationEditorPage', () => {
     vi.mocked(useCatalogItems).mockReturnValue({ data: [catalogItem, ownItem], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
     renderEditor()
     await fillHeader(user)
-    await user.click(screen.getByRole('button', { name: 'Adicionar item' }))
-    const catalog = screen.getByLabelText('Item do Catálogo Efetiva 1')
-    const options = Array.from(catalog.querySelectorAll('option')).map((option) => option.textContent ?? '')
-    expect(options).toContain('EXA-1 - Hemograma | Exames | exame')
-    expect(options.some((label) => label.includes('OWN-1'))).toBe(false)
+    const search = screen.getByPlaceholderText('Buscar item por código ou nome...')
+    await user.click(search)
+    expect(screen.getByRole('option', { name: /EXA-1 · Hemograma/ })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /OWN-1/ })).not.toBeInTheDocument()
   })
 
   it('preserva item próprio vinculado a uma cotação existente e bloqueia a ativação', async () => {
@@ -290,10 +303,10 @@ describe('QuotationEditorPage', () => {
     vi.mocked(useQuotation).mockReturnValue({ data: ownDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useQuotation>)
     vi.mocked(useCatalogItems).mockReturnValue({ data: [], isLoading: false, isError: true, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
     renderEditor(`/pricing/quotations/${saved.id}`)
-    expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveValue(ownItem.id)
+    expect(screen.getAllByText('OWN-1 · Vigilância').length).toBeGreaterThan(0)
     expect(screen.getByText('Serviços próprios da Efetiva não podem ser incluídos em cotações de fornecedores.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ativar' })).toBeDisabled()
-    expect(screen.getByLabelText('Item do Catálogo Efetiva 1')).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getAllByText('Linha 1: serviço próprio da Efetiva não pode ser incluído em cotação de fornecedor.').length).toBeGreaterThan(0)
   })
 
   it('não descarta formulário nem arquivo selecionado em refetch da mesma cotação', async () => {

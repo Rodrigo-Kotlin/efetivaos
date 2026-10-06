@@ -1,10 +1,10 @@
-import { Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { ChevronDown, Search, Trash2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import type { FieldArrayWithId, FieldErrors, UseFormRegister } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { FieldError, selectClassName, textareaClassName } from '@/components/shared/operational-ui'
+import { FieldError, selectClassName } from '@/components/shared/operational-ui'
 
 import type { CatalogItemRow } from '../catalog/catalog.types'
 import type { QuotationFormValues } from './quotation.schemas'
@@ -16,42 +16,114 @@ type Props = {
   catalogItems: CatalogItemRow[]
   selectedCatalogIds: string[]
   activationIssues: Record<string, string>
-  onAdd: () => void
+  onAdd: (item: CatalogItemRow) => void
   onRemove: (index: number) => void
 }
 
+function itemLabel(item: CatalogItemRow) {
+  return `${item.code} · ${item.name}`
+}
+
+function historicalLabel(item: CatalogItemRow) {
+  if (!item.active) return ' (inativo - histórico)'
+  if (item.sourcing_type !== 'outsourced') return ' (serviço próprio)'
+  return ''
+}
+
 export function QuotationItemsGrid({ fields, register, errors, catalogItems, selectedCatalogIds, activationIssues, onAdd, onRemove }: Props) {
-  const [catalogSearch, setCatalogSearch] = useState<Record<string, string>>({})
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(false)
   const arrayError = typeof errors.items?.message === 'string' ? errors.items.message : activationIssues.items
+  const selectedIds = useMemo(() => new Set(selectedCatalogIds.filter(Boolean)), [selectedCatalogIds])
+  const availableItems = useMemo(() => {
+    const term = search.toLocaleLowerCase('pt-BR').trim()
+    return catalogItems.filter((item) => item.active && item.sourcing_type === 'outsourced' && !selectedIds.has(item.id))
+      .filter((item) => !term || `${item.code} ${item.name}`.toLocaleLowerCase('pt-BR').includes(term))
+  }, [catalogItems, search, selectedIds])
+
+  function selectItem(item: CatalogItemRow) {
+    if (selectedIds.has(item.id)) {
+      setSearch('Este item já está incluído na cotação.')
+      setOpen(true)
+      return
+    }
+    onAdd(item)
+    setSearch('')
+    setOpen(false)
+  }
+
   return <section className="min-w-0 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-describedby={arrayError ? 'items-error' : undefined}>
-    <div className="flex min-w-0 flex-col justify-between gap-3 sm:flex-row sm:items-center"><div className="min-w-0"><h2 className="font-serif text-xl font-semibold">Itens</h2><p className="mt-1 break-words text-sm text-slate-500">Mapeie por código e nome no Catálogo Efetiva.</p></div><Button id="add-quotation-item" className="shrink-0" type="button" variant="outline" aria-describedby={arrayError ? 'items-error' : undefined} onClick={onAdd}><Plus className="size-4" /> Adicionar item</Button></div>
-    <FieldError id="items-error">{arrayError}</FieldError>
-    {fields.length === 0 ? <p className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhum item adicionado.</p> : <div className="mt-5 min-w-0 space-y-4">{fields.map((field, index) => {
-      const catalogError = errors.items?.[index]?.catalog_item_id?.message || activationIssues[`items.${index}.catalog_item_id`]
-      const descriptionError = errors.items?.[index]?.supplier_description?.message
-      const codeError = errors.items?.[index]?.supplier_item_code?.message
-      const priceError = errors.items?.[index]?.unit_price?.message || activationIssues[`items.${index}.unit_price`]
-      const notesError = errors.items?.[index]?.notes?.message
-      const selectedId = selectedCatalogIds[index] || field.catalog_item_id
-      return <article className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/60 p-4" key={field.id}>
-        <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1.5fr)_minmax(0,1fr)_minmax(0,1fr)_10rem_auto]">
-          <div className="min-w-0"><label className="break-words text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.catalog_search`}>Item do Catálogo Efetiva</label><Input id={`items.${index}.catalog_search`} className="mt-1" type="search" placeholder="Buscar por código ou nome..." aria-label={`Buscar catálogo do item ${index + 1}`} value={catalogSearch[field.id] ?? ''} onChange={(event) => setCatalogSearch((current) => ({ ...current, [field.id]: event.target.value }))} /><select id={`items.${index}.catalog_item_id`} aria-label={`Item do Catálogo Efetiva ${index + 1}`} className={`${selectClassName} mt-1 w-full`} aria-invalid={Boolean(catalogError) || undefined} aria-describedby={catalogError ? `item-${index}-catalog-error` : undefined} aria-errormessage={catalogError ? `item-${index}-catalog-error` : undefined} {...register(`items.${index}.catalog_item_id`)}><option value="">Mapear depois (rascunho)</option>{catalogItems.filter((item) => {
-        const term = (catalogSearch[field.id] ?? '').toLocaleLowerCase('pt-BR').trim()
-        const isEligible = item.active && item.sourcing_type === 'outsourced'
-        const isSelected = item.id === selectedId
-        return (isEligible || isSelected) && (isSelected || !term || `${item.code} ${item.name}`.toLocaleLowerCase('pt-BR').includes(term))
-      }).map((item) => {
-        const status = !item.active ? ' (inativo - histórico)' : item.sourcing_type !== 'outsourced' ? ' (serviço próprio)' : ''
-        return <option key={item.id} value={item.id}>{item.code} - {item.name} | {item.category.name} | {item.unit}{status}</option>
-      })}</select><FieldError id={`item-${index}-catalog-error`}>{catalogError}</FieldError></div>
-          <div className="min-w-0"><label className="break-words text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.supplier_description`}>Descrição do fornecedor</label><Input id={`items.${index}.supplier_description`} className="mt-1" aria-invalid={Boolean(descriptionError) || undefined} aria-describedby={descriptionError ? `item-${index}-description-error` : undefined} aria-errormessage={descriptionError ? `item-${index}-description-error` : undefined} {...register(`items.${index}.supplier_description`)} /><FieldError id={`item-${index}-description-error`}>{descriptionError}</FieldError></div>
-          <div className="min-w-0"><label className="break-words text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.supplier_item_code`}>Código do fornecedor</label><Input id={`items.${index}.supplier_item_code`} className="mt-1" aria-invalid={Boolean(codeError) || undefined} aria-describedby={codeError ? `item-${index}-code-error` : undefined} aria-errormessage={codeError ? `item-${index}-code-error` : undefined} {...register(`items.${index}.supplier_item_code`)} /><FieldError id={`item-${index}-code-error`}>{codeError}</FieldError></div>
-          <div className="min-w-0"><label className="break-words text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.unit_price`}>Preço unitário *</label><Input id={`items.${index}.unit_price`} className="mt-1" inputMode="decimal" placeholder="0,00" aria-invalid={Boolean(priceError) || undefined} aria-describedby={priceError ? `item-${index}-price-error unit-normalization-warning` : 'unit-normalization-warning'} aria-errormessage={priceError ? `item-${index}-price-error` : undefined} {...register(`items.${index}.unit_price`)} /><FieldError id={`item-${index}-price-error`}>{priceError}</FieldError></div>
-          <Button className="self-end" type="button" size="icon" variant="ghost" aria-label={`Remover item ${index + 1}`} onClick={() => onRemove(index)}><Trash2 className="size-4" /></Button>
+    <div className="sticky top-20 z-10 -mx-2 rounded-xl bg-white/95 px-2 pb-3 backdrop-blur md:static md:mx-0 md:bg-transparent md:px-0 md:pb-0">
+      <div className="flex min-w-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="min-w-0">
+          <h2 className="font-serif text-xl font-semibold">Itens da cotação</h2>
+          <p className="mt-1 break-words text-sm text-slate-500">{fields.length} {fields.length === 1 ? 'item adicionado' : 'itens adicionados'}</p>
         </div>
-        <div className="mt-4 min-w-0"><label className="break-words text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.notes`}>Observação da linha</label><textarea id={`items.${index}.notes`} className={`${textareaClassName} mt-1 min-h-16`} aria-invalid={Boolean(notesError) || undefined} aria-describedby={notesError ? `item-${index}-notes-error` : undefined} aria-errormessage={notesError ? `item-${index}-notes-error` : undefined} {...register(`items.${index}.notes`)} /><FieldError id={`item-${index}-notes-error`}>{notesError}</FieldError></div>
-      </article>
-    })}</div>}
+        <div className="relative min-w-0 flex-1 sm:max-w-xl">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            id="quotation-item-search"
+            className="pr-10 pl-9"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="quotation-item-options"
+            aria-expanded={open}
+            placeholder="Buscar item por código ou nome..."
+            value={search}
+            onFocus={() => setOpen(true)}
+            onChange={(event) => { setSearch(event.target.value); setOpen(true) }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') setOpen(false)
+              if (event.key === 'Enter' && availableItems[0]) { event.preventDefault(); selectItem(availableItems[0]) }
+            }}
+          />
+          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+          {open && <div id="quotation-item-options" role="listbox" className="absolute inset-x-0 top-full z-30 mt-2 max-h-64 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+            {availableItems.length ? availableItems.map((item) => <button className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-emerald-50 focus:bg-emerald-50 focus:outline-none" key={item.id} type="button" role="option" onMouseDown={(event) => event.preventDefault()} onClick={() => selectItem(item)}>
+              <span className="block font-semibold text-slate-900">{itemLabel(item)}</span>
+              <span className="block text-xs text-slate-500">{item.category.name} · {item.unit}</span>
+            </button>) : <p className="px-3 py-3 text-sm text-slate-500">{search === 'Este item já está incluído na cotação.' ? search : 'Nenhum item elegível encontrado.'}</p>}
+          </div>}
+        </div>
+      </div>
+    </div>
+    <FieldError id="items-error">{arrayError}</FieldError>
+    {fields.length === 0 ? <p className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhum item adicionado.</p> : <>
+      <div className="mt-5 overflow-hidden rounded-xl border border-slate-200 text-sm" role="table" aria-label="Itens da cotação">
+        <div className="hidden grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(8rem,1fr)_5rem] gap-3 border-b border-slate-200 bg-slate-50 px-3 py-3 text-xs uppercase tracking-wide text-slate-500 md:grid" role="row"><span role="columnheader">Item do catálogo</span><span role="columnheader">Código do fornecedor</span><span role="columnheader">Preço unitário</span><span role="columnheader" className="text-right">Ação</span></div>
+        {fields.map((field, index) => <QuotationItemRow key={field.id} field={field} index={index} register={register} errors={errors} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} activationIssues={activationIssues} onRemove={onRemove} />)}
+      </div>
+    </>}
     <p id="unit-normalization-warning" className="mt-4 break-words rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">O preço unitário deve representar o custo já normalizado para a unidade canônica do Catálogo Efetiva. Conversões de pacote, lote, frete e impostos não são realizadas.</p>
   </section>
+}
+
+type RowProps = Omit<Props, 'fields' | 'onAdd'> & { field: FieldArrayWithId<QuotationFormValues, 'items'>; index: number }
+
+function QuotationItemRow({ field, index, register, errors, catalogItems, selectedCatalogIds, activationIssues, onRemove }: RowProps) {
+  return <div className="grid gap-3 border-b border-slate-100 p-3 last:border-0 md:grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)_minmax(8rem,1fr)_5rem] md:items-start" role="row">
+    <div role="cell">
+      <CatalogCell field={field} index={index} register={register} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} errors={errors} activationIssues={activationIssues} />
+    </div>
+    <div role="cell"><label className="text-xs font-bold uppercase tracking-wide md:sr-only" htmlFor={`items.${index}.supplier_item_code`}>Código do fornecedor</label><Input id={`items.${index}.supplier_item_code`} className="mt-1 md:mt-0" aria-label={`Código do fornecedor ${index + 1}`} {...register(`items.${index}.supplier_item_code`)} /></div>
+    <div role="cell"><PriceCell index={index} register={register} errors={errors} activationIssues={activationIssues} /></div>
+    <div role="cell" className="flex justify-end md:justify-center"><Button className="w-full md:w-auto" type="button" variant="outline" aria-label={`Remover item ${index + 1}`} onClick={() => onRemove(index)}><Trash2 className="size-4" /> Excluir</Button></div>
+  </div>
+}
+
+function CatalogCell({ field, index, register, catalogItems, selectedCatalogIds, errors, activationIssues }: Pick<RowProps, 'field' | 'index' | 'register' | 'catalogItems' | 'selectedCatalogIds' | 'errors' | 'activationIssues'>) {
+  const selectedId = selectedCatalogIds[index] || field.catalog_item_id
+  const selectedItem = catalogItems.find((item) => item.id === selectedId)
+  const catalogError = errors.items?.[index]?.catalog_item_id?.message || activationIssues[`items.${index}.catalog_item_id`]
+  const options = catalogItems.filter((item) => item.active && item.sourcing_type === 'outsourced' && (!selectedCatalogIds.includes(item.id) || item.id === selectedId))
+  return <div className="min-w-0">
+    <span className="text-xs font-bold uppercase tracking-wide text-slate-500">Item do catálogo</span>
+    {selectedItem ? <><input type="hidden" defaultValue={selectedItem.id} {...register(`items.${index}.catalog_item_id`)} /><p className="mt-1 break-words font-semibold text-slate-900">{itemLabel(selectedItem)}<span className="block text-xs font-normal text-slate-500">{selectedItem.category.name} · {selectedItem.unit}{historicalLabel(selectedItem)}</span></p></> : <select aria-label={`Item do Catálogo Efetiva ${index + 1}`} className={`${selectClassName} mt-1 w-full`} aria-invalid={Boolean(catalogError) || undefined} {...register(`items.${index}.catalog_item_id`)}><option value="">Mapear item do catálogo...</option>{options.map((item) => <option key={item.id} value={item.id}>{itemLabel(item)}</option>)}</select>}
+    <FieldError id={`item-${index}-catalog-error`}>{catalogError}</FieldError>
+  </div>
+}
+
+function PriceCell({ index, register, errors, activationIssues }: Pick<RowProps, 'index' | 'register' | 'errors' | 'activationIssues'>) {
+  const priceError = errors.items?.[index]?.unit_price?.message || activationIssues[`items.${index}.unit_price`]
+  return <div><label className="text-xs font-bold uppercase tracking-wide" htmlFor={`items.${index}.unit_price`}>Preço unitário *</label><Input id={`items.${index}.unit_price`} className="mt-1" inputMode="decimal" placeholder="0,00" aria-invalid={Boolean(priceError) || undefined} aria-describedby={priceError ? `item-${index}-price-error unit-normalization-warning` : 'unit-normalization-warning'} {...register(`items.${index}.unit_price`)} /><FieldError id={`item-${index}-price-error`}>{priceError}</FieldError></div>
 }

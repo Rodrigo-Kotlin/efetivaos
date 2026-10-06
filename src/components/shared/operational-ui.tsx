@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 export const selectClassName = 'h-11 min-w-0 max-w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 shadow-sm outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 disabled:cursor-not-allowed disabled:opacity-50'
 export const textareaClassName = 'min-h-24 min-w-0 w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 shadow-sm outline-none placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 disabled:cursor-not-allowed disabled:opacity-50'
 
-export function PageHeader({ eyebrow, title, description, actions }: { eyebrow: string; title: string; description: string; actions: ReactNode }) {
+export function PageHeader({ eyebrow, title, description, actions, actionsClassName }: { eyebrow: string; title: string; description: string; actions: ReactNode; actionsClassName?: string }) {
   return (
     <div className="mb-6 flex min-w-0 flex-col justify-between gap-5 md:flex-row md:items-end">
       <div className="min-w-0">
@@ -16,7 +16,7 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow: 
         <h1 className="mt-2 break-words font-serif text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{title}</h1>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base">{description}</p>
       </div>
-      <div className="flex min-w-0 flex-wrap gap-2">{actions}</div>
+      <div className={cn('flex min-w-0 flex-wrap gap-2', actionsClassName)}>{actions}</div>
     </div>
   )
 }
