@@ -39,7 +39,6 @@ Nunca use uma chave `service_role` no frontend.
 - `npm run build`: TypeScript e build de producao.
 - `npm run lint`: analise estatica.
 - `npm test`: testes automatizados.
-- `npm run test:e2e`: comando Playwright preservado para eventual reativação; os specs E2E e suas fixtures foram removidos nesta etapa.
 
 ## Banco
 
