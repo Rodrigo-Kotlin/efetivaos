@@ -1,6 +1,6 @@
 import { ChevronDown, Search, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import type { FieldArrayWithId, FieldErrors, UseFormRegister } from 'react-hook-form'
+import { useController, type Control, type FieldArrayWithId, type FieldErrors, type UseFormRegister } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,10 +8,12 @@ import { FieldError, selectClassName } from '@/components/shared/operational-ui'
 
 import type { CatalogItemRow } from '../catalog/catalog.types'
 import type { QuotationFormValues } from './quotation.schemas'
+import { maskBrlInput } from './quotation.helpers'
 
 type Props = {
   fields: FieldArrayWithId<QuotationFormValues, 'items'>[]
   register: UseFormRegister<QuotationFormValues>
+  control: Control<QuotationFormValues>
   errors: FieldErrors<QuotationFormValues>
   catalogItems: CatalogItemRow[]
   selectedCatalogIds: string[]
@@ -30,7 +32,7 @@ function historicalLabel(item: CatalogItemRow) {
   return ''
 }
 
-export function QuotationItemsGrid({ fields, register, errors, catalogItems, selectedCatalogIds, activationIssues, onAdd, onRemove }: Props) {
+export function QuotationItemsGrid({ fields, register, control, errors, catalogItems, selectedCatalogIds, activationIssues, onAdd, onRemove }: Props) {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const arrayError = typeof errors.items?.message === 'string' ? errors.items.message : activationIssues.items
@@ -91,7 +93,7 @@ export function QuotationItemsGrid({ fields, register, errors, catalogItems, sel
     {fields.length === 0 ? <p className="mt-5 rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Nenhum item adicionado.</p> : <>
       <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 text-sm" role="table" aria-label="Itens da cotação">
         <div className="hidden grid-cols-[minmax(0,1fr)_10rem_3.5rem] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2.5 text-xs uppercase tracking-wide text-slate-500 md:grid" role="row"><span role="columnheader">Item</span><span role="columnheader">Preço unitário</span><span role="columnheader" className="text-center">Ação</span></div>
-        {fields.map((field, index) => <QuotationItemRow key={field.id} field={field} index={index} register={register} errors={errors} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} activationIssues={activationIssues} onRemove={onRemove} />)}
+         {fields.map((field, index) => <QuotationItemRow key={field.id} field={field} index={index} register={register} control={control} errors={errors} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} activationIssues={activationIssues} onRemove={onRemove} />)}
       </div>
     </>}
     <p id="unit-normalization-warning" className="mt-4 break-words rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">O preço unitário deve representar o custo já normalizado para a unidade canônica do Catálogo Efetiva. Conversões de pacote, lote, frete e impostos não são realizadas.</p>
@@ -100,12 +102,12 @@ export function QuotationItemsGrid({ fields, register, errors, catalogItems, sel
 
 type RowProps = Omit<Props, 'fields' | 'onAdd'> & { field: FieldArrayWithId<QuotationFormValues, 'items'>; index: number }
 
-function QuotationItemRow({ field, index, register, errors, catalogItems, selectedCatalogIds, activationIssues, onRemove }: RowProps) {
+function QuotationItemRow({ field, index, register, control, errors, catalogItems, selectedCatalogIds, activationIssues, onRemove }: RowProps) {
   return <div className="grid gap-3 border-b border-slate-100 p-3 last:border-0 md:grid-cols-[minmax(0,1fr)_10rem_3.5rem] md:items-center md:gap-4 md:px-4 md:py-2.5" role="row">
     <div className="min-w-0" role="cell">
       <CatalogCell field={field} index={index} register={register} catalogItems={catalogItems} selectedCatalogIds={selectedCatalogIds} errors={errors} activationIssues={activationIssues} />
     </div>
-    <div role="cell"><PriceCell index={index} register={register} errors={errors} activationIssues={activationIssues} /></div>
+    <div role="cell"><PriceCell index={index} control={control} errors={errors} activationIssues={activationIssues} /></div>
     <div role="cell" className="flex justify-end md:justify-center"><Button className="size-10 shrink-0 p-0 text-slate-500 hover:text-red-700" type="button" variant="ghost" title="Remover item" aria-label={`Remover item ${index + 1}`} onClick={() => onRemove(index)}><Trash2 className="size-4" /></Button></div>
   </div>
 }
@@ -121,7 +123,8 @@ function CatalogCell({ field, index, register, catalogItems, selectedCatalogIds,
   </div>
 }
 
-function PriceCell({ index, register, errors, activationIssues }: Pick<RowProps, 'index' | 'register' | 'errors' | 'activationIssues'>) {
+function PriceCell({ index, control, errors, activationIssues }: Pick<RowProps, 'index' | 'control' | 'errors' | 'activationIssues'>) {
+  const { field: priceField } = useController({ control, name: `items.${index}.unit_price` })
   const priceError = errors.items?.[index]?.unit_price?.message || activationIssues[`items.${index}.unit_price`]
-  return <div><label className="text-xs font-bold uppercase tracking-wide text-slate-500" htmlFor={`items.${index}.unit_price`}>Preço unitário *</label><Input id={`items.${index}.unit_price`} className="mt-1 h-10 font-medium tabular-nums" inputMode="decimal" placeholder="R$ 0,00" aria-invalid={Boolean(priceError) || undefined} aria-describedby={priceError ? `item-${index}-price-error unit-normalization-warning` : 'unit-normalization-warning'} {...register(`items.${index}.unit_price`)} /><FieldError id={`item-${index}-price-error`}>{priceError}</FieldError></div>
+  return <div><label className="text-xs font-bold uppercase tracking-wide text-slate-500" htmlFor={`items.${index}.unit_price`}>Preço unitário *</label><Input id={`items.${index}.unit_price`} className="mt-1 h-10 font-medium tabular-nums" inputMode="decimal" value={priceField.value || maskBrlInput('')} onChange={(event) => priceField.onChange(maskBrlInput(event.target.value))} onBlur={priceField.onBlur} name={priceField.name} ref={priceField.ref} aria-invalid={Boolean(priceError) || undefined} aria-describedby={priceError ? `item-${index}-price-error unit-normalization-warning` : 'unit-normalization-warning'} /><FieldError id={`item-${index}-price-error`}>{priceError}</FieldError></div>
 }

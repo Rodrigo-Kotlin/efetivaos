@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import type { QuotationDetail } from './quotation.types'
+import { formatCurrency } from './quotation.helpers'
 
 const emptyToNull = (value: string) => value.trim() || null
 
@@ -68,7 +69,7 @@ export function quotationDefaults(quotation?: QuotationDetail): QuotationFormVal
       catalog_item_id: item.catalog_item_id ?? '',
       supplier_description: item.supplier_description ?? '',
       supplier_item_code: item.supplier_item_code ?? '',
-      unit_price: String(item.unit_price).replace('.', ','),
+      unit_price: formatCurrency(item.unit_price),
       notes: item.notes ?? '',
     })) ?? [],
   }

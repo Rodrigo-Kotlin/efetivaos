@@ -29,6 +29,24 @@ export function formatDateTime(value: string) {
   return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value))
 }
 
-export function formatCurrency(value: string) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value))
+const brlFormatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
+
+function toCurrencyNumber(value: string | number) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  const clean = value.trim().replace(/\s|R\$/gi, '')
+  if (!clean) return 0
+  const normalized = clean.includes(',')
+    ? clean.replace(/\./g, '').replace(',', '.')
+    : clean
+  const parsed = Number(normalized)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+export function formatCurrency(value: string | number) {
+  return brlFormatter.format(toCurrencyNumber(value)).replace(/\u00a0/g, ' ')
+}
+
+export function maskBrlInput(value: string) {
+  const digits = value.replace(/\D/g, '')
+  return formatCurrency(digits ? Number(digits) / 100 : 0)
 }

@@ -178,6 +178,27 @@ describe('QuotationEditorPage', () => {
     expect(screen.getByTitle('Remover item')).toBeInTheDocument()
   })
 
+  it('masks numeric input, paste and keeps focus on a new price field', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+    await addCatalogItem(user)
+    const price = screen.getByLabelText('Preço unitário *')
+    await waitFor(() => expect(price).toHaveFocus())
+    await user.type(price, '1740')
+    expect(price).toHaveValue('R$ 17,40')
+    await user.keyboard('{Backspace}')
+    expect(price).toHaveValue('R$ 1,74')
+    await user.clear(price)
+    await user.paste('R$ 17,40')
+    expect(price).toHaveValue('R$ 17,40')
+  })
+
+  it('formats an existing decimal price with two BRL decimals', () => {
+    vi.mocked(useQuotation).mockReturnValue({ data: { ...detail, quotation_items: [{ ...detail.quotation_items[0], unit_price: '17.4' }] }, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useQuotation>)
+    renderEditor(`/pricing/quotations/${saved.id}`)
+    expect(screen.getByLabelText('Preço unitário *')).toHaveValue('R$ 17,40')
+  })
+
   it('adiciona itens em sequência, remove o item das opções e o devolve após exclusão', async () => {
     const user = userEvent.setup()
     const secondItem = { ...catalogItem, id: 'catalog-2', code: 'EXA-2', name: 'Glicemia' }
