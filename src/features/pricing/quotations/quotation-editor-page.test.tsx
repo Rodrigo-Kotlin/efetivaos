@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 
@@ -199,6 +199,71 @@ describe('QuotationEditorPage', () => {
     expect(screen.getByLabelText('Preço unitário *')).toHaveValue('R$ 17,40')
   })
 
+  it('mantém novo item pendente até Enter, move para cotados e retorna o foco à busca', async () => {
+    const user = userEvent.setup()
+    const secondItem = { ...catalogItem, id: 'catalog-2', code: 'EXA-2', name: 'Glicemia' }
+    vi.mocked(useCatalogItems).mockReturnValue({ data: [catalogItem, secondItem], isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
+    renderEditor()
+
+    const search = await addCatalogItem(user)
+    expect(screen.getByRole('region', { name: 'Aguardando preço · 1' })).toBeInTheDocument()
+    const price = screen.getByLabelText('Preço unitário *')
+    await user.type(price, '1740')
+    expect(screen.getByRole('region', { name: 'Aguardando preço · 1' })).toBeInTheDocument()
+    await user.keyboard('{Enter}')
+    expect(screen.getByRole('region', { name: 'Itens cotados · 1' })).toBeInTheDocument()
+    expect(search).toHaveFocus()
+
+    await addCatalogItem(user, secondItem.name)
+    expect(within(screen.getByRole('region', { name: 'Aguardando preço · 1' })).getByRole('row')).toHaveTextContent('EXA-2 · Glicemia')
+    expect(screen.getByRole('region', { name: 'Aguardando preço · 1' })).toBeInTheDocument()
+  })
+
+  it('devolve o item para pendentes quando o preço é apagado', async () => {
+    const user = userEvent.setup()
+    renderEditor()
+    await addCatalogItem(user)
+    const price = screen.getByLabelText('Preço unitário *')
+    await user.type(price, '1000')
+    await user.keyboard('{Enter}')
+    const quotedPrice = screen.getByLabelText('Preço unitário *')
+    await user.clear(quotedPrice)
+    expect(screen.getByRole('region', { name: 'Aguardando preço · 1' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Itens cotados · 0' })).toBeInTheDocument()
+  })
+
+  it('classifica cotação existente entre cotados e pendentes sem alterar os dados', () => {
+    const pendingDetail = { ...detail, quotation_items: [detail.quotation_items[0], { ...detail.quotation_items[0], id: 'line-2', catalog_item_id: catalogItem.id, unit_price: '' }] }
+    vi.mocked(useQuotation).mockReturnValue({ data: pendingDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useQuotation>)
+    renderEditor(`/pricing/quotations/${saved.id}`)
+    expect(screen.getByRole('region', { name: 'Aguardando preço · 1' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Itens cotados · 1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ativar' })).toBeDisabled()
+  })
+
+  it('processa dez itens consecutivos sem devolver o usuário à lista', async () => {
+    const user = userEvent.setup()
+    const items = Array.from({ length: 10 }, (_, index) => ({ ...catalogItem, id: `catalog-${index + 1}`, code: `EXA-${index + 1}`, name: `Exame ${index + 1}` }))
+    vi.mocked(useCatalogItems).mockReturnValue({ data: items, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useCatalogItems>)
+    renderEditor()
+
+    for (const item of items) {
+      const search = screen.getByPlaceholderText('Buscar item por código ou nome...')
+      await user.clear(search)
+      await user.type(search, item.name)
+      await user.click(screen.getByRole('option', { name: new RegExp(`^${item.code} · ${item.name}`) }))
+      await waitFor(() => expect(document.activeElement).toHaveAttribute('name', expect.stringContaining('unit_price')))
+      const price = document.activeElement as HTMLInputElement
+      expect(price).toHaveAttribute('name', expect.stringContaining('unit_price'))
+      await user.type(price, '100')
+      await user.keyboard('{Enter}')
+      expect(search).toHaveFocus()
+    }
+
+    expect(screen.getByRole('region', { name: 'Itens cotados · 10' })).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Aguardando preço · 0' })).not.toBeInTheDocument()
+  }, 15000)
+
   it('adiciona itens em sequência, remove o item das opções e o devolve após exclusão', async () => {
     const user = userEvent.setup()
     const secondItem = { ...catalogItem, id: 'catalog-2', code: 'EXA-2', name: 'Glicemia' }
@@ -213,7 +278,7 @@ describe('QuotationEditorPage', () => {
 
     await addCatalogItem(user, secondItem.name)
     expect(screen.getAllByText(/EXA-[12] ·/).length).toBeGreaterThanOrEqual(2)
-    await user.click(screen.getByRole('button', { name: 'Remover item 1' }))
+    await user.click(screen.getByRole('button', { name: 'Remover item 2' }))
     await user.click(search)
     expect(screen.getByRole('option', { name: /EXA-1 · Hemograma/ })).toBeInTheDocument()
   })

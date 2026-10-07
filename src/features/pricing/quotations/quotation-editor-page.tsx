@@ -84,7 +84,7 @@ export default function QuotationEditorPage() {
   const persistedAttachmentPending = quotation?.source_file_pending === true
 
   const form = useForm<QuotationFormValues>({ resolver: zodResolver(quotationSchema), defaultValues: quotationDefaults() })
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' })
+  const { fields, prepend, remove } = useFieldArray({ control: form.control, name: 'items' })
   const values = useWatch({ control: form.control }) as QuotationFormValues
   const dirty = form.formState.isDirty || Boolean(file)
   const blocker = useBlocker(dirty && !navigationAllowed)
@@ -155,9 +155,7 @@ export default function QuotationEditorPage() {
       return
     }
     setDuplicateItemMessage(undefined)
-    const index = fields.length
-    append({ catalog_item_id: item.id, supplier_description: '', supplier_item_code: '', unit_price: '', notes: '' })
-    window.setTimeout(() => document.getElementById(`items.${index}.unit_price`)?.focus(), 0)
+    prepend({ catalog_item_id: item.id, supplier_description: '', supplier_item_code: '', unit_price: '', notes: '' })
   }
 
   function focusFirstActivationIssue() {
