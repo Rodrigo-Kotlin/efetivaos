@@ -12,6 +12,7 @@ import {
   selectClassName,
   TableSkeleton,
 } from "@/components/shared/operational-ui";
+import { PaginationControls } from "@/components/shared/pagination-controls";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 
 import { useOwnPriceProposals } from "../own-prices/own-prices-queries";
@@ -63,6 +64,9 @@ export default function CatalogPage() {
     useState<CatalogSourcingFilter>("all");
   const [itemStatus, setItemStatus] = useState<StatusFilter>("active");
   const [categoryStatus, setCategoryStatus] = useState<StatusFilter>("active");
+  const [itemPage, setItemPage] = useState(1);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false);
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<CatalogItemRow | null>(null);
@@ -119,6 +123,11 @@ export default function CatalogPage() {
       }),
     [categories, categoryStatus, normalizedCategorySearch],
   );
+
+  const validItemPage = Math.min(itemPage, Math.max(1, Math.ceil(filteredItems.length / pageSize)));
+  const validCategoryPage = Math.min(categoryPage, Math.max(1, Math.ceil(filteredCategories.length / pageSize)));
+  const pagedItems = useMemo(() => filteredItems.slice((validItemPage - 1) * pageSize, validItemPage * pageSize), [filteredItems, pageSize, validItemPage]);
+  const pagedCategories = useMemo(() => filteredCategories.slice((validCategoryPage - 1) * pageSize, validCategoryPage * pageSize), [filteredCategories, pageSize, validCategoryPage]);
 
   function openNewItem() {
     setEditingItem(null);
@@ -312,14 +321,14 @@ export default function CatalogPage() {
                 aria-label="Buscar itens"
                 placeholder="Buscar por codigo ou nome..."
                 value={itemSearch}
-                onChange={(event) => setItemSearch(event.target.value)}
+                onChange={(event) => { setItemSearch(event.target.value); setItemPage(1) }}
               />
             </div>
             <select
               className={`${selectClassName} w-full`}
               aria-label="Filtrar itens por categoria"
               value={itemCategory}
-              onChange={(event) => setItemCategory(event.target.value)}
+              onChange={(event) => { setItemCategory(event.target.value); setItemPage(1) }}
             >
               <option value="all">Todas as categorias</option>
               {categories.map((category) => (
@@ -333,9 +342,7 @@ export default function CatalogPage() {
               className={`${selectClassName} w-full`}
               aria-label="Filtrar itens por origem"
               value={itemSourcing}
-              onChange={(event) =>
-                setItemSourcing(event.target.value as CatalogSourcingFilter)
-              }
+              onChange={(event) => { setItemSourcing(event.target.value as CatalogSourcingFilter); setItemPage(1) }}
             >
               <option value="all">Origens: todas</option>
               <option value="own">Proprio — Efetiva</option>
@@ -345,9 +352,7 @@ export default function CatalogPage() {
               className={`${selectClassName} w-full`}
               aria-label="Filtrar itens por status"
               value={itemStatus}
-              onChange={(event) =>
-                setItemStatus(event.target.value as StatusFilter)
-              }
+              onChange={(event) => { setItemStatus(event.target.value as StatusFilter); setItemPage(1) }}
             >
               <option value="all">Todos os status</option>
               <option value="active">Ativos</option>
@@ -392,18 +397,21 @@ export default function CatalogPage() {
               }
             />
           ) : (
-            <CatalogItemsTable
-              items={filteredItems}
-              statusPending={setItemStatusMutation.isPending}
-              approvedOwnItemIds={approvedOwnItemIds}
-              onEdit={(item) => {
-                setEditingItem(item);
-                setItemDrawerOpen(true);
-              }}
-              onStatus={(item) => {
-                void changeItemStatus(item);
-              }}
-            />
+            <>
+              <CatalogItemsTable
+                items={pagedItems}
+                statusPending={setItemStatusMutation.isPending}
+                approvedOwnItemIds={approvedOwnItemIds}
+                onEdit={(item) => {
+                  setEditingItem(item);
+                  setItemDrawerOpen(true);
+                }}
+                onStatus={(item) => {
+                  void changeItemStatus(item);
+                }}
+              />
+              <PaginationControls page={validItemPage} pageSize={pageSize} total={filteredItems.length} onPageChange={setItemPage} onPageSizeChange={(size) => { setPageSize(size); setItemPage(1) }} />
+            </>
           )}
         </section>
       ) : (
@@ -416,16 +424,14 @@ export default function CatalogPage() {
                 aria-label="Buscar categorias"
                 placeholder="Buscar categoria..."
                 value={categorySearch}
-                onChange={(event) => setCategorySearch(event.target.value)}
+                onChange={(event) => { setCategorySearch(event.target.value); setCategoryPage(1) }}
               />
             </div>
             <select
               className={`${selectClassName} w-full`}
               aria-label="Filtrar categorias por status"
               value={categoryStatus}
-              onChange={(event) =>
-                setCategoryStatus(event.target.value as StatusFilter)
-              }
+              onChange={(event) => { setCategoryStatus(event.target.value as StatusFilter); setCategoryPage(1) }}
             >
               <option value="all">Todos os status</option>
               <option value="active">Ativas</option>
@@ -467,17 +473,20 @@ export default function CatalogPage() {
               }
             />
           ) : (
-            <CatalogCategoriesTable
-              categories={filteredCategories}
-              statusPending={setCategoryStatusMutation.isPending}
-              onEdit={(category) => {
-                setEditingCategory(category);
-                setCategoryDrawerOpen(true);
-              }}
-              onStatus={(category) => {
-                void changeCategoryStatus(category);
-              }}
-            />
+            <>
+              <CatalogCategoriesTable
+                categories={pagedCategories}
+                statusPending={setCategoryStatusMutation.isPending}
+                onEdit={(category) => {
+                  setEditingCategory(category);
+                  setCategoryDrawerOpen(true);
+                }}
+                onStatus={(category) => {
+                  void changeCategoryStatus(category);
+                }}
+              />
+              <PaginationControls page={validCategoryPage} pageSize={pageSize} total={filteredCategories.length} onPageChange={setCategoryPage} onPageSizeChange={(size) => { setPageSize(size); setCategoryPage(1) }} />
+            </>
           )}
         </section>
       )}

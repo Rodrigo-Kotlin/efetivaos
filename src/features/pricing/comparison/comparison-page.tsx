@@ -1,11 +1,12 @@
 import { ArrowUpDown, ListChecks, Search, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmptyState, ErrorState, PageHeader, selectClassName, TableSkeleton } from '@/components/shared/operational-ui'
+import { PaginationControls } from '@/components/shared/pagination-controls'
 import { useCatalogCategories } from '@/features/pricing/catalog/catalog.queries'
 import { useQuotations } from '@/features/pricing/quotations/quotation.queries'
 import { isExpired } from '@/features/pricing/quotations/quotation.helpers'
@@ -103,6 +104,7 @@ export default function ComparisonPage() {
   const { profile } = useAuth()
   const online = useOnlineStatus()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const query = useComparison()
   const categoriesQuery = useCatalogCategories()
   const quotationsQuery = useQuotations()
@@ -112,6 +114,8 @@ export default function ComparisonPage() {
   const [offer, setOffer] = useState<OfferFilter>('all')
   const [sortKey, setSortKey] = useState<ComparisonSortKey>('item')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
+  const [page, setPage] = useState(() => Math.max(1, Number(searchParams.get('page') ?? 1) || 1))
+  const [pageSize, setPageSize] = useState(() => [25, 50, 100].includes(Number(searchParams.get('pageSize'))) ? Number(searchParams.get('pageSize')) : 25)
   const [drawerItemId, setDrawerItemId] = useState<string | null>(null)
   const [reviewItemId, setReviewItemId] = useState<string | null>(null)
 
@@ -177,6 +181,17 @@ export default function ComparisonPage() {
     })
   }, [rows, search, category, supplier, offer, sortKey, sortDir])
 
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams)
+    next.set('page', String(page))
+    next.set('pageSize', String(pageSize))
+    setSearchParams(next, { replace: true })
+  }, [page, pageSize, searchParams, setSearchParams])
+
+  const lastPage = Math.max(1, Math.ceil(sorted.length / pageSize))
+  const validPage = Math.min(page, lastPage)
+  const pagedRows = useMemo(() => sorted.slice((validPage - 1) * pageSize, validPage * pageSize), [pageSize, sorted, validPage])
+
   const itemsWithOffer = rows.filter((row) => row.best_cost !== null).length
   const itemsWithoutOffer = rows.length - itemsWithOffer
   const approvedItems = rows.filter((row) => row.effective_status === 'approved').length
@@ -194,6 +209,7 @@ export default function ComparisonPage() {
     setCategory('all')
     setSupplier('all')
     setOffer('all')
+    setPage(1)
   }
 
   const changeSort = (key: ComparisonSortKey) => {
@@ -203,6 +219,7 @@ export default function ComparisonPage() {
       setSortKey(key)
       setSortDir('asc')
     }
+    setPage(1)
   }
 
   const categories = categoriesQuery.data ?? []
@@ -249,25 +266,25 @@ export default function ComparisonPage() {
         <label className="relative min-w-0">
           <span className="sr-only">Buscar por código, item ou fornecedor</span>
           <Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-slate-400" />
-          <Input className="min-w-0 pl-9" placeholder="Buscar item, código ou fornecedor..." value={search} onChange={(event) => setSearch(event.target.value)} />
+          <Input className="min-w-0 pl-9" placeholder="Buscar item, código ou fornecedor..." value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
         </label>
         <label className="min-w-0">
           <span className="sr-only">Filtrar por categoria</span>
-          <select className={`${selectClassName} w-full`} value={category} onChange={(event) => setCategory(event.target.value)}>
+          <select className={`${selectClassName} w-full`} value={category} onChange={(event) => { setCategory(event.target.value); setPage(1) }}>
             <option value="all">Categorias: todas</option>
             {categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
         <label className="min-w-0">
           <span className="sr-only">Filtrar por fornecedor</span>
-          <select className={`${selectClassName} w-full`} value={supplier} onChange={(event) => setSupplier(event.target.value)}>
+          <select className={`${selectClassName} w-full`} value={supplier} onChange={(event) => { setSupplier(event.target.value); setPage(1) }}>
             <option value="all">Fornecedores: todos</option>
             {suppliers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
           </select>
         </label>
         <label className="min-w-0">
           <span className="sr-only">Filtrar por situação da oferta</span>
-          <select className={`${selectClassName} w-full`} value={offer} onChange={(event) => setOffer(event.target.value as OfferFilter)}>
+          <select className={`${selectClassName} w-full`} value={offer} onChange={(event) => { setOffer(event.target.value as OfferFilter); setPage(1) }}>
             <option value="all">Situacao: todas</option>
             <option value="with_offer">Com oferta vigente</option>
             <option value="no_offer">Sem oferta vigente</option>
@@ -323,17 +340,18 @@ export default function ComparisonPage() {
       ) : (
         <>
           <div className="min-w-0 space-y-3 md:hidden" aria-label="Comparacao em cartoes">
-            {sorted.map((row) => <ComparisonCard key={row.catalog_item_id} row={row} onOpen={(item) => setDrawerItemId(item.catalog_item_id)} onReview={(item) => setReviewItemId(item.catalog_item_id)} isAdmin={isAdmin} />)}
+            {pagedRows.map((row) => <ComparisonCard key={row.catalog_item_id} row={row} onOpen={(item) => setDrawerItemId(item.catalog_item_id)} onReview={(item) => setReviewItemId(item.catalog_item_id)} isAdmin={isAdmin} />)}
           </div>
           <div className="hidden min-w-0 md:block">
             <ComparisonTable
-              rows={sorted}
+              rows={pagedRows}
               sorting={[{ id: sortKey, desc: sortDir === 'desc' }]}
               onSortingChange={(state) => {
                 const first = state[0]
                 if (!first) return
                 setSortKey(first.id as ComparisonSortKey)
                 setSortDir(first.desc ? 'desc' : 'asc')
+                setPage(1)
               }}
               globalFilter={search}
               onOpenOffers={(row) => setDrawerItemId(row.catalog_item_id)}
@@ -343,6 +361,7 @@ export default function ComparisonPage() {
               onEditRule={() => navigate('/pricing/rules')}
             />
           </div>
+          <PaginationControls page={validPage} pageSize={pageSize} total={sorted.length} onPageChange={setPage} onPageSizeChange={(size) => { setPageSize(size); setPage(1) }} />
         </>
       )}
 
