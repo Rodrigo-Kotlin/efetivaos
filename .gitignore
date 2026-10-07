@@ -13,6 +13,9 @@ coverage/
 /test-results/
 *.local
 *.log
+ctx-*.txt
+log-*.txt
+log-*.utf8.txt
 .DS_Store
 Thumbs.db
 vite.config.*.timestamp-*
