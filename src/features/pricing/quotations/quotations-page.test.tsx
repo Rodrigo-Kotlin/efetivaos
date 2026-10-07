@@ -53,6 +53,7 @@ describe('QuotationsPage', () => {
     expect(table.getByText('LAB-001')).toBeInTheDocument()
     expect(table.queryByText('Clinica Sul')).not.toBeInTheDocument()
     await user.clear(screen.getByPlaceholderText('Buscar referência ou fornecedor...'))
+    await user.selectOptions(screen.getByLabelText('Filtrar por status'), 'all')
     await user.selectOptions(screen.getByLabelText('Filtrar por fornecedor'), 's2')
     expect(within(screen.getByRole('table')).getByText('Clinica Sul')).toBeInTheDocument()
     await user.selectOptions(screen.getByLabelText('Filtrar por fornecedor'), 'all')
@@ -63,8 +64,9 @@ describe('QuotationsPage', () => {
     expect(within(screen.getByRole('table')).getByText('Clinica Sul')).toBeInTheDocument()
   })
 
-  it('exibe badges textuais de status e validade', () => {
+  it('exibe badges textuais de status e validade', async () => {
     renderPage()
+    await userEvent.selectOptions(screen.getByLabelText('Filtrar por status'), 'all')
     const table = within(screen.getByRole('table'))
     expect(table.getByText('Ativa')).toBeInTheDocument()
     expect(table.getByText('Cancelada')).toBeInTheDocument()
@@ -92,7 +94,7 @@ describe('QuotationsPage', () => {
     const cards = screen.getByLabelText('Cotações em cartões')
     expect(within(cards).getByText('LAB-001')).toBeInTheDocument()
     expect(within(cards).getAllByText('Lab Norte').length).toBeGreaterThan(0)
-    expect(within(cards).getAllByRole('link', { name: 'Ver detalhes' }).length).toBe(2)
+    expect(within(cards).getAllByRole('link', { name: 'Ver detalhes' }).length).toBe(1)
     expect(within(cards).getByRole('link', { name: 'Editar cotação' })).toBeInTheDocument()
   })
 
@@ -101,6 +103,7 @@ describe('QuotationsPage', () => {
     renderPage()
     const cards = screen.getByLabelText('Cotações em cartões')
     const mobileSort = screen.getByLabelText('Ordenar cotações no celular')
+    await user.selectOptions(screen.getByLabelText('Filtrar por status'), 'all')
     await user.selectOptions(mobileSort, 'supplier:asc')
     expect(within(cards).getAllByRole('article')[0]).toHaveTextContent('Clinica Sul')
     await user.selectOptions(mobileSort, 'updated_at:asc')

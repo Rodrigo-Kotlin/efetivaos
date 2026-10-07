@@ -56,6 +56,7 @@ describe('SuppliersPage status actions', () => {
   it('reativa sem pedir confirmacao', async () => {
     const user = userEvent.setup()
     renderPage(<SuppliersPage />)
+    await user.selectOptions(screen.getByLabelText('Filtrar por status'), 'inactive')
 
     await user.click(screen.getByRole('button', { name: 'Reativar Antigo Lab' }))
 

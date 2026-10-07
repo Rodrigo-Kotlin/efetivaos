@@ -74,7 +74,7 @@ export default function SuppliersPage() {
   const online = useOnlineStatus()
   const [drawer, setDrawer] = useState<DrawerState>(null)
   const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<StatusFilter>('all')
+  const [status, setStatus] = useState<StatusFilter>('active')
   const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }])
   const suppliersQuery = useSuppliers()
   const createMutation = useCreateSupplier()

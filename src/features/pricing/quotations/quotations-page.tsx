@@ -13,7 +13,7 @@ import { useArchiveQuotation, useQuotations, useUnarchiveQuotation } from './quo
 import { QuotationStatusBadge, QuotationValidityBadge } from './quotation-badges'
 import type { QuotationListRow } from './quotation.types'
 
-type StatusFilter = 'all' | QuotationListRow['status']
+type StatusFilter = 'operational' | 'all' | QuotationListRow['status']
 type ArchiveFilter = 'all' | 'active' | 'archived'
 
 const quotationSearch: FilterFn<QuotationListRow> = (row, _columnId, value: string) => {
@@ -51,7 +51,7 @@ export default function QuotationsPage() {
   const unarchiveMutation = useUnarchiveQuotation()
   const [search, setSearch] = useState('')
   const [supplier, setSupplier] = useState('all')
-  const [status, setStatus] = useState<StatusFilter>('all')
+  const [status, setStatus] = useState<StatusFilter>('operational')
   const [validity, setValidity] = useState<ValidityFilter>('all')
   const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>('active')
   const [sorting, setSorting] = useState<SortingState>([{ id: 'received_at', desc: true }])
@@ -67,7 +67,7 @@ export default function QuotationsPage() {
       filterFn: (row, _id, value: ValidityFilter) => matchesValidity(row.original.valid_until, value),
     },
     { id: 'item_count', accessorFn: (row) => row.quotation_items.length, header: 'Itens' },
-    { accessorKey: 'status', header: 'Status', cell: ({ row }) => <QuotationStatusBadge status={row.original.status} archived={Boolean(row.original.archived_at)} />, filterFn: (row, _id, value: StatusFilter) => value === 'all' || row.original.status === value },
+    { accessorKey: 'status', header: 'Status', cell: ({ row }) => <QuotationStatusBadge status={row.original.status} archived={Boolean(row.original.archived_at)} />, filterFn: (row, _id, value: StatusFilter) => value === 'all' || (value === 'operational' ? row.original.status === 'draft' || row.original.status === 'active' : row.original.status === value) },
     { accessorKey: 'updated_at', header: 'Atualizada', cell: ({ getValue }) => formatDateTime(getValue<string>()) },
     {
       id: 'actions', header: () => <span className="sr-only">Ações</span>, enableSorting: false,
@@ -107,7 +107,7 @@ export default function QuotationsPage() {
   }, [table.getRowModel().rows, archiveFilter])
 
   const rows = filteredRows
-  const clearFilters = () => { setSearch(''); setSupplier('all'); setStatus('all'); setValidity('all'); setArchiveFilter('active') }
+  const clearFilters = () => { setSearch(''); setSupplier('all'); setStatus('operational'); setValidity('all'); setArchiveFilter('active') }
   const mobileSort = `${sorting[0]?.id ?? 'received_at'}:${sorting[0]?.desc ? 'desc' : 'asc'}`
 
   function changeMobileSort(value: string) {
@@ -130,7 +130,7 @@ export default function QuotationsPage() {
     <div className="mb-4 grid gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-2 xl:grid-cols-[minmax(16rem,1fr)_repeat(4,12rem)]">
       <label className="relative"><span className="sr-only">Buscar por referência ou fornecedor</span><Search className="pointer-events-none absolute left-3 top-3.5 size-4 text-slate-400" /><Input className="pl-9" placeholder="Buscar referência ou fornecedor..." value={search} onChange={(event) => setSearch(event.target.value)} /></label>
       <label><span className="sr-only">Filtrar por fornecedor</span><select className={`${selectClassName} w-full`} value={supplier} onChange={(event) => setSupplier(event.target.value)}><option value="all">Fornecedores: todos</option>{suppliers.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-      <label><span className="sr-only">Filtrar por status</span><select className={`${selectClassName} w-full`} value={status} onChange={(event) => setStatus(event.target.value as StatusFilter)}><option value="all">Status: todos</option><option value="draft">Rascunho</option><option value="active">Ativa</option><option value="cancelled">Cancelada</option></select></label>
+      <label><span className="sr-only">Filtrar por status</span><select className={`${selectClassName} w-full`} value={status} onChange={(event) => setStatus(event.target.value as StatusFilter)}><option value="operational">Operacionais</option><option value="all">Status: todos</option><option value="draft">Rascunho</option><option value="active">Ativa</option><option value="cancelled">Cancelada</option></select></label>
       <label><span className="sr-only">Filtrar por validade</span><select className={`${selectClassName} w-full`} value={validity} onChange={(event) => setValidity(event.target.value as ValidityFilter)}><option value="all">Validade: todas</option><option value="valid">Vigentes</option><option value="expired">Vencidas</option><option value="no-validity">Sem validade</option></select></label>
       <label><span className="sr-only">Filtrar por arquivo</span><select className={`${selectClassName} w-full`} value={archiveFilter} onChange={(event) => setArchiveFilter(event.target.value as ArchiveFilter)}><option value="active">Base principal</option><option value="archived">Arquivadas</option><option value="all">Todas</option></select></label>
       <label className="md:hidden"><span className="sr-only">Ordenar cotações no celular</span><select className={`${selectClassName} w-full`} value={mobileSort} onChange={(event) => changeMobileSort(event.target.value)}><option value="received_at:desc">Recebida: mais recente</option><option value="received_at:asc">Recebida: mais antiga</option><option value="valid_until:asc">Validade: mais próxima</option><option value="valid_until:desc">Validade: mais distante</option><option value="supplier:asc">Fornecedor: A a Z</option><option value="supplier:desc">Fornecedor: Z a A</option><option value="updated_at:desc">Atualizada: mais recente</option><option value="updated_at:asc">Atualizada: mais antiga</option></select></label>
