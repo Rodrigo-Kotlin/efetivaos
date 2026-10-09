@@ -45,6 +45,22 @@ export type ImportPreview = {
   invalid: number
 }
 
+/**
+ * Minimal shape of a financial registry entry used to resolve the textual
+ * references (category, accounts, party, cost center, service line, payment
+ * method) present in the imported file into the UUIDs required by the ledger.
+ */
+export type ReferenceOption = { id: string; name: string }
+
+export type ReferenceLists = {
+  categories?: ReferenceOption[]
+  accounts?: ReferenceOption[]
+  parties?: ReferenceOption[]
+  costCenters?: ReferenceOption[]
+  serviceLines?: ReferenceOption[]
+  paymentMethods?: ReferenceOption[]
+}
+
 // ---------------------------------------------------------------------------
 // Required fields for import
 // ---------------------------------------------------------------------------
@@ -56,20 +72,77 @@ const VALID_MOVEMENT_TYPES = [
   'EMPRESTIMO_PAGO', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL', 'AJUSTE',
 ]
 
+// Mirrors public.validate_transaction_by_movement_type() in the database so the
+// preview and the persistence agree. Keep in sync with that function.
+const REQUIRED_REFERENCES: Record<string, string[]> = {
+  RECEITA: ['category', 'origin_account'],
+  DESPESA: ['category', 'destination_account'],
+  TRANSFERENCIA: ['origin_account', 'destination_account'],
+  EMPRESTIMO_RECEBIDO: ['origin_account'],
+  EMPRESTIMO_PAGO: ['destination_account'],
+  APORTE: ['origin_account'],
+  RETIRADA: ['origin_account'],
+  IMOBILIZADO: ['category'],
+  SALDO_INICIAL: ['origin_account'],
+}
+
+const REFERENCE_FIELDS: Array<{ field: string; list: keyof ReferenceLists; label: string }> = [
+  { field: 'category', list: 'categories', label: 'Categoria' },
+  { field: 'origin_account', list: 'accounts', label: 'Conta de origem' },
+  { field: 'destination_account', list: 'accounts', label: 'Conta de destino' },
+  { field: 'party', list: 'parties', label: 'Pessoa' },
+  { field: 'cost_center', list: 'costCenters', label: 'Centro de custo' },
+  { field: 'service_line', list: 'serviceLines', label: 'Linha de serviço' },
+  { field: 'payment_method', list: 'paymentMethods', label: 'Forma de pagamento' },
+]
+
 // ---------------------------------------------------------------------------
 // Parse file
 // ---------------------------------------------------------------------------
 
-export function parseCSV(text: string): { headers: string[]; rows: ParsedRow[] } {
-  const result = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: true })
-  const headers = result.meta.fields || []
+function stripBom(text: string): string {
+  return text.replace(/^\uFEFF/, '')
+}
+
+/**
+ * Decodes a CSV file honouring the BOM and falling back to Windows-1252 when
+ * the bytes are not valid UTF-8. pt-BR spreadsheets are commonly exported in
+ * Windows-1252, which would otherwise garble accented headers ("Descrição").
+ */
+export function decodeCsvBuffer(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer)
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return stripBom(new TextDecoder('utf-8').decode(bytes.subarray(3)))
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return stripBom(new TextDecoder('utf-16le').decode(bytes.subarray(2)))
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
+    return stripBom(new TextDecoder('utf-16be').decode(bytes.subarray(2)))
+  }
+  try {
+    return stripBom(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
+  } catch {
+    return stripBom(new TextDecoder('windows-1252').decode(bytes))
+  }
+}
+
+export function parseCSV(rawText: string): { headers: string[]; rows: ParsedRow[] } {
+  const text = stripBom(rawText)
+  const result = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: false })
+  const headers = (result.meta.fields || []).map(h => stripBom(h))
   return { headers, rows: result.data as ParsedRow[] }
 }
 
 export function parseXLSX(buffer: ArrayBuffer): { headers: string[]; rows: ParsedRow[] } {
   const wb = XLSX.read(buffer, { type: 'array' })
-  const sheet = wb.Sheets[wb.SheetNames[0]]
-  const data = XLSX.utils.sheet_to_json<ParsedRow>(sheet, { defval: null })
+  const sheetName =
+    wb.SheetNames.find(name => Boolean((wb.Sheets[name] as { '!ref'?: string } | undefined)?.['!ref'])) ??
+    wb.SheetNames[0]
+  const sheet = wb.Sheets[sheetName]
+  // raw:true keeps date cells as Excel serial numbers and numbers as numbers,
+  // which the normalisation helpers can handle deterministically.
+  const data = XLSX.utils.sheet_to_json<ParsedRow>(sheet, { defval: null, raw: true })
   const headers = data.length > 0 ? Object.keys(data[0]) : []
   return { headers, rows: data }
 }
@@ -80,12 +153,12 @@ export function parseFile(file: File): Promise<{ headers: string[]; rows: Parsed
     if (ext === 'csv') {
       const reader = new FileReader()
       reader.onload = (e) => {
-        const text = e.target?.result as string
-        const { headers, rows } = parseCSV(text)
+        const buffer = e.target?.result as ArrayBuffer
+        const { headers, rows } = parseCSV(decodeCsvBuffer(buffer))
         resolve({ headers, rows, fileType: 'csv' })
       }
       reader.onerror = () => reject(new Error('Failed to read CSV file'))
-      reader.readAsText(file)
+      reader.readAsArrayBuffer(file)
     } else if (ext === 'xlsx' || ext === 'xls') {
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -96,7 +169,7 @@ export function parseFile(file: File): Promise<{ headers: string[]; rows: Parsed
       reader.onerror = () => reject(new Error('Failed to read XLSX file'))
       reader.readAsArrayBuffer(file)
     } else {
-      reject(new Error('Unsupported file type. Use CSV or XLSX.'))
+      reject(new Error('Unsupported file type. Use CSV, XLS or XLSX.'))
     }
   })
 }
@@ -124,11 +197,12 @@ const DEFAULT_COLUMN_MAP: Record<string, string[]> = {
 
 export function guessColumnMapping(headers: string[]): ColumnMapping {
   const mapping: ColumnMapping = {}
-  const lower = headers.map(h => h.toLowerCase().trim())
+  const lower = headers.map(h => normalizeKey(h))
 
   for (const [field, aliases] of Object.entries(DEFAULT_COLUMN_MAP)) {
+    const normalizedAliases = aliases.map(alias => normalizeKey(alias))
     for (let i = 0; i < lower.length; i++) {
-      if (aliases.includes(lower[i])) {
+      if (normalizedAliases.includes(lower[i])) {
         ;(mapping as Record<string, string>)[field] = headers[i]
         break
       }
@@ -139,50 +213,150 @@ export function guessColumnMapping(headers: string[]): ColumnMapping {
 }
 
 // ---------------------------------------------------------------------------
-// Row mapping
+// Normalisation helpers
 // ---------------------------------------------------------------------------
 
-function toDate(val: unknown): string | null {
-  if (!val) return null
-  if (val instanceof Date) return val.toISOString().slice(0, 10)
+function stripDiacritics(value: string): string {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+}
+
+/** Lower-cased, accent-free, single-spaced key used for name matching. */
+function normalizeKey(value: string): string {
+  return stripDiacritics(String(value)).toLowerCase().trim().replace(/\s+/g, ' ')
+}
+
+const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30)
+
+function excelSerialToDate(serial: number): Date | null {
+  if (!Number.isFinite(serial) || serial <= 0 || serial > 2958465) return null
+  return new Date(EXCEL_EPOCH_MS + Math.round(serial * 86400000))
+}
+
+function formatDateUTC(date: Date): string {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`
+}
+
+function formatDateLocal(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+function buildDate(year: number, month: number, day: number): string | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null
+  return formatDateUTC(date)
+}
+
+/** Normalises a full date (DD/MM/YYYY, YYYY-MM-DD, Excel serial, Date) to YYYY-MM-DD. */
+export function toDate(val: unknown): string | null {
+  if (val === null || val === undefined || val === '') return null
+  if (val instanceof Date) return Number.isNaN(val.getTime()) ? null : formatDateLocal(val)
+  if (typeof val === 'number') {
+    const date = excelSerialToDate(val)
+    return date ? formatDateUTC(date) : null
+  }
+
   const s = String(val).trim()
-  // Try DD/MM/YYYY
-  const dmy = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
-  if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`
-  // Try YYYY-MM-DD
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+  if (s === '') return null
+
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    const date = excelSerialToDate(parseFloat(s))
+    return date ? formatDateUTC(date) : null
+  }
+
+  let m = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})$/)
+  if (m) {
+    let year = parseInt(m[3], 10)
+    if (year < 100) year += year < 50 ? 2000 : 1900
+    return buildDate(year, parseInt(m[2], 10), parseInt(m[1], 10))
+  }
+
+  m = s.match(/^(\d{4})[/\-.](\d{1,2})[/\-.](\d{1,2})$/)
+  if (m) return buildDate(parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10))
+
   return null
 }
 
-function toNumber(val: unknown): number | null {
+/** Normalises a competence (MM/YYYY, YYYY-MM or full date) to YYYY-MM-01. */
+export function toCompetenceDate(val: unknown): string | null {
   if (val === null || val === undefined || val === '') return null
-  if (typeof val === 'number') return val
+  if (val instanceof Date) return Number.isNaN(val.getTime()) ? null : formatDateLocal(val)
+  if (typeof val === 'number') {
+    const date = excelSerialToDate(val)
+    return date ? formatDateUTC(date) : null
+  }
+
   const s = String(val).trim()
-    .replace(/[R$\s]/g, '')
-    .replace(/\./g, '')
-    .replace(',', '.')
-  const n = parseFloat(s)
-  return isNaN(n) ? null : n
+  if (s === '') return null
+
+  let m = s.match(/^(\d{1,2})[/\-.](\d{4})$/)
+  if (m) {
+    const month = parseInt(m[1], 10)
+    if (month < 1 || month > 12) return null
+    return `${m[2]}-${String(month).padStart(2, '0')}-01`
+  }
+
+  m = s.match(/^(\d{4})[/\-.](\d{1,2})$/)
+  if (m) {
+    const month = parseInt(m[2], 10)
+    if (month < 1 || month > 12) return null
+    return `${m[1]}-${String(month).padStart(2, '0')}-01`
+  }
+
+  return toDate(s)
 }
 
-function normalizeMovementType(val: unknown): string | null {
-  if (!val) return null
-  const s = String(val).trim().toUpperCase()
-    .replace(/[^A-Z]/g, '')
-  // Common variations
+/**
+ * Normalises pt-BR ("1.234,56"), en-US ("1,234.56") and plain ("1234,56" /
+ * "1234.56") monetary strings — including currency symbols — to a number.
+ */
+export function toNumber(val: unknown): number | null {
+  if (val === null || val === undefined || val === '') return null
+  if (typeof val === 'number') return Number.isFinite(val) ? val : null
+
+  let s = String(val).trim()
+  if (s === '') return null
+
+  s = s.replace(/[^\d.,-]/g, '').replace(/(?!^)-/g, '')
+  if (s === '' || s === '-') return null
+
+  const hasComma = s.includes(',')
+  const hasDot = s.includes('.')
+
+  if (hasComma && hasDot) {
+    if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+      s = s.replace(/\./g, '').replace(',', '.') // 1.234,56 (pt-BR)
+    } else {
+      s = s.replace(/,/g, '') // 1,234.56 (en-US)
+    }
+  } else if (hasComma) {
+    s = s.replace(',', '.')
+  } else if (hasDot && /^\d{1,3}(\.\d{3})+$/.test(s)) {
+    s = s.replace(/\./g, '') // 1.234 / 1.234.567 (pt-BR grouping)
+  }
+
+  const n = parseFloat(s)
+  return Number.isFinite(n) ? n : null
+}
+
+export function normalizeMovementType(val: unknown): string | null {
+  if (val === null || val === undefined || val === '') return null
+  const key = stripDiacritics(String(val)).toUpperCase().replace(/[^A-Z0-9]/g, '')
+
   const map: Record<string, string> = {
     RECEITA: 'RECEITA', RECEITAS: 'RECEITA', RECE: 'RECEITA',
     DESPESA: 'DESPESA', DESPESAS: 'DESPESA', DESP: 'DESPESA',
-    TRANSF: 'TRANSFERENCIA', TRANSFERENCIA: 'TRANSFERENCIA', TRANSFERÊNCIA: 'TRANSFERENCIA',
-    EMPRESTIMO: 'EMPRESTIMO_RECEBIDO', EMP: 'EMPRESTIMO_RECEBIDO',
-    EMPRESTIMOPAGO: 'EMPRESTIMO_PAGO', EMPAGO: 'EMPRESTIMO_PAGO',
+    TRANSFERENCIA: 'TRANSFERENCIA', TRANSF: 'TRANSFERENCIA',
+    EMPRESTIMORECEBIDO: 'EMPRESTIMO_RECEBIDO', EMPRESTIMOREC: 'EMPRESTIMO_RECEBIDO',
+    EMPRESTIMOPAGO: 'EMPRESTIMO_PAGO', EMPRESTIMOPG: 'EMPRESTIMO_PAGO',
     APORTE: 'APORTE',
     RETIRADA: 'RETIRADA',
     IMOBILIZADO: 'IMOBILIZADO', IMOB: 'IMOBILIZADO',
-    SALDO: 'SALDO_INICIAL', SALDOINICIAL: 'SALDO_INICIAL',
+    SALDOINICIAL: 'SALDO_INICIAL', SALDO: 'SALDO_INICIAL',
     AJUSTE: 'AJUSTE',
   }
-  return map[s] || (VALID_MOVEMENT_TYPES.includes(s) ? s : null)
+
+  return map[key] || (VALID_MOVEMENT_TYPES.includes(key) ? key : null)
 }
 
 function generateIdempotencyKey(rowNumber: number, data: ParsedRow, batchId: string): string {
@@ -204,10 +378,69 @@ function generateIdempotencyKey(rowNumber: number, data: ParsedRow, batchId: str
 }
 
 // ---------------------------------------------------------------------------
+// Reference resolution (names in the file -> UUIDs in the ledger)
+// ---------------------------------------------------------------------------
+
+type ReferenceIndex = Partial<Record<keyof ReferenceLists, Map<string, string>>>
+
+function buildReferenceIndex(references: ReferenceLists): ReferenceIndex {
+  const index: ReferenceIndex = {}
+  for (const { list } of REFERENCE_FIELDS) {
+    if (index[list]) continue
+    const map = new Map<string, string>()
+    for (const option of references[list] ?? []) {
+      const key = normalizeKey(option.name)
+      if (key && !map.has(key)) map.set(key, option.id)
+    }
+    index[list] = map
+  }
+  return index
+}
+
+function validateReferences(
+  mapped: Record<string, unknown>,
+  movementType: string | undefined,
+  references: ReferenceLists,
+  errors: string[],
+): void {
+  const index = buildReferenceIndex(references)
+
+  for (const { field, list, label } of REFERENCE_FIELDS) {
+    const raw = mapped[field]
+    if (raw === undefined || raw === null || raw === '') continue
+    const id = index[list]?.get(normalizeKey(String(raw)))
+    if (id) {
+      mapped[`${field}_id`] = id
+    } else {
+      errors.push(`${label} "${String(raw)}" não encontrada nos cadastros financeiros`)
+    }
+  }
+
+  for (const field of REQUIRED_REFERENCES[movementType ?? ''] ?? []) {
+    const meta = REFERENCE_FIELDS.find(item => item.field === field)!
+    if (!mapped[`${field}_id`]) {
+      errors.push(`${meta.label} é obrigatória para ${movementType}`)
+    }
+  }
+
+  if (
+    movementType === 'TRANSFERENCIA' &&
+    mapped.origin_account_id &&
+    mapped.origin_account_id === mapped.destination_account_id
+  ) {
+    errors.push('Conta de origem e conta de destino devem ser diferentes')
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Row validation
 // ---------------------------------------------------------------------------
 
-function validateRow(row: ParsedRow, mapping: ColumnMapping, rowNumber: number): { valid: boolean; errors: string[]; warnings: string[]; mapped: Record<string, unknown> } {
+function validateRow(
+  row: ParsedRow,
+  mapping: ColumnMapping,
+  references?: ReferenceLists,
+): { valid: boolean; errors: string[]; warnings: string[]; mapped: Record<string, unknown> } {
   const errors: string[] = []
   const warnings: string[] = []
   const mapped: Record<string, unknown> = {}
@@ -222,36 +455,40 @@ function validateRow(row: ParsedRow, mapping: ColumnMapping, rowNumber: number):
   // Validate required fields
   for (const req of REQUIRED_FIELDS) {
     if (!mapped[req] && mapped[req] !== 0) {
-      errors.push(`Field '${req}' is required`)
+      errors.push(`Campo obrigatório ausente: ${req}`)
     }
   }
 
   // Validate transaction_date
   if (mapped.transaction_date) {
     const d = toDate(mapped.transaction_date)
-    if (!d) errors.push(`Invalid date: ${mapped.transaction_date}`)
+    if (!d) errors.push(`Data inválida: ${mapped.transaction_date}`)
     else mapped.transaction_date = d
   }
 
   // Validate competence_date
   if (mapped.competence_date) {
-    const d = toDate(mapped.competence_date)
-    if (!d) warnings.push(`Invalid competence date: ${mapped.competence_date}, using transaction_date`)
-    else mapped.competence_date = d
+    const d = toCompetenceDate(mapped.competence_date)
+    if (!d) {
+      warnings.push(`Competência inválida: ${mapped.competence_date}, usando a data do lançamento`)
+      delete mapped.competence_date
+    } else {
+      mapped.competence_date = d
+    }
   }
 
   // Validate amount
   if (mapped.amount !== undefined && mapped.amount !== null) {
     const n = toNumber(mapped.amount)
-    if (n === null) errors.push(`Invalid amount: ${mapped.amount}`)
-    else if (n <= 0) errors.push(`Amount must be positive: ${n}`)
+    if (n === null) errors.push(`Valor inválido: ${mapped.amount}`)
+    else if (n <= 0) errors.push(`Valor deve ser positivo: ${n}`)
     else mapped.amount = n
   }
 
   // Validate movement_type
   if (mapped.movement_type) {
     const t = normalizeMovementType(mapped.movement_type)
-    if (!t) errors.push(`Invalid movement type: ${mapped.movement_type}`)
+    if (!t) errors.push(`Tipo de lançamento inválido: ${mapped.movement_type}`)
     else mapped.movement_type = t
   }
 
@@ -266,8 +503,11 @@ function validateRow(row: ParsedRow, mapping: ColumnMapping, rowNumber: number):
     mapped.competence_date = mapped.transaction_date
   }
 
-  // Generate idempotency key
-  const idempotency_key = generateIdempotencyKey(rowNumber, row, 'batch')
+  // Resolve textual references to UUIDs and enforce the same minimum
+  // requirements the ledger enforces (preview == persistence).
+  if (references) {
+    validateReferences(mapped, mapped.movement_type as string | undefined, references, errors)
+  }
 
   return { valid: errors.length === 0, errors, warnings, mapped }
 }
@@ -281,9 +521,10 @@ export function generatePreview(
   rows: ParsedRow[],
   mapping: ColumnMapping,
   batchId: string,
+  references?: ReferenceLists,
 ): ImportPreview {
   const validated: ValidatedRow[] = rows.map((row, i) => {
-    const { valid, errors, warnings, mapped } = validateRow(row, mapping, i + 1)
+    const { valid, errors, warnings, mapped } = validateRow(row, mapping, references)
     return {
       row_number: i + 1,
       raw: row,
@@ -334,9 +575,9 @@ export const TEMPLATE_MAPPING: Record<string, string> = {
 
 export function downloadTemplate(format: 'csv' | 'xlsx') {
   const rows = [
-    ['2026-08-01', '2026-08-01', 'Pagamento fornecedor ABC', '1500.00', 'DESPESA', 'Material', '', '', 'Fornecedor ABC', '', '', 'PIX', '2026-08-10', ''],
-    ['2026-08-02', '2026-08-02', 'Receita cliente XYZ', '3200.00', 'RECEITA', 'Assessoria', '', '', 'Cliente XYZ', '', '', 'Boleto', '2026-08-15', ''],
-    ['2026-08-03', '2026-08-03', 'Transferência entre contas', '5000.00', 'TRANSFERENCIA', '', 'Banco Itaú', 'Banco Bradesco', '', '', '', '', '', ''],
+    ['01/08/2026', '08/2026', 'Pagamento fornecedor ABC', '1500,00', 'DESPESA', 'Material', '', 'Conta Principal', 'Fornecedor ABC', '', '', 'PIX', '10/08/2026', ''],
+    ['02/08/2026', '08/2026', 'Receita cliente XYZ', '3200,00', 'RECEITA', 'Assessoria', 'Conta Principal', '', 'Cliente XYZ', '', '', 'Boleto', '15/08/2026', ''],
+    ['03/08/2026', '08/2026', 'Transferência entre contas', '5000,00', 'TRANSFERENCIA', '', 'Conta Principal', 'Conta Secundária', '', '', '', '', '', ''],
   ]
 
   if (format === 'csv') {

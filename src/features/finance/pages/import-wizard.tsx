@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
-import { Upload, FileText, ArrowRight, Check, X, AlertTriangle, Download, Loader2 } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Upload, ArrowRight, Check, X, AlertTriangle, Download, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Drawer } from '@/components/ui/drawer'
 import {
@@ -15,7 +14,16 @@ import {
   type ImportPreview,
   type ImportFileType,
   type ParsedRow,
+  type ReferenceLists,
 } from '../lib/import-utils'
+import {
+  fetchCategories,
+  fetchFinancialAccounts,
+  fetchParties,
+  fetchCostCenters,
+  fetchServiceLines,
+  fetchPaymentMethods,
+} from '../api/finance-api'
 import { supabase } from '@/lib/supabase'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -54,6 +62,7 @@ export function ImportWizard({ open, onClose }: Props) {
   const [importOnlyValid, setImportOnlyValid] = useState(true)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [loadingRefs, setLoadingRefs] = useState(false)
   const qc = useQueryClient()
 
   const reset = useCallback(() => {
@@ -92,12 +101,40 @@ export function ImportWizard({ open, onClose }: Props) {
   }, [])
 
   // Step 2: Mapping → Preview
-  const handleMappingConfirm = useCallback(() => {
-    // Create a temporary batch ID for idempotency key generation
-    const batchId = crypto.randomUUID()
-    const p = generatePreview(headers, rawRows, mapping, batchId)
-    setPreview(p)
-    setStep('preview')
+  const handleMappingConfirm = useCallback(async () => {
+    setLoadingRefs(true)
+    try {
+      // Load the financial registries so textual references in the file
+      // (category, accounts, party, cost center, service line, payment method)
+      // can be resolved to UUIDs — the preview and the persistence share this
+      // exact pipeline, so what is approved on the preview is what is sent.
+      const [categories, accounts, parties, costCenters, serviceLines, paymentMethods] = await Promise.all([
+        fetchCategories(),
+        fetchFinancialAccounts(),
+        fetchParties(),
+        fetchCostCenters(),
+        fetchServiceLines(),
+        fetchPaymentMethods(),
+      ])
+      const references: ReferenceLists = {
+        categories: categories.map(c => ({ id: c.id, name: c.name })),
+        accounts: accounts.map(a => ({ id: a.id, name: a.name })),
+        parties: parties.map(p => ({ id: p.id, name: p.name })),
+        costCenters: costCenters.map(c => ({ id: c.id, name: c.name })),
+        serviceLines: serviceLines.map(s => ({ id: s.id, name: s.name })),
+        paymentMethods: paymentMethods.map(p => ({ id: p.id, name: p.name })),
+      }
+
+      // Create a temporary batch ID for idempotency key generation
+      const batchId = crypto.randomUUID()
+      const p = generatePreview(headers, rawRows, mapping, batchId, references)
+      setPreview(p)
+      setStep('preview')
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Falha ao carregar os cadastros financeiros para validação')
+    } finally {
+      setLoadingRefs(false)
+    }
   }, [headers, rawRows, mapping])
 
   // Step 3: Preview → Process
@@ -139,7 +176,7 @@ export function ImportWizard({ open, onClose }: Props) {
           p_errors: row.errors.length > 0 ? row.errors : null,
           p_idempotency_key: row.idempotency_key,
         })
-        if (rowErr) { errors++; errorMessages.push(`Row ${row.row_number}: ${rowErr.message}`); continue }
+        if (rowErr) { errors++; errorMessages.push(`Linha ${row.row_number}: ${rowErr.message}`); continue }
 
         const rowIdStr = String(rowId || '')
 
@@ -176,15 +213,14 @@ export function ImportWizard({ open, onClose }: Props) {
 
         if (txErr) {
           errors++
-          errorMessages.push(`Row ${row.row_number}: ${txErr.message}`)
-          await (supabase.rpc as any)('create_import_row', {
-            p_batch_id: batchId,
-            p_row_number: row.row_number,
-            p_raw_data: row.raw,
-            p_mapped_data: row.mapped,
+          errorMessages.push(`Linha ${row.row_number}: ${txErr.message}`)
+          // Reuse the tracking row already created above; do NOT insert a
+          // second row for the same idempotency key (that produced a spurious
+          // "duplicate" record).
+          await (supabase.rpc as any)('finalize_import_row', {
+            p_row_id: rowIdStr,
+            p_transaction_id: null,
             p_status: 'error',
-            p_errors: [txErr.message],
-            p_idempotency_key: row.idempotency_key,
           })
         } else {
           imported++
@@ -197,10 +233,12 @@ export function ImportWizard({ open, onClose }: Props) {
         }
       }
 
-      // 5. Update batch status
+      // 5. Update batch status — a batch that imported nothing is a failure,
+      // not a success (0 imported / N errors must not look like success).
+      const finalStatus = imported === 0 ? 'failed' : errors > 0 ? 'completed_with_errors' : 'completed'
       await (supabase.rpc as any)('update_import_batch_status', {
         p_batch_id: batchId,
-        p_status: errors > 0 ? 'completed_with_errors' : 'completed',
+        p_status: finalStatus,
         p_total_rows: preview.total,
         p_valid_rows: preview.valid,
         p_imported_rows: imported,
@@ -310,7 +348,8 @@ export function ImportWizard({ open, onClose }: Props) {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setStep('upload')}>Voltar</Button>
-              <Button size="sm" onClick={handleMappingConfirm}>
+              <Button size="sm" onClick={handleMappingConfirm} disabled={loadingRefs}>
+                {loadingRefs && <Loader2 className="mr-1 size-3.5 animate-spin" />}
                 Gerar Preview ({rawRows.length} linhas)
               </Button>
             </div>
@@ -400,10 +439,26 @@ export function ImportWizard({ open, onClose }: Props) {
         {/* STEP: Result */}
         {step === 'result' && result && (
           <div className="space-y-4">
-            <div className="rounded-lg bg-emerald-50 p-4 text-center">
-              <Check className="mx-auto size-8 text-emerald-600" />
-              <p className="mt-2 font-medium text-emerald-800">Importação concluída</p>
-            </div>
+            {result.imported > 0 ? (
+              <div className={`rounded-lg p-4 text-center ${result.errors > 0 ? 'bg-amber-50' : 'bg-emerald-50'}`}>
+                {result.errors > 0 ? (
+                  <AlertTriangle className="mx-auto size-8 text-amber-600" />
+                ) : (
+                  <Check className="mx-auto size-8 text-emerald-600" />
+                )}
+                <p className={`mt-2 font-medium ${result.errors > 0 ? 'text-amber-800' : 'text-emerald-800'}`}>
+                  {result.errors > 0 ? 'Importação concluída com erros' : 'Importação concluída'}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg bg-red-50 p-4 text-center">
+                <X className="mx-auto size-8 text-red-600" />
+                <p className="mt-2 font-medium text-red-800">Nenhum lançamento importado</p>
+                <p className="mt-1 text-xs text-red-600">
+                  Verifique as datas, valores, tipos e os cadastros (categoria, contas) das linhas abaixo.
+                </p>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-lg bg-slate-50 p-3">
