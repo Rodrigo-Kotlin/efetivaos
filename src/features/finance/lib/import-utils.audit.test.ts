@@ -198,10 +198,31 @@ describe('auditoria — competência', () => {
     expect(comp('15/03/2026').mapped.competence_date).toBe('2026-03-15')
   })
 
-  it('competência inválida avisa e usa a data do lançamento (não é silencioso)', () => {
-    const row = comp('quando der')
-    expect(row.warnings.join(' ')).toMatch(/compet/i)
+  it('competência ausente usa a data do lançamento (contrato existente)', () => {
+    const row = comp(null)
+    expect(row.valid).toBe(true)
     expect(row.mapped.competence_date).toBe('2026-03-15')
+  })
+
+  // Competência explicitamente informada e inválida é ERRO DE LINHA: nunca
+  // pode cair silenciosamente para a data do lançamento.
+  it.each(['13/2026', '00/2026', '2026-13', 'quando der', '13/2026x'])(
+    'competência inválida "%s" gera erro de linha e não usa fallback',
+    value => {
+      const row = comp(value)
+      expect(row.valid).toBe(false)
+      expect(row.errors.join(' ')).toMatch(/compet/i)
+      expect(row.mapped.competence_date).toBeUndefined()
+    },
+  )
+
+  it('competência inválida registra Campo/Valor/Motivo estruturados', () => {
+    const row = comp('13/2026')
+    expect(row.errorDetails).toContainEqual({
+      field: 'Competência',
+      value: '13/2026',
+      reason: 'Mês inválido. Use MM/AAAA.',
+    })
   })
 })
 

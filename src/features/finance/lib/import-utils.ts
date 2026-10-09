@@ -27,12 +27,28 @@ export type ColumnMapping = {
 
 export type ParsedRow = Record<string, string | number | null>
 
+/**
+ * Structured validation error used by the result UI to present each rejection
+ * as Linha / Campo / Valor / Motivo. `errors` keeps the human-readable strings
+ * (used for persistence and backward compatibility), while `errorDetails`
+ * breaks them down for display.
+ */
+export type RowErrorDetail = {
+  /** Human-readable field label, e.g. "Competência". */
+  field: string
+  /** Original value found in the file, when applicable. */
+  value?: string
+  /** Reason without the field/value prefix. */
+  reason: string
+}
+
 export type ValidatedRow = {
   row_number: number
   raw: ParsedRow
   mapped: Record<string, unknown>
   valid: boolean
   errors: string[]
+  errorDetails: RowErrorDetail[]
   warnings: string[]
   idempotency_key: string
 }
@@ -402,6 +418,7 @@ function validateReferences(
   movementType: string | undefined,
   references: ReferenceLists,
   errors: string[],
+  errorDetails: RowErrorDetail[],
 ): void {
   const index = buildReferenceIndex(references)
 
@@ -413,6 +430,7 @@ function validateReferences(
       mapped[`${field}_id`] = id
     } else {
       errors.push(`${label} "${String(raw)}" não encontrada nos cadastros financeiros`)
+      errorDetails.push({ field: label, value: String(raw), reason: 'Não encontrada nos cadastros financeiros' })
     }
   }
 
@@ -420,6 +438,7 @@ function validateReferences(
     const meta = REFERENCE_FIELDS.find(item => item.field === field)!
     if (!mapped[`${field}_id`]) {
       errors.push(`${meta.label} é obrigatória para ${movementType}`)
+      errorDetails.push({ field: meta.label, reason: `Obrigatória para ${movementType}` })
     }
   }
 
@@ -429,6 +448,7 @@ function validateReferences(
     mapped.origin_account_id === mapped.destination_account_id
   ) {
     errors.push('Conta de origem e conta de destino devem ser diferentes')
+    errorDetails.push({ field: 'Conta de destino', reason: 'Deve ser diferente da conta de origem' })
   }
 }
 
@@ -436,12 +456,21 @@ function validateReferences(
 // Row validation
 // ---------------------------------------------------------------------------
 
+const FIELD_LABELS: Record<string, string> = {
+  transaction_date: 'Data',
+  competence_date: 'Competência',
+  description: 'Descrição',
+  amount: 'Valor',
+  movement_type: 'Tipo',
+}
+
 function validateRow(
   row: ParsedRow,
   mapping: ColumnMapping,
   references?: ReferenceLists,
-): { valid: boolean; errors: string[]; warnings: string[]; mapped: Record<string, unknown> } {
+): { valid: boolean; errors: string[]; errorDetails: RowErrorDetail[]; warnings: string[]; mapped: Record<string, unknown> } {
   const errors: string[] = []
+  const errorDetails: RowErrorDetail[] = []
   const warnings: string[] = []
   const mapped: Record<string, unknown> = {}
 
@@ -456,21 +485,34 @@ function validateRow(
   for (const req of REQUIRED_FIELDS) {
     if (!mapped[req] && mapped[req] !== 0) {
       errors.push(`Campo obrigatório ausente: ${req}`)
+      errorDetails.push({ field: FIELD_LABELS[req] ?? req, reason: 'Campo obrigatório ausente' })
     }
   }
 
   // Validate transaction_date
   if (mapped.transaction_date) {
-    const d = toDate(mapped.transaction_date)
-    if (!d) errors.push(`Data inválida: ${mapped.transaction_date}`)
-    else mapped.transaction_date = d
+    const rawDate = mapped.transaction_date
+    const d = toDate(rawDate)
+    if (!d) {
+      errors.push(`Data inválida: ${rawDate}`)
+      errorDetails.push({ field: 'Data', value: String(rawDate), reason: 'Data inválida' })
+    } else {
+      mapped.transaction_date = d
+    }
   }
 
-  // Validate competence_date
+  // Validate competence_date.
+  // A competence explicitly informed but invalid is a row error: it must never
+  // silently fall back to the transaction date. The fallback is only allowed
+  // when the competence is ABSENT (see below), preserving the existing contract.
+  let competencePresent = false
   if (mapped.competence_date) {
-    const d = toCompetenceDate(mapped.competence_date)
+    competencePresent = true
+    const rawCompetence = mapped.competence_date
+    const d = toCompetenceDate(rawCompetence)
     if (!d) {
-      warnings.push(`Competência inválida: ${mapped.competence_date}, usando a data do lançamento`)
+      errors.push(`Competência inválida: ${rawCompetence}. Use MM/AAAA.`)
+      errorDetails.push({ field: 'Competência', value: String(rawCompetence), reason: 'Mês inválido. Use MM/AAAA.' })
       delete mapped.competence_date
     } else {
       mapped.competence_date = d
@@ -479,17 +521,29 @@ function validateRow(
 
   // Validate amount
   if (mapped.amount !== undefined && mapped.amount !== null) {
-    const n = toNumber(mapped.amount)
-    if (n === null) errors.push(`Valor inválido: ${mapped.amount}`)
-    else if (n <= 0) errors.push(`Valor deve ser positivo: ${n}`)
-    else mapped.amount = n
+    const rawAmount = mapped.amount
+    const n = toNumber(rawAmount)
+    if (n === null) {
+      errors.push(`Valor inválido: ${rawAmount}`)
+      errorDetails.push({ field: 'Valor', value: String(rawAmount), reason: 'Valor inválido' })
+    } else if (n <= 0) {
+      errors.push(`Valor deve ser positivo: ${n}`)
+      errorDetails.push({ field: 'Valor', value: String(rawAmount), reason: 'Valor deve ser positivo' })
+    } else {
+      mapped.amount = n
+    }
   }
 
   // Validate movement_type
   if (mapped.movement_type) {
-    const t = normalizeMovementType(mapped.movement_type)
-    if (!t) errors.push(`Tipo de lançamento inválido: ${mapped.movement_type}`)
-    else mapped.movement_type = t
+    const rawType = mapped.movement_type
+    const t = normalizeMovementType(rawType)
+    if (!t) {
+      errors.push(`Tipo de lançamento inválido: ${rawType}`)
+      errorDetails.push({ field: 'Tipo', value: String(rawType), reason: 'Tipo de lançamento inválido' })
+    } else {
+      mapped.movement_type = t
+    }
   }
 
   // Normalize dates
@@ -498,18 +552,20 @@ function validateRow(
     if (d) mapped.due_date = d
   }
 
-  // competence_date fallback
-  if (!mapped.competence_date && mapped.transaction_date) {
+  // competence_date fallback — only when the competence was absent in the file.
+  // A present-and-invalid competence already produced a row error and must not
+  // be replaced by the transaction date.
+  if (!competencePresent && !mapped.competence_date && mapped.transaction_date) {
     mapped.competence_date = mapped.transaction_date
   }
 
   // Resolve textual references to UUIDs and enforce the same minimum
   // requirements the ledger enforces (preview == persistence).
   if (references) {
-    validateReferences(mapped, mapped.movement_type as string | undefined, references, errors)
+    validateReferences(mapped, mapped.movement_type as string | undefined, references, errors, errorDetails)
   }
 
-  return { valid: errors.length === 0, errors, warnings, mapped }
+  return { valid: errors.length === 0, errors, errorDetails, warnings, mapped }
 }
 
 // ---------------------------------------------------------------------------
@@ -524,13 +580,14 @@ export function generatePreview(
   references?: ReferenceLists,
 ): ImportPreview {
   const validated: ValidatedRow[] = rows.map((row, i) => {
-    const { valid, errors, warnings, mapped } = validateRow(row, mapping, references)
+    const { valid, errors, errorDetails, warnings, mapped } = validateRow(row, mapping, references)
     return {
       row_number: i + 1,
       raw: row,
       mapped,
       valid,
       errors,
+      errorDetails,
       warnings,
       idempotency_key: generateIdempotencyKey(i + 1, row, batchId),
     }

@@ -16,6 +16,7 @@ import {
   type ParsedRow,
   type ReferenceLists,
 } from '../lib/import-utils'
+import { persistImport, type ImportRejection } from '../lib/import-persist'
 import {
   fetchCategories,
   fetchFinancialAccounts,
@@ -41,10 +42,9 @@ type Props = {
 type ImportResult = {
   total: number
   imported: number
-  skipped: number
-  duplicate: number
-  errors: number
-  errorMessages: string[]
+  rejected: number
+  rejectedRows: ImportRejection[]
+  error?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -59,7 +59,6 @@ export function ImportWizard({ open, onClose }: Props) {
   const [rawRows, setRawRows] = useState<ParsedRow[]>([])
   const [mapping, setMapping] = useState<ColumnMapping>({})
   const [preview, setPreview] = useState<ImportPreview | null>(null)
-  const [importOnlyValid, setImportOnlyValid] = useState(true)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [processing, setProcessing] = useState(false)
   const [loadingRefs, setLoadingRefs] = useState(false)
@@ -144,122 +143,40 @@ export function ImportWizard({ open, onClose }: Props) {
     setProcessing(true)
 
     try {
-      // 1. Create batch record
-      const { data: batchId, error: batchErr } = await (supabase.rpc as any)('create_import_batch', {
-        p_file_name: file.name,
-        p_file_type: fileType,
-        p_file_size: file.size,
-        p_column_mapping: mapping,
+      // The shared persistence pipeline always walks every row of the preview:
+      // invalid rows are recorded as evidence and reported as rejections, while
+      // only valid rows reach the ledger. It returns reconciled counters so the
+      // UI can state exactly what happened (total = imported + rejected).
+      const persistence = await persistImport(
+        supabase,
+        { name: file.name, size: file.size, fileType },
+        mapping,
+        preview,
+      )
+
+      setResult({
+        total: persistence.total,
+        imported: persistence.imported,
+        rejected: persistence.rejected,
+        rejectedRows: persistence.rejectedRows,
       })
-      if (batchErr) throw batchErr
-
-      // 2. Filter rows to import
-      const rowsToImport = importOnlyValid
-        ? preview.rows.filter(r => r.valid)
-        : preview.rows
-
-      let imported = 0
-      let skipped = 0
-      let duplicate = 0
-      let errors = 0
-      const errorMessages: string[] = []
-
-      // 3. Process each row
-      for (const row of rowsToImport) {
-        // Create import row record
-        const { data: rowId, error: rowErr } = await (supabase.rpc as any)('create_import_row', {
-          p_batch_id: batchId,
-          p_row_number: row.row_number,
-          p_raw_data: row.raw,
-          p_mapped_data: row.mapped,
-          p_status: row.valid ? 'valid' : 'invalid',
-          p_errors: row.errors.length > 0 ? row.errors : null,
-          p_idempotency_key: row.idempotency_key,
-        })
-        if (rowErr) { errors++; errorMessages.push(`Linha ${row.row_number}: ${rowErr.message}`); continue }
-
-        const rowIdStr = String(rowId || '')
-
-        // Check if row is duplicate
-        if (rowIdStr.includes('duplicate')) {
-          duplicate++
-          continue
-        }
-
-        if (!row.valid) {
-          skipped++
-          continue
-        }
-
-        // 4. Create transaction via RPC
-        const m = row.mapped as Record<string, any>
-        const { data: txId, error: txErr } = await supabase.rpc('create_financial_transaction', {
-          p_description: m.description,
-          p_transaction_date: m.transaction_date,
-          p_competence_date: m.competence_date || m.transaction_date,
-          p_movement_type: m.movement_type,
-          p_amount: m.amount,
-          p_category_id: m.category_id || null,
-          p_origin_account_id: m.origin_account_id || null,
-          p_destination_account_id: m.destination_account_id || null,
-          p_party_id: m.party_id || null,
-          p_cost_center_id: m.cost_center_id || null,
-          p_service_line_id: m.service_line_id || null,
-          p_payment_method_id: m.payment_method_id || null,
-          p_due_date: m.due_date || null,
-          p_notes: m.notes || null,
-          p_idempotency_key: row.idempotency_key,
-        })
-
-        if (txErr) {
-          errors++
-          errorMessages.push(`Linha ${row.row_number}: ${txErr.message}`)
-          // Reuse the tracking row already created above; do NOT insert a
-          // second row for the same idempotency key (that produced a spurious
-          // "duplicate" record).
-          await (supabase.rpc as any)('finalize_import_row', {
-            p_row_id: rowIdStr,
-            p_transaction_id: null,
-            p_status: 'error',
-          })
-        } else {
-          imported++
-          // Finalize row
-          await (supabase.rpc as any)('finalize_import_row', {
-            p_row_id: rowIdStr,
-            p_transaction_id: txId,
-            p_status: 'imported',
-          })
-        }
-      }
-
-      // 5. Update batch status — a batch that imported nothing is a failure,
-      // not a success (0 imported / N errors must not look like success).
-      const finalStatus = imported === 0 ? 'failed' : errors > 0 ? 'completed_with_errors' : 'completed'
-      await (supabase.rpc as any)('update_import_batch_status', {
-        p_batch_id: batchId,
-        p_status: finalStatus,
-        p_total_rows: preview.total,
-        p_valid_rows: preview.valid,
-        p_imported_rows: imported,
-        p_skipped_rows: skipped,
-        p_duplicate_rows: duplicate,
-        p_error_rows: errors,
-        p_errors: errorMessages.length > 0 ? errorMessages : null,
-      })
-
-      setResult({ total: preview.total, imported, skipped, duplicate, errors, errorMessages })
       setStep('result')
 
       // Invalidate queries
       qc.invalidateQueries({ queryKey: ['finance'] })
-    } catch (err: any) {
-      setResult({ total: 0, imported: 0, skipped: 0, duplicate: 0, errors: 1, errorMessages: [err.message] })
+    } catch (err) {
+      setResult({
+        total: preview.total,
+        imported: 0,
+        rejected: preview.total,
+        rejectedRows: [],
+        error: err instanceof Error ? err.message : 'Falha ao importar as linhas',
+      })
       setStep('result')
     } finally {
       setProcessing(false)
     }
-  }, [preview, file, fileType, mapping, importOnlyValid, qc])
+  }, [preview, file, fileType, mapping, qc])
 
   return (
     <Drawer open={open} onOpenChange={(o) => { if (!o) handleClose() }} title="Importar Lançamentos">
@@ -368,15 +285,10 @@ export function ImportWizard({ open, onClose }: Props) {
             </div>
 
             {preview.invalid > 0 && (
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={importOnlyValid}
-                  onChange={e => setImportOnlyValid(e.target.checked)}
-                  className="rounded"
-                />
-                Importar apenas linhas válidas ({preview.valid})
-              </label>
+              <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                As {preview.invalid} linhas inválidas não serão importadas, mas permanecerão
+                listadas no resultado com o motivo da rejeição.
+              </p>
             )}
 
             <div className="max-h-[300px] overflow-y-auto rounded-lg border border-slate-200">
@@ -422,7 +334,7 @@ export function ImportWizard({ open, onClose }: Props) {
               <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
               <Button size="sm" onClick={handleImport} disabled={processing}>
                 {processing ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : <Check className="mr-1 size-3.5" />}
-                Confirmar Importação ({importOnlyValid ? preview.valid : preview.total} linhas)
+                Confirmar Importação ({preview.total} linhas)
               </Button>
             </div>
           </div>
@@ -437,70 +349,92 @@ export function ImportWizard({ open, onClose }: Props) {
         )}
 
         {/* STEP: Result */}
-        {step === 'result' && result && (
-          <div className="space-y-4">
-            {result.imported > 0 ? (
-              <div className={`rounded-lg p-4 text-center ${result.errors > 0 ? 'bg-amber-50' : 'bg-emerald-50'}`}>
-                {result.errors > 0 ? (
-                  <AlertTriangle className="mx-auto size-8 text-amber-600" />
-                ) : (
+        {step === 'result' && result && (() => {
+          const { total, imported, rejected, rejectedRows, error } = result
+          const partial = imported > 0 && rejected > 0
+          const success = imported > 0 && rejected === 0 && !error
+
+          return (
+            <div className="space-y-4">
+              {error ? (
+                <div className="rounded-lg bg-red-50 p-4 text-center">
+                  <X className="mx-auto size-8 text-red-600" />
+                  <p className="mt-2 font-medium text-red-800">Nenhum lançamento foi importado</p>
+                  <p className="mt-1 text-xs text-red-600">{error}</p>
+                </div>
+              ) : success ? (
+                <div className="rounded-lg bg-emerald-50 p-4 text-center">
                   <Check className="mx-auto size-8 text-emerald-600" />
-                )}
-                <p className={`mt-2 font-medium ${result.errors > 0 ? 'text-amber-800' : 'text-emerald-800'}`}>
-                  {result.errors > 0 ? 'Importação concluída com erros' : 'Importação concluída'}
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-lg bg-red-50 p-4 text-center">
-                <X className="mx-auto size-8 text-red-600" />
-                <p className="mt-2 font-medium text-red-800">Nenhum lançamento importado</p>
-                <p className="mt-1 text-xs text-red-600">
-                  Verifique as datas, valores, tipos e os cadastros (categoria, contas) das linhas abaixo.
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg bg-slate-50 p-3">
-                <p className="text-xs text-slate-500">Total</p>
-                <p className="text-lg font-semibold">{result.total}</p>
-              </div>
-              <div className="rounded-lg bg-emerald-50 p-3">
-                <p className="text-xs text-emerald-600">Importados</p>
-                <p className="text-lg font-semibold text-emerald-800">{result.imported}</p>
-              </div>
-              {result.skipped > 0 && (
-                <div className="rounded-lg bg-amber-50 p-3">
-                  <p className="text-xs text-amber-600">Ignorados</p>
-                  <p className="text-lg font-semibold text-amber-800">{result.skipped}</p>
+                  <p className="mt-2 font-medium text-emerald-800">
+                    {imported === 1 ? '1 lançamento importado.' : `${imported} lançamentos importados.`}
+                  </p>
+                </div>
+              ) : partial ? (
+                <div className="rounded-lg bg-amber-50 p-4 text-center">
+                  <AlertTriangle className="mx-auto size-8 text-amber-600" />
+                  <p className="mt-2 font-medium text-amber-800">
+                    {imported} {imported === 1 ? 'lançamento importado' : 'lançamentos importados'} e{' '}
+                    {rejected} {rejected === 1 ? 'rejeitado' : 'rejeitados'}.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg bg-red-50 p-4 text-center">
+                  <X className="mx-auto size-8 text-red-600" />
+                  <p className="mt-2 font-medium text-red-800">Nenhum lançamento foi importado</p>
+                  <p className="mt-1 text-xs text-red-600">
+                    Verifique as datas, valores, tipos e os cadastros (categoria, contas) das linhas abaixo.
+                  </p>
                 </div>
               )}
-              {result.duplicate > 0 && (
+
+              <div className="grid grid-cols-3 gap-3 text-sm">
                 <div className="rounded-lg bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Duplicados</p>
-                  <p className="text-lg font-semibold">{result.duplicate}</p>
+                  <p className="text-xs text-slate-500">Total</p>
+                  <p className="text-lg font-semibold">{total}</p>
                 </div>
-              )}
-              {result.errors > 0 && (
-                <div className="rounded-lg bg-red-50 p-3">
-                  <p className="text-xs text-red-600">Erros</p>
-                  <p className="text-lg font-semibold text-red-800">{result.errors}</p>
+                <div className="rounded-lg bg-emerald-50 p-3">
+                  <p className="text-xs text-emerald-600">Importadas</p>
+                  <p className="text-lg font-semibold text-emerald-800">{imported}</p>
                 </div>
-              )}
-            </div>
-
-            {result.errorMessages.length > 0 && (
-              <div className="max-h-[200px] overflow-y-auto rounded-lg border border-red-200 bg-red-50 p-3">
-                <p className="mb-1 text-xs font-medium text-red-700">Erros:</p>
-                {result.errorMessages.map((msg, i) => (
-                  <p key={i} className="text-xs text-red-600">{msg}</p>
-                ))}
+                <div className={`rounded-lg p-3 ${rejected > 0 ? 'bg-amber-50' : 'bg-slate-50'}`}>
+                  <p className={`text-xs ${rejected > 0 ? 'text-amber-600' : 'text-slate-500'}`}>Rejeitadas</p>
+                  <p className={`text-lg font-semibold ${rejected > 0 ? 'text-amber-800' : ''}`}>{rejected}</p>
+                </div>
               </div>
-            )}
 
-            <Button className="w-full" onClick={handleClose}>Fechar</Button>
-          </div>
-        )}
+              {rejectedRows.length > 0 && (
+                <div className="max-h-[240px] overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 p-3">
+                  <p className="mb-2 text-xs font-medium text-amber-800">Linhas rejeitadas:</p>
+                  <ul className="space-y-2">
+                    {rejectedRows.map(r => (
+                      <li key={r.row_number} className="text-xs text-amber-900">
+                        <span className="font-semibold">Linha {r.row_number}</span>
+                        {r.details.length > 0 ? (
+                          <ul className="mt-0.5 space-y-0.5 pl-3">
+                            {r.details.map((d, i) => (
+                              <li key={i}>
+                                <span className="font-medium">{d.field}</span>
+                                {d.value ? `: ${d.value}` : ''}
+                                {' — '}
+                                {d.reason}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <ul className="mt-0.5 space-y-0.5 pl-3">
+                            {r.errors.map((e, i) => <li key={i}>{e}</li>)}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <Button className="w-full" onClick={handleClose}>Fechar</Button>
+            </div>
+          )
+        })()}
       </div>
     </Drawer>
   )
