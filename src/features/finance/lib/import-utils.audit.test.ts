@@ -35,6 +35,15 @@ const REFS: ReferenceLists = {
   accounts: [{ id: 'acc-x', name: 'Banco X' }, { id: 'acc-y', name: 'Banco Y' }],
 }
 
+const RECLASSIFICATION_REFS: ReferenceLists = {
+  ...REFS,
+  categories: [
+    ...REFS.categories!,
+    { id: 'cat-salary', name: 'Salarios administrativos' },
+    { id: 'cat-phone', name: 'Telefonia / internet' },
+  ],
+}
+
 function previewCsv(csv: string, mapping: ColumnMapping = PT_MAP, refs?: ReferenceLists) {
   const { headers, rows } = parseCSV(csv)
   return generatePreview(headers, rows, mapping, 'batch-test', refs)
@@ -409,6 +418,57 @@ describe('auditoria — referências', () => {
     expect(p.referenceIssues).toHaveLength(2)
     expect(p.referenceIssues[0].similaritySuggestions).toContain('Estampa Mix')
     expect(p.referenceIssues[0].key).not.toBe(p.referenceIssues[1].key)
+  })
+
+  it('reclassifica salário para a categoria contábil existente e preserva a categoria bruta', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Salário Luciana;100,00;Despesa;Pessoal e adiantamentos;Banco X\r\n',
+      PT_MAP,
+      RECLASSIFICATION_REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(true)
+    expect(row.mapped.category).toBe('Pessoal e adiantamentos')
+    expect(row.mapped.resolved_category).toBe('Salarios administrativos')
+    expect(row.mapped.category_id).toBe('cat-salary')
+  })
+
+  it('não reclassifica vale genérico sem regra de alta confiança', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Vale Janderson;100,00;Despesa;Pessoal e adiantamentos;Banco X\r\n',
+      PT_MAP,
+      RECLASSIFICATION_REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(false)
+    expect(row.mapped.category).toBe('Pessoal e adiantamentos')
+    expect(row.mapped.resolved_category).toBeUndefined()
+    expect(row.referenceIssues[0]).toMatchObject({ field: 'category', required: true })
+  })
+
+  it('não reclassifica uma categoria segura quando a conta-alvo não está cadastrada', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Conta Vivo;100,00;Despesa;Água, energia e telecomunicações;Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    expect(p.rows[0].mapped.resolved_category).toBeUndefined()
+    expect(p.rows[0].referenceIssues[0]).toMatchObject({ field: 'category', value: 'Água, energia e telecomunicações' })
+  })
+
+  it('reclassifica audiometria mesmo quando a categoria bruta é de exames técnicos', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Centro de Custo;Linha de Serviço;Conta Destino\r\n' +
+      '01/08/2026;Audiometrias - Fono;100,00;Despesa;Exames e serviços técnicos;Clínica;Clínica Ocupacional;Banco X\r\n',
+      { ...PT_MAP, cost_center: 'Centro de Custo', service_line: 'Linha de Serviço' },
+      { ...RECLASSIFICATION_REFS, categories: [...RECLASSIFICATION_REFS.categories!, { id: 'cat-fono', name: 'Fonoaudiologia / Audiometria' }] },
+    )
+    expect(p.rows[0].valid).toBe(true)
+    expect(p.rows[0].mapped.resolved_category).toBe('Fonoaudiologia / Audiometria')
+    expect(p.rows[0].mapped.category_id).toBe('cat-fono')
   })
 })
 

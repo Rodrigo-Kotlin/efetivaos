@@ -261,6 +261,113 @@ function normalizeKey(value: string): string {
   return stripDiacritics(String(value)).toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
+type ImportCategoryRule = {
+  sourceCategory: string
+  targetCategory: string
+  matches: (description: string, center: string, serviceLine: string) => boolean
+}
+
+const IMPORT_CATEGORY_RULES: ImportCategoryRule[] = [
+  {
+    sourceCategory: 'Pessoal e adiantamentos',
+    targetCategory: 'Salarios administrativos',
+    matches: description => /salario|saldo de salario/.test(description),
+  },
+  {
+    sourceCategory: 'Pessoal e adiantamentos',
+    targetCategory: 'Beneficios / vales / auxilios',
+    matches: description => /ajuda de combustivel/.test(description),
+  },
+  {
+    sourceCategory: 'Pessoal e adiantamentos',
+    targetCategory: 'Rescisoes / ferias / 13o',
+    matches: description => /rescisao/.test(description),
+  },
+  {
+    sourceCategory: 'Servicos profissionais e terceirizados',
+    targetCategory: 'Prestadores de Bombeiro Civil / SESMT',
+    matches: (_description, center, serviceLine) => center === 'brigada profissional' && serviceLine === 'bombeiro civil',
+  },
+  {
+    sourceCategory: 'Servicos profissionais e terceirizados',
+    targetCategory: 'Medico / RT / Assistencial',
+    matches: (description, center, serviceLine) => center === 'clinica' && serviceLine === 'clinica ocupacional' && (/medic/.test(description) || /(^|\s)rt(\s|$)/.test(description)),
+  },
+  {
+    sourceCategory: 'Servicos profissionais e terceirizados',
+    targetCategory: 'Fonoaudiologia / Audiometria',
+    matches: (description, center, serviceLine) => center === 'clinica' && serviceLine === 'clinica ocupacional' && /fono|audiometria/.test(description),
+  },
+  {
+    sourceCategory: 'Exames e servicos tecnicos',
+    targetCategory: 'Fonoaudiologia / Audiometria',
+    matches: (description, center, serviceLine) => center === 'clinica' && serviceLine === 'clinica ocupacional' && /fono|audiometria/.test(description),
+  },
+  {
+    sourceCategory: 'Exames e servicos tecnicos',
+    targetCategory: 'Toxicologico e exames complementares',
+    matches: description => /toxicolog/.test(description),
+  },
+  {
+    sourceCategory: 'Exames e servicos tecnicos',
+    targetCategory: 'Laboratorios e exames terceirizados',
+    matches: description => /bioclin|biotest|uniscientific|laborator|\budi\b|envio material/.test(description) && !/fono|audiometria|calibracao/.test(description),
+  },
+  {
+    sourceCategory: 'Agua, energia e telecomunicacoes',
+    targetCategory: 'Telefonia / internet',
+    matches: description => /vivo|internet|telefon/.test(description),
+  },
+  {
+    sourceCategory: 'Agua, energia e telecomunicacoes',
+    targetCategory: 'Energia eletrica',
+    matches: description => /equatorial|energia/.test(description),
+  },
+  {
+    sourceCategory: 'Materiais, insumos e equipamentos',
+    targetCategory: 'Materiais clinicos e descartaveis',
+    matches: (description, center, serviceLine) => center === 'clinica' && serviceLine === 'clinica ocupacional' && /insumos.*limpeza|descarpack|insumos.*clinica/.test(description),
+  },
+  {
+    sourceCategory: 'Materiais, insumos e equipamentos',
+    targetCategory: 'Material escritorio / limpeza / copa',
+    matches: (description, center, serviceLine) => center === 'administrativo' && serviceLine === 'administrativo / geral' && /papel a4|insumos de limpeza|materiais de limpeza/.test(description),
+  },
+  {
+    sourceCategory: 'Transporte e deslocamentos',
+    targetCategory: 'Combustivel / veiculo administrativo',
+    matches: description => /abastecimento|combustivel/.test(description),
+  },
+  {
+    sourceCategory: 'Transporte e deslocamentos',
+    targetCategory: 'Aluguel / manutencao de veiculo',
+    matches: description => /manutencao.*carro/.test(description),
+  },
+  {
+    sourceCategory: 'Transporte e deslocamentos',
+    targetCategory: 'Viagens e deslocamentos de projeto',
+    matches: description => /viagem/.test(description),
+  },
+]
+
+export function resolveImportCategory(
+  mapped: Record<string, unknown>,
+  references: ReferenceLists,
+): { id: string; name: string } | null {
+  const sourceCategory = normalizeKey(String(mapped.category ?? ''))
+  if (!sourceCategory) return null
+  const description = normalizeKey(String(mapped.description ?? ''))
+  const center = normalizeKey(String(mapped.cost_center ?? ''))
+  const serviceLine = normalizeKey(String(mapped.service_line ?? ''))
+  const rule = IMPORT_CATEGORY_RULES.find(candidate => (
+    normalizeKey(candidate.sourceCategory) === sourceCategory
+      && candidate.matches(description, center, serviceLine)
+  ))
+  if (!rule) return null
+  const target = (references.categories ?? []).find(category => normalizeKey(category.name) === normalizeKey(rule.targetCategory))
+  return target ? { id: target.id, name: target.name } : null
+}
+
 export function isImportSentinel(value: unknown): boolean {
   const key = normalizeKey(String(value ?? ''))
   return key === '' || ['nao informado', 'nao informada', 'nenhum', 'nenhuma'].includes(key)
@@ -478,6 +585,15 @@ function validateReferences(
   const requiredFields = new Set(REQUIRED_REFERENCES[movementType ?? ''] ?? [])
   const issues: ReferenceIssue[] = []
 
+  const categoryResolutionKey = referenceResolutionKey('categories', String(mapped.category ?? ''))
+  const hasExplicitCategoryResolution = Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, categoryResolutionKey)
+  const resolvedCategory = hasExplicitCategoryResolution ? null : resolveImportCategory(mapped, references)
+  if (resolvedCategory) {
+    mapped.resolved_category = resolvedCategory.name
+    mapped.category_id = resolvedCategory.id
+    warnings.push(`Categoria "${String(mapped.category)}" reclassificada para "${resolvedCategory.name}"`)
+  }
+
   for (const { field, list, label } of REFERENCE_FIELDS) {
     const raw = mapped[field]
     if (raw === undefined || raw === null || raw === '') continue
@@ -487,6 +603,7 @@ function validateReferences(
       continue
     }
     const resolutionKey = referenceResolutionKey(list, value)
+    if (field === 'category' && mapped.category_id && !hasExplicitCategoryResolution) continue
     if (Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, resolutionKey)) {
       const resolution = references.resolutions?.[resolutionKey]
       if (resolution) mapped[`${field}_id`] = resolution
