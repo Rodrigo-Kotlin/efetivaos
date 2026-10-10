@@ -80,6 +80,7 @@ export type ReferenceIssue = {
   label: string
   value: string
   variants: string[]
+  similaritySuggestions: string[]
   required: boolean
   movementTypes: string[]
 }
@@ -267,6 +268,27 @@ export function isImportSentinel(value: unknown): boolean {
 
 export function referenceResolutionKey(list: ReferenceListName, value: string): string {
   return `${list}:${normalizeKey(value)}`
+}
+
+function textSimilarity(left: string, right: string): number {
+  const a = normalizeKey(left)
+  const b = normalizeKey(right)
+  if (a === b) return 1
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index)
+  for (let i = 1; i <= a.length; i++) {
+    let diagonal = previous[0]
+    previous[0] = i
+    for (let j = 1; j <= b.length; j++) {
+      const above = previous[j]
+      previous[j] = Math.min(
+        previous[j] + 1,
+        previous[j - 1] + 1,
+        diagonal + (a[i - 1] === b[j - 1] ? 0 : 1),
+      )
+      diagonal = above
+    }
+  }
+  return 1 - previous[b.length] / Math.max(a.length, b.length, 1)
 }
 
 const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30)
@@ -483,6 +505,7 @@ function validateReferences(
         label,
         value,
         variants: [value],
+        similaritySuggestions: [],
         required,
         movementTypes: movementType ? [movementType] : [],
       }
@@ -676,6 +699,7 @@ export function generatePreview(
       if (existing) {
         existing.required ||= issue.required
         existing.variants = [...new Set([...existing.variants, ...issue.variants])]
+        existing.similaritySuggestions = [...new Set([...existing.similaritySuggestions, ...issue.similaritySuggestions])]
         existing.movementTypes = [...new Set([...existing.movementTypes, ...issue.movementTypes])]
       } else {
         all.push({ ...issue })
@@ -683,6 +707,18 @@ export function generatePreview(
     }
     return all
   }, [])
+
+  for (let i = 0; i < referenceIssues.length; i++) {
+    for (let j = i + 1; j < referenceIssues.length; j++) {
+      const left = referenceIssues[i]
+      const right = referenceIssues[j]
+      if (left.list !== right.list || left.key === right.key) continue
+      if (textSimilarity(left.value, right.value) >= 0.8) {
+        left.similaritySuggestions.push(right.value)
+        right.similaritySuggestions.push(left.value)
+      }
+    }
+  }
 
   return {
     headers,

@@ -414,6 +414,9 @@ export function ImportWizard({ open, onClose }: Props) {
                         {issue.variants.length > 1 && (
                           <p className="mt-1 text-xs text-amber-700">Variações no arquivo: {issue.variants.join(' · ')}</p>
                         )}
+                        {issue.similaritySuggestions.length > 0 && (
+                          <p className="mt-1 text-xs text-amber-700">Possível similaridade: {issue.similaritySuggestions.join(' · ')}. Confirme manualmente.</p>
+                        )}
                       </div>
                       <Badge className={issue.required ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}>
                         {issue.required ? 'Pendente' : 'Revisar'}

@@ -397,6 +397,19 @@ describe('auditoria — referências', () => {
     expect(p.rows[0].referenceIssues[0]).toMatchObject({ field: 'party', required: false })
     expect(p.rows[0].warnings.join(' ')).toMatch(/opcional/i)
   })
+
+  it('destaca possível similaridade sem fazer merge automático', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Pessoa\r\n' +
+      '01/08/2026;Ajuste A;100,00;Ajuste;Estampa MIXX\r\n' +
+      '02/08/2026;Ajuste B;100,00;Ajuste;Estampa Mix\r\n',
+      PT_MAP,
+      { ...REFS, parties: [] },
+    )
+    expect(p.referenceIssues).toHaveLength(2)
+    expect(p.referenceIssues[0].similaritySuggestions).toContain('Estampa Mix')
+    expect(p.referenceIssues[0].key).not.toBe(p.referenceIssues[1].key)
+  })
 })
 
 // ---------------------------------------------------------------------------
