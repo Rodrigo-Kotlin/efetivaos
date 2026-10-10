@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth/auth-context'
+import { signOut } from '@/features/auth/auth.service'
 import { useUiStore } from '@/stores/ui-store'
 
 import AppShell from './app-shell'
@@ -29,6 +30,7 @@ vi.mock('@/components/shared/offline-banner', () => ({
 
 const mockUseAuth = vi.mocked(useAuth)
 const mockUseUiStore = vi.mocked(useUiStore)
+const mockSignOut = vi.mocked(signOut)
 
 function setupAuth(role: 'admin' | 'equipe' = 'admin') {
   mockUseAuth.mockReturnValue({
@@ -66,6 +68,37 @@ describe('AppShell sidebar', () => {
     expect(screen.getByText('Demonstrações')).toBeInTheDocument()
     expect(screen.getByText('Patrimônio e Controle')).toBeInTheDocument()
     expect(screen.getByText('Cadastros')).toBeInTheDocument()
+  })
+
+  it('signs out through Supabase when the user clicks Sair', async () => {
+    setupAuth()
+    mockSignOut.mockResolvedValue(undefined)
+    renderShell()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Sair' }))
+
+    expect(mockSignOut).toHaveBeenCalledOnce()
+  })
+
+  it('blocks concurrent logout calls and unlocks after completion', async () => {
+    setupAuth()
+    let resolveSignOut: () => void = () => undefined
+    mockSignOut.mockImplementation(() => new Promise<void>((resolve) => { resolveSignOut = resolve }))
+    renderShell()
+
+    const user = userEvent.setup()
+    const button = screen.getByRole('button', { name: 'Sair' })
+    await user.click(button)
+    await user.click(button)
+
+    expect(mockSignOut).toHaveBeenCalledOnce()
+    expect(button).toBeDisabled()
+
+    resolveSignOut()
+    await waitFor(() => expect(button).not.toBeDisabled())
+
+    await user.click(button)
+    expect(mockSignOut).toHaveBeenCalledTimes(2)
   })
 
   it('auto-expands group containing active route', () => {

@@ -268,14 +268,22 @@ function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: ()
 
 export default function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const { profile, user, profileError, refreshProfile } = useAuth()
   const collapsed = useUiStore((state) => state.sidebarCollapsed)
   const navigate = useNavigate()
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuário'
 
   const handleSignOut = async () => {
-    await signOut()
-    navigate('/login', { replace: true })
+    if (signingOut) return
+
+    setSigningOut(true)
+    try {
+      await signOut()
+      navigate('/login', { replace: true })
+    } finally {
+      setSigningOut(false)
+    }
   }
 
   return (
@@ -314,7 +322,7 @@ export default function AppShell() {
               <p className="text-xs text-slate-500">{profile?.role === 'admin' ? 'Administrador' : 'Equipe'}</p>
             </div>
             <div className="grid size-10 place-items-center rounded-full bg-[#0B6B3A] text-sm font-bold uppercase text-white">{displayName.charAt(0)}</div>
-            <Button variant="ghost" size="icon" onClick={handleSignOut} aria-label="Sair">
+            <Button variant="ghost" size="icon" onClick={() => void handleSignOut()} disabled={signingOut} aria-label="Sair" aria-busy={signingOut}>
               <LogOut className="size-4" />
             </Button>
           </div>
