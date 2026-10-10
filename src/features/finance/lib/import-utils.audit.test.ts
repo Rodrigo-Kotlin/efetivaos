@@ -470,6 +470,52 @@ describe('auditoria — referências', () => {
     expect(p.rows[0].mapped.resolved_category).toBe('Fonoaudiologia / Audiometria')
     expect(p.rows[0].mapped.category_id).toBe('cat-fono')
   })
+
+  it('converte entrada de empréstimo explícita para movimento patrimonial e preserva o tipo bruto', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Empréstimo recebido;100,00;Receita;Empréstimo recebido (não operacional);Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(true)
+    expect(row.mapped.source_movement_type).toBe('RECEITA')
+    expect(row.mapped.movement_type).toBe('EMPRESTIMO_RECEBIDO')
+    expect(row.mapped.origin_account_id).toBe('acc-x')
+    expect(row.mapped.destination_account_id).toBeUndefined()
+  })
+
+  it('converte saída de empréstimo explícita para pagamento patrimonial', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Origem\r\n' +
+      '01/08/2026;Pagamento principal;100,00;Despesa;Saída financeira - empréstimo;Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(false)
+    expect(row.errors).toEqual([])
+    expect(row.referenceIssues).toContainEqual(expect.objectContaining({
+      field: 'loan_terms',
+      value: 'Pagamento de empréstimo requer a discriminação entre principal e juros.',
+      required: true,
+    }))
+    expect(row.mapped.movement_type).toBe('EMPRESTIMO_PAGO')
+    expect(row.mapped.origin_account_id).toBeUndefined()
+    expect(row.mapped.destination_account_id).toBe('acc-x')
+  })
+
+  it('não converte receita operacional para empréstimo sem categoria explícita', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Receita comum;100,00;Receita;Material;Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    expect(p.rows[0].mapped.movement_type).toBe('RECEITA')
+    expect(p.rows[0].mapped.source_movement_type).toBeUndefined()
+  })
 })
 
 // ---------------------------------------------------------------------------

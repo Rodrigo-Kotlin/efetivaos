@@ -71,7 +71,7 @@ export type ImportPreview = {
  */
 export type ReferenceOption = { id: string; name: string }
 
-export type ReferenceListName = 'categories' | 'accounts' | 'parties' | 'costCenters' | 'serviceLines' | 'paymentMethods'
+export type ReferenceListName = 'categories' | 'accounts' | 'parties' | 'costCenters' | 'serviceLines' | 'paymentMethods' | 'loanTerms'
 
 export type ReferenceIssue = {
   key: string
@@ -94,6 +94,7 @@ export type ReferenceLists = {
   costCenters?: ReferenceOption[]
   serviceLines?: ReferenceOption[]
   paymentMethods?: ReferenceOption[]
+  loanTerms?: ReferenceOption[]
   resolutions?: ReferenceResolution
 }
 
@@ -532,6 +533,17 @@ export function normalizeMovementType(val: unknown): string | null {
   return map[key] || (VALID_MOVEMENT_TYPES.includes(key) ? key : null)
 }
 
+export function resolveImportMovementType(mapped: Record<string, unknown>, movementType: string): string {
+  const category = normalizeKey(String(mapped.category ?? ''))
+  if (movementType === 'RECEITA' && ['emprestimo recebido (nao operacional)', 'entrada financeira - emprestimo'].includes(category)) {
+    return 'EMPRESTIMO_RECEBIDO'
+  }
+  if (movementType === 'DESPESA' && category === 'saida financeira - emprestimo') {
+    return 'EMPRESTIMO_PAGO'
+  }
+  return movementType
+}
+
 function generateIdempotencyKey(rowNumber: number, data: ParsedRow, batchId: string): string {
   const parts = [
     batchId,
@@ -651,6 +663,22 @@ function validateReferences(
     errorDetails.push({ field: 'Conta de destino', reason: 'Deve ser diferente da conta de origem' })
   }
 
+  const hasPrincipalAmount = mapped.principal_amount !== undefined && mapped.principal_amount !== null && mapped.principal_amount !== ''
+  const hasInterestAmount = mapped.interest_amount !== undefined && mapped.interest_amount !== null && mapped.interest_amount !== ''
+  if (movementType === 'EMPRESTIMO_PAGO' && (!hasPrincipalAmount || !hasInterestAmount)) {
+    issues.push({
+      key: 'loan_terms:principal_interest',
+      field: 'loan_terms',
+      list: 'loanTerms',
+      label: 'Dados do empréstimo',
+      value: 'Pagamento de empréstimo requer a discriminação entre principal e juros.',
+      variants: ['Pagamento de empréstimo requer a discriminação entre principal e juros.'],
+      similaritySuggestions: [],
+      required: true,
+      movementTypes: [movementType],
+    })
+  }
+
   return issues
 }
 
@@ -746,17 +774,32 @@ function validateRow(
       errors.push(`Tipo de lançamento inválido: ${rawType}`)
       errorDetails.push({ field: 'Tipo', value: String(rawType), reason: 'Tipo de lançamento inválido' })
     } else {
-      mapped.movement_type = t
+      const resolvedMovementType = resolveImportMovementType(mapped, t)
+      if (resolvedMovementType !== t) {
+        mapped.source_movement_type = t
+        warnings.push(`Tipo "${t}" reclassificado para "${resolvedMovementType}" pela categoria não operacional`)
+      }
+      mapped.movement_type = resolvedMovementType
 
-      if (t === 'RECEITA' && !mapped.origin_account && mapped.destination_account) {
+      if (resolvedMovementType === 'RECEITA' && !mapped.origin_account && mapped.destination_account) {
         mapped.origin_account = mapped.destination_account
         delete mapped.destination_account
         warnings.push('Conta destino normalizada para conta de origem conforme o contrato de receita')
       }
-      if (t === 'DESPESA' && !mapped.destination_account && mapped.origin_account) {
+      if (resolvedMovementType === 'DESPESA' && !mapped.destination_account && mapped.origin_account) {
         mapped.destination_account = mapped.origin_account
         delete mapped.origin_account
         warnings.push('Conta origem normalizada para conta de destino conforme o contrato de despesa')
+      }
+      if (resolvedMovementType === 'EMPRESTIMO_RECEBIDO' && !mapped.origin_account && mapped.destination_account) {
+        mapped.origin_account = mapped.destination_account
+        delete mapped.destination_account
+        warnings.push('Conta destino normalizada para origem do empréstimo recebido')
+      }
+      if (resolvedMovementType === 'EMPRESTIMO_PAGO' && !mapped.destination_account && mapped.origin_account) {
+        mapped.destination_account = mapped.origin_account
+        delete mapped.origin_account
+        warnings.push('Conta origem normalizada para destino do empréstimo pago')
       }
     }
   }
