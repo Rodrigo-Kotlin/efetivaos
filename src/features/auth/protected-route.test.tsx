@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import { AuthContext, type AuthContextValue } from '@/features/auth/auth-context'
@@ -49,6 +50,45 @@ describe('ProtectedRoute', () => {
       profile: activeProfile,
     })
     expect(screen.getByText('Conteudo protegido')).toBeInTheDocument()
+  })
+
+  it('mantem o carregamento enquanto o perfil e consultado', () => {
+    renderRoute({
+      ...baseAuth,
+      session: { user: { id: 'user-1' } } as AuthContextValue['session'],
+      user: { id: 'user-1' } as AuthContextValue['user'],
+      loading: true,
+    })
+    expect(screen.getByRole('main')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.queryByText('Conteudo protegido')).not.toBeInTheDocument()
+  })
+
+  it('bloqueia perfil ausente depois do carregamento', () => {
+    renderRoute({
+      ...baseAuth,
+      session: { user: { id: 'user-1' } } as AuthContextValue['session'],
+      user: { id: 'user-1' } as AuthContextValue['user'],
+    })
+    expect(screen.getByRole('heading', { name: 'Perfil indisponivel' })).toBeInTheDocument()
+    expect(screen.queryByText('Conteudo protegido')).not.toBeInTheDocument()
+  })
+
+  it('bloqueia e permite recuperar quando a consulta do perfil falha', async () => {
+    const refreshProfile = vi.fn().mockResolvedValue(undefined)
+    const user = userEvent.setup()
+
+    renderRoute({
+      ...baseAuth,
+      session: { user: { id: 'user-1' } } as AuthContextValue['session'],
+      user: { id: 'user-1' } as AuthContextValue['user'],
+      profileError: new Error('profile unavailable'),
+      refreshProfile,
+    })
+
+    expect(screen.getByText('Verifique sua conexao e tente novamente.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(refreshProfile).toHaveBeenCalledOnce()
+    expect(screen.queryByText('Conteudo protegido')).not.toBeInTheDocument()
   })
 
   it('bloqueia perfil autenticado inativo', () => {
