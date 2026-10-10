@@ -8,6 +8,10 @@ import {
   toDate,
   type ColumnMapping,
   type ReferenceLists,
+  isCompatibleManualCategory,
+  isManualClassificationRow,
+  manualClassificationGroupKey,
+  manualResolutionKey,
 } from './import-utils'
 
 // ---------------------------------------------------------------------------
@@ -315,6 +319,117 @@ describe('auditoria — tipo do lançamento', () => {
 // ---------------------------------------------------------------------------
 
 describe('auditoria — referências', () => {
+  it('decisão manual por linha prevalece, preserva a categoria original e registra a origem', () => {
+    const mapping: ColumnMapping = {
+      transaction_date: 'Data',
+      description: 'Descrição',
+      amount: 'Valor',
+      movement_type: 'Tipo',
+      category: 'Categoria',
+      destination_account: 'Conta Destino',
+    }
+    const row = {
+      Data: '01/08/2026',
+      Descrição: 'Prestação de serviço',
+      Valor: '200,00',
+      Tipo: 'Despesa',
+      Categoria: 'Serviços profissionais e terceirizados',
+      'Conta Destino': 'Banco X',
+    }
+    const references: ReferenceLists = {
+      ...REFS,
+      categories: [
+        ...REFS.categories!,
+        { id: 'cat-service', name: 'Contabilidade', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
+      ],
+      resolutions: {
+        [manualResolutionKey(1, 'Serviços profissionais e terceirizados')]: 'cat-service',
+      },
+    }
+
+    const preview = generatePreview(Object.keys(row), [row], mapping, 'manual', references)
+    expect(preview.rows[0].valid).toBe(true)
+    expect(preview.rows[0].raw.Categoria).toBe('Serviços profissionais e terceirizados')
+    expect(preview.rows[0].mapped.resolved_category).toBe('Contabilidade')
+    expect(preview.rows[0].mapped.resolution_source).toBe('manual')
+  })
+
+  it('mantém pendente sem decisão e não aceita categoria incompatível', () => {
+    const row = {
+      transaction_date: '2026-08-01',
+      description: 'Audiosonic - calibração dos equipamentos',
+      amount: 2495.47,
+      movement_type: 'DESPESA',
+      category: 'Exames e serviços técnicos',
+    }
+    const preview = generatePreview(Object.keys(row), [row], {
+      transaction_date: 'transaction_date', description: 'description', amount: 'amount', movement_type: 'movement_type', category: 'category',
+    }, 'manual-pending', { categories: [] })
+    expect(isManualClassificationRow(preview.rows[0])).toBe(true)
+    expect(preview.rows[0].valid).toBe(false)
+    expect(isCompatibleManualCategory({ active: true, movement_type: 'RECEITA' }, 'DESPESA')).toBe(false)
+    expect(isCompatibleManualCategory({ active: false, movement_type: 'DESPESA' }, 'DESPESA')).toBe(false)
+    expect(isCompatibleManualCategory({ movement_type: 'DESPESA' }, 'DESPESA')).toBe(false)
+  })
+
+  it('não reclassifica automaticamente as categorias reservadas para revisão manual', () => {
+    const row = {
+      transaction_date: '2026-08-01',
+      description: 'Energia Equatorial',
+      amount: 100,
+      movement_type: 'DESPESA',
+      category: 'Água, energia e telecomunicações',
+      destination_account: 'Banco X',
+    }
+    const preview = generatePreview(Object.keys(row), [row], {
+      transaction_date: 'transaction_date', description: 'description', amount: 'amount', movement_type: 'movement_type', category: 'category', destination_account: 'destination_account',
+    }, 'manual-only', {
+      ...REFS,
+      categories: [
+        ...REFS.categories!,
+        { id: 'cat-energy', name: 'Energia eletrica', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
+      ],
+    })
+    expect(isManualClassificationRow(preview.rows[0])).toBe(true)
+    expect(preview.rows[0].valid).toBe(false)
+    expect(preview.rows[0].referenceIssues.some(issue => issue.field === 'category')).toBe(true)
+    expect(preview.rows[0].mapped.resolved_category).toBeUndefined()
+  })
+
+  it('faz a decisão manual por linha prevalecer sobre a reclassificação automática', () => {
+    const row = {
+      transaction_date: '2026-08-01',
+      description: 'Salário Luciana',
+      amount: 1000,
+      movement_type: 'DESPESA',
+      category: 'Pessoal e adiantamentos',
+      destination_account: 'Banco X',
+    }
+    const references: ReferenceLists = {
+      ...REFS,
+      categories: [
+        ...REFS.categories!,
+        { id: 'cat-salary', name: 'Salarios administrativos', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
+        { id: 'cat-manual', name: 'Pro-labore', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
+      ],
+      resolutions: { [manualResolutionKey(1, 'Pessoal e adiantamentos')]: 'cat-manual' },
+    }
+    const preview = generatePreview(Object.keys(row), [row], {
+      transaction_date: 'transaction_date', description: 'description', amount: 'amount', movement_type: 'movement_type', category: 'category', destination_account: 'destination_account',
+    }, 'manual-precedence', references)
+    expect(preview.rows[0].mapped.resolved_category).toBe('Pro-labore')
+    expect(preview.rows[0].mapped.resolution_source).toBe('manual')
+  })
+
+  it('define lote somente por categoria, tipo, centro e linha de serviço', () => {
+    const make = (description: string, serviceLine = 'Administrativo / Geral') => ({
+      raw: { Categoria: 'Exames e serviços técnicos', Tipo: 'Despesa', 'Centro de Custo': 'Clínica', 'Linha de Serviço': serviceLine },
+      mapped: { category: 'Exames e serviços técnicos', movement_type: 'DESPESA', cost_center: 'Clínica', service_line: serviceLine, description },
+    })
+    expect(manualClassificationGroupKey(make('Conecta laudos'))).toBe(manualClassificationGroupKey(make('Pagamento Conecta')))
+    expect(manualClassificationGroupKey(make('Outro', 'Clínica Ocupacional'))).not.toBe(manualClassificationGroupKey(make('Outro')))
+  })
+
   it('resolve nomes de categoria e conta para IDs', () => {
     const csv =
       '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
@@ -459,16 +574,17 @@ describe('auditoria — referências', () => {
     expect(p.rows[0].referenceIssues[0]).toMatchObject({ field: 'category', value: 'Água, energia e telecomunicações' })
   })
 
-  it('reclassifica audiometria mesmo quando a categoria bruta é de exames técnicos', () => {
+  it('mantém audiometria pendente para decisão manual quando a categoria bruta é de exames técnicos', () => {
     const p = previewCsv(
       '\ufeffData;Descrição;Valor;Tipo;Categoria;Centro de Custo;Linha de Serviço;Conta Destino\r\n' +
       '01/08/2026;Audiometrias - Fono;100,00;Despesa;Exames e serviços técnicos;Clínica;Clínica Ocupacional;Banco X\r\n',
       { ...PT_MAP, cost_center: 'Centro de Custo', service_line: 'Linha de Serviço' },
       { ...RECLASSIFICATION_REFS, categories: [...RECLASSIFICATION_REFS.categories!, { id: 'cat-fono', name: 'Fonoaudiologia / Audiometria' }] },
     )
-    expect(p.rows[0].valid).toBe(true)
-    expect(p.rows[0].mapped.resolved_category).toBe('Fonoaudiologia / Audiometria')
-    expect(p.rows[0].mapped.category_id).toBe('cat-fono')
+    expect(p.rows[0].valid).toBe(false)
+    expect(p.rows[0].mapped.resolved_category).toBeUndefined()
+    expect(p.rows[0].mapped.category_id).toBeUndefined()
+    expect(p.rows[0].referenceIssues[0]).toMatchObject({ field: 'category', required: true })
   })
 
   it('converte entrada de empréstimo explícita para movimento patrimonial e preserva o tipo bruto', () => {

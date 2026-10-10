@@ -69,7 +69,17 @@ export type ImportPreview = {
  * references (category, accounts, party, cost center, service line, payment
  * method) present in the imported file into the UUIDs required by the ledger.
  */
-export type ReferenceOption = { id: string; name: string }
+export type ReferenceOption = {
+  id: string
+  name: string
+  active?: boolean
+  movement_type?: string
+  counter_account_id?: string | null
+  counter_account_code?: string | null
+  counter_account_name?: string | null
+  dre_class?: string | null
+  cash_flow_class?: string | null
+}
 
 export type ReferenceListName = 'categories' | 'accounts' | 'parties' | 'costCenters' | 'serviceLines' | 'paymentMethods' | 'loanTerms'
 
@@ -86,6 +96,43 @@ export type ReferenceIssue = {
 }
 
 export type ReferenceResolution = Record<string, string | null>
+
+export const MANUAL_CLASSIFICATION_CATEGORIES = [
+  'Serviços profissionais e terceirizados',
+  'Exames e serviços técnicos',
+  'Materiais, insumos e equipamentos',
+  'Água, energia e telecomunicações',
+] as const
+
+export function manualResolutionKey(rowNumber: number, sourceCategory: string): string {
+  return `row:${rowNumber}:${referenceResolutionKey('categories', sourceCategory)}`
+}
+
+export function isManualClassificationRow(row: Pick<ValidatedRow, 'raw' | 'mapped'>): boolean {
+  const sourceCategory = row.mapped.category ?? row.raw.Categoria
+  return MANUAL_CLASSIFICATION_CATEGORIES.includes(String(sourceCategory ?? '') as typeof MANUAL_CLASSIFICATION_CATEGORIES[number])
+}
+
+export function manualClassificationGroupKey(row: Pick<ValidatedRow, 'raw' | 'mapped'>): string {
+  return [
+    row.mapped.category ?? row.raw.Categoria,
+    row.mapped.movement_type ?? row.raw.Tipo,
+    row.mapped.cost_center ?? row.raw['Centro de Custo'],
+    row.mapped.service_line ?? row.raw['Linha de Serviço'],
+  ]
+    .map(value => normalizeKey(String(value ?? '')))
+    .join('|')
+}
+
+export function isCompatibleManualCategory(
+  category: Pick<ReferenceOption, 'active' | 'movement_type' | 'counter_account_id' | 'cash_flow_class'>,
+  movementType: unknown,
+): boolean {
+  return category.active === true
+    && category.movement_type === movementType
+    && Boolean(category.counter_account_id)
+    && Boolean(category.cash_flow_class)
+}
 
 export type ReferenceLists = {
   categories?: ReferenceOption[]
@@ -592,17 +639,28 @@ function validateReferences(
   errors: string[],
   errorDetails: RowErrorDetail[],
   warnings: string[],
+  rowNumber?: number,
 ): ReferenceIssue[] {
   const index = buildReferenceIndex(references)
   const requiredFields = new Set(REQUIRED_REFERENCES[movementType ?? ''] ?? [])
   const issues: ReferenceIssue[] = []
 
   const categoryResolutionKey = referenceResolutionKey('categories', String(mapped.category ?? ''))
-  const hasExplicitCategoryResolution = Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, categoryResolutionKey)
-  const resolvedCategory = hasExplicitCategoryResolution ? null : resolveImportCategory(mapped, references)
+  const rowCategoryResolutionKey = rowNumber ? manualResolutionKey(rowNumber, String(mapped.category ?? '')) : null
+  const hasRowCategoryResolution = rowCategoryResolutionKey !== null
+    && Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, rowCategoryResolutionKey)
+  const hasExplicitCategoryResolution = hasRowCategoryResolution
+    || Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, categoryResolutionKey)
+  const requiresManualClassification = MANUAL_CLASSIFICATION_CATEGORIES.some(category => (
+    normalizeKey(category) === normalizeKey(String(mapped.category ?? ''))
+  ))
+  const resolvedCategory = hasExplicitCategoryResolution || requiresManualClassification
+    ? null
+    : resolveImportCategory(mapped, references)
   if (resolvedCategory) {
     mapped.resolved_category = resolvedCategory.name
     mapped.category_id = resolvedCategory.id
+    mapped.resolution_source = 'automatic'
     warnings.push(`Categoria "${String(mapped.category)}" reclassificada para "${resolvedCategory.name}"`)
   }
 
@@ -616,13 +674,26 @@ function validateReferences(
     }
     const resolutionKey = referenceResolutionKey(list, value)
     if (field === 'category' && mapped.category_id && !hasExplicitCategoryResolution) continue
-    if (Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, resolutionKey)) {
-      const resolution = references.resolutions?.[resolutionKey]
-      if (resolution) mapped[`${field}_id`] = resolution
-      else delete mapped[`${field}_id`]
+    const manualResolution = field === 'category' && rowCategoryResolutionKey
+      ? references.resolutions?.[rowCategoryResolutionKey]
+      : undefined
+    const hasResolution = manualResolution !== undefined
+      || Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, resolutionKey)
+    if (hasResolution) {
+      const resolution = manualResolution !== undefined ? manualResolution : references.resolutions?.[resolutionKey]
+      if (resolution) {
+        mapped[`${field}_id`] = resolution
+        if (field === 'category') {
+          const option = (references.categories ?? []).find(item => item.id === resolution)
+          if (option) mapped.resolved_category = option.name
+          mapped.resolution_source = 'manual'
+        }
+      } else delete mapped[`${field}_id`]
       continue
     }
-    const id = index[list]?.get(normalizeKey(value))
+    const id = field === 'category' && requiresManualClassification
+      ? undefined
+      : index[list]?.get(normalizeKey(value))
     if (id) {
       mapped[`${field}_id`] = id
     } else {
@@ -698,6 +769,7 @@ function validateRow(
   row: ParsedRow,
   mapping: ColumnMapping,
   references?: ReferenceLists,
+  rowNumber?: number,
 ): { valid: boolean; errors: string[]; errorDetails: RowErrorDetail[]; warnings: string[]; mapped: Record<string, unknown>; referenceIssues: ReferenceIssue[] } {
   const errors: string[] = []
   const errorDetails: RowErrorDetail[] = []
@@ -820,7 +892,7 @@ function validateRow(
   // Resolve textual references to UUIDs and enforce the same minimum
   // requirements the ledger enforces (preview == persistence).
   if (references) {
-    referenceIssues = validateReferences(mapped, mapped.movement_type as string | undefined, references, errors, errorDetails, warnings)
+    referenceIssues = validateReferences(mapped, mapped.movement_type as string | undefined, references, errors, errorDetails, warnings, rowNumber)
   }
 
   const hasPendingReference = referenceIssues.some(issue => issue.required)
@@ -839,7 +911,7 @@ export function generatePreview(
   references?: ReferenceLists,
 ): ImportPreview {
   const validated: ValidatedRow[] = rows.map((row, i) => {
-    const { valid, errors, errorDetails, warnings, mapped, referenceIssues } = validateRow(row, mapping, references)
+    const { valid, errors, errorDetails, warnings, mapped, referenceIssues } = validateRow(row, mapping, references, i + 1)
     return {
       row_number: i + 1,
       raw: row,

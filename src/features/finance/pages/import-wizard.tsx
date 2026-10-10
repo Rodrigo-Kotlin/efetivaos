@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
-import { Upload, ArrowRight, Check, X, AlertTriangle, Download, Loader2 } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
+import { Upload, ArrowRight, Check, AlertTriangle, Download, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -12,14 +12,16 @@ import {
   TEMPLATE_COLUMNS,
   type ColumnMapping,
   type ImportPreview,
-  type ImportFileType,
   type ParsedRow,
   type ReferenceLists,
-  type ReferenceIssue,
   type ReferenceResolution,
   type ReferenceOption,
+  type ValidatedRow,
+  isManualClassificationRow,
+  manualClassificationGroupKey,
+  manualResolutionKey,
+  isCompatibleManualCategory,
 } from '../lib/import-utils'
-import { persistImport, type ImportRejection } from '../lib/import-persist'
 import {
   fetchCategories,
   fetchFinancialAccounts,
@@ -28,34 +30,18 @@ import {
   fetchServiceLines,
   fetchPaymentMethods,
   fetchChartAccounts,
-  createCategory,
-  createFinancialAccount,
-  createCostCenter,
-  createServiceLine,
-  createPaymentMethod,
-  createFinancialParty,
 } from '../api/finance-api'
-import { supabase } from '@/lib/supabase'
-import { useQueryClient } from '@tanstack/react-query'
-import type { FinancialDfcClass, FinancialMovementType } from '@/types/database'
+import type { ChartAccount } from '@/types/database'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Step = 'upload' | 'mapping' | 'reconciliation' | 'preview' | 'processing' | 'result'
+type Step = 'upload' | 'mapping' | 'reconciliation' | 'preview'
 
 type Props = {
   open: boolean
   onClose: () => void
-}
-
-type ImportResult = {
-  total: number
-  imported: number
-  rejected: number
-  rejectedRows: ImportRejection[]
-  error?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -64,28 +50,19 @@ type ImportResult = {
 
 export function ImportWizard({ open, onClose }: Props) {
   const [step, setStep] = useState<Step>('upload')
-  const [file, setFile] = useState<File | null>(null)
-  const [fileType, setFileType] = useState<ImportFileType>('csv')
   const [headers, setHeaders] = useState<string[]>([])
   const [rawRows, setRawRows] = useState<ParsedRow[]>([])
   const [mapping, setMapping] = useState<ColumnMapping>({})
   const [batchId, setBatchId] = useState('')
   const [preview, setPreview] = useState<ImportPreview | null>(null)
   const [references, setReferences] = useState<ReferenceLists | null>(null)
-  const [chartAccounts, setChartAccounts] = useState<ReferenceOption[]>([])
+  const [chartAccounts, setChartAccounts] = useState<ChartAccount[]>([])
   const [resolutions, setResolutions] = useState<ReferenceResolution>({})
-  const [categoryCounterAccounts, setCategoryCounterAccounts] = useState<Record<string, string>>({})
-  const [categoryCashFlowClasses, setCategoryCashFlowClasses] = useState<Record<string, FinancialDfcClass>>({})
-  const [newReferenceNames, setNewReferenceNames] = useState<Record<string, string>>({})
-  const [creatingReferenceKey, setCreatingReferenceKey] = useState<string | null>(null)
-  const [result, setResult] = useState<ImportResult | null>(null)
-  const [processing, setProcessing] = useState(false)
+  const [manualDecisions, setManualDecisions] = useState<Record<number, string | null>>({})
   const [loadingRefs, setLoadingRefs] = useState(false)
-  const qc = useQueryClient()
 
   const reset = useCallback(() => {
     setStep('upload')
-    setFile(null)
     setHeaders([])
     setRawRows([])
     setMapping({})
@@ -94,30 +71,22 @@ export function ImportWizard({ open, onClose }: Props) {
     setReferences(null)
     setChartAccounts([])
     setResolutions({})
-    setCategoryCounterAccounts({})
-    setCategoryCashFlowClasses({})
-    setNewReferenceNames({})
-    setCreatingReferenceKey(null)
-    setResult(null)
-    setProcessing(false)
+    setManualDecisions({})
   }, [])
 
   const handleClose = useCallback(() => {
-    if (step === 'processing') return
     reset()
     onClose()
-  }, [step, reset, onClose])
+  }, [reset, onClose])
 
   // Step 1: Upload
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]
     if (!f) return
-    setFile(f)
     try {
-      const { headers: h, rows, fileType: ft } = await parseFile(f)
+      const { headers: h, rows } = await parseFile(f)
       setHeaders(h)
       setRawRows(rows)
-      setFileType(ft)
       const guessed = guessColumnMapping(h)
       setMapping(guessed)
       setStep('mapping')
@@ -144,7 +113,16 @@ export function ImportWizard({ open, onClose }: Props) {
         fetchChartAccounts(),
       ])
       const references: ReferenceLists = {
-        categories: categories.map(c => ({ id: c.id, name: c.name })),
+        categories: categories.map(c => ({
+          id: c.id,
+          name: c.name,
+          active: c.active,
+          movement_type: c.movement_type,
+          counter_account_id: c.counter_account_id,
+          counter_account_code: c.counter_account_code,
+          counter_account_name: c.counter_account_name,
+          cash_flow_class: c.cash_flow_class,
+        })),
         accounts: accounts.map(a => ({ id: a.id, name: a.name })),
         parties: parties.map(p => ({ id: p.id, name: p.name })),
         costCenters: costCenters.map(c => ({ id: c.id, name: c.name })),
@@ -157,8 +135,9 @@ export function ImportWizard({ open, onClose }: Props) {
       const p = generatePreview(headers, rawRows, mapping, nextBatchId, references)
       setBatchId(nextBatchId)
       setReferences(references)
-      setChartAccounts(chartAccounts.filter(account => account.active && account.posting).map(account => ({ id: account.id, name: `${account.code} — ${account.name}` })))
+      setChartAccounts(chartAccounts.filter(account => account.active && account.posting))
       setResolutions({})
+      setManualDecisions({})
       setPreview(p)
       setStep(p.referenceIssues.length > 0 ? 'reconciliation' : 'preview')
     } catch (err) {
@@ -177,119 +156,69 @@ export function ImportWizard({ open, onClose }: Props) {
     setPreview(p)
   }, [headers, rawRows, mapping, batchId, references])
 
-  const handleResolution = useCallback((issue: ReferenceIssue, value: string) => {
-    const next = { ...resolutions }
-    if (value === '__ignore__') next[issue.key] = null
-    else if (value) next[issue.key] = value
-    else delete next[issue.key]
-    setResolutions(next)
-    rebuildPreview(next)
+  const manualRows = useMemo(() => preview?.rows.filter(isManualClassificationRow) ?? [], [preview])
+
+  const categoryMetadata = useCallback((category: ReferenceOption | undefined) => {
+    if (!category) return null
+    const account = chartAccounts.find(item => item.id === category.counter_account_id)
+    return {
+      account: category.counter_account_code && category.counter_account_name
+        ? `${category.counter_account_code} — ${category.counter_account_name}`
+        : category.counter_account_name ?? account?.name ?? 'Não vinculada',
+      dre: account?.dre_class ?? 'Não informado',
+      dfc: category.cash_flow_class ?? 'Não informado',
+    }
+  }, [chartAccounts])
+
+  const compatibleCategories = useCallback((row: ValidatedRow) => (
+    (references?.categories ?? []).filter(category => isCompatibleManualCategory(category, row.mapped.movement_type))
+  ), [references])
+
+  const applyManualDecision = useCallback((row: ValidatedRow, categoryId: string) => {
+    const nextResolutions = {
+      ...resolutions,
+      [manualResolutionKey(row.row_number, String(row.mapped.category ?? row.raw.Categoria ?? ''))]: categoryId,
+    }
+    setManualDecisions(previous => ({ ...previous, [row.row_number]: categoryId }))
+    setResolutions(nextResolutions)
+    rebuildPreview(nextResolutions)
   }, [resolutions, rebuildPreview])
 
-  const handleCreateReference = useCallback(async (issue: ReferenceIssue) => {
-    const name = newReferenceNames[issue.key]?.trim()
-    if (!name || !references) return
-    setCreatingReferenceKey(issue.key)
-    try {
-      let created: { id: string; name: string }
-      if (issue.list === 'categories') {
-        const counterAccountId = categoryCounterAccounts[issue.key]
-        if (!counterAccountId) throw new Error('Selecione a conta contábil de contrapartida antes de criar a categoria.')
-        const cashFlowClass = categoryCashFlowClasses[issue.key]
-        if (!cashFlowClass) throw new Error('Selecione a classificação DFC antes de criar a categoria.')
-        if (issue.movementTypes.length !== 1) throw new Error('Esta referência aparece em mais de um tipo de movimento; corrija manualmente antes de criar.')
-        created = await createCategory({
-          name,
-          movement_type: issue.movementTypes[0] as FinancialMovementType,
-          counter_account_id: counterAccountId,
-          cost_center_id: null,
-          service_line_id: null,
-          cash_flow_class: cashFlowClass,
-          active: true,
-        })
-      } else if (issue.list === 'accounts') {
-        const chartAccountId = categoryCounterAccounts[issue.key]
-        if (!chartAccountId) throw new Error('Selecione a conta contábil antes de criar a conta financeira.')
-        created = await createFinancialAccount({
-          name,
-          chart_account_id: chartAccountId,
-          account_type: 'CONTA_CORRENTE',
-          active: true,
-          institution: null,
-          opening_date: null,
-          notes: null,
-        })
-      } else if (issue.list === 'costCenters') {
-        created = await createCostCenter({ name, code: null, active: true, description: null })
-      } else if (issue.list === 'serviceLines') {
-        created = await createServiceLine({ name, active: true, description: null })
-      } else if (issue.list === 'paymentMethods') {
-        created = await createPaymentMethod({ name, active: true })
-      } else if (issue.list === 'parties') {
-        created = await createFinancialParty({ name, party_type: 'CLIENTE_FORNECEDOR', active: true })
-      } else {
-        throw new Error('Tipo de cadastro não suportado nesta etapa.')
-      }
+  const keepManualPending = useCallback((row: ValidatedRow) => {
+    const nextResolutions = { ...resolutions }
+    delete nextResolutions[manualResolutionKey(row.row_number, String(row.mapped.category ?? row.raw.Categoria ?? ''))]
+    setManualDecisions(previous => ({ ...previous, [row.row_number]: null }))
+    setResolutions(nextResolutions)
+    rebuildPreview(nextResolutions)
+  }, [resolutions, rebuildPreview])
 
-      const nextReferences = {
-        ...references,
-        [issue.list]: [...(references[issue.list] ?? []), { id: created.id, name: created.name }],
-      } as ReferenceLists
-      const nextResolutions = { ...resolutions, [issue.key]: created.id }
-      setReferences(nextReferences)
-      setResolutions(nextResolutions)
-      setNewReferenceNames(previous => ({ ...previous, [issue.key]: '' }))
-      rebuildPreview(nextResolutions, nextReferences)
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Não foi possível criar o cadastro')
-    } finally {
-      setCreatingReferenceKey(null)
+  const applyToSimilar = useCallback((row: ValidatedRow, categoryId: string) => {
+    const similarRows = manualRows.filter(candidate => manualClassificationGroupKey(candidate) === manualClassificationGroupKey(row))
+    const category = (references?.categories ?? []).find(item => item.id === categoryId)
+    const metadata = categoryMetadata(category)
+    const confirmed = window.confirm([
+      `Aplicar classificação às ${similarRows.length} linhas semelhantes?`,
+      'Critério: mesma categoria original, tipo, centro de custo e linha de serviço.',
+      `Categoria: ${category?.name ?? ''}`,
+      `Conta contábil: ${metadata?.account ?? 'Não vinculada'}`,
+      `DRE: ${metadata?.dre ?? 'Não informado'}`,
+      `DFC: ${metadata?.dfc ?? 'Não informado'}`,
+    ].join('\n'))
+    if (!confirmed) return
+
+    const nextResolutions = { ...resolutions }
+    for (const candidate of similarRows) {
+      nextResolutions[manualResolutionKey(candidate.row_number, String(candidate.mapped.category ?? candidate.raw.Categoria ?? ''))] = categoryId
     }
-  }, [categoryCashFlowClasses, categoryCounterAccounts, newReferenceNames, references, resolutions, rebuildPreview])
+    setManualDecisions(previous => ({
+      ...previous,
+      ...Object.fromEntries(similarRows.map(candidate => [candidate.row_number, categoryId])),
+    }))
+    setResolutions(nextResolutions)
+    rebuildPreview(nextResolutions)
+  }, [manualRows, references, categoryMetadata, resolutions, rebuildPreview])
 
-  // Step 3: Preview → Process
-  const handleImport = useCallback(async () => {
-    if (!preview || !file) return
-    setStep('processing')
-    setProcessing(true)
-
-    try {
-      // The shared persistence pipeline always walks every row of the preview:
-      // invalid rows are recorded as evidence and reported as rejections, while
-      // only valid rows reach the ledger. It returns reconciled counters so the
-      // UI can state exactly what happened (total = imported + rejected).
-      const persistence = await persistImport(
-        supabase,
-        { name: file.name, size: file.size, fileType },
-        mapping,
-        preview,
-      )
-
-      setResult({
-        total: persistence.total,
-        imported: persistence.imported,
-        rejected: persistence.rejected,
-        rejectedRows: persistence.rejectedRows,
-      })
-      setStep('result')
-
-      // Invalidate queries
-      qc.invalidateQueries({ queryKey: ['finance'] })
-    } catch (err) {
-      setResult({
-        total: preview.total,
-        imported: 0,
-        rejected: preview.total,
-        rejectedRows: [],
-        error: err instanceof Error ? err.message : 'Falha ao importar as linhas',
-      })
-      setStep('result')
-    } finally {
-      setProcessing(false)
-    }
-  }, [preview, file, fileType, mapping, qc])
-
-  const stepSequence: Step[] = ['upload', 'mapping', 'reconciliation', 'preview', 'result']
+  const stepSequence: Step[] = ['upload', 'mapping', 'reconciliation', 'preview']
 
   return (
     <Drawer open={open} onOpenChange={(o) => { if (!o) handleClose() }} title="Importar Lançamentos">
@@ -387,106 +316,110 @@ export function ImportWizard({ open, onClose }: Props) {
         )}
 
         {/* STEP: Reconciliation */}
-        {step === 'reconciliation' && preview && references && (
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-slate-800">Revisar cadastros</p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                Vincule referências existentes, ignore campos opcionais ou crie cadastros simples com confirmação explícita.
-                Categorias e contas exigem classificação contábil e só são criadas após confirmação explícita.
-              </p>
-            </div>
+        {step === 'reconciliation' && preview && references && (() => {
+          const categoryKey = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+          const manualIssueKeys = new Set(manualRows.map(row => `categories:${categoryKey(row.mapped.category ?? row.raw.Categoria)}`))
+          const otherIssues = preview.referenceIssues.filter(issue => issue.field !== 'category' || !manualIssueKeys.has(issue.key))
 
-            <div className="max-h-[420px] space-y-3 overflow-y-auto">
-              {preview.referenceIssues.map(issue => {
-                const options = references[issue.list] ?? []
-                const canCreate = ['categories', 'accounts', 'parties', 'costCenters', 'serviceLines', 'paymentMethods'].includes(issue.list)
-                const selected = resolutions[issue.key] === null ? '__ignore__' : resolutions[issue.key] ?? ''
+          return (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-slate-800">Revisar classificações</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Selecione somente categorias existentes e ativas. A categoria original permanece preservada e nenhuma pessoa ou categoria nova será criada neste gate.
+                </p>
+              </div>
 
-                return (
-                  <div key={issue.key} className="rounded-lg border border-slate-200 p-3">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-medium text-slate-800">{issue.label}: {issue.value}</p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {issue.required ? 'Obrigatória' : 'Opcional'} · {issue.movementTypes.join(', ') || 'diversos tipos'}
-                        </p>
-                        {issue.variants.length > 1 && (
-                          <p className="mt-1 text-xs text-amber-700">Variações no arquivo: {issue.variants.join(' · ')}</p>
-                        )}
-                        {issue.similaritySuggestions.length > 0 && (
-                          <p className="mt-1 text-xs text-amber-700">Possível similaridade: {issue.similaritySuggestions.join(' · ')}. Confirme manualmente.</p>
-                        )}
+              <div className="max-h-[480px] space-y-3 overflow-y-auto">
+                {manualRows.map(row => {
+                  const options = compatibleCategories(row)
+                  const selectedId = manualDecisions[row.row_number] ?? ''
+                  const selectedCategory = options.find(category => category.id === selectedId)
+                  const currentCategory = references.categories?.find(category => category.id === row.mapped.category_id)
+                  const metadata = categoryMetadata(selectedCategory ?? currentCategory)
+
+                  return (
+                    <div key={row.row_number} className="rounded-lg border border-amber-200 bg-amber-50/40 p-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-slate-800">Linha {row.row_number}: {String(row.mapped.description ?? '')}</p>
+                          <p className="mt-1 text-xs text-slate-600">
+                            {String(row.mapped.transaction_date ?? '')} · R$ {Number(row.mapped.amount ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} · {String(row.raw.Pessoa ?? 'Não informado')}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {String(row.raw['Centro de Custo'] ?? '')} · {String(row.raw['Linha de Serviço'] ?? '')} · Tipo {String(row.mapped.movement_type ?? '')}
+                          </p>
+                        </div>
+                        <Badge className={row.valid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}>
+                          {row.valid ? 'Resolvida' : 'Pendente'}
+                        </Badge>
                       </div>
-                      <Badge className={issue.required ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}>
-                        {issue.required ? 'Pendente' : 'Revisar'}
-                      </Badge>
-                    </div>
 
-                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                      <select
-                        className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
-                        value={selected}
-                        onChange={event => handleResolution(issue, event.target.value)}
-                      >
-                        <option value="">Vincular a cadastro existente...</option>
-                        {options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
-                        {!issue.required && <option value="__ignore__">Ignorar campo opcional</option>}
-                      </select>
-                    </div>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        <div className="rounded border border-slate-200 bg-white p-2 text-xs">
+                          <p className="text-slate-500">Categoria original</p>
+                          <p className="font-medium text-slate-800">{String(row.raw.Categoria ?? '')}</p>
+                        </div>
+                        <div className="rounded border border-slate-200 bg-white p-2 text-xs">
+                          <p className="text-slate-500">Motivo</p>
+                          <p className="font-medium text-slate-800">{row.referenceIssues.find(issue => issue.field === 'category')?.value ?? 'Classificação manual registrada'}</p>
+                        </div>
+                      </div>
 
-                    <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                      {(issue.list === 'categories' || issue.list === 'accounts') && (
+                      <div className="mt-3 flex flex-col gap-2">
                         <select
-                          className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
-                          value={categoryCounterAccounts[issue.key] ?? ''}
-                          onChange={event => setCategoryCounterAccounts(previous => ({ ...previous, [issue.key]: event.target.value }))}
+                          aria-label={`Categoria destino da linha ${row.row_number}`}
+                          className="h-9 min-w-0 rounded border border-slate-200 bg-white px-2 text-xs"
+                          value={selectedId}
+                          onChange={event => event.target.value ? applyManualDecision(row, event.target.value) : keepManualPending(row)}
                         >
-                          <option value="">{issue.list === 'categories' ? 'Conta contábil de contrapartida...' : 'Conta contábil da conta financeira...'}</option>
-                          {chartAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
+                          <option value="">Manter pendente...</option>
+                          {options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
                         </select>
-                      )}
-                      {issue.list === 'categories' && (
-                        <select
-                          className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
-                          value={categoryCashFlowClasses[issue.key] ?? ''}
-                          onChange={event => setCategoryCashFlowClasses(previous => ({ ...previous, [issue.key]: event.target.value as FinancialDfcClass }))}
-                        >
-                          <option value="">Classificação DFC...</option>
-                          <option value="OPERACIONAL">Operacional</option>
-                          <option value="INVESTIMENTO">Investimento</option>
-                          <option value="FINANCIAMENTO">Financiamento</option>
-                          <option value="NAO_CAIXA">Não caixa</option>
-                          <option value="TRANSFERENCIA">Transferência</option>
-                        </select>
-                      )}
-                      <input
-                        className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
-                        value={newReferenceNames[issue.key] ?? ''}
-                        placeholder={canCreate ? `Novo ${issue.label.toLowerCase()}` : 'Cadastro não suportado nesta etapa'}
-                        disabled={!canCreate || creatingReferenceKey === issue.key}
-                        onChange={event => setNewReferenceNames(previous => ({ ...previous, [issue.key]: event.target.value }))}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!canCreate || !newReferenceNames[issue.key]?.trim() || ((issue.list === 'categories' || issue.list === 'accounts') && !categoryCounterAccounts[issue.key]) || (issue.list === 'categories' && !categoryCashFlowClasses[issue.key]) || creatingReferenceKey === issue.key}
-                        onClick={() => void handleCreateReference(issue)}
-                      >
-                        {creatingReferenceKey === issue.key ? 'Criando...' : 'Criar novo cadastro'}
-                      </Button>
+                        <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+                          <span>Conta: {metadata?.account ?? 'Não informada'}</span>
+                          <span>DRE: {metadata?.dre ?? 'Não informado'}</span>
+                          <span>DFC: {metadata?.dfc ?? 'Não informado'}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={!selectedCategory}
+                            onClick={() => selectedCategory && applyToSimilar(row, selectedCategory.id)}
+                          >
+                            Aplicar às semelhantes
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => keepManualPending(row)}>
+                            Manter pendente
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
 
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
-              <Button size="sm" onClick={() => setStep('preview')}>Continuar para preview</Button>
+              {otherIssues.length > 0 && (
+                <div className="space-y-2 rounded-lg border border-slate-200 p-3">
+                  <p className="text-sm font-medium text-slate-800">Referências fora deste gate</p>
+                  <p className="text-xs text-slate-500">Vales, parcelamentos, empréstimos e transferências permanecem pendentes ou inválidos. Nenhuma decisão manual está disponível para essas linhas.</p>
+                  {otherIssues.map(issue => (
+                    <div key={issue.key} className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
+                      <span>{issue.label}: {issue.value}</span>
+                      <Badge className={issue.required ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}>{issue.required ? 'Pendente preservada' : 'Informativa'}</Badge>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
+                <Button size="sm" onClick={() => setStep('preview')}>Continuar para preview</Button>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* STEP: Preview */}
         {step === 'preview' && preview && (
@@ -551,109 +484,14 @@ export function ImportWizard({ open, onClose }: Props) {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
-              <Button size="sm" onClick={handleImport} disabled={processing || preview.valid !== preview.total}>
-                {processing ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : <Check className="mr-1 size-3.5" />}
-                Confirmar Importação ({preview.total} linhas)
+              <Button size="sm" disabled>
+                <Check className="mr-1 size-3.5" />
+                Importação bloqueada neste gate
               </Button>
             </div>
           </div>
         )}
 
-        {/* STEP: Processing */}
-        {step === 'processing' && (
-          <div className="flex flex-col items-center gap-4 py-8">
-            <Loader2 className="size-8 animate-spin text-emerald-600" />
-            <p className="text-sm text-slate-600">Processando importação...</p>
-          </div>
-        )}
-
-        {/* STEP: Result */}
-        {step === 'result' && result && (() => {
-          const { total, imported, rejected, rejectedRows, error } = result
-          const partial = imported > 0 && rejected > 0
-          const success = imported > 0 && rejected === 0 && !error
-
-          return (
-            <div className="space-y-4">
-              {error ? (
-                <div className="rounded-lg bg-red-50 p-4 text-center">
-                  <X className="mx-auto size-8 text-red-600" />
-                  <p className="mt-2 font-medium text-red-800">Nenhum lançamento foi importado</p>
-                  <p className="mt-1 text-xs text-red-600">{error}</p>
-                </div>
-              ) : success ? (
-                <div className="rounded-lg bg-emerald-50 p-4 text-center">
-                  <Check className="mx-auto size-8 text-emerald-600" />
-                  <p className="mt-2 font-medium text-emerald-800">
-                    {imported === 1 ? '1 lançamento importado.' : `${imported} lançamentos importados.`}
-                  </p>
-                </div>
-              ) : partial ? (
-                <div className="rounded-lg bg-amber-50 p-4 text-center">
-                  <AlertTriangle className="mx-auto size-8 text-amber-600" />
-                  <p className="mt-2 font-medium text-amber-800">
-                    {imported} {imported === 1 ? 'lançamento importado' : 'lançamentos importados'} e{' '}
-                    {rejected} {rejected === 1 ? 'rejeitado' : 'rejeitados'}.
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-lg bg-red-50 p-4 text-center">
-                  <X className="mx-auto size-8 text-red-600" />
-                  <p className="mt-2 font-medium text-red-800">Nenhum lançamento foi importado</p>
-                  <p className="mt-1 text-xs text-red-600">
-                    Verifique as datas, valores, tipos e os cadastros (categoria, contas) das linhas abaixo.
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-3 text-sm">
-                <div className="rounded-lg bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">Total</p>
-                  <p className="text-lg font-semibold">{total}</p>
-                </div>
-                <div className="rounded-lg bg-emerald-50 p-3">
-                  <p className="text-xs text-emerald-600">Importadas</p>
-                  <p className="text-lg font-semibold text-emerald-800">{imported}</p>
-                </div>
-                <div className={`rounded-lg p-3 ${rejected > 0 ? 'bg-amber-50' : 'bg-slate-50'}`}>
-                  <p className={`text-xs ${rejected > 0 ? 'text-amber-600' : 'text-slate-500'}`}>Rejeitadas</p>
-                  <p className={`text-lg font-semibold ${rejected > 0 ? 'text-amber-800' : ''}`}>{rejected}</p>
-                </div>
-              </div>
-
-              {rejectedRows.length > 0 && (
-                <div className="max-h-[240px] overflow-y-auto rounded-lg border border-amber-200 bg-amber-50 p-3">
-                  <p className="mb-2 text-xs font-medium text-amber-800">Linhas rejeitadas:</p>
-                  <ul className="space-y-2">
-                    {rejectedRows.map(r => (
-                      <li key={r.row_number} className="text-xs text-amber-900">
-                        <span className="font-semibold">Linha {r.row_number}</span>
-                        {r.details.length > 0 ? (
-                          <ul className="mt-0.5 space-y-0.5 pl-3">
-                            {r.details.map((d, i) => (
-                              <li key={i}>
-                                <span className="font-medium">{d.field}</span>
-                                {d.value ? `: ${d.value}` : ''}
-                                {' — '}
-                                {d.reason}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <ul className="mt-0.5 space-y-0.5 pl-3">
-                            {r.errors.map((e, i) => <li key={i}>{e}</li>)}
-                          </ul>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <Button className="w-full" onClick={handleClose}>Fechar</Button>
-            </div>
-          )
-        })()}
       </div>
     </Drawer>
   )
