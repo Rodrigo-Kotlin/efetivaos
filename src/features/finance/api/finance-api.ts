@@ -217,6 +217,16 @@ export async function fetchParties(): Promise<FinancialParty[]> {
   return data ?? []
 }
 
+export async function createFinancialParty(payload: Database['public']['Tables']['financial_parties']['Insert']): Promise<FinancialParty> {
+  const { data, error } = await supabase
+    .from('financial_parties')
+    .insert(payload)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
 // ---------------------------------------------------------------------------
 // Payment Methods
 // ---------------------------------------------------------------------------

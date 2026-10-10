@@ -26,11 +26,13 @@ const PT_MAP: ColumnMapping = {
   category: 'Categoria',
   origin_account: 'Conta Origem',
   destination_account: 'Conta Destino',
+  party: 'Pessoa',
+  payment_method: 'Forma de Pagamento',
 }
 
 const REFS: ReferenceLists = {
   categories: [{ id: 'cat-material', name: 'Material' }],
-  accounts: [{ id: 'acc-x', name: 'Banco X' }],
+  accounts: [{ id: 'acc-x', name: 'Banco X' }, { id: 'acc-y', name: 'Banco Y' }],
 }
 
 function previewCsv(csv: string, mapping: ColumnMapping = PT_MAP, refs?: ReferenceLists) {
@@ -313,13 +315,19 @@ describe('auditoria — referências', () => {
     expect(p.rows[0].mapped.destination_account_id).toBe('acc-x')
   })
 
-  it('referência não encontrada vira erro de linha (não passa no preview)', () => {
+  it('referência obrigatória não encontrada vira pendência de reconciliação', () => {
     const csv =
       '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
       '01/08/2026;Pagamento;100,00;Despesa;Inexistente;Banco X\r\n'
     const p = previewCsv(csv, PT_MAP, REFS)
     expect(p.rows[0].valid).toBe(false)
-    expect(p.rows[0].errors.join(' ')).toMatch(/não encontrad/i)
+    expect(p.rows[0].errors).toHaveLength(0)
+    expect(p.pending).toBe(1)
+    expect(p.referenceIssues[0]).toMatchObject({
+      field: 'category',
+      value: 'Inexistente',
+      required: true,
+    })
   })
 
   it('DESPESA sem categoria/conta de destino não passa no preview (não falha só na persistência)', () => {
@@ -333,6 +341,61 @@ describe('auditoria — referências', () => {
     const csv = '\ufeffData;Descrição;Valor;Tipo\r\n01/08/2026;Ajuste;100,00;Ajuste\r\n'
     const p = previewCsv(csv, PT_MAP, REFS)
     expect(p.rows[0].valid).toBe(true)
+  })
+
+  it('normaliza conta destino para origem em receita', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Origem;Conta Destino\r\n' +
+      '01/08/2026;Recebimento;100,00;Receita;Material;;Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(true)
+    expect(row.mapped.origin_account_id).toBe('acc-x')
+    expect(row.mapped.destination_account_id).toBeUndefined()
+    expect(row.warnings[0]).toMatch(/destino normalizada/i)
+  })
+
+  it('normaliza conta origem para destino em despesa', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Origem;Conta Destino\r\n' +
+      '01/08/2026;Pagamento;100,00;Despesa;Material;Banco X;\r\n',
+      PT_MAP,
+      REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(true)
+    expect(row.mapped.origin_account_id).toBeUndefined()
+    expect(row.mapped.destination_account_id).toBe('acc-x')
+    expect(row.warnings[0]).toMatch(/origem normalizada/i)
+  })
+
+  it('preserva origem e destino de transferência e converte sentinelas opcionais em null', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Conta Origem;Conta Destino;Pessoa;Forma de Pagamento\r\n' +
+      '01/08/2026;Transferência;100,00;Transferência;Banco X;Banco Y;Não informado;Não informada\r\n',
+      PT_MAP,
+      REFS,
+    )
+    const row = p.rows[0]
+    expect(row.valid).toBe(true)
+    expect(row.mapped.origin_account_id).toBe('acc-x')
+    expect(row.mapped.destination_account_id).toBe('acc-y')
+    expect(row.mapped.party_id).toBeUndefined()
+    expect(row.mapped.payment_method_id).toBeUndefined()
+  })
+
+  it('referência opcional de pessoa ausente vira warning sem invalidar a linha', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Pessoa\r\n' +
+      '01/08/2026;Ajuste;100,00;Ajuste;Pessoa Nova\r\n',
+      PT_MAP,
+      { ...REFS, parties: [] },
+    )
+    expect(p.rows[0].valid).toBe(true)
+    expect(p.rows[0].referenceIssues[0]).toMatchObject({ field: 'party', required: false })
+    expect(p.rows[0].warnings.join(' ')).toMatch(/opcional/i)
   })
 })
 

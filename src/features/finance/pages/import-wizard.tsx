@@ -15,6 +15,9 @@ import {
   type ImportFileType,
   type ParsedRow,
   type ReferenceLists,
+  type ReferenceIssue,
+  type ReferenceResolution,
+  type ReferenceOption,
 } from '../lib/import-utils'
 import { persistImport, type ImportRejection } from '../lib/import-persist'
 import {
@@ -24,15 +27,23 @@ import {
   fetchCostCenters,
   fetchServiceLines,
   fetchPaymentMethods,
+  fetchChartAccounts,
+  createCategory,
+  createFinancialAccount,
+  createCostCenter,
+  createServiceLine,
+  createPaymentMethod,
+  createFinancialParty,
 } from '../api/finance-api'
 import { supabase } from '@/lib/supabase'
 import { useQueryClient } from '@tanstack/react-query'
+import type { FinancialDfcClass, FinancialMovementType } from '@/types/database'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type Step = 'upload' | 'mapping' | 'preview' | 'processing' | 'result'
+type Step = 'upload' | 'mapping' | 'reconciliation' | 'preview' | 'processing' | 'result'
 
 type Props = {
   open: boolean
@@ -58,7 +69,15 @@ export function ImportWizard({ open, onClose }: Props) {
   const [headers, setHeaders] = useState<string[]>([])
   const [rawRows, setRawRows] = useState<ParsedRow[]>([])
   const [mapping, setMapping] = useState<ColumnMapping>({})
+  const [batchId, setBatchId] = useState('')
   const [preview, setPreview] = useState<ImportPreview | null>(null)
+  const [references, setReferences] = useState<ReferenceLists | null>(null)
+  const [chartAccounts, setChartAccounts] = useState<ReferenceOption[]>([])
+  const [resolutions, setResolutions] = useState<ReferenceResolution>({})
+  const [categoryCounterAccounts, setCategoryCounterAccounts] = useState<Record<string, string>>({})
+  const [categoryCashFlowClasses, setCategoryCashFlowClasses] = useState<Record<string, FinancialDfcClass>>({})
+  const [newReferenceNames, setNewReferenceNames] = useState<Record<string, string>>({})
+  const [creatingReferenceKey, setCreatingReferenceKey] = useState<string | null>(null)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [processing, setProcessing] = useState(false)
   const [loadingRefs, setLoadingRefs] = useState(false)
@@ -70,7 +89,15 @@ export function ImportWizard({ open, onClose }: Props) {
     setHeaders([])
     setRawRows([])
     setMapping({})
+    setBatchId('')
     setPreview(null)
+    setReferences(null)
+    setChartAccounts([])
+    setResolutions({})
+    setCategoryCounterAccounts({})
+    setCategoryCashFlowClasses({})
+    setNewReferenceNames({})
+    setCreatingReferenceKey(null)
     setResult(null)
     setProcessing(false)
   }, [])
@@ -94,8 +121,8 @@ export function ImportWizard({ open, onClose }: Props) {
       const guessed = guessColumnMapping(h)
       setMapping(guessed)
       setStep('mapping')
-    } catch (err: any) {
-      alert(err.message || 'Failed to parse file')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to parse file')
     }
   }, [])
 
@@ -107,13 +134,14 @@ export function ImportWizard({ open, onClose }: Props) {
       // (category, accounts, party, cost center, service line, payment method)
       // can be resolved to UUIDs — the preview and the persistence share this
       // exact pipeline, so what is approved on the preview is what is sent.
-      const [categories, accounts, parties, costCenters, serviceLines, paymentMethods] = await Promise.all([
+      const [categories, accounts, parties, costCenters, serviceLines, paymentMethods, chartAccounts] = await Promise.all([
         fetchCategories(),
         fetchFinancialAccounts(),
         fetchParties(),
         fetchCostCenters(),
         fetchServiceLines(),
         fetchPaymentMethods(),
+        fetchChartAccounts(),
       ])
       const references: ReferenceLists = {
         categories: categories.map(c => ({ id: c.id, name: c.name })),
@@ -125,16 +153,99 @@ export function ImportWizard({ open, onClose }: Props) {
       }
 
       // Create a temporary batch ID for idempotency key generation
-      const batchId = crypto.randomUUID()
-      const p = generatePreview(headers, rawRows, mapping, batchId, references)
+      const nextBatchId = crypto.randomUUID()
+      const p = generatePreview(headers, rawRows, mapping, nextBatchId, references)
+      setBatchId(nextBatchId)
+      setReferences(references)
+      setChartAccounts(chartAccounts.filter(account => account.active && account.posting).map(account => ({ id: account.id, name: `${account.code} — ${account.name}` })))
+      setResolutions({})
       setPreview(p)
-      setStep('preview')
+      setStep(p.referenceIssues.length > 0 ? 'reconciliation' : 'preview')
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Falha ao carregar os cadastros financeiros para validação')
     } finally {
       setLoadingRefs(false)
     }
   }, [headers, rawRows, mapping])
+
+  const rebuildPreview = useCallback((nextResolutions: ReferenceResolution, nextReferences = references) => {
+    if (!nextReferences) return
+    const p = generatePreview(headers, rawRows, mapping, batchId, {
+      ...nextReferences,
+      resolutions: nextResolutions,
+    })
+    setPreview(p)
+  }, [headers, rawRows, mapping, batchId, references])
+
+  const handleResolution = useCallback((issue: ReferenceIssue, value: string) => {
+    const next = { ...resolutions }
+    if (value === '__ignore__') next[issue.key] = null
+    else if (value) next[issue.key] = value
+    else delete next[issue.key]
+    setResolutions(next)
+    rebuildPreview(next)
+  }, [resolutions, rebuildPreview])
+
+  const handleCreateReference = useCallback(async (issue: ReferenceIssue) => {
+    const name = newReferenceNames[issue.key]?.trim()
+    if (!name || !references) return
+    setCreatingReferenceKey(issue.key)
+    try {
+      let created: { id: string; name: string }
+      if (issue.list === 'categories') {
+        const counterAccountId = categoryCounterAccounts[issue.key]
+        if (!counterAccountId) throw new Error('Selecione a conta contábil de contrapartida antes de criar a categoria.')
+        const cashFlowClass = categoryCashFlowClasses[issue.key]
+        if (!cashFlowClass) throw new Error('Selecione a classificação DFC antes de criar a categoria.')
+        if (issue.movementTypes.length !== 1) throw new Error('Esta referência aparece em mais de um tipo de movimento; corrija manualmente antes de criar.')
+        created = await createCategory({
+          name,
+          movement_type: issue.movementTypes[0] as FinancialMovementType,
+          counter_account_id: counterAccountId,
+          cost_center_id: null,
+          service_line_id: null,
+          cash_flow_class: cashFlowClass,
+          active: true,
+        })
+      } else if (issue.list === 'accounts') {
+        const chartAccountId = categoryCounterAccounts[issue.key]
+        if (!chartAccountId) throw new Error('Selecione a conta contábil antes de criar a conta financeira.')
+        created = await createFinancialAccount({
+          name,
+          chart_account_id: chartAccountId,
+          account_type: 'CONTA_CORRENTE',
+          active: true,
+          institution: null,
+          opening_date: null,
+          notes: null,
+        })
+      } else if (issue.list === 'costCenters') {
+        created = await createCostCenter({ name, code: null, active: true, description: null })
+      } else if (issue.list === 'serviceLines') {
+        created = await createServiceLine({ name, active: true, description: null })
+      } else if (issue.list === 'paymentMethods') {
+        created = await createPaymentMethod({ name, active: true })
+      } else if (issue.list === 'parties') {
+        created = await createFinancialParty({ name, party_type: 'CLIENTE_FORNECEDOR', active: true })
+      } else {
+        throw new Error('Tipo de cadastro não suportado nesta etapa.')
+      }
+
+      const nextReferences = {
+        ...references,
+        [issue.list]: [...(references[issue.list] ?? []), { id: created.id, name: created.name }],
+      } as ReferenceLists
+      const nextResolutions = { ...resolutions, [issue.key]: created.id }
+      setReferences(nextReferences)
+      setResolutions(nextResolutions)
+      setNewReferenceNames(previous => ({ ...previous, [issue.key]: '' }))
+      rebuildPreview(nextResolutions, nextReferences)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Não foi possível criar o cadastro')
+    } finally {
+      setCreatingReferenceKey(null)
+    }
+  }, [categoryCashFlowClasses, categoryCounterAccounts, newReferenceNames, references, resolutions, rebuildPreview])
 
   // Step 3: Preview → Process
   const handleImport = useCallback(async () => {
@@ -178,23 +289,25 @@ export function ImportWizard({ open, onClose }: Props) {
     }
   }, [preview, file, fileType, mapping, qc])
 
+  const stepSequence: Step[] = ['upload', 'mapping', 'reconciliation', 'preview', 'result']
+
   return (
     <Drawer open={open} onOpenChange={(o) => { if (!o) handleClose() }} title="Importar Lançamentos">
       <div className="space-y-4">
         {/* Step indicator */}
         <div className="flex items-center gap-2 text-xs text-slate-500">
-          {(['upload', 'mapping', 'preview', 'result'] as Step[]).map((s, i) => (
+          {stepSequence.map((s, i) => (
             <span key={s} className={`flex items-center gap-1 ${step === s ? 'font-medium text-emerald-700' : ''}`}>
               <span className={`inline-flex size-5 items-center justify-center rounded-full border ${
                 step === s ? 'border-emerald-500 bg-emerald-50 text-emerald-700' :
-                ['mapping', 'preview', 'result'].indexOf(step) > ['upload', 'mapping', 'preview', 'result'].indexOf(s)
+                stepSequence.indexOf(step) > stepSequence.indexOf(s)
                   ? 'border-emerald-300 bg-emerald-50 text-emerald-600' : 'border-slate-200'
               }`}>
-                {['mapping', 'preview', 'result'].indexOf(step) > ['upload', 'mapping', 'preview', 'result'].indexOf(s)
+                {stepSequence.indexOf(step) > stepSequence.indexOf(s)
                   ? <Check className="size-3" /> : i + 1}
               </span>
-              <span className="hidden sm:inline">{s === 'upload' ? 'Upload' : s === 'mapping' ? 'Mapeamento' : s === 'preview' ? 'Preview' : 'Resultado'}</span>
-              {i < 3 && <ArrowRight className="size-3 text-slate-300" />}
+              <span className="hidden sm:inline">{s === 'upload' ? 'Upload' : s === 'mapping' ? 'Mapeamento' : s === 'reconciliation' ? 'Revisar cadastros' : s === 'preview' ? 'Preview' : 'Resultado'}</span>
+              {i < stepSequence.length - 1 && <ArrowRight className="size-3 text-slate-300" />}
             </span>
           ))}
         </div>
@@ -273,21 +386,122 @@ export function ImportWizard({ open, onClose }: Props) {
           </div>
         )}
 
+        {/* STEP: Reconciliation */}
+        {step === 'reconciliation' && preview && references && (
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-slate-800">Revisar cadastros</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">
+                Vincule referências existentes, ignore campos opcionais ou crie cadastros simples com confirmação explícita.
+                Categorias e contas exigem classificação contábil e só são criadas após confirmação explícita.
+              </p>
+            </div>
+
+            <div className="max-h-[420px] space-y-3 overflow-y-auto">
+              {preview.referenceIssues.map(issue => {
+                const options = references[issue.list] ?? []
+                const canCreate = ['categories', 'accounts', 'parties', 'costCenters', 'serviceLines', 'paymentMethods'].includes(issue.list)
+                const selected = resolutions[issue.key] === null ? '__ignore__' : resolutions[issue.key] ?? ''
+
+                return (
+                  <div key={issue.key} className="rounded-lg border border-slate-200 p-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{issue.label}: {issue.value}</p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {issue.required ? 'Obrigatória' : 'Opcional'} · {issue.movementTypes.join(', ') || 'diversos tipos'}
+                        </p>
+                        {issue.variants.length > 1 && (
+                          <p className="mt-1 text-xs text-amber-700">Variações no arquivo: {issue.variants.join(' · ')}</p>
+                        )}
+                      </div>
+                      <Badge className={issue.required ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}>
+                        {issue.required ? 'Pendente' : 'Revisar'}
+                      </Badge>
+                    </div>
+
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                      <select
+                        className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
+                        value={selected}
+                        onChange={event => handleResolution(issue, event.target.value)}
+                      >
+                        <option value="">Vincular a cadastro existente...</option>
+                        {options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
+                        {!issue.required && <option value="__ignore__">Ignorar campo opcional</option>}
+                      </select>
+                    </div>
+
+                    <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                      {(issue.list === 'categories' || issue.list === 'accounts') && (
+                        <select
+                          className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
+                          value={categoryCounterAccounts[issue.key] ?? ''}
+                          onChange={event => setCategoryCounterAccounts(previous => ({ ...previous, [issue.key]: event.target.value }))}
+                        >
+                          <option value="">{issue.list === 'categories' ? 'Conta contábil de contrapartida...' : 'Conta contábil da conta financeira...'}</option>
+                          {chartAccounts.map(account => <option key={account.id} value={account.id}>{account.name}</option>)}
+                        </select>
+                      )}
+                      {issue.list === 'categories' && (
+                        <select
+                          className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
+                          value={categoryCashFlowClasses[issue.key] ?? ''}
+                          onChange={event => setCategoryCashFlowClasses(previous => ({ ...previous, [issue.key]: event.target.value as FinancialDfcClass }))}
+                        >
+                          <option value="">Classificação DFC...</option>
+                          <option value="OPERACIONAL">Operacional</option>
+                          <option value="INVESTIMENTO">Investimento</option>
+                          <option value="FINANCIAMENTO">Financiamento</option>
+                          <option value="NAO_CAIXA">Não caixa</option>
+                          <option value="TRANSFERENCIA">Transferência</option>
+                        </select>
+                      )}
+                      <input
+                        className="h-9 min-w-0 flex-1 rounded border border-slate-200 px-2 text-xs"
+                        value={newReferenceNames[issue.key] ?? ''}
+                        placeholder={canCreate ? `Novo ${issue.label.toLowerCase()}` : 'Cadastro não suportado nesta etapa'}
+                        disabled={!canCreate || creatingReferenceKey === issue.key}
+                        onChange={event => setNewReferenceNames(previous => ({ ...previous, [issue.key]: event.target.value }))}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={!canCreate || !newReferenceNames[issue.key]?.trim() || ((issue.list === 'categories' || issue.list === 'accounts') && !categoryCounterAccounts[issue.key]) || (issue.list === 'categories' && !categoryCashFlowClasses[issue.key]) || creatingReferenceKey === issue.key}
+                        onClick={() => void handleCreateReference(issue)}
+                      >
+                        {creatingReferenceKey === issue.key ? 'Criando...' : 'Criar novo cadastro'}
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
+              <Button size="sm" onClick={() => setStep('preview')}>Continuar para preview</Button>
+            </div>
+          </div>
+        )}
+
         {/* STEP: Preview */}
         {step === 'preview' && preview && (
           <div className="space-y-4">
             <div className="flex items-center gap-4 text-sm">
               <span className="text-slate-600">Total: <strong>{preview.total}</strong></span>
               <span className="text-emerald-700">Válidas: <strong>{preview.valid}</strong></span>
+              {preview.pending > 0 && (
+                <span className="text-amber-700">Pendentes: <strong>{preview.pending}</strong></span>
+              )}
               {preview.invalid > 0 && (
                 <span className="text-red-600">Inválidas: <strong>{preview.invalid}</strong></span>
               )}
             </div>
 
-            {preview.invalid > 0 && (
+            {(preview.invalid > 0 || preview.pending > 0) && (
               <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                As {preview.invalid} linhas inválidas não serão importadas, mas permanecerão
-                listadas no resultado com o motivo da rejeição.
+                Linhas inválidas ou pendentes não serão importadas. Resolva as referências obrigatórias na etapa de cadastros antes da confirmação.
               </p>
             )}
 
@@ -312,6 +526,8 @@ export function ImportWizard({ open, onClose }: Props) {
                       <td className="px-2 py-1">
                         {r.valid ? (
                           <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Válido</Badge>
+                        ) : r.referenceIssues.some(issue => issue.required) && r.errors.length === 0 ? (
+                          <Badge className="bg-amber-100 text-amber-800 text-[10px]">Pendente</Badge>
                         ) : (
                           <Badge className="bg-red-100 text-red-800 text-[10px]">
                             <AlertTriangle className="mr-0.5 inline size-2.5" />
@@ -332,7 +548,7 @@ export function ImportWizard({ open, onClose }: Props) {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
-              <Button size="sm" onClick={handleImport} disabled={processing}>
+              <Button size="sm" onClick={handleImport} disabled={processing || preview.valid !== preview.total}>
                 {processing ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : <Check className="mr-1 size-3.5" />}
                 Confirmar Importação ({preview.total} linhas)
               </Button>

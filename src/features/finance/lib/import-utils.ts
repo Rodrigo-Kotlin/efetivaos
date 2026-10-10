@@ -50,6 +50,7 @@ export type ValidatedRow = {
   errors: string[]
   errorDetails: RowErrorDetail[]
   warnings: string[]
+  referenceIssues: ReferenceIssue[]
   idempotency_key: string
 }
 
@@ -58,7 +59,9 @@ export type ImportPreview = {
   rows: ValidatedRow[]
   total: number
   valid: number
+  pending: number
   invalid: number
+  referenceIssues: ReferenceIssue[]
 }
 
 /**
@@ -68,6 +71,21 @@ export type ImportPreview = {
  */
 export type ReferenceOption = { id: string; name: string }
 
+export type ReferenceListName = 'categories' | 'accounts' | 'parties' | 'costCenters' | 'serviceLines' | 'paymentMethods'
+
+export type ReferenceIssue = {
+  key: string
+  field: string
+  list: ReferenceListName
+  label: string
+  value: string
+  variants: string[]
+  required: boolean
+  movementTypes: string[]
+}
+
+export type ReferenceResolution = Record<string, string | null>
+
 export type ReferenceLists = {
   categories?: ReferenceOption[]
   accounts?: ReferenceOption[]
@@ -75,6 +93,7 @@ export type ReferenceLists = {
   costCenters?: ReferenceOption[]
   serviceLines?: ReferenceOption[]
   paymentMethods?: ReferenceOption[]
+  resolutions?: ReferenceResolution
 }
 
 // ---------------------------------------------------------------------------
@@ -102,7 +121,7 @@ const REQUIRED_REFERENCES: Record<string, string[]> = {
   SALDO_INICIAL: ['origin_account'],
 }
 
-const REFERENCE_FIELDS: Array<{ field: string; list: keyof ReferenceLists; label: string }> = [
+const REFERENCE_FIELDS: Array<{ field: string; list: ReferenceListName; label: string }> = [
   { field: 'category', list: 'categories', label: 'Categoria' },
   { field: 'origin_account', list: 'accounts', label: 'Conta de origem' },
   { field: 'destination_account', list: 'accounts', label: 'Conta de destino' },
@@ -239,6 +258,15 @@ function stripDiacritics(value: string): string {
 /** Lower-cased, accent-free, single-spaced key used for name matching. */
 function normalizeKey(value: string): string {
   return stripDiacritics(String(value)).toLowerCase().trim().replace(/\s+/g, ' ')
+}
+
+export function isImportSentinel(value: unknown): boolean {
+  const key = normalizeKey(String(value ?? ''))
+  return key === '' || ['nao informado', 'nao informada', 'nenhum', 'nenhuma'].includes(key)
+}
+
+export function referenceResolutionKey(list: ReferenceListName, value: string): string {
+  return `${list}:${normalizeKey(value)}`
 }
 
 const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30)
@@ -397,7 +425,7 @@ function generateIdempotencyKey(rowNumber: number, data: ParsedRow, batchId: str
 // Reference resolution (names in the file -> UUIDs in the ledger)
 // ---------------------------------------------------------------------------
 
-type ReferenceIndex = Partial<Record<keyof ReferenceLists, Map<string, string>>>
+type ReferenceIndex = Partial<Record<ReferenceListName, Map<string, string>>>
 
 function buildReferenceIndex(references: ReferenceLists): ReferenceIndex {
   const index: ReferenceIndex = {}
@@ -407,6 +435,9 @@ function buildReferenceIndex(references: ReferenceLists): ReferenceIndex {
     for (const option of references[list] ?? []) {
       const key = normalizeKey(option.name)
       if (key && !map.has(key)) map.set(key, option.id)
+    }
+    for (const [key, id] of Object.entries(references.resolutions ?? {})) {
+      if (key.startsWith(`${list}:`) && id) map.set(key.slice(list.length + 1), id)
     }
     index[list] = map
   }
@@ -419,24 +450,53 @@ function validateReferences(
   references: ReferenceLists,
   errors: string[],
   errorDetails: RowErrorDetail[],
-): void {
+  warnings: string[],
+): ReferenceIssue[] {
   const index = buildReferenceIndex(references)
+  const requiredFields = new Set(REQUIRED_REFERENCES[movementType ?? ''] ?? [])
+  const issues: ReferenceIssue[] = []
 
   for (const { field, list, label } of REFERENCE_FIELDS) {
     const raw = mapped[field]
     if (raw === undefined || raw === null || raw === '') continue
-    const id = index[list]?.get(normalizeKey(String(raw)))
+    const value = String(raw).trim()
+    if (isImportSentinel(value)) {
+      delete mapped[field]
+      continue
+    }
+    const resolutionKey = referenceResolutionKey(list, value)
+    if (Object.prototype.hasOwnProperty.call(references.resolutions ?? {}, resolutionKey)) {
+      const resolution = references.resolutions?.[resolutionKey]
+      if (resolution) mapped[`${field}_id`] = resolution
+      else delete mapped[`${field}_id`]
+      continue
+    }
+    const id = index[list]?.get(normalizeKey(value))
     if (id) {
       mapped[`${field}_id`] = id
     } else {
-      errors.push(`${label} "${String(raw)}" não encontrada nos cadastros financeiros`)
-      errorDetails.push({ field: label, value: String(raw), reason: 'Não encontrada nos cadastros financeiros' })
+      const required = requiredFields.has(field)
+      const issue: ReferenceIssue = {
+        key: resolutionKey,
+        field,
+        list,
+        label,
+        value,
+        variants: [value],
+        required,
+        movementTypes: movementType ? [movementType] : [],
+      }
+      issues.push(issue)
+      if (!required) {
+        warnings.push(`${label} "${value}" não encontrada; campo opcional será ignorado`)
+      }
     }
   }
 
-  for (const field of REQUIRED_REFERENCES[movementType ?? ''] ?? []) {
+  for (const field of requiredFields) {
     const meta = REFERENCE_FIELDS.find(item => item.field === field)!
-    if (!mapped[`${field}_id`]) {
+    const hasValue = mapped[field] !== undefined && mapped[field] !== null && mapped[field] !== ''
+    if (!mapped[`${field}_id`] && !hasValue) {
       errors.push(`${meta.label} é obrigatória para ${movementType}`)
       errorDetails.push({ field: meta.label, reason: `Obrigatória para ${movementType}` })
     }
@@ -450,6 +510,8 @@ function validateReferences(
     errors.push('Conta de origem e conta de destino devem ser diferentes')
     errorDetails.push({ field: 'Conta de destino', reason: 'Deve ser diferente da conta de origem' })
   }
+
+  return issues
 }
 
 // ---------------------------------------------------------------------------
@@ -468,16 +530,18 @@ function validateRow(
   row: ParsedRow,
   mapping: ColumnMapping,
   references?: ReferenceLists,
-): { valid: boolean; errors: string[]; errorDetails: RowErrorDetail[]; warnings: string[]; mapped: Record<string, unknown> } {
+): { valid: boolean; errors: string[]; errorDetails: RowErrorDetail[]; warnings: string[]; mapped: Record<string, unknown>; referenceIssues: ReferenceIssue[] } {
   const errors: string[] = []
   const errorDetails: RowErrorDetail[] = []
   const warnings: string[] = []
+  let referenceIssues: ReferenceIssue[] = []
   const mapped: Record<string, unknown> = {}
 
   // Map fields
   for (const [field, csvCol] of Object.entries(mapping)) {
     if (csvCol && row[csvCol] !== undefined && row[csvCol] !== null && row[csvCol] !== '') {
-      mapped[field] = row[csvCol]
+      const value = row[csvCol]
+      if (!isImportSentinel(value)) mapped[field] = typeof value === 'string' ? value.trim() : value
     }
   }
 
@@ -543,6 +607,17 @@ function validateRow(
       errorDetails.push({ field: 'Tipo', value: String(rawType), reason: 'Tipo de lançamento inválido' })
     } else {
       mapped.movement_type = t
+
+      if (t === 'RECEITA' && !mapped.origin_account && mapped.destination_account) {
+        mapped.origin_account = mapped.destination_account
+        delete mapped.destination_account
+        warnings.push('Conta destino normalizada para conta de origem conforme o contrato de receita')
+      }
+      if (t === 'DESPESA' && !mapped.destination_account && mapped.origin_account) {
+        mapped.destination_account = mapped.origin_account
+        delete mapped.origin_account
+        warnings.push('Conta origem normalizada para conta de destino conforme o contrato de despesa')
+      }
     }
   }
 
@@ -562,10 +637,11 @@ function validateRow(
   // Resolve textual references to UUIDs and enforce the same minimum
   // requirements the ledger enforces (preview == persistence).
   if (references) {
-    validateReferences(mapped, mapped.movement_type as string | undefined, references, errors, errorDetails)
+    referenceIssues = validateReferences(mapped, mapped.movement_type as string | undefined, references, errors, errorDetails, warnings)
   }
 
-  return { valid: errors.length === 0, errors, errorDetails, warnings, mapped }
+  const hasPendingReference = referenceIssues.some(issue => issue.required)
+  return { valid: errors.length === 0 && !hasPendingReference, errors, errorDetails, warnings, mapped, referenceIssues }
 }
 
 // ---------------------------------------------------------------------------
@@ -580,7 +656,7 @@ export function generatePreview(
   references?: ReferenceLists,
 ): ImportPreview {
   const validated: ValidatedRow[] = rows.map((row, i) => {
-    const { valid, errors, errorDetails, warnings, mapped } = validateRow(row, mapping, references)
+    const { valid, errors, errorDetails, warnings, mapped, referenceIssues } = validateRow(row, mapping, references)
     return {
       row_number: i + 1,
       raw: row,
@@ -589,16 +665,33 @@ export function generatePreview(
       errors,
       errorDetails,
       warnings,
+      referenceIssues,
       idempotency_key: generateIdempotencyKey(i + 1, row, batchId),
     }
   })
+
+  const referenceIssues = validated.reduce<ReferenceIssue[]>((all, row) => {
+    for (const issue of row.referenceIssues) {
+      const existing = all.find(item => item.key === issue.key)
+      if (existing) {
+        existing.required ||= issue.required
+        existing.variants = [...new Set([...existing.variants, ...issue.variants])]
+        existing.movementTypes = [...new Set([...existing.movementTypes, ...issue.movementTypes])]
+      } else {
+        all.push({ ...issue })
+      }
+    }
+    return all
+  }, [])
 
   return {
     headers,
     rows: validated,
     total: validated.length,
     valid: validated.filter(r => r.valid).length,
-    invalid: validated.filter(r => !r.valid).length,
+    pending: validated.filter(r => r.referenceIssues.some(issue => issue.required)).length,
+    invalid: validated.filter(r => r.errors.length > 0).length,
+    referenceIssues,
   }
 }
 
