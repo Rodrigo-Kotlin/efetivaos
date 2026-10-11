@@ -284,7 +284,7 @@ export type PayableListParams = {
   dueDateTo?: string
   overdue?: 'overdue' | 'upcoming'
   status?: FinancialTransactionStatus
-  personName?: string
+  personId?: string
   categoryName?: string
   accountId?: string
   sort?: PayableSort
@@ -307,6 +307,20 @@ export async function fetchPayables(params: PayableListParams = {}): Promise<Pag
   const sort = params.sort ?? 'due_date'
   const direction = params.direction ?? 'asc'
 
+  let partyTransactionIds: string[] | undefined
+  if (params.personId) {
+    const { data, error } = await supabase
+      .from('financial_transactions')
+      .select('id')
+      .eq('party_id', params.personId)
+      .in('movement_type', ['DESPESA', 'IMOBILIZADO'])
+    if (error) throw error
+    partyTransactionIds = (data ?? []).map(row => row.id)
+    if (partyTransactionIds.length === 0) {
+      return { rows: [], count: 0, page, pageSize, pageCount: 1 }
+    }
+  }
+
   let query = supabase
     .from('financial_payables_v')
     .select(PAYABLE_LIST_SELECT, { count: 'exact' })
@@ -319,7 +333,7 @@ export async function fetchPayables(params: PayableListParams = {}): Promise<Pag
   if (params.dueDateTo) query = query.lte('due_date', params.dueDateTo)
   if (params.overdue) query = query.eq('overdue', params.overdue === 'overdue')
   if (params.status) query = query.eq('status', params.status)
-  if (params.personName) query = query.eq('party_name', params.personName)
+  if (partyTransactionIds) query = query.in('transaction_id', partyTransactionIds)
   if (params.categoryName) query = query.eq('category_name', params.categoryName)
   if (params.accountId) query = query.eq('origin_account_id', params.accountId)
 
@@ -377,7 +391,7 @@ export type ReceivableListParams = {
   dueDateTo?: string
   overdue?: 'overdue' | 'upcoming'
   status?: FinancialTransactionStatus
-  personName?: string
+  personId?: string
   categoryName?: string
   accountId?: string
   sort?: ReceivableSort
@@ -400,6 +414,20 @@ export async function fetchReceivables(params: ReceivableListParams = {}): Promi
   const sort = params.sort ?? 'due_date'
   const direction = params.direction ?? 'asc'
 
+  let partyTransactionIds: string[] | undefined
+  if (params.personId) {
+    const { data, error } = await supabase
+      .from('financial_transactions')
+      .select('id')
+      .eq('party_id', params.personId)
+      .eq('movement_type', 'RECEITA')
+    if (error) throw error
+    partyTransactionIds = (data ?? []).map(row => row.id)
+    if (partyTransactionIds.length === 0) {
+      return { rows: [], count: 0, page, pageSize, pageCount: 1 }
+    }
+  }
+
   let query = supabase
     .from('financial_receivables_v')
     .select(RECEIVABLE_LIST_SELECT, { count: 'exact' })
@@ -412,7 +440,7 @@ export async function fetchReceivables(params: ReceivableListParams = {}): Promi
   if (params.dueDateTo) query = query.lte('due_date', params.dueDateTo)
   if (params.overdue) query = query.eq('overdue', params.overdue === 'overdue')
   if (params.status) query = query.eq('status', params.status)
-  if (params.personName) query = query.eq('party_name', params.personName)
+  if (partyTransactionIds) query = query.in('transaction_id', partyTransactionIds)
   if (params.categoryName) query = query.eq('category_name', params.categoryName)
   if (params.accountId) query = query.eq('origin_account_id', params.accountId)
 

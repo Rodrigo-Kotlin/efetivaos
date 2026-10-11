@@ -77,3 +77,8 @@ export function serializeCollectionUrl(state: CollectionUrlState, options: Colle
 export function resetCollectionPage(state: CollectionUrlState): CollectionUrlState {
   return { ...state, page: 1 }
 }
+
+export function normalizeCollectionPage(page: number, count: number, pageCount: number): number {
+  if (count <= 0) return 1
+  return Math.min(Math.max(page, 1), Math.max(pageCount, 1))
+}

@@ -48,6 +48,7 @@ vi.mock('@/lib/supabase', () => ({
         insert(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.insert`, args }); return chain },
         update(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.update`, args }); return chain },
         eq(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.eq`, args }); return chain },
+        in(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.in`, args }); return chain },
         or(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.or`, args }); return chain },
         gte(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.gte`, args }); return chain },
         lte(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.lte`, args }); return chain },
@@ -428,12 +429,15 @@ describe('Payables API', () => {
   })
 
   it('fetchPayables aplica busca, periodo, vencimento, status e filtros server-side', async () => {
+    serviceMocks.tableResults.push({ data: [{ id: 'tx-party-1' }], error: null })
     serviceMocks.tableResults.push({ data: [], count: 75, error: null })
-    const result = await fetchPayables({ search: 'fornecedor', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'overdue', status: 'pending', personName: 'Fornecedor A', categoryName: 'Servicos', accountId: 'account-1', page: 2, pageSize: 50, sort: 'original_amount', direction: 'desc' })
+    const result = await fetchPayables({ search: 'fornecedor', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'overdue', status: 'pending', personId: 'party-1', categoryName: 'Servicos', accountId: 'account-1', page: 2, pageSize: 50, sort: 'original_amount', direction: 'desc' })
     expect(result).toMatchObject({ count: 75, page: 2, pageSize: 50, pageCount: 2 })
     expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.range' && op.args[0] === 50 && op.args[1] === 99)).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.or')).toBeTruthy()
-    expect(serviceMocks.operations.filter(op => op.method === 'financial_payables_v.eq')).toHaveLength(5)
+    expect(serviceMocks.operations.filter(op => op.method === 'financial_payables_v.eq')).toHaveLength(4)
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions.eq' && op.args[0] === 'party_id' && op.args[1] === 'party-1')).toBeTruthy()
+    expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.in' && op.args[0] === 'transaction_id')).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.gte')).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.lte')).toBeTruthy()
   })
@@ -447,6 +451,19 @@ describe('Payables API', () => {
     expect(progress).toEqual([1000, 1500])
     expect(serviceMocks.operations.filter(op => op.method === 'financial_payables_v.range').map(op => op.args)).toEqual([[0, 999], [1000, 1999]])
   })
+
+  it('fetchPayables filtra por party_id sem misturar nomes duplicados', async () => {
+    serviceMocks.tableResults.push({ data: [{ id: 'tx-party-a' }, { id: 'tx-other' }], error: null })
+    serviceMocks.tableResults.push({ data: [{ transaction_id: 'tx-party-a' }], count: 1, error: null })
+
+    const result = await fetchPayables({ personId: 'party-a' })
+
+    expect(result.rows).toEqual([{ transaction_id: 'tx-party-a' }])
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions.eq' && op.args[0] === 'party_id' && op.args[1] === 'party-a')).toBeTruthy()
+    const payableIdentityFilter = serviceMocks.operations.find(op => op.method === 'financial_payables_v.in' && op.args[0] === 'transaction_id')
+    expect(payableIdentityFilter).toBeTruthy()
+    expect(payableIdentityFilter?.args[1]).toEqual(['tx-party-a', 'tx-other'])
+  })
 })
 
 describe('Receivables API', () => {
@@ -456,12 +473,15 @@ describe('Receivables API', () => {
   })
 
   it('fetchReceivables aplica busca, periodo, vencimento, status e filtros server-side', async () => {
+    serviceMocks.tableResults.push({ data: [{ id: 'tx-party-1' }], error: null })
     serviceMocks.tableResults.push({ data: [], count: 75, error: null })
-    const result = await fetchReceivables({ search: 'cliente', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'overdue', status: 'pending', personName: 'Cliente A', categoryName: 'Servicos', accountId: 'account-1', page: 2, pageSize: 50, sort: 'original_amount', direction: 'desc' })
+    const result = await fetchReceivables({ search: 'cliente', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'overdue', status: 'pending', personId: 'party-1', categoryName: 'Servicos', accountId: 'account-1', page: 2, pageSize: 50, sort: 'original_amount', direction: 'desc' })
     expect(result).toMatchObject({ count: 75, page: 2, pageSize: 50, pageCount: 2 })
     expect(serviceMocks.operations.find(op => op.method === 'financial_receivables_v.range' && op.args[0] === 50 && op.args[1] === 99)).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_receivables_v.or')).toBeTruthy()
-    expect(serviceMocks.operations.filter(op => op.method === 'financial_receivables_v.eq')).toHaveLength(5)
+    expect(serviceMocks.operations.filter(op => op.method === 'financial_receivables_v.eq')).toHaveLength(4)
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions.eq' && op.args[0] === 'party_id' && op.args[1] === 'party-1')).toBeTruthy()
+    expect(serviceMocks.operations.find(op => op.method === 'financial_receivables_v.in' && op.args[0] === 'transaction_id')).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_receivables_v.gte')).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_receivables_v.lte')).toBeTruthy()
   })
@@ -474,6 +494,19 @@ describe('Receivables API', () => {
     expect(result).toHaveLength(1500)
     expect(progress).toEqual([1000, 1500])
     expect(serviceMocks.operations.filter(op => op.method === 'financial_receivables_v.range').map(op => op.args)).toEqual([[0, 999], [1000, 1999]])
+  })
+
+  it('fetchReceivables filtra por party_id sem misturar nomes duplicados', async () => {
+    serviceMocks.tableResults.push({ data: [{ id: 'tx-party-a' }, { id: 'tx-other' }], error: null })
+    serviceMocks.tableResults.push({ data: [{ transaction_id: 'tx-party-a' }], count: 1, error: null })
+
+    const result = await fetchReceivables({ personId: 'party-a' })
+
+    expect(result.rows).toEqual([{ transaction_id: 'tx-party-a' }])
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions.eq' && op.args[0] === 'party_id' && op.args[1] === 'party-a')).toBeTruthy()
+    const receivableIdentityFilter = serviceMocks.operations.find(op => op.method === 'financial_receivables_v.in' && op.args[0] === 'transaction_id')
+    expect(receivableIdentityFilter).toBeTruthy()
+    expect(receivableIdentityFilter?.args[1]).toEqual(['tx-party-a', 'tx-other'])
   })
 })
 

@@ -1,5 +1,6 @@
 import {
   parseCollectionUrl,
+  normalizeCollectionPage,
   resetCollectionPage,
   serializeCollectionUrl,
   type CollectionUrlState,
@@ -35,5 +36,11 @@ describe('collection URL state', () => {
   it('reseta a página quando a busca ou filtros mudam', () => {
     const state: CollectionUrlState = { page: 4, pageSize: 25, search: 'a', sort: 'name', direction: 'asc', filters: {} }
     expect(resetCollectionPage(state)).toEqual({ ...state, page: 1 })
+  })
+
+  it('normaliza páginas inválidas e coleções vazias', () => {
+    expect(normalizeCollectionPage(5, 30, 2)).toBe(2)
+    expect(normalizeCollectionPage(2, 0, 1)).toBe(1)
+    expect(normalizeCollectionPage(1, 30, 2)).toBe(1)
   })
 })

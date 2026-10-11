@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 
 import type { FinancialPayableList } from '@/types/database'
 import PayablesPage from './payables-page'
@@ -41,6 +41,10 @@ function mockResources() {
   vi.mocked(useReverseTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useReverseTransaction>)
 }
 
+function LocationProbe() {
+  return <output data-testid="location-search">{useLocation().search}</output>
+}
+
 describe('PayablesPage', () => {
   beforeEach(() => {
     mockResources()
@@ -71,4 +75,13 @@ describe('PayablesPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
     expect(refetch).toHaveBeenCalledTimes(1)
   })
+
+  it('normaliza uma página inválida na URL usando o pageCount retornado', async () => {
+    vi.mocked(usePayables).mockReturnValue({ data: { rows: [], count: 30, page: 5, pageSize: 25, pageCount: 2 }, isLoading: false, isFetching: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof usePayables>)
+
+    render(<MemoryRouter initialEntries={['/finance/payables?page=5']}><PayablesPage /><LocationProbe /></MemoryRouter>)
+
+    await waitFor(() => expect(screen.getByTestId('location-search')).toHaveTextContent('?page=2'))
+  })
+
 })

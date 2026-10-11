@@ -13,7 +13,7 @@ import { fetchAllPayables, type PayableListParams, type PayableSort } from '../a
 import { usePayables, useSettleTransaction, useReverseTransaction, useFinancialAccounts, usePaymentMethods, useCategories, useParties } from '../queries/finance-queries'
 import { CollectionActions, CollectionFilters, CollectionResultsCount, CollectionSearch, CollectionSort, CollectionToolbar, ClearFiltersButton, FilterChip } from '@/components/shared/collection-toolbar'
 import { EmptyState, ErrorState, TableShell, TableSkeleton, selectClassName } from '@/components/shared/operational-ui'
-import { parseCollectionUrl, serializeCollectionUrl, type CollectionPageSize, type CollectionUrlOptions, type CollectionUrlState } from '@/components/shared/collection-url-state'
+import { normalizeCollectionPage, parseCollectionUrl, serializeCollectionUrl, type CollectionPageSize, type CollectionUrlOptions, type CollectionUrlState } from '@/components/shared/collection-url-state'
 import { PaginationControls } from '@/components/shared/pagination-controls'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import type { FinancialPayableList, FinancialTransactionStatus } from '@/types/database'
@@ -213,18 +213,18 @@ export default function PayablesPage() {
       dueDateTo: validDate(filterValue(urlState, 'dueDateTo')) ? filterValue(urlState, 'dueDateTo') || undefined : undefined,
       overdue: validOverdue(overdue) ? overdue : undefined,
       status: validStatus(status) && status ? status : undefined,
-      personName: parties.find(party => party.id === personId)?.name,
+      personId: personId || undefined,
       categoryName: categories.find(category => category.id === categoryId)?.name,
       accountId: filterValue(urlState, 'accountId') || undefined,
       sort: urlState.sort as PayableSort,
       direction: urlState.direction,
     }
-  }, [categories, parties, urlState])
-  const { data, isLoading, isError, refetch } = usePayables(queryParams)
+  }, [categories, urlState])
+  const { data, isLoading, isFetching, isError, refetch } = usePayables(queryParams)
   const payables = data?.rows ?? []
   const total = data?.count ?? 0
 
-  const updateUrl = useCallback((patch: Partial<CollectionUrlState>, resetPage = true) => {
+  const updateUrl = useCallback((patch: Partial<CollectionUrlState>, resetPage = true, replace = false) => {
     const current = parseCollectionUrl(searchParams, PAYABLE_URL_OPTIONS)
     const filters = patch.filters
       ? Object.keys(patch.filters).length === 0 ? {} : { ...current.filters, ...patch.filters }
@@ -242,7 +242,7 @@ export default function PayablesPage() {
     }
     const collectionParams = serializeCollectionUrl(next, PAYABLE_URL_OPTIONS)
     for (const [key, value] of collectionParams.entries()) nextParams.append(key, value)
-    setSearchParams(nextParams, { replace: true })
+    setSearchParams(nextParams, { replace })
   }, [searchParams, setSearchParams])
 
   const setFilter = useCallback((key: string, value: string) => {
@@ -250,7 +250,7 @@ export default function PayablesPage() {
   }, [updateUrl])
 
   useEffect(() => {
-    if (debouncedSearch !== urlState.search) updateUrl({ search: debouncedSearch })
+    if (debouncedSearch !== urlState.search) updateUrl({ search: debouncedSearch }, true, true)
   }, [debouncedSearch, updateUrl, urlState.search])
 
   useEffect(() => {
@@ -260,6 +260,12 @@ export default function PayablesPage() {
       setSearchDraft(urlState.search)
     }
   }, [debouncedSearch, searchDraft, urlState.search])
+
+  useEffect(() => {
+    if (isLoading || isFetching || isError || !data) return
+    const normalizedPage = normalizeCollectionPage(urlState.page, data.count, data.pageCount)
+    if (normalizedPage !== urlState.page) updateUrl({ page: normalizedPage }, false, true)
+  }, [data, isError, isFetching, isLoading, updateUrl, urlState.page])
 
   const activeFilters = useMemo(() => Object.entries(urlState.filters).flatMap(([key, values]) => values.map(value => ({ key, value }))), [urlState.filters])
   const hasActiveFilters = Boolean(urlState.search || activeFilters.length)
