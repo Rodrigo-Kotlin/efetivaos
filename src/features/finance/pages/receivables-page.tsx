@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Clock, CheckCircle, XCircle, AlertTriangle, Download, Filter, Loader2 } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, AlertTriangle, Download, Eye, Filter, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,7 @@ import { normalizeCollectionPage, parseCollectionUrl, serializeCollectionUrl, ty
 import { PaginationControls } from '@/components/shared/pagination-controls'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import type { FinancialReceivableList, FinancialTransactionStatus } from '@/types/database'
+import { FinancialTitleDetailDrawer } from '../financial-title-detail-drawer'
 
 type ReceivableRow = FinancialReceivableList
 
@@ -94,6 +95,7 @@ export default function ReceivablesPage() {
   const debouncedSearch = useDebouncedValue(searchDraft, 300)
   const [settleTx, setSettleTx] = useState<ReceivableRow | null>(null)
   const [reverseTx, setReverseTx] = useState<ReceivableRow | null>(null)
+  const [detailTx, setDetailTx] = useState<ReceivableRow | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const { data: financialAccounts = [] } = useFinancialAccounts()
   const { data: categories = [] } = useCategories()
@@ -157,7 +159,7 @@ export default function ReceivablesPage() {
     } finally { setIsExporting(false) }
   }
   const clearFilters = () => { setSearchDraft(''); updateUrl({ search: '', filters: {} }) }
-  const renderActions = (tx: ReceivableRow) => <>{tx.status === 'pending' && <Button variant="outline" size="sm" onClick={() => setSettleTx(tx)}>Receber</Button>}{tx.status === 'settled' && <Button variant="outline" size="sm" onClick={() => setReverseTx(tx)}>Estornar</Button>}</>
+  const renderActions = (tx: ReceivableRow) => <><Button variant="ghost" size="sm" onClick={() => setDetailTx(tx)}><Eye className="mr-1 size-3" />Ver detalhes</Button>{tx.status === 'pending' && <Button variant="outline" size="sm" onClick={() => setSettleTx(tx)}>Receber</Button>}{tx.status === 'settled' && <Button variant="outline" size="sm" onClick={() => setReverseTx(tx)}>Estornar</Button>}</>
 
   return <div className="mx-auto max-w-[1480px]">
     <div className="mb-8"><h1 className="font-serif text-3xl font-semibold tracking-tight">Contas a Receber</h1><p className="mt-1 text-sm text-slate-600">Acompanhe vencimentos, saldos em aberto e recebimentos do financeiro.</p></div>
@@ -171,6 +173,6 @@ export default function ReceivablesPage() {
       <div className="divide-y divide-slate-100 md:hidden">{receivables.map(t => { const StatusIcon = STATUS_ICONS[t.status] || Clock; return <article key={t.transaction_id} className={`space-y-3 p-4 ${t.overdue ? 'bg-red-50/30' : ''}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="truncate font-medium text-slate-950">{t.description}</h2><p className="mt-1 text-sm text-slate-600">{t.party_name || 'Pessoa nao informada'}</p></div><Badge className={STATUS_COLORS[t.status]}><StatusIcon className="mr-1 size-3" />{getStatusLabel(t.status, t.movement_type)}</Badge></div><div className="grid grid-cols-2 gap-3 text-sm"><div><p className="text-xs text-slate-500">Vencimento</p><p className={t.overdue ? 'font-medium text-red-700' : 'text-slate-700'}>{fmtDate(t.due_date)}</p></div><div><p className="text-xs text-slate-500">Em aberto</p><p className="font-mono font-medium text-slate-900">{fmt(t.open_amount)}</p></div></div><div className="flex items-center justify-between gap-3"><span className="text-xs text-slate-500">Original: {fmt(t.original_amount)}</span><div className="flex gap-2">{renderActions(t)}</div></div></article> })}</div>
     </TableShell>}
     {!isLoading && !isError && total > 0 && <PaginationControls page={urlState.page} pageSize={urlState.pageSize} total={total} onPageChange={page => updateUrl({ page }, false)} onPageSizeChange={pageSize => updateUrl({ pageSize: pageSize as CollectionPageSize })} />}
-    <SettleDialog tx={settleTx} open={!!settleTx} onClose={() => setSettleTx(null)} /><ReverseDialog tx={reverseTx} open={!!reverseTx} onClose={() => setReverseTx(null)} />
+     <SettleDialog tx={settleTx} open={!!settleTx} onClose={() => setSettleTx(null)} /><ReverseDialog tx={reverseTx} open={!!reverseTx} onClose={() => setReverseTx(null)} /><FinancialTitleDetailDrawer transactionId={detailTx?.transaction_id ?? null} title="Detalhes da conta a receber" settleLabel="Receber titulo" onClose={() => setDetailTx(null)} onSettle={() => { if (detailTx) setSettleTx(detailTx); setDetailTx(null) }} onReverse={() => { if (detailTx) setReverseTx(detailTx); setDetailTx(null) }} />
   </div>
 }

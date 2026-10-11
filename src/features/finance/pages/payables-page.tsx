@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Clock, CheckCircle, XCircle, AlertTriangle, Download, Filter, Loader2 } from 'lucide-react'
+import { Clock, CheckCircle, XCircle, AlertTriangle, Download, Eye, Filter, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,7 @@ import { normalizeCollectionPage, parseCollectionUrl, serializeCollectionUrl, ty
 import { PaginationControls } from '@/components/shared/pagination-controls'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import type { FinancialPayableList, FinancialTransactionStatus } from '@/types/database'
+import { FinancialTitleDetailDrawer } from '../financial-title-detail-drawer'
 
 type PayableRow = FinancialPayableList
 
@@ -195,6 +196,7 @@ export default function PayablesPage() {
   const debouncedSearch = useDebouncedValue(searchDraft, 300)
   const [settleTx, setSettleTx] = useState<PayableRow | null>(null)
   const [reverseTx, setReverseTx] = useState<PayableRow | null>(null)
+  const [detailTx, setDetailTx] = useState<PayableRow | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const { data: financialAccounts = [] } = useFinancialAccounts()
   const { data: categories = [] } = useCategories()
@@ -305,6 +307,7 @@ export default function PayablesPage() {
 
   const renderActions = (tx: PayableRow) => (
     <>
+      <Button variant="ghost" size="sm" onClick={() => setDetailTx(tx)}><Eye className="mr-1 size-3" />Ver detalhes</Button>
       {tx.status === 'pending' && <Button variant="outline" size="sm" onClick={() => setSettleTx(tx)}>Pagar</Button>}
       {tx.status === 'settled' && <Button variant="outline" size="sm" onClick={() => setReverseTx(tx)}>Estornar</Button>}
     </>
@@ -378,6 +381,14 @@ export default function PayablesPage() {
 
       <SettleDialog tx={settleTx} open={!!settleTx} onClose={() => setSettleTx(null)} />
       <ReverseDialog tx={reverseTx} open={!!reverseTx} onClose={() => setReverseTx(null)} />
+      <FinancialTitleDetailDrawer
+        transactionId={detailTx?.transaction_id ?? null}
+        title="Detalhes da conta a pagar"
+        settleLabel="Pagar titulo"
+        onClose={() => setDetailTx(null)}
+        onSettle={() => { if (detailTx) setSettleTx(detailTx); setDetailTx(null) }}
+        onReverse={() => { if (detailTx) setReverseTx(detailTx); setDetailTx(null) }}
+      />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 
-import type { FinancialPayableList } from '@/types/database'
+import type { FinancialPayableList, FinancialTransactionList } from '@/types/database'
 import PayablesPage from './payables-page'
 import {
   useCategories,
@@ -11,6 +11,7 @@ import {
   usePaymentMethods,
   useReverseTransaction,
   useSettleTransaction,
+  useTransactionDetail,
 } from '../queries/finance-queries'
 
 vi.mock('../queries/finance-queries', () => ({
@@ -21,6 +22,7 @@ vi.mock('../queries/finance-queries', () => ({
   usePaymentMethods: vi.fn(),
   useReverseTransaction: vi.fn(),
   useSettleTransaction: vi.fn(),
+  useTransactionDetail: vi.fn(),
 }))
 
 const payable: FinancialPayableList = {
@@ -32,6 +34,8 @@ const payable: FinancialPayableList = {
   competency_entry_id: null, settlement_entry_id: null,
 }
 
+const payableDetail = { id: 'tx-1', description: payable.description, transaction_date: payable.transaction_date, competence_date: payable.competence_date!, movement_type: payable.movement_type, amount: payable.original_amount, status: payable.status, category_id: 'category-1', origin_account_id: payable.origin_account_id, destination_account_id: null, party_id: 'party-1', cost_center_id: null, service_line_id: null, payment_method_id: null, due_date: payable.due_date, payment_date: null, notes: 'Conta mensal', review_required: false, version: 1, idempotency_key: null, created_at: '', created_by: null, updated_at: '', updated_by: null, category_name: payable.category_name, origin_account_name: 'Cora', destination_account_name: null, party_name: payable.party_name, cost_center_name: null, service_line_name: null, payment_method_name: null, journal_entry_count: 0, total_debit: '0', total_credit: '0' } as unknown as FinancialTransactionList
+
 function mockResources() {
   vi.mocked(useCategories).mockReturnValue({ data: [{ id: 'category-1', name: 'Servicos' }] } as unknown as ReturnType<typeof useCategories>)
   vi.mocked(useFinancialAccounts).mockReturnValue({ data: [{ id: 'account-1', name: 'Cora', active: true }] } as unknown as ReturnType<typeof useFinancialAccounts>)
@@ -39,6 +43,7 @@ function mockResources() {
   vi.mocked(usePaymentMethods).mockReturnValue({ data: [] } as unknown as ReturnType<typeof usePaymentMethods>)
   vi.mocked(useSettleTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useSettleTransaction>)
   vi.mocked(useReverseTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useReverseTransaction>)
+  vi.mocked(useTransactionDetail).mockReturnValue({ data: payableDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useTransactionDetail>)
 }
 
 function LocationProbe() {
@@ -82,6 +87,18 @@ describe('PayablesPage', () => {
     render(<MemoryRouter initialEntries={['/finance/payables?page=5']}><PayablesPage /><LocationProbe /></MemoryRouter>)
 
     await waitFor(() => expect(screen.getByTestId('location-search')).toHaveTextContent('?page=2'))
+  })
+
+  it('abre e fecha o detalhe pelo identificador da transacao', () => {
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Ver detalhes/ })[0])
+    expect(screen.getByText('Detalhes da conta a pagar')).toBeInTheDocument()
+    expect(screen.getByText('Conta mensal')).toBeInTheDocument()
+    expect(screen.getAllByText('Cora').some(element => element.tagName === 'DD')).toBe(true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar painel' }))
+    expect(screen.queryByText('Detalhes da conta a pagar')).not.toBeInTheDocument()
   })
 
 })

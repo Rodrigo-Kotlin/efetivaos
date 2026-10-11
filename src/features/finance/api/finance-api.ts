@@ -586,7 +586,7 @@ export async function fetchAllTransactions(
 export async function fetchTransactionById(id: string): Promise<FinancialTransactionList> {
   const { data, error } = await supabase
     .from('financial_transactions_list_v')
-    .select('*')
+    .select('id, description, transaction_date, competence_date, movement_type, amount, status, due_date, payment_date, party_name, origin_account_name, category_name, cost_center_name, service_line_name, payment_method_name, notes')
     .eq('id', id)
     .single()
   if (error) throw error
