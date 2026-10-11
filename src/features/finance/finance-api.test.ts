@@ -22,6 +22,8 @@ import {
   fetchParties,
   fetchTransactions,
   fetchAllTransactions,
+  fetchPayables,
+  fetchAllPayables,
   fetchJournalEntriesByTransaction,
   fetchJournalLinesByEntry,
   createTransaction,
@@ -414,6 +416,34 @@ describe('Transactions API', () => {
   it('cancelTransaction propaga erro do RPC', async () => {
     serviceMocks.rpcResults.push({ data: null, error: { message: 'Already cancelled' } })
     await expect(cancelTransaction('tx-2')).rejects.toThrow()
+  })
+})
+
+describe('Payables API', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.tableResults.length = 0
+  })
+
+  it('fetchPayables aplica busca, periodo, vencimento, status e filtros server-side', async () => {
+    serviceMocks.tableResults.push({ data: [], count: 75, error: null })
+    const result = await fetchPayables({ search: 'fornecedor', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'overdue', status: 'pending', personName: 'Fornecedor A', categoryName: 'Servicos', accountId: 'account-1', page: 2, pageSize: 50, sort: 'original_amount', direction: 'desc' })
+    expect(result).toMatchObject({ count: 75, page: 2, pageSize: 50, pageCount: 2 })
+    expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.range' && op.args[0] === 50 && op.args[1] === 99)).toBeTruthy()
+    expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.or')).toBeTruthy()
+    expect(serviceMocks.operations.filter(op => op.method === 'financial_payables_v.eq')).toHaveLength(5)
+    expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.gte')).toBeTruthy()
+    expect(serviceMocks.operations.find(op => op.method === 'financial_payables_v.lte')).toBeTruthy()
+  })
+
+  it('fetchAllPayables exporta 1500 registros em lotes de ate 1000', async () => {
+    serviceMocks.tableResults.push({ data: Array.from({ length: 1000 }, (_, index) => ({ transaction_id: `tx-${index}` })), count: 1500, error: null })
+    serviceMocks.tableResults.push({ data: Array.from({ length: 500 }, (_, index) => ({ transaction_id: `tx-${index + 1000}` })), count: 1500, error: null })
+    const progress: number[] = []
+    const result = await fetchAllPayables({}, loaded => progress.push(loaded))
+    expect(result).toHaveLength(1500)
+    expect(progress).toEqual([1000, 1500])
+    expect(serviceMocks.operations.filter(op => op.method === 'financial_payables_v.range').map(op => op.args)).toEqual([[0, 999], [1000, 1999]])
   })
 })
 

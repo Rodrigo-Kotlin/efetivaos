@@ -501,6 +501,17 @@ export type FinancialTransaction = FinanceAuditFields & {
 export type FinancialTransactionList = FinancialTransaction & {
   category_name: string | null; origin_account_name: string | null; destination_account_name: string | null; party_name: string | null; cost_center_name: string | null; service_line_name: string | null; payment_method_name: string | null; journal_entry_count: number; total_debit: string; total_credit: string
 }
+export type FinancialPayableList = {
+  transaction_id: string; description: string; movement_type: FinancialMovementType; status: FinancialTransactionStatus
+  original_amount: string; settled_amount: string; open_amount: string
+  transaction_date: string; competence_date: string | null; due_date: string | null
+  overdue: boolean; days_overdue: number | null
+  party_name: string | null; category_name: string | null
+  cost_center_id: string | null; cost_center_name: string | null
+  service_line_id: string | null; service_line_name: string | null
+  origin_account_id: string | null; payment_method_id: string | null
+  competency_entry_id: string | null; settlement_entry_id: string | null
+}
 
 export type FinancialJournalEntry = {
   id: string; transaction_id: string; entry_type: string; entry_date: string; competence_date: string; description: string; status: FinancialTransactionStatus; review_required: boolean; created_at: string; created_by: string | null; reversal_of_entry_id: string | null; reversal_reason: string | null
@@ -1297,6 +1308,10 @@ code?: string
       }
       financial_transactions_list_v: {
         Row: FinancialTransactionList
+        Relationships: []
+      }
+      financial_payables_v: {
+        Row: FinancialPayableList
         Relationships: []
       }
       financial_journal_entries_list_v: {

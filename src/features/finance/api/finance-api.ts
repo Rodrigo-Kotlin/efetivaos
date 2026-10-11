@@ -11,6 +11,7 @@ import type {
   PaymentMethod,
   FinancialParty,
   FinancialTransactionList,
+  FinancialPayableList,
   FinancialTransactionStatus,
   FinancialJournalEntryList,
   FinancialJournalLineList,
@@ -260,6 +261,99 @@ export async function updatePaymentMethod(id: string, payload: FinanceTables['fi
     .single()
   if (error) throw error
   return data
+}
+
+// ---------------------------------------------------------------------------
+// Payables (Contas a Pagar)
+// ---------------------------------------------------------------------------
+
+export const PAYABLE_LIST_SELECT = [
+  'transaction_id', 'description', 'movement_type', 'status', 'original_amount', 'settled_amount', 'open_amount',
+  'transaction_date', 'competence_date', 'due_date', 'overdue', 'days_overdue', 'party_name', 'category_name',
+  'cost_center_id', 'cost_center_name', 'service_line_id', 'service_line_name', 'origin_account_id',
+  'payment_method_id', 'competency_entry_id', 'settlement_entry_id',
+].join(',')
+
+export type PayableSort = 'due_date' | 'original_amount' | 'status'
+export type PayableListParams = {
+  page?: number
+  pageSize?: number
+  search?: string
+  dueDateFrom?: string
+  dueDateTo?: string
+  overdue?: 'overdue' | 'upcoming'
+  status?: FinancialTransactionStatus
+  personName?: string
+  categoryName?: string
+  accountId?: string
+  sort?: PayableSort
+  direction?: TransactionSortDirection
+}
+
+export type PaginatedPayables = {
+  rows: FinancialPayableList[]
+  count: number
+  page: number
+  pageSize: number
+  pageCount: number
+}
+
+export async function fetchPayables(params: PayableListParams = {}): Promise<PaginatedPayables> {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+  const sort = params.sort ?? 'due_date'
+  const direction = params.direction ?? 'asc'
+
+  let query = supabase
+    .from('financial_payables_v')
+    .select(PAYABLE_LIST_SELECT, { count: 'exact' })
+
+  if (params.search?.trim()) {
+    const search = `%${escapeIlike(params.search.trim())}%`
+    query = query.or(`description.ilike.${search},party_name.ilike.${search},category_name.ilike.${search}`)
+  }
+  if (params.dueDateFrom) query = query.gte('due_date', params.dueDateFrom)
+  if (params.dueDateTo) query = query.lte('due_date', params.dueDateTo)
+  if (params.overdue) query = query.eq('overdue', params.overdue === 'overdue')
+  if (params.status) query = query.eq('status', params.status)
+  if (params.personName) query = query.eq('party_name', params.personName)
+  if (params.categoryName) query = query.eq('category_name', params.categoryName)
+  if (params.accountId) query = query.eq('origin_account_id', params.accountId)
+
+  query = query.order(sort, { ascending: direction === 'asc', nullsFirst: false })
+    .order('transaction_id', { ascending: true })
+    .range(from, to)
+
+  const { data, error, count } = await query
+  if (error) throw error
+  const total = count ?? 0
+  return {
+    rows: (data ?? []) as unknown as FinancialPayableList[],
+    count: total,
+    page,
+    pageSize,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+  }
+}
+
+export async function fetchAllPayables(
+  params: PayableListParams = {},
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<FinancialPayableList[]> {
+  const pageSize = 1000
+  const firstPage = await fetchPayables({ ...params, page: 1, pageSize })
+  const rows = [...firstPage.rows]
+  onProgress?.(rows.length, firstPage.count)
+
+  for (let page = 2; page <= firstPage.pageCount; page++) {
+    const result = await fetchPayables({ ...params, page, pageSize })
+    rows.push(...result.rows)
+    onProgress?.(rows.length, firstPage.count)
+  }
+
+  return rows
 }
 
 // ---------------------------------------------------------------------------

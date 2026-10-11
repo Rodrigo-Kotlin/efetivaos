@@ -18,6 +18,14 @@ export function invalidateFinanceQueries(qc: ReturnType<typeof useQueryClient>) 
   void qc.invalidateQueries({ queryKey: ['finance', 'dashboard'] })
 }
 
+export function usePayables(params: api.PayableListParams = {}) {
+  return useQuery({
+    queryKey: ['finance', 'payables', 'list', params],
+    queryFn: () => api.fetchPayables(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Chart Accounts
 // ---------------------------------------------------------------------------
