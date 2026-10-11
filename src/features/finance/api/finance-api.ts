@@ -12,6 +12,7 @@ import type {
   FinancialParty,
   FinancialTransactionList,
   FinancialPayableList,
+  FinancialReceivableList,
   FinancialTransactionStatus,
   FinancialJournalEntryList,
   FinancialJournalLineList,
@@ -349,6 +350,99 @@ export async function fetchAllPayables(
 
   for (let page = 2; page <= firstPage.pageCount; page++) {
     const result = await fetchPayables({ ...params, page, pageSize })
+    rows.push(...result.rows)
+    onProgress?.(rows.length, firstPage.count)
+  }
+
+  return rows
+}
+
+// ---------------------------------------------------------------------------
+// Receivables (Contas a Receber)
+// ---------------------------------------------------------------------------
+
+export const RECEIVABLE_LIST_SELECT = [
+  'transaction_id', 'description', 'movement_type', 'status', 'original_amount', 'settled_amount', 'open_amount',
+  'transaction_date', 'competence_date', 'due_date', 'overdue', 'days_overdue', 'party_name', 'category_name',
+  'cost_center_id', 'cost_center_name', 'service_line_id', 'service_line_name', 'origin_account_id',
+  'payment_method_id', 'competency_entry_id', 'settlement_entry_id',
+].join(',')
+
+export type ReceivableSort = 'due_date' | 'original_amount' | 'status'
+export type ReceivableListParams = {
+  page?: number
+  pageSize?: number
+  search?: string
+  dueDateFrom?: string
+  dueDateTo?: string
+  overdue?: 'overdue' | 'upcoming'
+  status?: FinancialTransactionStatus
+  personName?: string
+  categoryName?: string
+  accountId?: string
+  sort?: ReceivableSort
+  direction?: TransactionSortDirection
+}
+
+export type PaginatedReceivables = {
+  rows: FinancialReceivableList[]
+  count: number
+  page: number
+  pageSize: number
+  pageCount: number
+}
+
+export async function fetchReceivables(params: ReceivableListParams = {}): Promise<PaginatedReceivables> {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+  const sort = params.sort ?? 'due_date'
+  const direction = params.direction ?? 'asc'
+
+  let query = supabase
+    .from('financial_receivables_v')
+    .select(RECEIVABLE_LIST_SELECT, { count: 'exact' })
+
+  if (params.search?.trim()) {
+    const search = `%${escapeIlike(params.search.trim())}%`
+    query = query.or(`description.ilike.${search},party_name.ilike.${search},category_name.ilike.${search}`)
+  }
+  if (params.dueDateFrom) query = query.gte('due_date', params.dueDateFrom)
+  if (params.dueDateTo) query = query.lte('due_date', params.dueDateTo)
+  if (params.overdue) query = query.eq('overdue', params.overdue === 'overdue')
+  if (params.status) query = query.eq('status', params.status)
+  if (params.personName) query = query.eq('party_name', params.personName)
+  if (params.categoryName) query = query.eq('category_name', params.categoryName)
+  if (params.accountId) query = query.eq('origin_account_id', params.accountId)
+
+  query = query.order(sort, { ascending: direction === 'asc', nullsFirst: false })
+    .order('transaction_id', { ascending: true })
+    .range(from, to)
+
+  const { data, error, count } = await query
+  if (error) throw error
+  const total = count ?? 0
+  return {
+    rows: (data ?? []) as unknown as FinancialReceivableList[],
+    count: total,
+    page,
+    pageSize,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+  }
+}
+
+export async function fetchAllReceivables(
+  params: ReceivableListParams = {},
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<FinancialReceivableList[]> {
+  const pageSize = 1000
+  const firstPage = await fetchReceivables({ ...params, page: 1, pageSize })
+  const rows = [...firstPage.rows]
+  onProgress?.(rows.length, firstPage.count)
+
+  for (let page = 2; page <= firstPage.pageCount; page++) {
+    const result = await fetchReceivables({ ...params, page, pageSize })
     rows.push(...result.rows)
     onProgress?.(rows.length, firstPage.count)
   }

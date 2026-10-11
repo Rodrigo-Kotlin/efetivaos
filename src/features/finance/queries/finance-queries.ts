@@ -26,6 +26,14 @@ export function usePayables(params: api.PayableListParams = {}) {
   })
 }
 
+export function useReceivables(params: api.ReceivableListParams = {}) {
+  return useQuery({
+    queryKey: ['finance', 'receivables', 'list', params],
+    queryFn: () => api.fetchReceivables(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Chart Accounts
 // ---------------------------------------------------------------------------
