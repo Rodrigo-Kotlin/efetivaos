@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback, useRef } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Plus, LayoutGrid, List, BarChart3, X } from 'lucide-react'
 import {
   DndContext,
@@ -20,14 +21,14 @@ import {
 import { useDroppable } from '@dnd-kit/core'
 
 import { Button } from '@/components/ui/button'
-import { useCrmPipelines, useCrmStages, useCrmOpportunities } from '../queries/pipeline-queries'
+import { useCrmPipelines, useCrmStages, useCrmOpportunities, useMoveCrmOpportunity } from '../queries/pipeline-queries'
 import { OpportunityCard } from './opportunity-card'
 import { OpportunityList } from './opportunity-list'
 import { OpportunityCreateDrawer } from './opportunity-create-drawer'
 import { OpportunityDetailDrawer } from './opportunity-detail-drawer'
 import { WonLostDialogs } from './won-lost-dialogs'
 import { CrmKpiBar } from './crm-kpi-bar'
-import { FilterPopover, DEFAULT_FILTERS, countActiveFilters, type CrmFilters } from './filter-popover'
+import { FilterPopover, countActiveFilters, type CrmFilters } from './filter-popover'
 import { IndicatorsDrawer } from './indicators-drawer'
 import type { CrmOpportunityBoardRowExtended, CrmBoardColumn, CrmStage } from '@/types/database'
 
@@ -42,6 +43,36 @@ const quickFilters = [
 ] as const
 
 type QuickFilter = typeof quickFilters[number]['key']
+
+const validQuickFilters = new Set<QuickFilter>(quickFilters.map(filter => filter.key))
+const validStatuses = new Set(['open', 'won', 'lost'])
+const validActivities = new Set(['overdue', 'today', 'upcoming', 'none'])
+
+function readCrmUrl(searchParams: URLSearchParams) {
+  const quick = searchParams.get('quickFilter')
+  const status = searchParams.get('status')
+  const activity = searchParams.get('activity')
+  return {
+    pipeline: searchParams.get('pipeline') ?? '',
+    quickFilter: quick && validQuickFilters.has(quick as QuickFilter) ? quick as QuickFilter : 'all',
+    filters: {
+      search: searchParams.get('search') ?? '',
+      stage_id: searchParams.get('stage') ?? '',
+      status: status && validStatuses.has(status) ? status : '',
+      activity: activity && validActivities.has(activity) ? activity : '',
+      value_min: searchParams.get('valueMin') ?? '',
+      value_max: searchParams.get('valueMax') ?? '',
+      date_from: searchParams.get('dateFrom') ?? '',
+      date_to: searchParams.get('dateTo') ?? '',
+    },
+  }
+}
+
+const CRM_URL_FIELDS: Record<string, string> = {
+  search: 'search', pipeline: 'pipeline', stage_id: 'stage', status: 'status',
+  activity: 'activity', value_min: 'valueMin', value_max: 'valueMax',
+  date_from: 'dateFrom', date_to: 'dateTo', quickFilter: 'quickFilter',
+}
 
 function KanbanColumn({
   stage,
@@ -97,14 +128,15 @@ const STORAGE_KEY_SORT = 'crm-list-sort'
 const STORAGE_KEY_SORT_DIR = 'crm-list-sort-dir'
 
 export default function CrmPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlState = useMemo(() => readCrmUrl(searchParams), [searchParams])
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem(STORAGE_KEY_VIEW) as ViewMode) || 'pipeline'
   )
   const [createOpen, setCreateOpen] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [wonLost, setWonLost] = useState<{ id: string; action: 'won' | 'lost' } | null>(null)
-  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all')
-  const [filters, setFilters] = useState<CrmFilters>(DEFAULT_FILTERS)
+  const [searchDraft, setSearchDraft] = useState(urlState.filters.search)
   const [sortKey, setSortKey] = useState<SortKey>(
     () => (localStorage.getItem(STORAGE_KEY_SORT) as SortKey) || 'updated_at'
   )
@@ -114,43 +146,63 @@ export default function CrmPage() {
   const [indicatorsOpen, setIndicatorsOpen] = useState(false)
   const dragDidMove = useRef(false)
 
-  const { data: pipelines, isLoading: lPipelines } = useCrmPipelines()
+  const updateUrl = useCallback((updates: Record<string, string | undefined>, replace = false) => {
+    const next = new URLSearchParams(searchParams)
+    for (const [key, value] of Object.entries(updates)) {
+      const urlKey = CRM_URL_FIELDS[key] ?? key
+      if (value) next.set(urlKey, value)
+      else next.delete(urlKey)
+    }
+    setSearchParams(next, { replace })
+  }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearchDraft(urlState.filters.search), 0)
+    return () => window.clearTimeout(timer)
+  }, [urlState.filters.search])
+
+  useEffect(() => {
+    if (searchDraft === urlState.filters.search) return
+    const timer = window.setTimeout(() => updateUrl({ search: searchDraft }, true), 300)
+    return () => window.clearTimeout(timer)
+  }, [searchDraft, urlState.filters.search, updateUrl])
+
+  const { data: pipelines, isLoading: lPipelines, isError: pipelinesError, refetch: refetchPipelines } = useCrmPipelines()
   const defaultPipeline = pipelines?.find(p => p.is_default) ?? pipelines?.[0]
-  const { data: stages, isLoading: lStages } = useCrmStages(defaultPipeline?.id)
-  const { data: opportunities, isLoading: lOpps } = useCrmOpportunities(defaultPipeline?.id)
+  const selectedPipelineId = pipelines?.some(p => p.id === urlState.pipeline)
+    ? urlState.pipeline
+    : defaultPipeline?.id
+  useEffect(() => {
+    if (selectedPipelineId && urlState.pipeline !== selectedPipelineId) {
+      updateUrl({ pipeline: selectedPipelineId }, true)
+    }
+  }, [selectedPipelineId, updateUrl, urlState.pipeline])
+  const { data: stages, isLoading: lStages, isError: stagesError, refetch: refetchStages } = useCrmStages(selectedPipelineId)
+  const serverFilters = useMemo(() => ({
+    search: urlState.filters.search,
+    stage_id: urlState.filters.stage_id || undefined,
+    status: (urlState.filters.status || 'open') as 'open' | 'won' | 'lost',
+    activity: (urlState.quickFilter !== 'all' ? urlState.quickFilter : urlState.filters.activity || undefined) as 'overdue' | 'today' | 'upcoming' | 'none' | undefined,
+    value_min: urlState.filters.value_min ? Number(urlState.filters.value_min) : undefined,
+    value_max: urlState.filters.value_max ? Number(urlState.filters.value_max) : undefined,
+    date_from: urlState.filters.date_from || undefined,
+    date_to: urlState.filters.date_to || undefined,
+  }), [urlState])
+  const { data: opportunities, isLoading: lOpps, isError: opportunitiesError, refetch: refetchOpportunities } = useCrmOpportunities(selectedPipelineId, serverFilters)
+  const moveMutation = useMoveCrmOpportunity()
 
   const [activeId, setActiveId] = useState<string | null>(null)
   const [items, setItems] = useState<Record<string, CrmOpportunityBoardRowExtended[]>>({})
+  const [itemsKey, setItemsKey] = useState<string | null>(null)
 
   const isLoading = lPipelines || lStages || lOpps
+  const isError = pipelinesError || stagesError || opportunitiesError
   const extOpps = (opportunities ?? []) as CrmOpportunityBoardRowExtended[]
+  const filteredOpps = extOpps
+  const displayFilters: CrmFilters = { ...urlState.filters, search: searchDraft }
+  const activeFilterCount = countActiveFilters(displayFilters) + (urlState.quickFilter !== 'all' ? 1 : 0)
 
-  // Apply filters
-  const filteredOpps = useMemo(() => {
-    return extOpps.filter(o => {
-      // Quick filters
-      if (quickFilter === 'overdue' && o.next_activity_status_semantic !== 'overdue') return false
-      if (quickFilter === 'today' && o.next_activity_status_semantic !== 'today') return false
-      if (quickFilter === 'none' && o.next_activity_status_semantic !== 'none') return false
-
-      // Advanced filters
-      if (filters.search) {
-        const q = filters.search.toLowerCase()
-        if (!o.title.toLowerCase().includes(q) && !o.client_name.toLowerCase().includes(q)) return false
-      }
-      if (filters.stage_id && o.stage_id !== filters.stage_id) return false
-      if (filters.status && o.status !== filters.status) return false
-      if (filters.activity && o.next_activity_status_semantic !== filters.activity) return false
-      if (filters.value_min && o.value < Number(filters.value_min)) return false
-      if (filters.value_max && o.value > Number(filters.value_max)) return false
-      if (filters.date_from && o.expected_close_date && o.expected_close_date < filters.date_from) return false
-      if (filters.date_to && o.expected_close_date && o.expected_close_date > filters.date_to) return false
-
-      return true
-    })
-  }, [extOpps, quickFilter, filters])
-
-  const activeFilterCount = countActiveFilters(filters) + (quickFilter !== 'all' ? 1 : 0)
+  const boardStateKey = JSON.stringify([selectedPipelineId, serverFilters])
 
   const handleSort = useCallback((key: SortKey) => {
     if (sortKey === key) {
@@ -162,12 +214,6 @@ export default function CrmPage() {
     localStorage.setItem(STORAGE_KEY_SORT, key)
   }, [sortKey])
 
-  // Persist sortDir
-  const handleSortDirChange = useCallback((dir: 'asc' | 'desc') => {
-    setSortDir(dir)
-    localStorage.setItem(STORAGE_KEY_SORT_DIR, dir)
-  }, [])
-
   const switchView = useCallback((mode: ViewMode) => {
     setViewMode(mode)
     localStorage.setItem(STORAGE_KEY_VIEW, mode)
@@ -175,23 +221,30 @@ export default function CrmPage() {
 
   // Clear quick filter when advanced activity filter is set, and vice versa
   const handleQuickFilter = useCallback((key: QuickFilter) => {
-    setQuickFilter(key)
-    if (key !== 'all') {
-      setFilters(f => ({ ...f, activity: '' }))
-    }
-  }, [])
+    updateUrl({ quickFilter: key === 'all' ? undefined : key, activity: key === 'all' ? urlState.filters.activity : undefined })
+  }, [updateUrl, urlState.filters.activity])
 
   const handleAdvancedFilter = useCallback((f: CrmFilters) => {
-    setFilters(f)
-    if (f.activity) {
-      setQuickFilter('all')
-    }
-  }, [])
+    const searchChanged = f.search !== searchDraft
+    const otherFiltersChanged = f.stage_id !== urlState.filters.stage_id || f.status !== urlState.filters.status || f.activity !== urlState.filters.activity || f.value_min !== urlState.filters.value_min || f.value_max !== urlState.filters.value_max || f.date_from !== urlState.filters.date_from || f.date_to !== urlState.filters.date_to
+    if (searchChanged) setSearchDraft(f.search)
+    if (searchChanged && !otherFiltersChanged) return
+    updateUrl({
+      stage_id: f.stage_id || undefined,
+      status: f.status || undefined,
+      activity: f.activity || undefined,
+      value_min: f.value_min || undefined,
+      value_max: f.value_max || undefined,
+      date_from: f.date_from || undefined,
+      date_to: f.date_to || undefined,
+      quickFilter: f.activity ? undefined : urlState.quickFilter === 'all' ? undefined : urlState.quickFilter,
+    })
+  }, [searchDraft, updateUrl, urlState.filters, urlState.quickFilter])
 
   const clearAllFilters = useCallback(() => {
-    setFilters(DEFAULT_FILTERS)
-    setQuickFilter('all')
-  }, [])
+    setSearchDraft('')
+    updateUrl({ search: undefined, stage_id: undefined, status: undefined, activity: undefined, value_min: undefined, value_max: undefined, date_from: undefined, date_to: undefined, quickFilter: undefined })
+  }, [updateUrl])
 
   // Kanban columns
   const columns: CrmBoardColumn[] = (stages ?? []).map(s => {
@@ -252,6 +305,7 @@ export default function CrmPage() {
       dest.push(movedCopy)
       newItems[activeStageId!] = source
       newItems[overStageId!] = dest
+      setItemsKey(boardStateKey)
       return newItems
     })
   }
@@ -269,11 +323,21 @@ export default function CrmPage() {
       if (oppIds.includes(activeId)) { activeStageId = stageId; break }
     }
     if (!activeStageId) return
-    if (!sortableItems[overId]) {
-      let overStageId: string | null = null
+    if (activeOpp?.status !== 'open') return
+    let overStageId = sortableItems[overId] ? overId : null
+    if (!overStageId) {
       for (const [stageId, oppIds] of Object.entries(sortableItems)) {
         if (oppIds.includes(overId)) { overStageId = stageId; break }
       }
+    }
+    if (overStageId && overStageId !== activeStageId && didMove) {
+      moveMutation.mutate(
+        { opportunityId: activeId, targetStageId: overStageId },
+        { onError: () => { setItems({ }); setItemsKey(null) } },
+      )
+      return
+    }
+    if (!sortableItems[overId]) {
       if (overStageId && activeStageId === overStageId) {
         const currentItems = items[activeStageId] ?? sortableItems[activeStageId]?.map(id =>
           extOpps.find(o => o.opportunity_id === id)
@@ -282,6 +346,8 @@ export default function CrmPage() {
         const newIdx = currentItems.findIndex(o => o.opportunity_id === overId)
         if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
           setItems(prev => ({ ...prev, [activeStageId!]: arrayMove(currentItems, oldIdx, newIdx) }))
+          setItemsKey(boardStateKey)
+          moveMutation.mutate({ opportunityId: activeId, targetStageId: activeStageId, targetPosition: newIdx }, { onError: () => { setItems({ }); setItemsKey(null) } })
         }
       }
     }
@@ -294,7 +360,7 @@ export default function CrmPage() {
   }, [])
 
   const displayColumns = columns.map(col => {
-    const override = items[col.stage_id]
+    const override = itemsKey === boardStateKey ? items[col.stage_id] : undefined
     if (override) return { ...col, opportunities: override, count: override.length, total_value: override.reduce((s, o) => s + o.value, 0) }
     return col
   })
@@ -334,7 +400,22 @@ export default function CrmPage() {
             <BarChart3 className="mr-1 size-3.5" />Indicadores
           </Button>
 
-          <FilterPopover filters={filters} onChange={handleAdvancedFilter} stages={stages ?? []} />
+          {pipelines && pipelines.length > 1 && (
+            <label className="sr-only" htmlFor="crm-pipeline-select">Pipeline</label>
+          )}
+          {pipelines && pipelines.length > 1 && (
+            <select
+              id="crm-pipeline-select"
+              aria-label="Pipeline"
+              className="h-9 max-w-[180px] rounded-md border border-slate-200 bg-white px-2 text-sm"
+              value={selectedPipelineId ?? ''}
+              onChange={e => updateUrl({ pipeline: e.target.value, stage_id: undefined })}
+            >
+              {pipelines.map(pipeline => <option key={pipeline.id} value={pipeline.id}>{pipeline.name}</option>)}
+            </select>
+          )}
+
+          <FilterPopover filters={displayFilters} onChange={handleAdvancedFilter} stages={stages ?? []} />
 
           <Button onClick={() => setCreateOpen(true)} size="sm" className="sm:size-default">
             <Plus className="mr-1 size-3.5 sm:mr-2 sm:size-4" /><span className="hidden sm:inline">Oportunidade</span><span className="sm:hidden">Nova</span>
@@ -351,7 +432,7 @@ export default function CrmPage() {
             key={f.key}
             onClick={() => handleQuickFilter(f.key)}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors sm:px-3 ${
-              quickFilter === f.key
+              urlState.quickFilter === f.key
                 ? 'bg-slate-800 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
@@ -376,6 +457,13 @@ export default function CrmPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-[400px] w-[300px] shrink-0 animate-pulse rounded-xl bg-slate-100" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="flex flex-1 items-center justify-center px-6">
+          <div className="text-center">
+            <p className="text-sm font-medium text-slate-700">Não foi possível carregar o pipeline.</p>
+            <Button variant="outline" className="mt-3" size="sm" onClick={() => { void refetchPipelines(); void refetchStages(); void refetchOpportunities() }}>Tentar novamente</Button>
+          </div>
         </div>
       ) : viewMode === 'pipeline' ? (
         // Pipeline / Kanban
@@ -403,7 +491,8 @@ export default function CrmPage() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-x-auto px-4 pb-4 sm:px-6">
+          <>
+          <div className="hidden flex-1 overflow-x-auto px-4 pb-4 sm:px-6 md:block">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
               <div className="flex gap-4">
                 {displayColumns.map(col => {
@@ -417,6 +506,16 @@ export default function CrmPage() {
               </DragOverlay>
             </DndContext>
           </div>
+          <div className="flex-1 md:hidden">
+            <OpportunityList
+              opportunities={filteredOpps}
+              onRowClick={opp => setDetailId(opp.opportunity_id)}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onSort={handleSort}
+            />
+          </div>
+          </>
         )
       ) : (
         // List view
@@ -429,10 +528,10 @@ export default function CrmPage() {
         />
       )}
 
-      <OpportunityCreateDrawer open={createOpen} onClose={() => setCreateOpen(false)} defaultPipelineId={defaultPipeline?.id} stages={stages ?? []} />
+      <OpportunityCreateDrawer open={createOpen} onClose={() => setCreateOpen(false)} defaultPipelineId={selectedPipelineId} stages={stages ?? []} />
       <OpportunityDetailDrawer opportunityId={detailId} onClose={() => setDetailId(null)} onWon={id => setWonLost({ id, action: 'won' })} onLost={id => setWonLost({ id, action: 'lost' })} stages={stages ?? []} />
       <WonLostDialogs wonLost={wonLost} onClose={() => setWonLost(null)} />
-      <IndicatorsDrawer open={indicatorsOpen} onClose={() => setIndicatorsOpen(false)} pipelineId={defaultPipeline?.id} />
+      <IndicatorsDrawer open={indicatorsOpen} onClose={() => setIndicatorsOpen(false)} pipelineId={selectedPipelineId} />
     </div>
   )
 }

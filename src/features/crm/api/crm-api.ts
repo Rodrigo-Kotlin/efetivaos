@@ -7,6 +7,8 @@ import type {
   CrmActivity,
   CrmOpportunityEvent,
   CrmLossReason,
+  ActivityNextStatus,
+  OpportunityStatus,
 } from '@/types/database'
 
 // ---------------------------------------------------------------------------
@@ -56,15 +58,43 @@ export async function fetchCrmStages(pipelineId: string): Promise<CrmStage[]> {
 
 export async function fetchCrmOpportunities(
   pipelineId: string,
+  filters: CrmOpportunityFilters = {},
 ): Promise<CrmOpportunityBoardRowExtended[]> {
-  const { data, error } = await (supabase
+  let query = (supabase
     .from('crm_opportunities_board_v' as any)
-    .select('*') as any)
+    .select('opportunity_id, client_id, client_name, client_legal_name, client_tax_id, title, description, pipeline_id, pipeline_name, stage_id, stage_name, stage_position, stage_probability, value, probability, expected_close_date, responsible_user_id, responsible_name, status, sort_order, won_at, lost_at, lost_reason, lost_reason_id, lost_reason_detail, loss_reason_name, created_at, updated_at, created_by, stage_entered_at, stage_age_days, next_activity_id, next_activity_type, next_activity_title, next_activity_due_at, next_activity_responsible_user_id, next_activity_status_semantic') as any)
     .eq('pipeline_id', pipelineId)
-    .eq('status', 'open')
+    .eq('status', filters.status ?? 'open')
     .order('sort_order')
+  if (filters.search?.trim()) {
+    const search = escapePostgrestSearch(filters.search.trim())
+    query = query.or(`title.ilike.%${search}%,client_name.ilike.%${search}%`)
+  }
+  if (filters.stage_id) query = query.eq('stage_id', filters.stage_id)
+  if (filters.activity) query = query.eq('next_activity_status_semantic', filters.activity)
+  if (filters.value_min !== undefined) query = query.gte('value', filters.value_min)
+  if (filters.value_max !== undefined) query = query.lte('value', filters.value_max)
+  if (filters.date_from) query = query.gte('expected_close_date', filters.date_from)
+  if (filters.date_to) query = query.lte('expected_close_date', filters.date_to)
+
+  const { data, error } = await query
   if (error) throw new Error(crmError(error, 'carregar oportunidades'))
   return data as CrmOpportunityBoardRowExtended[]
+}
+
+export type CrmOpportunityFilters = {
+  search?: string
+  stage_id?: string
+  status?: OpportunityStatus
+  activity?: ActivityNextStatus
+  value_min?: number
+  value_max?: number
+  date_from?: string
+  date_to?: string
+}
+
+function escapePostgrestSearch(value: string): string {
+  return value.replace(/[\\(),]/g, char => `\\${char}`)
 }
 
 // ---------------------------------------------------------------------------

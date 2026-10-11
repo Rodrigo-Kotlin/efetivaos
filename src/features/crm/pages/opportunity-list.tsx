@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { AlertTriangle, Clock, Circle } from 'lucide-react'
+import { AlertTriangle, Clock } from 'lucide-react'
 import type { CrmOpportunityBoardRowExtended } from '@/types/database'
 
 const fmt = (v: number) =>
@@ -111,6 +111,9 @@ export function OpportunityList({ opportunities, onRowClick, sortKey, sortDir, o
               key={opp.opportunity_id}
               className="cursor-pointer border-b border-slate-100 hover:bg-slate-50 transition-colors"
               onClick={() => onRowClick(opp)}
+              onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onRowClick(opp) } }}
+              tabIndex={0}
+              aria-label={`Abrir oportunidade ${opp.title}`}
             >
               <td className="py-2.5 pr-2">
                 <p className="font-medium text-slate-800 line-clamp-1">{opp.title}</p>
@@ -146,6 +149,10 @@ export function OpportunityList({ opportunities, onRowClick, sortKey, sortDir, o
             key={opp.opportunity_id}
             className="cursor-pointer rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
             onClick={() => onRowClick(opp)}
+            onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onRowClick(opp) } }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Abrir oportunidade ${opp.title}`}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">

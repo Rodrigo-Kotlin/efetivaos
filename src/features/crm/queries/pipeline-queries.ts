@@ -3,6 +3,7 @@ import {
   fetchCrmPipelines,
   fetchCrmStages,
   fetchCrmOpportunities,
+  type CrmOpportunityFilters,
   fetchCrmOpportunity,
   fetchCrmOpportunityExtended,
   fetchCrmPipelineAnalytics,
@@ -96,10 +97,10 @@ export function useCrmStages(pipelineId: string | undefined) {
   })
 }
 
-export function useCrmOpportunities(pipelineId: string | undefined) {
+export function useCrmOpportunities(pipelineId: string | undefined, filters: CrmOpportunityFilters = {}) {
   return useQuery<CrmOpportunityBoardRowExtended[]>({
-    queryKey: crmPipelineKeys.opportunities(pipelineId ?? ''),
-    queryFn: () => fetchCrmOpportunities(pipelineId!),
+    queryKey: [...crmPipelineKeys.opportunities(pipelineId ?? ''), filters],
+    queryFn: () => fetchCrmOpportunities(pipelineId!, filters),
     enabled: !!pipelineId,
     staleTime: 30_000,
   })
@@ -260,7 +261,7 @@ export function useUpdateCrmActivity() {
   return useMutation({
     mutationFn: ({ activityId, ...input }: { activityId: string } & Parameters<typeof updateCrmActivity>[1]) =>
       updateCrmActivity(activityId, input),
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data, _variables) => {
       qc.invalidateQueries({ queryKey: crmPipelineKeys.all, predicate: (q) =>
         q.queryKey.includes('activities') || q.queryKey.includes('opportunities')
       })

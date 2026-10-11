@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Filter, X } from 'lucide-react'
+import { Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CrmStage } from '@/types/database'
@@ -61,21 +61,21 @@ export function FilterPopover({ filters, onChange, stages }: Props) {
 
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs text-slate-500">Busca</label>
-                <Input placeholder="Título ou cliente..." value={filters.search} onChange={e => onChange({ ...filters, search: e.target.value })} />
+                <label className="mb-1 block text-xs text-slate-500" htmlFor="crm-search">Busca</label>
+                <Input id="crm-search" placeholder="Título ou cliente..." value={filters.search} onChange={e => onChange({ ...filters, search: e.target.value })} />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs text-slate-500">Etapa</label>
-                <select className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm" value={filters.stage_id} onChange={e => onChange({ ...filters, stage_id: e.target.value })}>
+                <label className="mb-1 block text-xs text-slate-500" htmlFor="crm-stage-filter">Etapa</label>
+                <select id="crm-stage-filter" className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm" value={filters.stage_id} onChange={e => onChange({ ...filters, stage_id: e.target.value })}>
                   <option value="">Todas</option>
                   {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs text-slate-500">Status</label>
-                <select className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm" value={filters.status} onChange={e => onChange({ ...filters, status: e.target.value })}>
+                <label className="mb-1 block text-xs text-slate-500" htmlFor="crm-status-filter">Status</label>
+                <select id="crm-status-filter" className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm" value={filters.status} onChange={e => onChange({ ...filters, status: e.target.value })}>
                   <option value="">Todas</option>
                   <option value="open">Abertas</option>
                   <option value="won">Ganhas</option>
@@ -84,8 +84,8 @@ export function FilterPopover({ filters, onChange, stages }: Props) {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs text-slate-500">Atividade</label>
-                <select className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm" value={filters.activity} onChange={e => onChange({ ...filters, activity: e.target.value })}>
+                <label className="mb-1 block text-xs text-slate-500" htmlFor="crm-activity-filter">Atividade</label>
+                <select id="crm-activity-filter" className="h-9 w-full rounded-md border border-slate-200 bg-white px-2 text-sm" value={filters.activity} onChange={e => onChange({ ...filters, activity: e.target.value })}>
                   <option value="">Todas</option>
                   <option value="overdue">Atrasada</option>
                   <option value="today">Hoje</option>

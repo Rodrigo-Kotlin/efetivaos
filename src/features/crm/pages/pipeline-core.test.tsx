@@ -5,9 +5,12 @@ vi.mock('@/lib/supabase', () => ({
     from: vi.fn(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      or: vi.fn().mockReturnThis(),
+      gte: vi.fn().mockReturnThis(),
+      lte: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
-      then: vi.fn().mockResolvedValue({ data: [], error: null }),
+      then: vi.fn((resolve: (value: { data: never[]; error: null }) => void) => resolve({ data: [], error: null })),
     })),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
   },
@@ -140,6 +143,36 @@ describe('CRM Pipeline Core + Activities First', () => {
   })
 
   describe('API functions', () => {
+    it('fetches board data with explicit columns and server-side filters', async () => {
+      const { supabase } = await import('@/lib/supabase')
+      const { fetchCrmOpportunities } = await import('../api/crm-api')
+      vi.mocked(supabase.from).mockClear()
+
+      await fetchCrmOpportunities('p1', {
+        search: 'cliente', stage_id: 's1', status: 'open', activity: 'overdue',
+        value_min: 100, value_max: 500, date_from: '2026-01-01', date_to: '2026-12-31',
+      })
+
+      const chain = vi.mocked(supabase.from).mock.results[0]?.value
+      expect(chain.select).toHaveBeenCalledWith(expect.stringContaining('opportunity_id'))
+      expect(chain.eq).toHaveBeenCalledWith('pipeline_id', 'p1')
+      expect(chain.or).toHaveBeenCalledWith('title.ilike.%cliente%,client_name.ilike.%cliente%')
+      expect(chain.gte).toHaveBeenCalledWith('value', 100)
+      expect(chain.lte).toHaveBeenCalledWith('value', 500)
+    })
+
+    it('does not truncate rows returned by the board query', async () => {
+      const { supabase } = await import('@/lib/supabase')
+      const { fetchCrmOpportunities } = await import('../api/crm-api')
+      vi.mocked(supabase.from).mockClear()
+      const rows = Array.from({ length: 1001 }, (_, index) => ({ opportunity_id: String(index) }))
+      const request = fetchCrmOpportunities('p1')
+      const chain = vi.mocked(supabase.from).mock.results[0]?.value
+      chain.then.mockImplementationOnce((resolve: (value: { data: typeof rows; error: null }) => void) => resolve({ data: rows, error: null }))
+
+      await expect(request).resolves.toHaveLength(1001)
+    })
+
     it('createCrmActivity is a function', async () => {
       const { createCrmActivity } = await import('../api/crm-api')
       expect(typeof createCrmActivity).toBe('function')
@@ -589,7 +622,6 @@ describe('CRM Pipeline Core + Activities First', () => {
     })
 
     it('filter returns empty shows different message', () => {
-      const opps = [{ id: '1' }]
       const filteredOpps: unknown[] = []
       const activeFilterCount = 2
       const message = filteredOpps.length === 0 && activeFilterCount > 0
@@ -636,7 +668,7 @@ describe('CRM Pipeline Core + Activities First', () => {
     })
 
     it('click works without drag', () => {
-      let dragDidMove = false
+      const dragDidMove = false
       function handleCardClick() {
         if (dragDidMove) return 'blocked'
         return 'opened'
