@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Eye, Plus, Search, XCircle, CheckCircle, Clock, ArrowUpRight, ArrowDownRight, Upload, Download, MoreVertical, Pencil, Ban, RotateCcw } from 'lucide-react'
+import { Eye, Plus, XCircle, CheckCircle, Clock, ArrowUpRight, ArrowDownRight, Upload, Download, Pencil, Ban, RotateCcw, Filter, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -10,6 +10,12 @@ import { Drawer } from '@/components/ui/drawer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { ImportWizard } from './import-wizard'
 import { exportData, TRANSACTION_COLUMNS } from '../lib/export-utils'
+import { fetchAllTransactions, type TransactionListParams, type TransactionSort, type TransactionSortDirection } from '../api/finance-api'
+import { CollectionActions, CollectionFilters, CollectionResultsCount, CollectionSearch, CollectionSort, CollectionToolbar, ClearFiltersButton, FilterChip } from '@/components/shared/collection-toolbar'
+import { ErrorState, EmptyState, TableShell, TableSkeleton, selectClassName } from '@/components/shared/operational-ui'
+import { parseCollectionUrl, serializeCollectionUrl, type CollectionPageSize, type CollectionUrlOptions, type CollectionUrlState } from '@/components/shared/collection-url-state'
+import { PaginationControls } from '@/components/shared/pagination-controls'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import {
   useTransactions,
   useTransactionDetail,
@@ -27,8 +33,8 @@ import {
   useServiceLines,
   usePaymentMethods,
 } from '../queries/finance-queries'
-import { transactionBaseSchema, transactionSchema, type TransactionBaseFormValues, MOVEMENT_TYPE_LABELS, MOVEMENT_TYPE_GROUPS, getStatusLabel } from '../schemas/finance-schemas'
-import type { FinancialTransactionList, FinancialJournalEntryList, FinancialJournalLineList } from '../types/finance-types'
+import { transactionSchema, type TransactionBaseFormValues, MOVEMENT_TYPE_LABELS, MOVEMENT_TYPE_GROUPS, getStatusLabel } from '../schemas/finance-schemas'
+import type { FinancialTransactionList, FinancialMovementType, FinancialTransactionStatus } from '../types/finance-types'
 
 const STATUS_ICONS: Record<string, typeof Clock> = { pending: Clock, settled: CheckCircle, cancelled: XCircle }
 const STATUS_COLORS: Record<string, string> = {
@@ -46,6 +52,31 @@ function formatCurrency(v: number | string) {
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR')
+}
+
+const TRANSACTION_FILTER_KEYS = ['dateFrom', 'dateTo', 'type', 'status', 'accountId', 'categoryId', 'personId', 'costCenterId', 'serviceLineId'] as const
+const TRANSACTION_URL_OPTIONS: CollectionUrlOptions = {
+  defaultPageSize: 25,
+  defaultSort: 'transaction_date',
+  defaultDirection: 'desc',
+  sortKeys: ['transaction_date', 'amount', 'status'],
+  filterKeys: TRANSACTION_FILTER_KEYS,
+}
+
+function filterValue(state: CollectionUrlState, key: string): string {
+  return state.filters[key]?.[0] ?? ''
+}
+
+function isValidDateFilter(value: string): boolean {
+  return value === '' || /^\d{4}-\d{2}-\d{2}$/.test(value)
+}
+
+function isValidMovementType(value: string): value is FinancialMovementType {
+  return value === '' || Object.prototype.hasOwnProperty.call(MOVEMENT_TYPE_LABELS, value)
+}
+
+function isValidStatus(value: string): value is FinancialTransactionStatus {
+  return value === '' || value === 'pending' || value === 'settled' || value === 'cancelled'
 }
 
 // ---------------------------------------------------------------------------
@@ -791,34 +822,129 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
 // ---------------------------------------------------------------------------
 
 export default function TransactionsPage() {
-  const { data: transactions = [], isLoading } = useTransactions()
-  const [search, setSearch] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const urlState = useMemo(() => parseCollectionUrl(searchParams, TRANSACTION_URL_OPTIONS), [searchParams])
+  const [searchDraft, setSearchDraft] = useState(urlState.search)
+  const debouncedSearch = useDebouncedValue(searchDraft, 300)
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [createType, setCreateType] = useState<string | null>(null)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [editTx, setEditTx] = useState<FinancialTransactionList | null>(null)
   const [settleTx, setSettleTx] = useState<FinancialTransactionList | null>(null)
   const [cancelTx, setCancelTx] = useState<FinancialTransactionList | null>(null)
   const [reverseTx, setReverseTx] = useState<FinancialTransactionList | null>(null)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [isExporting, setIsExporting] = useState(false)
+  const { data: categories = [] } = useCategories()
+  const { data: financialAccounts = [] } = useFinancialAccounts()
+  const { data: parties = [] } = useParties()
+  const { data: costCenters = [] } = useCostCenters()
+  const { data: serviceLines = [] } = useServiceLines()
+
+  const queryParams = useMemo<TransactionListParams>(() => {
+    const dateFrom = filterValue(urlState, 'dateFrom')
+    const dateTo = filterValue(urlState, 'dateTo')
+    const type = filterValue(urlState, 'type')
+    const status = filterValue(urlState, 'status')
+    return {
+      page: urlState.page,
+      pageSize: urlState.pageSize,
+      search: urlState.search,
+      dateFrom: isValidDateFilter(dateFrom) ? dateFrom || undefined : undefined,
+      dateTo: isValidDateFilter(dateTo) ? dateTo || undefined : undefined,
+      type: isValidMovementType(type) && type ? type : undefined,
+      status: isValidStatus(status) && status ? status : undefined,
+      accountId: filterValue(urlState, 'accountId') || undefined,
+      categoryId: filterValue(urlState, 'categoryId') || undefined,
+      personId: filterValue(urlState, 'personId') || undefined,
+      costCenterId: filterValue(urlState, 'costCenterId') || undefined,
+      serviceLineId: filterValue(urlState, 'serviceLineId') || undefined,
+      sort: urlState.sort as TransactionSort,
+      direction: urlState.direction as TransactionSortDirection,
+    }
+  }, [urlState])
+  const { data, isLoading, isError, refetch } = useTransactions(queryParams)
+  const transactions = data?.rows ?? []
+  const total = data?.count ?? 0
+
+  const updateUrl = useCallback((patch: Partial<CollectionUrlState>, resetPage = true) => {
+    const current = parseCollectionUrl(searchParams, TRANSACTION_URL_OPTIONS)
+    const next: CollectionUrlState = {
+      ...current,
+      ...patch,
+      page: resetPage ? 1 : patch.page ?? current.page,
+      filters: patch.filters ? { ...current.filters, ...patch.filters } : current.filters,
+    }
+    const nextParams = serializeCollectionUrl(next, TRANSACTION_URL_OPTIONS)
+    const createParam = searchParams.get('create')
+    if (createParam) nextParams.set('create', createParam)
+    setSearchParams(nextParams, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  const setFilter = useCallback((key: string, value: string) => {
+    updateUrl({ filters: { [key]: value ? [value] : [] } })
+  }, [updateUrl])
 
   useEffect(() => {
     const createType = searchParams.get('create')
     if (createType) {
+      setCreateType(createType)
       setCreateOpen(true)
-      setSearchParams({}, { replace: true })
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.delete('create')
+      setSearchParams(nextParams, { replace: true })
     }
   }, [searchParams, setSearchParams])
 
-  const filtered = useMemo(() => {
-    if (!search) return transactions
-    const q = search.toLowerCase()
-    return transactions.filter(t =>
-      t.description.toLowerCase().includes(q) ||
-      (t.category_name || '').toLowerCase().includes(q) ||
-      (t.party_name || '').toLowerCase().includes(q)
-    )
-  }, [transactions, search])
+  useEffect(() => {
+    if (debouncedSearch !== urlState.search) updateUrl({ search: debouncedSearch })
+  }, [debouncedSearch, updateUrl, urlState.search])
+
+  useEffect(() => {
+    if (searchDraft !== urlState.search && debouncedSearch === urlState.search) setSearchDraft(urlState.search)
+  }, [debouncedSearch, searchDraft, urlState.search])
+
+  const activeFilters = useMemo(() => Object.entries(urlState.filters).flatMap(([key, values]) => values.map(value => ({ key, value }))), [urlState.filters])
+  const hasActiveFilters = Boolean(urlState.search || activeFilters.length)
+  const sortValue = `${urlState.sort}:${urlState.direction}`
+  const selectOptions = {
+    types: Object.entries(MOVEMENT_TYPE_LABELS),
+    statuses: [['pending', 'Pendente'], ['settled', 'Liquidado'], ['cancelled', 'Cancelado']],
+  }
+  const accountLabel = (id: string) => financialAccounts.find(item => item.id === id)?.name ?? id
+  const categoryLabel = (id: string) => categories.find(item => item.id === id)?.name ?? id
+  const partyLabel = (id: string) => parties.find(item => item.id === id)?.name ?? id
+  const costCenterLabel = (id: string) => costCenters.find(item => item.id === id)?.name ?? id
+  const serviceLineLabel = (id: string) => serviceLines.find(item => item.id === id)?.name ?? id
+  const filterLabels: Record<string, (value: string) => string> = {
+    dateFrom: value => `A partir de ${value}`,
+    dateTo: value => `Ate ${value}`,
+    type: value => `Tipo: ${MOVEMENT_TYPE_LABELS[value as FinancialMovementType] ?? value}`,
+    status: value => `Status: ${selectOptions.statuses.find(([key]) => key === value)?.[1] ?? value}`,
+    accountId: value => `Conta: ${accountLabel(value)}`,
+    categoryId: value => `Categoria: ${categoryLabel(value)}`,
+    personId: value => `Pessoa: ${partyLabel(value)}`,
+    costCenterId: value => `Centro: ${costCenterLabel(value)}`,
+    serviceLineId: value => `Linha: ${serviceLineLabel(value)}`,
+  }
+
+  const handleExport = async (format: 'csv' | 'xlsx') => {
+    setIsExporting(true)
+    try {
+      const rows = await fetchAllTransactions(queryParams)
+      exportData(rows as unknown as Record<string, unknown>[], TRANSACTION_COLUMNS, 'lancamentos', format)
+      toast.success(`${rows.length} lancamentos exportados.`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Nao foi possivel exportar os lancamentos.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const clearFilters = () => {
+    setSearchDraft('')
+    updateUrl({ search: '', filters: {} })
+  }
 
   return (
     <div className="mx-auto max-w-[1480px]">
@@ -827,35 +953,51 @@ export default function TransactionsPage() {
           <h1 className="font-serif text-3xl font-semibold tracking-tight">Lancamentos Financeiros</h1>
           <p className="mt-1 text-sm text-slate-600">Registre receitas, despesas, transferencias e demais movimentacoes financeiras.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => exportData(filtered as any, TRANSACTION_COLUMNS, 'lancamentos', 'csv')}>
-            <Download className="mr-1 size-3.5" />CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => exportData(filtered as any, TRANSACTION_COLUMNS, 'lancamentos', 'xlsx')}>
-            <Download className="mr-1 size-3.5" />XLSX
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-            <Upload className="mr-1 size-3.5" />Importar
-          </Button>
-          <Button onClick={() => setCreateOpen(true)}><Plus className="mr-2 size-4" />Novo lancamento</Button>
-        </div>
+        <Button onClick={() => { setCreateType(null); setCreateOpen(true) }}><Plus className="mr-2 size-4" />Novo lancamento</Button>
       </div>
 
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-          <Input className="pl-10" placeholder="Buscar lancamento..." value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-      </div>
+      <CollectionToolbar
+        className="mb-6"
+        actions={
+          <>
+            <CollectionResultsCount page={urlState.page} pageSize={urlState.pageSize} total={total} label="lancamentos" />
+            <CollectionActions>
+              <CollectionSort
+                value={sortValue}
+                onChange={value => {
+                  const [sort, direction] = value.split(':') as [TransactionSort, TransactionSortDirection]
+                  updateUrl({ sort, direction })
+                }}
+                options={[{ value: 'transaction_date:desc', label: 'Mais recentes' }, { value: 'transaction_date:asc', label: 'Mais antigos' }, { value: 'amount:desc', label: 'Maior valor' }, { value: 'amount:asc', label: 'Menor valor' }]}
+              />
+              <Button variant="outline" size="sm" onClick={() => handleExport('csv')} disabled={isExporting}><Download className="mr-1 size-3.5" />CSV</Button>
+              <Button variant="outline" size="sm" onClick={() => handleExport('xlsx')} disabled={isExporting}><Download className="mr-1 size-3.5" />XLSX</Button>
+              <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}><Upload className="mr-1 size-3.5" />Importar</Button>
+            </CollectionActions>
+          </>
+        }
+      >
+        <CollectionSearch value={searchDraft} onChange={setSearchDraft} placeholder="Buscar descricao, categoria ou pessoa..." />
+        <CollectionFilters>
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">De<Input type="date" value={filterValue(urlState, 'dateFrom')} onChange={event => setFilter('dateFrom', event.target.value)} className="h-10" /></label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Ate<Input type="date" value={filterValue(urlState, 'dateTo')} onChange={event => setFilter('dateTo', event.target.value)} className="h-10" /></label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Tipo<select className={selectClassName} value={filterValue(urlState, 'type')} onChange={event => setFilter('type', event.target.value)}><option value="">Todos</option>{selectOptions.types.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Status<select className={selectClassName} value={filterValue(urlState, 'status')} onChange={event => setFilter('status', event.target.value)}>{[['', 'Todos'], ...selectOptions.statuses].map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+          <details className="relative">
+            <summary className="flex h-11 cursor-pointer list-none items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"><Filter className="size-4" />Mais filtros</summary>
+            <div className="absolute left-0 z-20 mt-2 grid min-w-[280px] gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xl sm:grid-cols-2">
+              {[[`accountId`, 'Conta', financialAccounts], [`categoryId`, 'Categoria', categories], [`personId`, 'Pessoa', parties], [`costCenterId`, 'Centro de custo', costCenters], [`serviceLineId`, 'Linha de servico', serviceLines]].map(([key, label, options]) => <label key={key as string} className="flex flex-col gap-1 text-xs font-medium text-slate-600">{label as string}<select className={selectClassName} value={filterValue(urlState, key as string)} onChange={event => setFilter(key as string, event.target.value)}><option value="">Todos</option>{(options as Array<{ id: string; name: string }>).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}</select></label>)}
+            </div>
+          </details>
+          <ClearFiltersButton onClick={clearFilters} disabled={!hasActiveFilters} />
+        </CollectionFilters>
+        {(hasActiveFilters || isExporting) && <div className="flex basis-full flex-wrap items-center gap-2">{urlState.search && <FilterChip label={`Busca: ${urlState.search}`} onRemove={() => { setSearchDraft(''); updateUrl({ search: '' }) }} />}{activeFilters.map(({ key, value }) => <FilterChip key={`${key}-${value}`} label={filterLabels[key]?.(value) ?? `${key}: ${value}`} onRemove={() => setFilter(key, '')} />)}{isExporting && <span className="text-xs text-slate-500"><Loader2 className="mr-1 inline size-3.5 animate-spin" />Exportando todos os resultados...</span>}</div>}
+      </CollectionToolbar>
 
-      {isLoading ? (
-        <div className="space-y-3">{[1, 2, 3, 4, 5].map(i => <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
-          <p className="text-sm text-slate-500">Nenhum lancamento encontrado.</p>
-        </div>
+      {isLoading ? <TableSkeleton columns={7} /> : isError ? <ErrorState onRetry={() => void refetch()} /> : transactions.length === 0 ? (
+        <EmptyState title={hasActiveFilters ? 'Nenhum lancamento encontrado com estes filtros' : 'Nenhum lancamento encontrado'} description={hasActiveFilters ? 'Ajuste os filtros para tentar novamente.' : 'Crie o primeiro lancamento financeiro para comecar.'} action={<Button onClick={() => { setCreateType(null); setCreateOpen(true) }}><Plus className="mr-2 size-4" />Novo lancamento</Button>} />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <TableShell>
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -869,7 +1011,7 @@ export default function TransactionsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(t => {
+              {transactions.map(t => {
                 const isRevenue = ['RECEITA', 'APORTE', 'EMPRESTIMO_RECEBIDO'].includes(t.movement_type)
                 const StatusIcon = STATUS_ICONS[t.status] || Clock
                 return (
@@ -891,10 +1033,12 @@ export default function TransactionsPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </TableShell>
       )}
 
-      <TransactionCreateDrawer open={createOpen} onClose={() => setCreateOpen(false)} defaultType={searchParams.get('create')} />
+      {!isLoading && !isError && total > 0 && <PaginationControls page={urlState.page} pageSize={urlState.pageSize} total={total} onPageChange={page => updateUrl({ page }, false)} onPageSizeChange={pageSize => updateUrl({ pageSize: pageSize as CollectionPageSize })} />}
+
+      <TransactionCreateDrawer open={createOpen} onClose={() => setCreateOpen(false)} defaultType={createType} />
       <TransactionDetailDrawer
         transactionId={detailId}
         onClose={() => setDetailId(null)}

@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import * as api from '../api/finance-api'
-import type { ChartAccountFormValues, CostCenterFormValues, ServiceLineFormValues, CategoryFormValues, FinancialAccountFormValues, TransactionBaseFormValues, TransactionFormValues } from '../schemas/finance-schemas'
+import type { ChartAccountFormValues, CostCenterFormValues, ServiceLineFormValues, CategoryFormValues, FinancialAccountFormValues, TransactionBaseFormValues } from '../schemas/finance-schemas'
 
 // ---------------------------------------------------------------------------
 // Centralized finance query invalidation (COR-8, COR-19)
@@ -216,10 +216,11 @@ const TX_KEYS = {
   journal: (txId: string) => [...TX_KEYS.all, 'journal', txId] as const,
 }
 
-export function useTransactions() {
+export function useTransactions(params: api.TransactionListParams = {}) {
   return useQuery({
-    queryKey: TX_KEYS.list(),
-    queryFn: api.fetchTransactions,
+    queryKey: [...TX_KEYS.list(), params],
+    queryFn: () => api.fetchTransactions(params),
+    placeholderData: keepPreviousData,
   })
 }
 

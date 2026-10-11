@@ -11,6 +11,7 @@ import type {
   PaymentMethod,
   FinancialParty,
   FinancialTransactionList,
+  FinancialTransactionStatus,
   FinancialJournalEntryList,
   FinancialJournalLineList,
   FinancialMovementType,
@@ -265,14 +266,105 @@ export async function updatePaymentMethod(id: string, payload: FinanceTables['fi
 // Transactions (Motor de Lançamentos)
 // ---------------------------------------------------------------------------
 
-export async function fetchTransactions(): Promise<FinancialTransactionList[]> {
-  const { data, error } = await supabase
+export const TRANSACTION_LIST_SELECT = [
+  'id', 'description', 'transaction_date', 'competence_date', 'movement_type', 'amount', 'status',
+  'category_id', 'category_name', 'origin_account_id', 'origin_account_name', 'destination_account_id',
+  'destination_account_name', 'party_id', 'party_name', 'cost_center_id', 'cost_center_name',
+  'service_line_id', 'service_line_name', 'payment_method_id', 'payment_method_name', 'due_date',
+  'payment_date', 'notes', 'review_required', 'version', 'created_at', 'created_by', 'updated_at',
+  'updated_by', 'journal_entry_count', 'total_debit', 'total_credit',
+].join(',')
+
+export type TransactionSort = 'transaction_date' | 'amount' | 'status'
+export type TransactionSortDirection = 'asc' | 'desc'
+
+export type TransactionListParams = {
+  page?: number
+  pageSize?: number
+  search?: string
+  dateFrom?: string
+  dateTo?: string
+  type?: FinancialMovementType
+  status?: FinancialTransactionStatus
+  accountId?: string
+  categoryId?: string
+  personId?: string
+  costCenterId?: string
+  serviceLineId?: string
+  sort?: TransactionSort
+  direction?: TransactionSortDirection
+}
+
+export type PaginatedTransactions = {
+  rows: FinancialTransactionList[]
+  count: number
+  page: number
+  pageSize: number
+  pageCount: number
+}
+
+function escapeIlike(value: string): string {
+  return value.replace(/[\\%_,]/g, character => `\\${character}`)
+}
+
+export async function fetchTransactions(params: TransactionListParams = {}): Promise<PaginatedTransactions> {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+  const sort = params.sort ?? 'transaction_date'
+  const direction = params.direction ?? 'desc'
+
+  let query = supabase
     .from('financial_transactions_list_v')
-    .select('*')
-    .order('transaction_date', { ascending: false })
-    .order('created_at', { ascending: false })
+    .select(TRANSACTION_LIST_SELECT, { count: 'exact' })
+
+  if (params.search?.trim()) {
+    const search = `%${escapeIlike(params.search.trim())}%`
+    query = query.or(`description.ilike.${search},category_name.ilike.${search},party_name.ilike.${search}`)
+  }
+  if (params.dateFrom) query = query.gte('transaction_date', params.dateFrom)
+  if (params.dateTo) query = query.lte('transaction_date', params.dateTo)
+  if (params.type) query = query.eq('movement_type', params.type)
+  if (params.status) query = query.eq('status', params.status)
+  if (params.accountId) query = query.or(`origin_account_id.eq.${params.accountId},destination_account_id.eq.${params.accountId}`)
+  if (params.categoryId) query = query.eq('category_id', params.categoryId)
+  if (params.personId) query = query.eq('party_id', params.personId)
+  if (params.costCenterId) query = query.eq('cost_center_id', params.costCenterId)
+  if (params.serviceLineId) query = query.eq('service_line_id', params.serviceLineId)
+
+  query = query.order(sort, { ascending: direction === 'asc' })
+  if (sort !== 'transaction_date') query = query.order('transaction_date', { ascending: false })
+  query = query.order('created_at', { ascending: false }).range(from, to)
+
+  const { data, error, count } = await query
   if (error) throw error
-  return (data ?? []) as FinancialTransactionList[]
+  const total = count ?? 0
+  return {
+    rows: (data ?? []) as unknown as FinancialTransactionList[],
+    count: total,
+    page,
+    pageSize,
+    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+  }
+}
+
+export async function fetchAllTransactions(
+  params: TransactionListParams = {},
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<FinancialTransactionList[]> {
+  const pageSize = 1000
+  const firstPage = await fetchTransactions({ ...params, page: 1, pageSize })
+  const rows = [...firstPage.rows]
+  onProgress?.(rows.length, firstPage.count)
+
+  for (let page = 2; page <= firstPage.pageCount; page++) {
+    const result = await fetchTransactions({ ...params, page, pageSize })
+    rows.push(...result.rows)
+    onProgress?.(rows.length, firstPage.count)
+  }
+
+  return rows
 }
 
 export async function fetchTransactionById(id: string): Promise<FinancialTransactionList> {

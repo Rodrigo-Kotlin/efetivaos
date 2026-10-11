@@ -21,6 +21,7 @@ import {
   updatePaymentMethod,
   fetchParties,
   fetchTransactions,
+  fetchAllTransactions,
   fetchJournalEntriesByTransaction,
   fetchJournalLinesByEntry,
   createTransaction,
@@ -31,7 +32,7 @@ import {
 
 const serviceMocks = vi.hoisted(() => ({
   operations: [] as Array<{ method: string; args: unknown[] }>,
-  tableResults: [] as Array<{ data?: unknown; error: null | { code?: string; message?: string } }>,
+  tableResults: [] as Array<{ data?: unknown; count?: number; error: null | { code?: string; message?: string } }>,
   rpcResults: [] as Array<{ data?: unknown; error: null | { code?: string; message?: string } }>,
 }))
 
@@ -43,7 +44,11 @@ vi.mock('@/lib/supabase', () => ({
         insert(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.insert`, args }); return chain },
         update(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.update`, args }); return chain },
         eq(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.eq`, args }); return chain },
+        or(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.or`, args }); return chain },
+        gte(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.gte`, args }); return chain },
+        lte(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.lte`, args }); return chain },
         order(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.order`, args }); return chain },
+        range(...args: unknown[]) { serviceMocks.operations.push({ method: `${table}.range`, args }); return chain },
         single() { return Promise.resolve(serviceMocks.tableResults.shift()) },
         then(resolve: (value: unknown) => void, reject: (reason: unknown) => void) {
           return Promise.resolve(serviceMocks.tableResults.shift()).then(resolve, reject)
@@ -308,15 +313,36 @@ describe('Transactions API', () => {
 
   it('fetchTransactions consulta a view', async () => {
     const row = { id: 'tx-1', description: 'Teste', transaction_date: '2026-01-01', competence_date: '2026-01-01', movement_type: 'RECEITA', amount: '100', status: 'pending', category_id: null, origin_account_id: null, destination_account_id: null, party_id: null, cost_center_id: null, service_line_id: null, payment_method_id: null, due_date: null, payment_date: null, notes: null, review_required: false, version: 1, created_at: '', created_by: null, updated_at: '', updated_by: null, category_name: null, origin_account_name: null, destination_account_name: null, party_name: null, cost_center_name: null, service_line_name: null, payment_method_name: null, journal_entry_count: 1, total_debit: '100', total_credit: '100' }
-    serviceMocks.tableResults.push({ data: [row], error: null })
+    serviceMocks.tableResults.push({ data: [row], count: 1, error: null })
     const result = await fetchTransactions()
-    expect(result).toEqual([row])
+    expect(result.rows).toEqual([row])
+    expect(result.count).toBe(1)
     expect(serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.select')).toBeTruthy()
   })
 
   it('fetchTransactions propaga erro do banco', async () => {
     serviceMocks.tableResults.push({ data: null, error: { message: 'db error' } })
     await expect(fetchTransactions()).rejects.toThrow()
+  })
+
+  it('fetchTransactions aplica filtros, ordenacao e pagina', async () => {
+    serviceMocks.tableResults.push({ data: [], count: 75, error: null })
+    const result = await fetchTransactions({ search: 'caixa', dateFrom: '2026-01-01', dateTo: '2026-01-31', type: 'RECEITA', status: 'pending', accountId: 'account-1', page: 2, pageSize: 50, sort: 'amount', direction: 'asc' })
+    expect(result).toMatchObject({ count: 75, page: 2, pageSize: 50, pageCount: 2 })
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.range' && op.args[0] === 50 && op.args[1] === 99)).toBeTruthy()
+    expect(serviceMocks.operations.filter(op => op.method === 'financial_transactions_list_v.or')).toHaveLength(2)
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.gte')).toBeTruthy()
+    expect(serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.lte')).toBeTruthy()
+  })
+
+  it('fetchAllTransactions busca exportacao em lotes de ate 1000', async () => {
+    serviceMocks.tableResults.push({ data: Array.from({ length: 1000 }, (_, index) => ({ id: `tx-${index}` })), count: 1500, error: null })
+    serviceMocks.tableResults.push({ data: Array.from({ length: 500 }, (_, index) => ({ id: `tx-${index + 1000}` })), count: 1500, error: null })
+    const progress: number[] = []
+    const result = await fetchAllTransactions({}, loaded => progress.push(loaded))
+    expect(result).toHaveLength(1500)
+    expect(progress).toEqual([1000, 1500])
+    expect(serviceMocks.operations.filter(op => op.method === 'financial_transactions_list_v.range').map(op => op.args)).toEqual([[0, 999], [1000, 1999]])
   })
 
   it('fetchJournalEntriesByTransaction consulta entries por transaction_id', async () => {
