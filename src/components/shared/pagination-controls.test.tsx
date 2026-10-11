@@ -9,9 +9,9 @@ describe('PaginationControls', () => {
     const onPageChange = vi.fn()
     render(<PaginationControls page={1} pageSize={25} total={91} onPageChange={onPageChange} onPageSizeChange={vi.fn()} />)
 
-    expect(screen.getByText('1–25 de 91')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
-    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    expect(screen.getByText('1–25 de 91 resultados')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Página anterior' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Próxima página' }))
     expect(onPageChange).toHaveBeenCalledWith(2)
   })
 
@@ -27,8 +27,19 @@ describe('PaginationControls', () => {
   it('desabilita proxima na ultima pagina e mostra reticencias quando necessario', () => {
     render(<PaginationControls page={4} pageSize={25} total={250} onPageChange={vi.fn()} onPageSizeChange={vi.fn()} />)
 
-    expect(screen.getByText('76–100 de 250')).toBeInTheDocument()
+    expect(screen.getByText('76–100 de 250 resultados')).toBeInTheDocument()
     expect(screen.getByText('…')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Próxima' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Próxima página' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Página 1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Página 10' })).toBeInTheDocument()
+  })
+
+  it('desabilita anterior na primeira e próxima na última página', () => {
+    render(<PaginationControls page={10} pageSize={25} total={250} onPageChange={vi.fn()} onPageSizeChange={vi.fn()} />)
+
+    expect(screen.getByRole('button', { name: 'Página anterior' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Próxima página' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Página 1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Página 10' })).toHaveAttribute('aria-current', 'page')
   })
 })
