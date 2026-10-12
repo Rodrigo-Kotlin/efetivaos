@@ -414,6 +414,163 @@ export function resolveImportCategory(
   return target ? { id: target.id, name: target.name } : null
 }
 
+// ---------------------------------------------------------------------------
+// Pending review
+//
+// The reconciliation step must surface EVERY pending line, not only the manual
+// category classifications. These helpers classify each pending motive with
+// mechanical, data-driven rules so nothing is hidden from the operator and no
+// business rule is invented: a rule is derived from the cadastros that actually
+// exist and from the import rules already shipped in this module.
+// ---------------------------------------------------------------------------
+
+export type PendingMotiveKind =
+  | 'REVIEWABLE'
+  | 'SOURCE_DATA_REQUIRED'
+  | 'ACCOUNTING_DECISION_REQUIRED'
+  | 'SYSTEM_RESOLUTION_GAP'
+
+export type PendingMotive = {
+  kind: PendingMotiveKind
+  /** Business group used to organise the review list. */
+  group: string
+  /** Motive text taken from the reference issue. */
+  reason: string
+  /** What the operator can do, or why the line stays pending. */
+  orientation: string
+}
+
+export type PendingRowSummary = {
+  row_number: number
+  description: string
+  movement_type: string
+  amount: number | null
+  source_category: string
+  is_manual_classification: boolean
+  motives: PendingMotive[]
+}
+
+export type PendingReviewGroup = {
+  group: string
+  rows: PendingRowSummary[]
+}
+
+export type PendingReview = {
+  total: number
+  groups: PendingReviewGroup[]
+}
+
+const PENDING_GROUP_BY_FIELD: Record<string, string> = {
+  category: 'Categoria',
+  origin_account: 'Conta',
+  destination_account: 'Conta',
+  party: 'Pessoa',
+  cost_center: 'Centro de custo',
+  service_line: 'Linha de serviço',
+  payment_method: 'Forma de pagamento',
+  loan_terms: 'Empréstimos',
+}
+
+function pendingGroup(row: ValidatedRow, field: string): string {
+  const movement = String(row.mapped.movement_type ?? '')
+  const category = normalizeKey(String(row.mapped.category ?? row.raw.Categoria ?? ''))
+  if (field === 'loan_terms' || movement.startsWith('EMPRESTIMO')) return 'Empréstimos'
+  if (movement === 'TRANSFERENCIA' || category === 'transferencia entre contas') return 'Transferências'
+  if (category === 'pagamentos financeiros e parcelamentos') return 'Parcelamentos/pagamentos'
+  return PENDING_GROUP_BY_FIELD[field] ?? 'Outros'
+}
+
+function classifyPendingMotive(
+  row: ValidatedRow,
+  issue: ReferenceIssue,
+  references: ReferenceLists,
+): PendingMotive {
+  const group = pendingGroup(row, issue.field)
+
+  if (issue.field === 'loan_terms') {
+    return {
+      kind: 'SOURCE_DATA_REQUIRED',
+      group,
+      reason: issue.value,
+      orientation: 'A origem não traz a discriminação entre principal e juros; complemente os dados ou trate o lançamento pelo fluxo de empréstimos.',
+    }
+  }
+
+  if (issue.field === 'category') {
+    const description = normalizeKey(String(row.mapped.description ?? ''))
+    const center = normalizeKey(String(row.mapped.cost_center ?? ''))
+    const serviceLine = normalizeKey(String(row.mapped.service_line ?? ''))
+    const sourceCategory = normalizeKey(String(row.mapped.category ?? ''))
+    const matchedRule = IMPORT_CATEGORY_RULES.find(rule => (
+      normalizeKey(rule.sourceCategory) === sourceCategory && rule.matches(description, center, serviceLine)
+    ))
+    if (matchedRule && !(references.categories ?? []).some(category => normalizeKey(category.name) === normalizeKey(matchedRule.targetCategory))) {
+      return {
+        kind: 'SYSTEM_RESOLUTION_GAP',
+        group,
+        reason: issue.value,
+        orientation: `A regra de importação aponta para "${matchedRule.targetCategory}", ausente no cadastro. Revise a regra ou cadastre a categoria (nada é criado automaticamente).`,
+      }
+    }
+    return {
+      kind: 'ACCOUNTING_DECISION_REQUIRED',
+      group,
+      reason: issue.value,
+      orientation: 'Sem regra automática de classificação para esta categoria; requer decisão contábil sobre a categoria destino (nenhuma categoria é criada automaticamente).',
+    }
+  }
+
+  const options = (references[issue.list] as ReferenceOption[] | undefined) ?? []
+  const hasOptions = options.some(option => option.active !== false)
+  return {
+    kind: hasOptions ? 'REVIEWABLE' : 'SYSTEM_RESOLUTION_GAP',
+    group,
+    reason: issue.value,
+    orientation: hasOptions
+      ? 'Há cadastros existentes; vincule um valor existente na revisão.'
+      : 'Não há cadastro ativo correspondente; inclua o cadastro ou trate a importação.',
+  }
+}
+
+/**
+ * Builds the review model with every line that still has a mandatory pending
+ * reference, grouped by motive. Rows whose only pending reference is the manual
+ * category classification are flagged so the UI can keep them in the dedicated
+ * manual section without losing the global pending count.
+ */
+export function buildPendingReview(rows: ValidatedRow[], references: ReferenceLists): PendingReview {
+  const summaries: PendingRowSummary[] = []
+  for (const row of rows) {
+    const required = row.referenceIssues.filter(issue => issue.required)
+    if (required.length === 0) continue
+    summaries.push({
+      row_number: row.row_number,
+      description: String(row.mapped.description ?? ''),
+      movement_type: String(row.mapped.movement_type ?? ''),
+      amount: typeof row.mapped.amount === 'number' ? row.mapped.amount : null,
+      source_category: String(row.mapped.category ?? ''),
+      is_manual_classification: isManualClassificationRow(row),
+      motives: required.map(issue => classifyPendingMotive(row, issue, references)),
+    })
+  }
+
+  const order: string[] = []
+  const grouped = new Map<string, PendingRowSummary[]>()
+  for (const summary of summaries) {
+    const group = summary.motives[0]?.group ?? 'Outros'
+    if (!grouped.has(group)) {
+      grouped.set(group, [])
+      order.push(group)
+    }
+    grouped.get(group)!.push(summary)
+  }
+
+  return {
+    total: summaries.length,
+    groups: order.map(group => ({ group, rows: grouped.get(group)! })),
+  }
+}
+
 export function isImportSentinel(value: unknown): boolean {
   const key = normalizeKey(String(value ?? ''))
   return key === '' || ['nao informado', 'nao informada', 'nenhum', 'nenhuma'].includes(key)

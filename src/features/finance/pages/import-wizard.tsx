@@ -21,6 +21,8 @@ import {
   manualClassificationGroupKey,
   manualResolutionKey,
   isCompatibleManualCategory,
+  buildPendingReview,
+  type PendingMotiveKind,
 } from '../lib/import-utils'
 import {
   fetchCategories,
@@ -44,6 +46,20 @@ type Step = 'upload' | 'mapping' | 'reconciliation' | 'preview'
 type Props = {
   open: boolean
   onClose: () => void
+}
+
+const PENDING_KIND_LABELS: Record<PendingMotiveKind, string> = {
+  REVIEWABLE: 'Revisável',
+  SOURCE_DATA_REQUIRED: 'Dado de origem',
+  ACCOUNTING_DECISION_REQUIRED: 'Decisão contábil',
+  SYSTEM_RESOLUTION_GAP: 'Lacuna do sistema',
+}
+
+const PENDING_KIND_CLASSES: Record<PendingMotiveKind, string> = {
+  REVIEWABLE: 'bg-sky-100 text-sky-800',
+  SOURCE_DATA_REQUIRED: 'bg-violet-100 text-violet-800',
+  ACCOUNTING_DECISION_REQUIRED: 'bg-amber-100 text-amber-800',
+  SYSTEM_RESOLUTION_GAP: 'bg-red-100 text-red-800',
 }
 
 // ---------------------------------------------------------------------------
@@ -357,9 +373,13 @@ export function ImportWizard({ open, onClose }: Props) {
 
         {/* STEP: Reconciliation */}
         {step === 'reconciliation' && preview && references && (() => {
-          const categoryKey = (value: unknown) => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
-          const manualIssueKeys = new Set(manualRows.map(row => `categories:${categoryKey(row.mapped.category ?? row.raw.Categoria)}`))
-          const otherIssues = preview.referenceIssues.filter(issue => issue.field !== 'category' || !manualIssueKeys.has(issue.key))
+          const informationalIssues = preview.referenceIssues.filter(issue => !issue.required)
+          const pendingReview = buildPendingReview(preview.rows, references)
+          const additionalPendingGroups = pendingReview.groups
+            .map(group => ({ group: group.group, rows: group.rows.filter(row => !row.is_manual_classification) }))
+            .filter(group => group.rows.length > 0)
+          const additionalPendingTotal = additionalPendingGroups.reduce((sum, group) => sum + group.rows.length, 0)
+          const manualPendingTotal = pendingReview.total - additionalPendingTotal
 
           return (
             <div className="space-y-4">
@@ -367,6 +387,10 @@ export function ImportWizard({ open, onClose }: Props) {
                 <p className="text-sm font-medium text-slate-800">Revisar classificações</p>
                 <p className="mt-1 text-xs leading-5 text-slate-500">
                   Selecione somente categorias existentes e ativas. A categoria original permanece preservada e nenhuma pessoa ou categoria nova será criada neste gate.
+                </p>
+                <p className="mt-2 text-xs text-slate-600">
+                  Pendências: <strong>{pendingReview.total}</strong>
+                  {' '}({manualPendingTotal} em revisão manual · {additionalPendingTotal} fora da revisão manual)
                 </p>
               </div>
 
@@ -448,14 +472,45 @@ export function ImportWizard({ open, onClose }: Props) {
                 })}
               </div>
 
-              {otherIssues.length > 0 && (
+              {additionalPendingGroups.length > 0 && (
+                <div className="space-y-3 rounded-lg border border-slate-200 p-3">
+                  <div>
+                    <p className="text-sm font-medium text-slate-800">Pendências fora da revisão manual ({additionalPendingTotal})</p>
+                    <p className="text-xs text-slate-500">Linhas pendentes que não possuem classificação manual disponível nesta etapa. Nenhuma delas será importada até ser resolvida na origem.</p>
+                  </div>
+                  {additionalPendingGroups.map(group => (
+                    <div key={group.group} className="space-y-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{group.group} · {group.rows.length}</p>
+                      {group.rows.map(row => (
+                        <div key={row.row_number} className="rounded border border-slate-200 bg-white p-2 text-xs">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-medium text-slate-800">Linha {row.row_number}: {row.description}</span>
+                            <span className="text-slate-500">{row.movement_type}{row.amount != null ? ` · R$ ${row.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}</span>
+                          </div>
+                          {row.motives.map((motive, index) => (
+                            <div key={index} className="mt-1 flex flex-wrap items-start justify-between gap-2 border-t border-slate-100 pt-1">
+                              <span className="text-slate-600">Motivo: {motive.reason}</span>
+                              <Badge className={`${PENDING_KIND_CLASSES[motive.kind]} text-[10px]`}>{PENDING_KIND_LABELS[motive.kind]}</Badge>
+                            </div>
+                          ))}
+                          {row.motives.map((motive, index) => (
+                            <p key={`orientation-${index}`} className="mt-1 text-[11px] text-slate-500">{motive.orientation}</p>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {informationalIssues.length > 0 && (
                 <div className="space-y-2 rounded-lg border border-slate-200 p-3">
-                  <p className="text-sm font-medium text-slate-800">Referências fora deste gate</p>
-                  <p className="text-xs text-slate-500">Vales, parcelamentos, empréstimos e transferências permanecem pendentes ou inválidos. Nenhuma decisão manual está disponível para essas linhas.</p>
-                  {otherIssues.map(issue => (
+                  <p className="text-sm font-medium text-slate-800">Referências informativas</p>
+                  <p className="text-xs text-slate-500">Campos opcionais não encontrados. Não bloqueiam a importação.</p>
+                  {informationalIssues.map(issue => (
                     <div key={issue.key} className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2 text-xs">
                       <span>{issue.label}: {issue.value}</span>
-                      <Badge className={issue.required ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}>{issue.required ? 'Pendente preservada' : 'Informativa'}</Badge>
+                      <Badge className="bg-slate-100 text-slate-700">Informativa</Badge>
                     </div>
                   ))}
                 </div>

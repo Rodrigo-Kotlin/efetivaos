@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseFile, guessColumnMapping, generatePreview, TEMPLATE_COLUMNS, TEMPLATE_MAPPING } from './import-utils'
+import { parseFile, guessColumnMapping, generatePreview, buildPendingReview, TEMPLATE_COLUMNS, TEMPLATE_MAPPING, type ColumnMapping, type ReferenceLists } from './import-utils'
 
 describe('import-utils', () => {
   describe('TEMPLATE_COLUMNS', () => {
@@ -126,6 +126,85 @@ describe('import-utils', () => {
       expect(preview.total).toBe(3)
       expect(preview.valid).toBe(2)
       expect(preview.invalid).toBe(1)
+    })
+  })
+
+  describe('buildPendingReview', () => {
+    const REFS: ReferenceLists = {
+      categories: [{ id: 'cat-material', name: 'Material', active: true, movement_type: 'DESPESA' }],
+      accounts: [{ id: 'acc-x', name: 'Banco X', active: true }],
+      parties: [],
+      costCenters: [],
+      serviceLines: [],
+      paymentMethods: [],
+    }
+
+    const headers = ['Data', 'Descrição', 'Valor', 'Tipo', 'Categoria', 'Conta Origem', 'Conta Destino', 'Pessoa']
+    const mapping: ColumnMapping = {
+      transaction_date: 'Data',
+      description: 'Descrição',
+      amount: 'Valor',
+      movement_type: 'Tipo',
+      category: 'Categoria',
+      origin_account: 'Conta Origem',
+      destination_account: 'Conta Destino',
+      party: 'Pessoa',
+    }
+
+    const rows = [
+      { Data: '01/08/2026', Descrição: 'Receita comum', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Material', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: '', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Material', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Audiometrias', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Exames e serviços técnicos', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Salário Luciana', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Pessoal e adiantamentos', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Vale Janderson', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Pessoal e adiantamentos', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Boleto Criffer Dezembro', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Pagamentos financeiros e parcelamentos', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Empréstimo (S)', Valor: '100,00', Tipo: 'Despesa', Categoria: 'Saída financeira - empréstimo', 'Conta Origem': '', 'Conta Destino': 'Banco X', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Transferência interna', Valor: '100,00', Tipo: 'Transferência', Categoria: '', 'Conta Origem': 'Banco X', 'Conta Destino': 'Banco Inexistente', Pessoa: '' },
+      { Data: '01/08/2026', Descrição: 'Ajuste avulso', Valor: '100,00', Tipo: 'Ajuste', Categoria: '', 'Conta Origem': '', 'Conta Destino': '', Pessoa: 'Pessoa Nova' },
+    ]
+
+    const preview = generatePreview(headers, rows, mapping, 'pending-review', REFS)
+    const review = buildPendingReview(preview.rows, REFS)
+
+    it('keeps the Total = Valid + Pending + Invalid invariant', () => {
+      expect(preview.total).toBe(9)
+      expect(preview.pending).toBe(6)
+      expect(preview.invalid).toBe(1)
+      expect(preview.valid).toBe(2)
+      expect(preview.valid + preview.pending + preview.invalid).toBe(preview.total)
+    })
+
+    it('lists every pending line exactly once, including the ones outside manual review', () => {
+      expect(review.total).toBe(6)
+      const numbers = review.groups.flatMap(group => group.rows.map(row => row.row_number))
+      expect(numbers).toHaveLength(6)
+      expect(new Set(numbers).size).toBe(6)
+      const manual = review.groups.flatMap(group => group.rows).filter(row => row.is_manual_classification)
+      expect(manual.map(row => row.row_number)).toEqual([3])
+    })
+
+    it('groups the pending lines by motive without hardcoding counts', () => {
+      const byGroup = Object.fromEntries(review.groups.map(group => [group.group, group.rows.length]))
+      expect(byGroup.Categoria).toBe(3)
+      expect(byGroup['Parcelamentos/pagamentos']).toBe(1)
+      expect(byGroup['Empréstimos']).toBe(1)
+      expect(byGroup['Transferências']).toBe(1)
+    })
+
+    it('classifies each motive with mechanical rules', () => {
+      const motive = (rowNumber: number) => review.groups.flatMap(group => group.rows).find(row => row.row_number === rowNumber)!.motives[0]
+      expect(motive(4).kind).toBe('SYSTEM_RESOLUTION_GAP')
+      expect(motive(5).kind).toBe('ACCOUNTING_DECISION_REQUIRED')
+      expect(motive(6).kind).toBe('ACCOUNTING_DECISION_REQUIRED')
+      expect(motive(7).kind).toBe('SOURCE_DATA_REQUIRED')
+      expect(motive(7).group).toBe('Empréstimos')
+      expect(motive(8).kind).toBe('REVIEWABLE')
+    })
+
+    it('excludes informative (non-required) references from the pending review', () => {
+      const informational = preview.referenceIssues.filter(issue => !issue.required)
+      expect(informational.some(issue => issue.field === 'party')).toBe(true)
+      expect(review.groups.flatMap(group => group.rows).some(row => row.row_number === 9)).toBe(false)
     })
   })
 })
