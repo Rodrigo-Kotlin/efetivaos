@@ -43,7 +43,7 @@ const RECLASSIFICATION_REFS: ReferenceLists = {
   ...REFS,
   categories: [
     ...REFS.categories!,
-    { id: 'cat-salary', name: 'Salarios administrativos' },
+    { id: 'cat-salary', name: 'Remunerações / Salários' },
     { id: 'cat-phone', name: 'Telefonia / internet' },
   ],
 }
@@ -410,7 +410,7 @@ describe('auditoria — referências', () => {
       ...REFS,
       categories: [
         ...REFS.categories!,
-        { id: 'cat-salary', name: 'Salarios administrativos', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
+        { id: 'cat-salary', name: 'Remunerações / Salários', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
         { id: 'cat-manual', name: 'Pro-labore', active: true, movement_type: 'DESPESA', counter_account_id: 'chart-1', cash_flow_class: 'OPERACIONAL' },
       ],
       resolutions: { [manualResolutionKey(1, 'Pessoal e adiantamentos')]: 'cat-manual' },
@@ -577,7 +577,7 @@ describe('auditoria — referências', () => {
     const row = p.rows[0]
     expect(row.valid).toBe(true)
     expect(row.mapped.category).toBe('Pessoal e adiantamentos')
-    expect(row.mapped.resolved_category).toBe('Salarios administrativos')
+    expect(row.mapped.resolved_category).toBe('Remunerações / Salários')
     expect(row.mapped.category_id).toBe('cat-salary')
   })
 
@@ -663,6 +663,77 @@ describe('auditoria — referências', () => {
     )
     expect(p.rows[0].mapped.movement_type).toBe('RECEITA')
     expect(p.rows[0].mapped.source_movement_type).toBeUndefined()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// F-IMPORT-7.2 — resolução determinística de categorias
+// ---------------------------------------------------------------------------
+
+describe('auditoria — F-IMPORT-7.2 resolução determinística', () => {
+  const CANONICAL_REFS: ReferenceLists = {
+    ...REFS,
+    categories: [
+      ...REFS.categories!,
+      {
+        id: 'cat-salary',
+        name: 'Remunerações /  Salários',
+        active: true,
+        movement_type: 'DESPESA',
+        counter_account_id: 'chart-salary',
+        counter_account_name: 'Salarios Administrativos',
+      },
+    ],
+  }
+
+  it('resolve salário e saldo de salário para o nome canônico real e preserva a categoria bruta', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Salário Luciana;100,00;Despesa;Pessoal e adiantamentos;Banco X\r\n' +
+      '01/08/2026;Saldo de salário Janderson;100,00;Despesa;Pessoal e adiantamentos;Banco X\r\n',
+      PT_MAP,
+      CANONICAL_REFS,
+    )
+    for (const row of p.rows) {
+      expect(row.valid).toBe(true)
+      expect(row.mapped.category).toBe('Pessoal e adiantamentos')
+      expect(row.mapped.resolved_category).toBe('Remunerações /  Salários')
+      expect(row.mapped.category_id).toBe('cat-salary')
+    }
+  })
+
+  it('mantém o salário pendente como lacuna do sistema quando a categoria canônica não está cadastrada', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Salário Luciana;100,00;Despesa;Pessoal e adiantamentos;Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    expect(p.rows[0].valid).toBe(false)
+    expect(p.rows[0].mapped.resolved_category).toBeUndefined()
+    expect(p.rows[0].referenceIssues[0]).toMatchObject({ field: 'category', required: true })
+  })
+
+  it('não resolve vale por semelhança e mantém a decisão contábil', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Destino\r\n' +
+      '01/08/2026;Vale quinzena Janderson;100,00;Despesa;Pessoal e adiantamentos;Banco X\r\n',
+      PT_MAP,
+      CANONICAL_REFS,
+    )
+    expect(p.rows[0].valid).toBe(false)
+    expect(p.rows[0].mapped.resolved_category).toBeUndefined()
+  })
+
+  it('mantém a transferência sem conta de destino inválida', () => {
+    const p = previewCsv(
+      '\ufeffData;Descrição;Valor;Tipo;Categoria;Conta Origem\r\n' +
+      '01/08/2026;Retirada;100,00;Transferência;Retirada de caixa;Banco X\r\n',
+      PT_MAP,
+      REFS,
+    )
+    expect(p.rows[0].valid).toBe(false)
+    expect(p.rows[0].errors).toContain('Conta de destino é obrigatória para TRANSFERENCIA')
   })
 })
 

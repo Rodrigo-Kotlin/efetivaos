@@ -316,7 +316,7 @@ type ImportCategoryRule = {
 const IMPORT_CATEGORY_RULES: ImportCategoryRule[] = [
   {
     sourceCategory: 'Pessoal e adiantamentos',
-    targetCategory: 'Salarios administrativos',
+    targetCategory: 'Remunerações / Salários',
     matches: description => /salario|saldo de salario/.test(description),
   },
   {
