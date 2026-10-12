@@ -133,7 +133,9 @@ export function useCreateCategory() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (values: CategoryFormValues) => api.createCategory(values),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['finance', 'categories'] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['finance', 'categories'] })
+    },
   })
 }
 
@@ -142,7 +144,9 @@ export function useUpdateCategory() {
   return useMutation({
     mutationFn: ({ id, values }: { id: string; values: CategoryFormValues }) =>
       api.updateCategory(id, values),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['finance', 'categories'] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['finance', 'categories'] })
+    },
   })
 }
 
@@ -150,7 +154,9 @@ export function useDeleteCategory() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => api.deleteCategory(id),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['finance', 'categories'] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['finance', 'categories'] })
+    },
   })
 }
 
