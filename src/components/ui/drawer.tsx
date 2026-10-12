@@ -21,7 +21,7 @@ export function Drawer({ open, onOpenChange, title, description, children, foote
         <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/45 data-[state=open]:animate-in data-[state=closed]:animate-out" />
         <Dialog.Content
           className={cn(
-            'fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-slate-200 bg-white shadow-2xl outline-none',
+            'fixed left-1/2 top-1/2 z-50 flex h-[calc(100vh-2rem)] max-h-[52rem] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl outline-none',
             className,
           )}
         >
