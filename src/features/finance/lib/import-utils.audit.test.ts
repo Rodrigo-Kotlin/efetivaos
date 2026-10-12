@@ -422,6 +422,37 @@ describe('auditoria — referências', () => {
     expect(preview.rows[0].mapped.resolution_source).toBe('manual')
   })
 
+  it('recalcula os contadores quando quatro de dez pendências recebem resolução válida', () => {
+    const rows = Array.from({ length: 10 }, (_, index) => ({
+      transaction_date: '2026-08-01',
+      description: `Serviço ${index + 1}`,
+      amount: 100,
+      movement_type: 'DESPESA',
+      category: 'Exames e serviços técnicos',
+      destination_account: 'Banco X',
+    }))
+    const resolutions = Object.fromEntries(
+      rows.slice(0, 4).map((_, index) => [manualResolutionKey(index + 1, 'Exames e serviços técnicos'), 'cat-service']),
+    )
+    const preview = generatePreview(Object.keys(rows[0]), rows, {
+      transaction_date: 'transaction_date',
+      description: 'description',
+      amount: 'amount',
+      movement_type: 'movement_type',
+      category: 'category',
+      destination_account: 'destination_account',
+    }, 'dynamic-counts', {
+      ...REFS,
+      categories: [{ id: 'cat-service', name: 'Exames', active: true, movement_type: 'DESPESA' }],
+      resolutions,
+    })
+
+    expect(preview.valid).toBe(4)
+    expect(preview.pending).toBe(6)
+    expect(preview.rows.slice(0, 4).every(row => row.valid)).toBe(true)
+    expect(preview.rows.slice(4).every(row => !row.valid)).toBe(true)
+  })
+
   it('define lote somente por categoria, tipo, centro e linha de serviço', () => {
     const make = (description: string, serviceLine = 'Administrativo / Geral') => ({
       raw: { Categoria: 'Exames e serviços técnicos', Tipo: 'Despesa', 'Centro de Custo': 'Clínica', 'Linha de Serviço': serviceLine },

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { generatePreview, type ColumnMapping, type ParsedRow } from './import-utils'
-import { persistImport } from './import-persist'
+import { createImportSubmissionGuard, persistImport } from './import-persist'
 
 // ---------------------------------------------------------------------------
 // F-IMPORT-2 — importação parcial
@@ -103,6 +103,54 @@ function createFakeClient(opts: { failTransaction?: boolean } = {}) {
 }
 
 describe('persistImport — importação parcial', () => {
+  it('protege contra duplo clique e libera nova tentativa após finalizar', () => {
+    const guard = createImportSubmissionGuard()
+
+    expect(guard.acquire()).toBe(true)
+    expect(guard.acquire()).toBe(false)
+    guard.release()
+    expect(guard.acquire()).toBe(true)
+  })
+
+  it('cenário 657: envia somente 584 válidas e preserva 73 pendentes no batch', async () => {
+    const validRows = Array.from({ length: 584 }, (_, index) => validRow({ description: `valid-${index + 1}` }))
+    const pendingRows = Array.from({ length: 73 }, (_, index) => ({
+      transaction_date: '2026-01-05',
+      description: `pending-${index + 1}`,
+      amount: 10,
+      movement_type: 'DESPESA',
+      category: 'Categoria pendente',
+      destination_account: 'Conta pendente',
+    }))
+    const preview = generatePreview(
+      Object.keys(validRows[0]),
+      [...validRows, ...pendingRows],
+      { ...MAPPING, category: 'category', destination_account: 'destination_account' },
+      'batch-657',
+      { categories: [], accounts: [] },
+    )
+    const rowsToPersist = preview.rows.filter(row => row.valid)
+    const fake = createFakeClient()
+
+    const result = await persistImport(
+      fake.client,
+      { name: '657.csv', size: 1, fileType: 'csv' },
+      MAPPING,
+      preview,
+      rowsToPersist,
+    )
+
+    expect(preview.total).toBe(657)
+    expect(preview.valid).toBe(584)
+    expect(preview.pending).toBe(73)
+    expect(rowsToPersist).toHaveLength(584)
+    expect(result.attemptedValid).toBe(584)
+    expect(result.imported + result.failed).toBe(584)
+    expect(fake.txCalls()).toHaveLength(584)
+    expect(fake.rows.filter(row => row.status === 'pending')).toHaveLength(73)
+    expect(fake.txCalls().every(call => call.args.p_description !== 'pending-1')).toBe(true)
+  })
+
   it('5 linhas (3 válidas, 2 inválidas): 3 importadas, 2 rejeitadas e inválidas registradas', async () => {
     const preview = makePreview([
       validRow({ description: 'ok-1' }),

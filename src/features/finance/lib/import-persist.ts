@@ -36,7 +36,9 @@ export type ImportRejection = {
 export type ImportPersistenceResult = {
   batchId: string
   total: number
+  attemptedValid: number
   imported: number
+  failed: number
   rejected: number
   /** Rows rejected by validation (never attempted on the ledger). */
   skipped: number
@@ -49,11 +51,27 @@ export type ImportPersistenceResult = {
 
 type RpcResult = { data: unknown; error: { message: string } | null }
 
+export function createImportSubmissionGuard() {
+  let inFlight = false
+
+  return {
+    acquire() {
+      if (inFlight) return false
+      inFlight = true
+      return true
+    },
+    release() {
+      inFlight = false
+    },
+  }
+}
+
 export async function persistImport(
   client: SupabaseClient,
   file: ImportFileDescriptor,
   mapping: ColumnMapping,
   preview: ImportPreview,
+  rowsToPersist: ImportPreview['rows'] = preview.rows.filter(row => row.valid),
 ): Promise<ImportPersistenceResult> {
   const rpc = (fn: string, args: Record<string, unknown>) =>
     (client.rpc as unknown as (f: string, a: Record<string, unknown>) => Promise<RpcResult>)(fn, args)
@@ -72,19 +90,27 @@ export async function persistImport(
   let errors = 0
   let duplicate = 0
   const rejectedRows: ImportRejection[] = []
+  const validRows = rowsToPersist.filter(row => row.valid)
+  const validRowNumbers = new Set(validRows.map(row => row.row_number))
+  const trackingRows = new Map<number, { id: string; duplicate: boolean }>()
 
   for (const row of preview.rows) {
+    const isPending = row.referenceIssues.some(issue => issue.required) && row.errors.length === 0
     const { data: rowId, error: rowErr } = await rpc('create_import_row', {
       p_batch_id: batchIdStr,
       p_row_number: row.row_number,
       p_raw_data: row.raw,
       p_mapped_data: row.mapped,
-      p_status: row.valid ? 'valid' : 'invalid',
-      p_errors: row.errors.length > 0 ? row.errors : null,
+      p_status: row.valid ? 'valid' : isPending ? 'pending' : 'invalid',
+      p_errors: row.errors.length > 0
+        ? row.errors
+        : isPending
+          ? ['Referência obrigatória pendente']
+          : null,
       p_idempotency_key: row.idempotency_key,
     })
     if (rowErr) {
-      errors++
+      if (validRowNumbers.has(row.row_number)) errors++
       rejectedRows.push({
         row_number: row.row_number,
         errors: [rowErr.message],
@@ -94,23 +120,27 @@ export async function persistImport(
     }
 
     const rowIdStr = String(rowId || '')
-
-    if (rowIdStr.includes('duplicate')) {
-      duplicate++
-      rejectedRows.push({
-        row_number: row.row_number,
-        errors: ['Linha duplicada'],
-        details: [{ field: 'Importação', reason: 'Linha duplicada' }],
-      })
-      continue
-    }
+    const isDuplicate = rowIdStr.includes('duplicate')
+    trackingRows.set(row.row_number, { id: rowIdStr, duplicate: isDuplicate })
 
     if (!row.valid) {
       skipped++
       rejectedRows.push({
         row_number: row.row_number,
-        errors: row.errors,
+        errors: isPending ? ['Referência obrigatória pendente'] : row.errors,
         details: row.errorDetails,
+      })
+    }
+  }
+
+  for (const row of validRows) {
+    const trackingRow = trackingRows.get(row.row_number)
+    if (!trackingRow || trackingRow.duplicate) {
+      duplicate++
+      rejectedRows.push({
+        row_number: row.row_number,
+        errors: ['Linha duplicada'],
+        details: [{ field: 'Importação', reason: 'Linha duplicada' }],
       })
       continue
     }
@@ -143,26 +173,27 @@ export async function persistImport(
       })
       // Reuse the tracking row already created above; never insert a second row
       // for the same idempotency key.
-      await rpc('finalize_import_row', { p_row_id: rowIdStr, p_transaction_id: null, p_status: 'error' })
+      await rpc('finalize_import_row', { p_row_id: trackingRow.id, p_transaction_id: null, p_status: 'error' })
     } else {
       imported++
-      await rpc('finalize_import_row', { p_row_id: rowIdStr, p_transaction_id: txId, p_status: 'imported' })
+      await rpc('finalize_import_row', { p_row_id: trackingRow.id, p_transaction_id: txId, p_status: 'imported' })
     }
   }
 
   const rejected = preview.total - imported
-  const finalStatus = imported === 0 ? 'failed' : rejected > 0 ? 'completed_with_errors' : 'completed'
+  const failed = validRows.length - imported
+  const finalStatus = imported === 0 ? 'failed' : failed > 0 || preview.total !== validRows.length ? 'completed_with_errors' : 'completed'
 
   await rpc('update_import_batch_status', {
     p_batch_id: batchIdStr,
     p_status: finalStatus,
     p_total_rows: preview.total,
-    p_valid_rows: preview.valid,
+    p_valid_rows: validRows.length,
     p_imported_rows: imported,
     p_skipped_rows: skipped,
     p_duplicate_rows: duplicate,
-    // Every row that was not imported is a rejection and is reported as an
-    // error, so the batch history reconciles: total = imported + error_rows.
+    // The batch schema has separate skipped/duplicate/error counters, while
+    // error_rows remains the aggregate of every row not imported.
     p_error_rows: rejected,
     p_errors: rejectedRows.length > 0
       ? rejectedRows.flatMap(r => r.errors.map(e => `Linha ${r.row_number}: ${e}`))
@@ -172,7 +203,9 @@ export async function persistImport(
   return {
     batchId: batchIdStr,
     total: preview.total,
+    attemptedValid: validRows.length,
     imported,
+    failed,
     rejected,
     skipped,
     errors,

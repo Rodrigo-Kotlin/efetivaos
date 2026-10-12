@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Upload, ArrowRight, Check, AlertTriangle, Download, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -32,6 +32,8 @@ import {
   fetchChartAccounts,
 } from '../api/finance-api'
 import type { ChartAccount } from '@/types/database'
+import { supabase } from '@/lib/supabase'
+import { createImportSubmissionGuard, persistImport, type ImportPersistenceResult } from '../lib/import-persist'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -54,12 +56,17 @@ export function ImportWizard({ open, onClose }: Props) {
   const [rawRows, setRawRows] = useState<ParsedRow[]>([])
   const [mapping, setMapping] = useState<ColumnMapping>({})
   const [batchId, setBatchId] = useState('')
+  const [file, setFile] = useState<{ name: string; size: number; fileType: 'csv' | 'xlsx' } | null>(null)
   const [preview, setPreview] = useState<ImportPreview | null>(null)
   const [references, setReferences] = useState<ReferenceLists | null>(null)
   const [chartAccounts, setChartAccounts] = useState<ChartAccount[]>([])
   const [resolutions, setResolutions] = useState<ReferenceResolution>({})
   const [manualDecisions, setManualDecisions] = useState<Record<number, string | null>>({})
   const [loadingRefs, setLoadingRefs] = useState(false)
+  const [persisting, setPersisting] = useState(false)
+  const [persistenceResult, setPersistenceResult] = useState<ImportPersistenceResult | null>(null)
+  const [persistenceError, setPersistenceError] = useState<string | null>(null)
+  const persistGuard = useRef(createImportSubmissionGuard())
 
   const reset = useCallback(() => {
     setStep('upload')
@@ -67,11 +74,15 @@ export function ImportWizard({ open, onClose }: Props) {
     setRawRows([])
     setMapping({})
     setBatchId('')
+    setFile(null)
     setPreview(null)
     setReferences(null)
     setChartAccounts([])
     setResolutions({})
     setManualDecisions({})
+    setPersisting(false)
+    setPersistenceResult(null)
+    setPersistenceError(null)
   }, [])
 
   const handleClose = useCallback(() => {
@@ -84,9 +95,10 @@ export function ImportWizard({ open, onClose }: Props) {
     const f = e.target.files?.[0]
     if (!f) return
     try {
-      const { headers: h, rows } = await parseFile(f)
+      const { headers: h, rows, fileType } = await parseFile(f)
       setHeaders(h)
       setRawRows(rows)
+      setFile({ name: f.name, size: f.size, fileType })
       const guessed = guessColumnMapping(h)
       setMapping(guessed)
       setStep('mapping')
@@ -157,6 +169,7 @@ export function ImportWizard({ open, onClose }: Props) {
   }, [headers, rawRows, mapping, batchId, references])
 
   const manualRows = useMemo(() => preview?.rows.filter(isManualClassificationRow) ?? [], [preview])
+  const validRows = useMemo(() => preview?.rows.filter(row => row.valid) ?? [], [preview])
 
   const categoryMetadata = useCallback((category: ReferenceOption | undefined) => {
     if (!category) return null
@@ -217,6 +230,33 @@ export function ImportWizard({ open, onClose }: Props) {
     setResolutions(nextResolutions)
     rebuildPreview(nextResolutions)
   }, [manualRows, references, categoryMetadata, resolutions, rebuildPreview])
+
+  const handlePersist = useCallback(async () => {
+    if (!preview || !file || validRows.length === 0 || persistenceResult) return
+
+    const confirmationLines = [
+      `${validRows.length} lançamentos válidos serão importados.`,
+      `${preview.pending} linhas pendentes não serão importadas e permanecerão disponíveis para revisão.`,
+    ]
+    if (preview.invalid > 0) {
+      confirmationLines.push(`${preview.invalid} linhas inválidas também não serão importadas.`)
+    }
+    confirmationLines.push('Nenhuma categoria será criada automaticamente.')
+    if (!window.confirm(confirmationLines.join('\n'))) return
+
+    if (!persistGuard.current.acquire()) return
+    setPersisting(true)
+    setPersistenceError(null)
+    try {
+      const result = await persistImport(supabase, file, mapping, preview, validRows)
+      setPersistenceResult(result)
+    } catch (err: unknown) {
+      setPersistenceError(err instanceof Error ? err.message : 'Falha ao importar os lançamentos válidos')
+    } finally {
+      persistGuard.current.release()
+      setPersisting(false)
+    }
+  }, [file, mapping, persistenceResult, preview, validRows])
 
   const stepSequence: Step[] = ['upload', 'mapping', 'reconciliation', 'preview']
 
@@ -445,8 +485,24 @@ export function ImportWizard({ open, onClose }: Props) {
 
             {(preview.invalid > 0 || preview.pending > 0) && (
               <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                Linhas inválidas ou pendentes não serão importadas. Resolva as referências obrigatórias na etapa de cadastros antes da confirmação.
+                Linhas inválidas ou pendentes não serão importadas. Elas permanecerão preservadas para revisão.
               </p>
+            )}
+
+            {persistenceError && (
+              <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800">
+                {persistenceError}
+              </p>
+            )}
+
+            {persistenceResult && (
+              <div className={`rounded-lg px-3 py-3 text-sm ${persistenceResult.failed > 0 ? 'bg-amber-50 text-amber-900' : 'bg-emerald-50 text-emerald-900'}`}>
+                <p className="font-medium">{persistenceResult.failed > 0 ? 'Importação concluída com falhas' : 'Importação concluída'}</p>
+                <p className="mt-1">{persistenceResult.imported} lançamentos importados.</p>
+                {preview.pending > 0 && <p>{preview.pending} linhas permaneceram pendentes.</p>}
+                {preview.invalid > 0 && <p>{preview.invalid} linhas inválidas permaneceram preservadas.</p>}
+                {persistenceResult.failed > 0 && <p>{persistenceResult.failed} lançamentos válidos falharam durante a persistência.</p>}
+              </div>
             )}
 
             <div className="max-h-[300px] overflow-y-auto rounded-lg border border-slate-200">
@@ -492,9 +548,9 @@ export function ImportWizard({ open, onClose }: Props) {
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" onClick={() => setStep('mapping')}>Voltar</Button>
-              <Button size="sm" disabled>
-                <Check className="mr-1 size-3.5" />
-                Importação bloqueada neste gate
+              <Button size="sm" onClick={handlePersist} disabled={validRows.length === 0 || persisting || Boolean(persistenceResult)}>
+                {persisting ? <Loader2 className="mr-1 size-3.5 animate-spin" /> : <Check className="mr-1 size-3.5" />}
+                {persistenceResult ? 'Importação realizada' : persisting ? 'Importando lançamentos válidos...' : validRows.length > 0 ? `Importar ${validRows.length} lançamentos válidos` : 'Não há lançamentos válidos para importar'}
               </Button>
             </div>
           </div>
