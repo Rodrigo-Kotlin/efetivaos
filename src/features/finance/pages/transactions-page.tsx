@@ -75,8 +75,8 @@ function isValidMovementType(value: string): value is FinancialMovementType {
   return value === '' || Object.prototype.hasOwnProperty.call(MOVEMENT_TYPE_LABELS, value)
 }
 
-function isValidStatus(value: string): value is FinancialTransactionStatus {
-  return value === '' || value === 'pending' || value === 'settled' || value === 'cancelled'
+function isValidStatus(value: string): value is FinancialTransactionStatus | 'valid' | 'all' {
+  return value === '' || value === 'valid' || value === 'all' || value === 'pending' || value === 'settled' || value === 'cancelled'
 }
 
 // ---------------------------------------------------------------------------
@@ -863,7 +863,8 @@ export default function TransactionsPage() {
     const dateFrom = filterValue(urlState, 'dateFrom')
     const dateTo = filterValue(urlState, 'dateTo')
     const type = filterValue(urlState, 'type')
-    const status = filterValue(urlState, 'status')
+    const requestedStatus = filterValue(urlState, 'status')
+    const status = isValidStatus(requestedStatus) ? requestedStatus || 'valid' : 'valid'
     return {
       page: urlState.page,
       pageSize: urlState.pageSize,
@@ -871,7 +872,7 @@ export default function TransactionsPage() {
       dateFrom: isValidDateFilter(dateFrom) ? dateFrom || undefined : undefined,
       dateTo: isValidDateFilter(dateTo) ? dateTo || undefined : undefined,
       type: isValidMovementType(type) && type ? type : undefined,
-      status: isValidStatus(status) && status ? status : undefined,
+      status: status === 'all' ? undefined : status,
       accountId: filterValue(urlState, 'accountId') || undefined,
       categoryId: filterValue(urlState, 'categoryId') || undefined,
       personId: filterValue(urlState, 'personId') || undefined,
@@ -933,7 +934,7 @@ export default function TransactionsPage() {
   const sortValue = `${urlState.sort}:${urlState.direction}`
   const selectOptions = {
     types: Object.entries(MOVEMENT_TYPE_LABELS),
-    statuses: [['pending', 'Pendente'], ['settled', 'Liquidado'], ['cancelled', 'Cancelado']],
+    statuses: [['valid', 'Lançamentos válidos'], ['pending', 'Pendente'], ['settled', 'Liquidado'], ['cancelled', 'Cancelado'], ['all', 'Todos']],
   }
   const accountLabel = (id: string) => financialAccounts.find(item => item.id === id)?.name ?? id
   const categoryLabel = (id: string) => categories.find(item => item.id === id)?.name ?? id
@@ -1006,7 +1007,7 @@ export default function TransactionsPage() {
           <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">De<Input type="date" value={filterValue(urlState, 'dateFrom')} onChange={event => setFilter('dateFrom', event.target.value)} className="h-10" /></label>
           <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Ate<Input type="date" value={filterValue(urlState, 'dateTo')} onChange={event => setFilter('dateTo', event.target.value)} className="h-10" /></label>
           <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Tipo<select className={selectClassName} value={filterValue(urlState, 'type')} onChange={event => setFilter('type', event.target.value)}><option value="">Todos</option>{selectOptions.types.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-          <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Status<select className={selectClassName} value={filterValue(urlState, 'status')} onChange={event => setFilter('status', event.target.value)}>{[['', 'Todos'], ...selectOptions.statuses].map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-slate-600">Status<select className={selectClassName} value={isValidStatus(filterValue(urlState, 'status')) ? filterValue(urlState, 'status') || 'valid' : 'valid'} onChange={event => setFilter('status', event.target.value)}>{selectOptions.statuses.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
           <details className="relative">
             <summary className="flex h-11 cursor-pointer list-none items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700"><Filter className="size-4" />Mais filtros</summary>
             <div className="absolute left-0 z-20 mt-2 grid min-w-[280px] gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-xl sm:grid-cols-2">

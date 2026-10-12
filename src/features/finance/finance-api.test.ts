@@ -340,6 +340,13 @@ describe('Transactions API', () => {
     expect(serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.lte')).toBeTruthy()
   })
 
+  it('fetchTransactions considera validos somente pendentes e liquidados', async () => {
+    serviceMocks.tableResults.push({ data: [], count: 0, error: null })
+    await fetchTransactions({ status: 'valid' })
+    const statusFilter = serviceMocks.operations.find(op => op.method === 'financial_transactions_list_v.in')
+    expect(statusFilter?.args).toEqual(['status', ['pending', 'settled']])
+  })
+
   it('fetchAllTransactions busca exportacao em lotes de ate 1000', async () => {
     serviceMocks.tableResults.push({ data: Array.from({ length: 1000 }, (_, index) => ({ id: `tx-${index}` })), count: 1500, error: null })
     serviceMocks.tableResults.push({ data: Array.from({ length: 500 }, (_, index) => ({ id: `tx-${index + 1000}` })), count: 1500, error: null })

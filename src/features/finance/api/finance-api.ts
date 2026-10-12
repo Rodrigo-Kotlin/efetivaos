@@ -501,7 +501,7 @@ export type TransactionListParams = {
   dateFrom?: string
   dateTo?: string
   type?: FinancialMovementType
-  status?: FinancialTransactionStatus
+  status?: FinancialTransactionStatus | 'valid'
   accountId?: string
   categoryId?: string
   personId?: string
@@ -542,7 +542,8 @@ export async function fetchTransactions(params: TransactionListParams = {}): Pro
   if (params.dateFrom) query = query.gte('transaction_date', params.dateFrom)
   if (params.dateTo) query = query.lte('transaction_date', params.dateTo)
   if (params.type) query = query.eq('movement_type', params.type)
-  if (params.status) query = query.eq('status', params.status)
+  if (params.status === 'valid') query = query.in('status', ['pending', 'settled'])
+  else if (params.status) query = query.eq('status', params.status)
   if (params.accountId) query = query.or(`origin_account_id.eq.${params.accountId},destination_account_id.eq.${params.accountId}`)
   if (params.categoryId) query = query.eq('category_id', params.categoryId)
   if (params.personId) query = query.eq('party_id', params.personId)
