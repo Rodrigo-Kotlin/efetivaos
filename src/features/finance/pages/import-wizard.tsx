@@ -170,8 +170,8 @@ export function ImportWizard({ open, onClose }: Props) {
     }
   }, [chartAccounts])
 
-  const compatibleCategories = useCallback((row: ValidatedRow) => (
-    (references?.categories ?? []).filter(category => isCompatibleManualCategory(category, row.mapped.movement_type))
+  const availableCategories = useCallback(() => (
+    (references?.categories ?? []).filter(category => category.active === true)
   ), [references])
 
   const applyManualDecision = useCallback((row: ValidatedRow, categoryId: string) => {
@@ -332,7 +332,7 @@ export function ImportWizard({ open, onClose }: Props) {
 
               <div className="max-h-[480px] space-y-3 overflow-y-auto">
                 {manualRows.map(row => {
-                  const options = compatibleCategories(row)
+                  const options = availableCategories()
                   const selectedId = manualDecisions[row.row_number] ?? ''
                   const selectedCategory = options.find(category => category.id === selectedId)
                   const currentCategory = references.categories?.find(category => category.id === row.mapped.category_id)
@@ -374,7 +374,15 @@ export function ImportWizard({ open, onClose }: Props) {
                           onChange={event => event.target.value ? applyManualDecision(row, event.target.value) : keepManualPending(row)}
                         >
                           <option value="">Manter pendente...</option>
-                          {options.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
+                          {options.map(option => (
+                            <option
+                              key={option.id}
+                              value={option.id}
+                              disabled={!isCompatibleManualCategory(option, row.mapped.movement_type)}
+                            >
+                              {option.name}
+                            </option>
+                          ))}
                         </select>
                         <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
                           <span>Conta: {metadata?.account ?? 'Não informada'}</span>

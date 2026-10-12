@@ -409,10 +409,9 @@ function TransactionCreateDrawer({ open, onClose, defaultType }: { open: boolean
   const activeCategories = useMemo(() => categories.filter(c => c.active), [categories])
   const activeParties = useMemo(() => parties.filter(p => p.active), [parties])
 
-  const filteredCategories = useMemo(() => {
-    if (!fv.movement_type) return activeCategories
-    return activeCategories.filter(c => c.movement_type === fv.movement_type)
-  }, [activeCategories, fv.movement_type])
+  const categoryGroups = useMemo(() => Object.entries(MOVEMENT_TYPE_LABELS)
+    .map(([type, label]) => ({ type, label, categories: activeCategories.filter(category => category.movement_type === type) }))
+    .filter(group => group.categories.length > 0), [activeCategories])
 
   const mt = fv.movement_type || 'RECEITA'
   const showPaymentTypeToggle = CASH_CREDIT_TYPES.includes(mt as any)
@@ -444,7 +443,7 @@ function TransactionCreateDrawer({ open, onClose, defaultType }: { open: boolean
 
   const showOrigin = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_PAGO', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
   const showDest = ['DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'APORTE', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
-  const showCategory = ['RECEITA', 'DESPESA', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'AJUSTE'].includes(mt)
+  const showCategory = activeCategories.length > 0
   const showParty = ['RECEITA', 'DESPESA'].includes(mt)
 
   return (
@@ -455,7 +454,16 @@ function TransactionCreateDrawer({ open, onClose, defaultType }: { open: boolean
         <div>
           <label className="mb-1 block text-sm font-medium">Tipo de Movimento *</label>
           <select className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" value={mt}
-            onChange={e => setFv(p => ({ ...p, movement_type: e.target.value as TransactionBaseFormValues['movement_type'] }))}>
+            onChange={e => {
+              const movementType = e.target.value as TransactionBaseFormValues['movement_type']
+              setFv(p => ({
+                ...p,
+                movement_type: movementType,
+                category_id: p.category_id && activeCategories.find(category => category.id === p.category_id)?.movement_type === movementType
+                  ? p.category_id
+                  : null,
+              }))
+            }}>
             {MOVEMENT_TYPE_GROUPS.map(g => (
               <optgroup key={g.label} label={g.label}>
                 {g.types.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -525,9 +533,16 @@ function TransactionCreateDrawer({ open, onClose, defaultType }: { open: boolean
           <div>
             <label className="mb-1 block text-sm font-medium">Categoria *</label>
             <select className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" value={fv.category_id || ''}
-              onChange={e => setFv(p => ({ ...p, category_id: e.target.value || null }))}>
-              <option value="">Selecione</option>
-              {filteredCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              onChange={e => {
+                const category = activeCategories.find(item => item.id === e.target.value)
+                setFv(p => ({ ...p, category_id: e.target.value || null, movement_type: category?.movement_type as TransactionBaseFormValues['movement_type'] || p.movement_type }))
+              }}>
+               <option value="">Selecione</option>
+              {categoryGroups.map(group => (
+                <optgroup key={group.type} label={group.label}>
+                  {group.categories.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
+                </optgroup>
+              ))}
             </select>
           </div>
         )}
@@ -635,10 +650,9 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
   const activeCategories = useMemo(() => categories.filter(c => c.active), [categories])
   const activeParties = useMemo(() => parties.filter(p => p.active), [parties])
 
-  const filteredCategories = useMemo(() => {
-    if (!fv.movement_type) return activeCategories
-    return activeCategories.filter(c => c.movement_type === fv.movement_type)
-  }, [activeCategories, fv.movement_type])
+  const categoryGroups = useMemo(() => Object.entries(MOVEMENT_TYPE_LABELS)
+    .map(([type, label]) => ({ type, label, categories: activeCategories.filter(category => category.movement_type === type) }))
+    .filter(group => group.categories.length > 0), [activeCategories])
 
   const handleSubmit = async () => {
     if (!tx || updateMutation.isPending) return
@@ -681,7 +695,7 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
   const mt = fv.movement_type || 'RECEITA'
   const showOrigin = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_PAGO', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
   const showDest = ['DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'APORTE', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
-  const showCategory = ['RECEITA', 'DESPESA', 'APORTE', 'RETIRADA', 'IMOBILIZADO', 'AJUSTE'].includes(mt)
+  const showCategory = activeCategories.length > 0
   const showParty = ['RECEITA', 'DESPESA'].includes(mt)
 
   return (
@@ -751,7 +765,11 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
             <select className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" value={fv.category_id || ''}
               onChange={e => setFv(p => ({ ...p, category_id: e.target.value || null }))}>
               <option value="">Selecione</option>
-              {filteredCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {categoryGroups.map(group => (
+                <optgroup key={group.type} label={group.label}>
+                  {group.categories.map(category => <option key={category.id} value={category.id} disabled={category.movement_type !== mt}>{category.name}</option>)}
+                </optgroup>
+              ))}
             </select>
           </div>
         )}

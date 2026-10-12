@@ -370,6 +370,7 @@ describe('auditoria — referências', () => {
     expect(isCompatibleManualCategory({ active: true, movement_type: 'RECEITA' }, 'DESPESA')).toBe(false)
     expect(isCompatibleManualCategory({ active: false, movement_type: 'DESPESA' }, 'DESPESA')).toBe(false)
     expect(isCompatibleManualCategory({ movement_type: 'DESPESA' }, 'DESPESA')).toBe(false)
+    expect(isCompatibleManualCategory({ active: true, movement_type: 'DESPESA' }, 'DESPESA')).toBe(true)
   })
 
   it('não reclassifica automaticamente as categorias reservadas para revisão manual', () => {

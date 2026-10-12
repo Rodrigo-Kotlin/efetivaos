@@ -125,13 +125,11 @@ export function manualClassificationGroupKey(row: Pick<ValidatedRow, 'raw' | 'ma
 }
 
 export function isCompatibleManualCategory(
-  category: Pick<ReferenceOption, 'active' | 'movement_type' | 'counter_account_id' | 'cash_flow_class'>,
+  category: Pick<ReferenceOption, 'active' | 'movement_type'>,
   movementType: unknown,
 ): boolean {
   return category.active === true
     && category.movement_type === movementType
-    && Boolean(category.counter_account_id)
-    && Boolean(category.cash_flow_class)
 }
 
 export type ReferenceLists = {
