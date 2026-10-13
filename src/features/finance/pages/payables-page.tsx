@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { getStatusLabel } from '../schemas/finance-schemas'
 import { exportData, PAYABLE_COLUMNS } from '../lib/export-utils'
-import { fetchAllPayables, type PayableListParams, type PayableSort } from '../api/finance-api'
-import { usePayables, useSettleTransaction, useReverseTransaction, useFinancialAccounts, usePaymentMethods, useCategories, useParties } from '../queries/finance-queries'
+import { fetchAllPayables, type PayableListFilters, type PayableListParams, type PayableSort } from '../api/finance-api'
+import { usePayables, usePayablesTotal, useSettleTransaction, useReverseTransaction, useFinancialAccounts, usePaymentMethods, useCategories, useParties } from '../queries/finance-queries'
+import { FilteredTotalCard } from '../components/filtered-total-card'
 import { CollectionActions, CollectionFilters, CollectionResultsCount, CollectionSearch, CollectionSort, CollectionToolbar, ClearFiltersButton, FilterChip } from '@/components/shared/collection-toolbar'
 import { EmptyState, ErrorState, TableShell, TableSkeleton, selectClassName } from '@/components/shared/operational-ui'
 import { normalizeCollectionPage, parseCollectionUrl, serializeCollectionUrl, type CollectionPageSize, type CollectionUrlOptions, type CollectionUrlState } from '@/components/shared/collection-url-state'
@@ -202,14 +203,12 @@ export default function PayablesPage() {
   const { data: categories = [] } = useCategories()
   const { data: parties = [] } = useParties()
 
-  const queryParams = useMemo<PayableListParams>(() => {
+  const filterParams = useMemo<PayableListFilters>(() => {
     const personId = filterValue(urlState, 'personId')
     const categoryId = filterValue(urlState, 'categoryId')
     const overdue = filterValue(urlState, 'overdue')
     const status = filterValue(urlState, 'status')
     return {
-      page: urlState.page,
-      pageSize: urlState.pageSize,
       search: urlState.search,
       dueDateFrom: validDate(filterValue(urlState, 'dueDateFrom')) ? filterValue(urlState, 'dueDateFrom') || undefined : undefined,
       dueDateTo: validDate(filterValue(urlState, 'dueDateTo')) ? filterValue(urlState, 'dueDateTo') || undefined : undefined,
@@ -218,11 +217,17 @@ export default function PayablesPage() {
       personId: personId || undefined,
       categoryName: categories.find(category => category.id === categoryId)?.name,
       accountId: filterValue(urlState, 'accountId') || undefined,
-      sort: urlState.sort as PayableSort,
-      direction: urlState.direction,
     }
   }, [categories, urlState])
+  const queryParams = useMemo<PayableListParams>(() => ({
+    ...filterParams,
+    page: urlState.page,
+    pageSize: urlState.pageSize,
+    sort: urlState.sort as PayableSort,
+    direction: urlState.direction,
+  }), [filterParams, urlState.page, urlState.pageSize, urlState.sort, urlState.direction])
   const { data, isLoading, isFetching, isError, refetch } = usePayables(queryParams)
+  const { data: filteredTotal, isLoading: isTotalLoading, isError: isTotalError } = usePayablesTotal(filterParams)
   const payables = data?.rows ?? []
   const total = data?.count ?? 0
 
@@ -320,6 +325,7 @@ export default function PayablesPage() {
           <h1 className="font-serif text-3xl font-semibold tracking-tight">Contas a Pagar</h1>
           <p className="mt-1 text-sm text-slate-600">Acompanhe vencimentos, saldos em aberto e pagamentos do financeiro.</p>
         </div>
+        <FilteredTotalCard className="w-full sm:w-auto sm:min-w-[240px]" title="Total a pagar" total={filteredTotal} isLoading={isTotalLoading} isError={isTotalError} />
       </div>
 
       <CollectionToolbar

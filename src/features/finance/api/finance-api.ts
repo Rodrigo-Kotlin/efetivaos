@@ -291,6 +291,8 @@ export type PayableListParams = {
   direction?: TransactionSortDirection
 }
 
+export type PayableListFilters = Omit<PayableListParams, 'page' | 'pageSize' | 'sort' | 'direction'>
+
 export type PaginatedPayables = {
   rows: FinancialPayableList[]
   count: number
@@ -299,31 +301,38 @@ export type PaginatedPayables = {
   pageCount: number
 }
 
-export async function fetchPayables(params: PayableListParams = {}): Promise<PaginatedPayables> {
-  const page = Math.max(1, params.page ?? 1)
-  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
-  const sort = params.sort ?? 'due_date'
-  const direction = params.direction ?? 'asc'
+async function fetchPartyTransactionIds(personId: string, movementTypes: FinancialMovementType[]): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('financial_transactions')
+    .select('id')
+    .eq('party_id', personId)
+    .in('movement_type', movementTypes)
+  if (error) throw error
+  return (data ?? []).map(row => row.id)
+}
 
+// Aggregated PostgREST responses expose the result of `column.sum()` as `{ sum }`.
+function readAggregateSum(data: unknown): number {
+  const row = Array.isArray(data) ? (data[0] as { sum?: number | string | null } | undefined) : undefined
+  const value = row?.sum
+  if (value === undefined || value === null) return 0
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+// Single source of truth for payable filtering. The list and the aggregated total
+// share this builder so both always observe exactly the same criteria.
+async function buildPayablesQuery(params: PayableListParams, select: string, options?: { count?: 'exact' }) {
   let partyTransactionIds: string[] | undefined
   if (params.personId) {
-    const { data, error } = await supabase
-      .from('financial_transactions')
-      .select('id')
-      .eq('party_id', params.personId)
-      .in('movement_type', ['DESPESA', 'IMOBILIZADO'])
-    if (error) throw error
-    partyTransactionIds = (data ?? []).map(row => row.id)
-    if (partyTransactionIds.length === 0) {
-      return { rows: [], count: 0, page, pageSize, pageCount: 1 }
-    }
+    const ids = await fetchPartyTransactionIds(params.personId, ['DESPESA', 'IMOBILIZADO'])
+    if (ids.length === 0) return { empty: true as const }
+    partyTransactionIds = ids
   }
 
   let query = supabase
     .from('financial_payables_v')
-    .select(PAYABLE_LIST_SELECT, { count: 'exact' })
+    .select(select, options)
 
   if (params.search?.trim()) {
     const search = `%${escapeIlike(params.search.trim())}%`
@@ -337,11 +346,25 @@ export async function fetchPayables(params: PayableListParams = {}): Promise<Pag
   if (params.categoryName) query = query.eq('category_name', params.categoryName)
   if (params.accountId) query = query.eq('origin_account_id', params.accountId)
 
-  query = query.order(sort, { ascending: direction === 'asc', nullsFirst: false })
+  return { empty: false as const, query }
+}
+
+export async function fetchPayables(params: PayableListParams = {}): Promise<PaginatedPayables> {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+  const sort = params.sort ?? 'due_date'
+  const direction = params.direction ?? 'asc'
+
+  const built = await buildPayablesQuery(params, PAYABLE_LIST_SELECT, { count: 'exact' })
+  if (built.empty) return { rows: [], count: 0, page, pageSize, pageCount: 1 }
+
+  const { data, error, count } = await built.query
+    .order(sort, { ascending: direction === 'asc', nullsFirst: false })
     .order('transaction_id', { ascending: true })
     .range(from, to)
 
-  const { data, error, count } = await query
   if (error) throw error
   const total = count ?? 0
   return {
@@ -351,6 +374,14 @@ export async function fetchPayables(params: PayableListParams = {}): Promise<Pag
     pageSize,
     pageCount: Math.max(1, Math.ceil(total / pageSize)),
   }
+}
+
+export async function fetchPayablesTotal(params: PayableListParams = {}): Promise<number> {
+  const built = await buildPayablesQuery(params, 'open_amount.sum()')
+  if (built.empty) return 0
+  const { data, error } = await built.query
+  if (error) throw error
+  return readAggregateSum(data)
 }
 
 export async function fetchAllPayables(
@@ -398,6 +429,8 @@ export type ReceivableListParams = {
   direction?: TransactionSortDirection
 }
 
+export type ReceivableListFilters = Omit<ReceivableListParams, 'page' | 'pageSize' | 'sort' | 'direction'>
+
 export type PaginatedReceivables = {
   rows: FinancialReceivableList[]
   count: number
@@ -406,31 +439,19 @@ export type PaginatedReceivables = {
   pageCount: number
 }
 
-export async function fetchReceivables(params: ReceivableListParams = {}): Promise<PaginatedReceivables> {
-  const page = Math.max(1, params.page ?? 1)
-  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
-  const from = (page - 1) * pageSize
-  const to = from + pageSize - 1
-  const sort = params.sort ?? 'due_date'
-  const direction = params.direction ?? 'asc'
-
+// Single source of truth for receivable filtering. The list and the aggregated total
+// share this builder so both always observe exactly the same criteria.
+async function buildReceivablesQuery(params: ReceivableListParams, select: string, options?: { count?: 'exact' }) {
   let partyTransactionIds: string[] | undefined
   if (params.personId) {
-    const { data, error } = await supabase
-      .from('financial_transactions')
-      .select('id')
-      .eq('party_id', params.personId)
-      .eq('movement_type', 'RECEITA')
-    if (error) throw error
-    partyTransactionIds = (data ?? []).map(row => row.id)
-    if (partyTransactionIds.length === 0) {
-      return { rows: [], count: 0, page, pageSize, pageCount: 1 }
-    }
+    const ids = await fetchPartyTransactionIds(params.personId, ['RECEITA'])
+    if (ids.length === 0) return { empty: true as const }
+    partyTransactionIds = ids
   }
 
   let query = supabase
     .from('financial_receivables_v')
-    .select(RECEIVABLE_LIST_SELECT, { count: 'exact' })
+    .select(select, options)
 
   if (params.search?.trim()) {
     const search = `%${escapeIlike(params.search.trim())}%`
@@ -444,11 +465,25 @@ export async function fetchReceivables(params: ReceivableListParams = {}): Promi
   if (params.categoryName) query = query.eq('category_name', params.categoryName)
   if (params.accountId) query = query.eq('origin_account_id', params.accountId)
 
-  query = query.order(sort, { ascending: direction === 'asc', nullsFirst: false })
+  return { empty: false as const, query }
+}
+
+export async function fetchReceivables(params: ReceivableListParams = {}): Promise<PaginatedReceivables> {
+  const page = Math.max(1, params.page ?? 1)
+  const pageSize = Math.min(1000, Math.max(1, params.pageSize ?? 25))
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+  const sort = params.sort ?? 'due_date'
+  const direction = params.direction ?? 'asc'
+
+  const built = await buildReceivablesQuery(params, RECEIVABLE_LIST_SELECT, { count: 'exact' })
+  if (built.empty) return { rows: [], count: 0, page, pageSize, pageCount: 1 }
+
+  const { data, error, count } = await built.query
+    .order(sort, { ascending: direction === 'asc', nullsFirst: false })
     .order('transaction_id', { ascending: true })
     .range(from, to)
 
-  const { data, error, count } = await query
   if (error) throw error
   const total = count ?? 0
   return {
@@ -458,6 +493,14 @@ export async function fetchReceivables(params: ReceivableListParams = {}): Promi
     pageSize,
     pageCount: Math.max(1, Math.ceil(total / pageSize)),
   }
+}
+
+export async function fetchReceivablesTotal(params: ReceivableListParams = {}): Promise<number> {
+  const built = await buildReceivablesQuery(params, 'open_amount.sum()')
+  if (built.empty) return 0
+  const { data, error } = await built.query
+  if (error) throw error
+  return readAggregateSum(data)
 }
 
 export async function fetchAllReceivables(

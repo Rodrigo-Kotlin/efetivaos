@@ -26,10 +26,30 @@ export function usePayables(params: api.PayableListParams = {}) {
   })
 }
 
+// Filtered total of open amounts. Deliberately excludes page/pageSize/sort/direction
+// so pagination and ordering never change the aggregated value.
+export function usePayablesTotal(filters: api.PayableListFilters = {}) {
+  return useQuery({
+    queryKey: ['finance', 'payables', 'total', filters],
+    queryFn: () => api.fetchPayablesTotal(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
 export function useReceivables(params: api.ReceivableListParams = {}) {
   return useQuery({
     queryKey: ['finance', 'receivables', 'list', params],
     queryFn: () => api.fetchReceivables(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
+// Filtered total of open amounts. Deliberately excludes page/pageSize/sort/direction
+// so pagination and ordering never change the aggregated value.
+export function useReceivablesTotal(filters: api.ReceivableListFilters = {}) {
+  return useQuery({
+    queryKey: ['finance', 'receivables', 'total', filters],
+    queryFn: () => api.fetchReceivablesTotal(filters),
     placeholderData: keepPreviousData,
   })
 }

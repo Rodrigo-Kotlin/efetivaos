@@ -8,6 +8,7 @@ import {
   useFinancialAccounts,
   useParties,
   usePayables,
+  usePayablesTotal,
   usePaymentMethods,
   useReverseTransaction,
   useSettleTransaction,
@@ -19,11 +20,16 @@ vi.mock('../queries/finance-queries', () => ({
   useFinancialAccounts: vi.fn(),
   useParties: vi.fn(),
   usePayables: vi.fn(),
+  usePayablesTotal: vi.fn(),
   usePaymentMethods: vi.fn(),
   useReverseTransaction: vi.fn(),
   useSettleTransaction: vi.fn(),
   useTransactionDetail: vi.fn(),
 }))
+
+function lastTotalFilters(): Record<string, unknown> | undefined {
+  return vi.mocked(usePayablesTotal).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
+}
 
 const payable: FinancialPayableList = {
   transaction_id: 'tx-1', description: 'Aluguel do escritorio', movement_type: 'DESPESA', status: 'pending',
@@ -43,6 +49,7 @@ function mockResources() {
   vi.mocked(usePaymentMethods).mockReturnValue({ data: [] } as unknown as ReturnType<typeof usePaymentMethods>)
   vi.mocked(useSettleTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useSettleTransaction>)
   vi.mocked(useReverseTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useReverseTransaction>)
+  vi.mocked(usePayablesTotal).mockReturnValue({ data: 1200, isLoading: false, isError: false } as unknown as ReturnType<typeof usePayablesTotal>)
   vi.mocked(useTransactionDetail).mockReturnValue({ data: payableDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useTransactionDetail>)
 }
 
@@ -101,4 +108,64 @@ describe('PayablesPage', () => {
     expect(screen.queryByText('Detalhes da conta a pagar')).not.toBeInTheDocument()
   })
 
+  it('exibe o card Total a pagar com o total global filtrado, nao apenas a pagina atual', () => {
+    vi.mocked(usePayables).mockReturnValue({ data: { rows: [payable], count: 1, page: 1, pageSize: 25, pageCount: 1 }, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof usePayables>)
+    vi.mocked(usePayablesTotal).mockReturnValue({ data: 98765.4, isLoading: false, isError: false } as unknown as ReturnType<typeof usePayablesTotal>)
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    expect(screen.getByText('Total a pagar')).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*98\.765,40/)).toBeInTheDocument()
+  })
+
+  it('recalcula o total ao alterar o periodo', async () => {
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('De'), { target: { value: '2026-02-10' } })
+    await waitFor(() => expect(lastTotalFilters()).toMatchObject({ dueDateFrom: '2026-02-10' }))
+  })
+
+  it('recalcula o total com a busca ativa', async () => {
+    render(<MemoryRouter initialEntries={['/finance/payables?search=aluguel']}><PayablesPage /></MemoryRouter>)
+    await waitFor(() => expect(lastTotalFilters()).toMatchObject({ search: 'aluguel' }))
+  })
+
+  it('recalcula o total ao alterar o status', async () => {
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'settled' } })
+    await waitFor(() => expect(lastTotalFilters()).toMatchObject({ status: 'settled' }))
+  })
+
+  it('nao inclui paginacao nas chaves do total ao mudar de pagina', async () => {
+    vi.mocked(usePayables).mockReturnValue({ data: { rows: [payable], count: 50, page: 1, pageSize: 25, pageCount: 2 }, isLoading: false, isFetching: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof usePayables>)
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+    await waitFor(() => expect(vi.mocked(usePayables)).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 })))
+    const calls = vi.mocked(usePayablesTotal).mock.calls
+    expect(calls.length).toBeGreaterThan(0)
+    expect(calls.every(([filters]) => !('page' in (filters as object)) && !('pageSize' in (filters as object)))).toBe(true)
+  })
+
+  it('recalcula o total ao limpar os filtros', async () => {
+    render(<MemoryRouter initialEntries={['/finance/payables?status=pending&dueDateFrom=2026-01-01']}><PayablesPage /></MemoryRouter>)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Limpar filtros' })[0])
+    await waitFor(() => expect(lastTotalFilters()).toMatchObject({ status: undefined, dueDateFrom: undefined, search: '' }))
+  })
+
+  it('mostra R$ 0,00 quando nao ha resultados', () => {
+    vi.mocked(usePayables).mockReturnValue({ data: { rows: [], count: 0, page: 1, pageSize: 25, pageCount: 1 }, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof usePayables>)
+    vi.mocked(usePayablesTotal).mockReturnValue({ data: 0, isLoading: false, isError: false } as unknown as ReturnType<typeof usePayablesTotal>)
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    expect(screen.getByText(/R\$\s*0,00/)).toBeInTheDocument()
+  })
+
+  it('mostra skeleton no card de total durante o carregamento', () => {
+    vi.mocked(usePayablesTotal).mockReturnValue({ data: undefined, isLoading: true, isError: false } as unknown as ReturnType<typeof usePayablesTotal>)
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    const card = screen.getByText('Total a pagar').closest('div.rounded-xl')
+    expect(card?.querySelector('.animate-pulse')).toBeInTheDocument()
+  })
+
+  it('mostra estado de erro discreto quando o total falha', () => {
+    vi.mocked(usePayablesTotal).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof usePayablesTotal>)
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    expect(screen.getByText('Não foi possível calcular')).toBeInTheDocument()
+  })
 })

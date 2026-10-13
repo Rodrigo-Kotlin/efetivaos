@@ -8,10 +8,12 @@ type MetricCardProps = {
   icon?: LucideIcon
   supportingText?: string
   isLoading?: boolean
+  isError?: boolean
+  errorText?: string
   className?: string
 }
 
-export function MetricCard({ label, value, icon: Icon, supportingText, isLoading, className }: MetricCardProps) {
+export function MetricCard({ label, value, icon: Icon, supportingText, isLoading, isError, errorText = 'Não foi possível calcular', className }: MetricCardProps) {
   return (
     <div className={cn('rounded-xl border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,.04)]', className)}>
       <div className="flex items-center justify-between">
@@ -21,6 +23,8 @@ export function MetricCard({ label, value, icon: Icon, supportingText, isLoading
       <div className="mt-2">
         {isLoading ? (
           <div className="h-8 w-16 animate-pulse rounded bg-slate-100" />
+        ) : isError ? (
+          <p className="text-sm font-medium text-red-700" role="alert">{errorText}</p>
         ) : (
           <p className="text-2xl font-bold text-slate-900">{value}</p>
         )}
