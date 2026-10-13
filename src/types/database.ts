@@ -1538,6 +1538,32 @@ code?: string
         }
         Returns: number | string
       }
+      finance_receivables_filtered_settled_total: {
+        Args: {
+          p_search?: string | null
+          p_due_date_from?: string | null
+          p_due_date_to?: string | null
+          p_overdue?: boolean | null
+          p_status?: FinancialTransactionStatus | null
+          p_person_id?: string | null
+          p_category_name?: string | null
+          p_account_id?: string | null
+        }
+        Returns: number | string
+      }
+      finance_payables_filtered_settled_total: {
+        Args: {
+          p_search?: string | null
+          p_due_date_from?: string | null
+          p_due_date_to?: string | null
+          p_overdue?: boolean | null
+          p_status?: FinancialTransactionStatus | null
+          p_person_id?: string | null
+          p_category_name?: string | null
+          p_account_id?: string | null
+        }
+        Returns: number | string
+      }
       cashflow_13_week_projection: {
         Args: { p_from?: string | null }
         Returns: Cashflow13WeekRow[]

@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { getStatusLabel } from '../schemas/finance-schemas'
 import { exportData, PAYABLE_COLUMNS } from '../lib/export-utils'
 import { fetchAllPayables, type PayableListFilters, type PayableListParams, type PayableSort } from '../api/finance-api'
-import { usePayables, usePayablesTotal, useSettleTransaction, useReverseTransaction, useFinancialAccounts, usePaymentMethods, useCategories, useParties } from '../queries/finance-queries'
+import { usePayables, usePayablesTotal, usePayablesSettledTotal, useSettleTransaction, useReverseTransaction, useFinancialAccounts, usePaymentMethods, useCategories, useParties } from '../queries/finance-queries'
 import { FilteredTotalCard } from '../components/filtered-total-card'
 import { CollectionActions, CollectionFilters, CollectionResultsCount, CollectionSearch, CollectionSort, CollectionToolbar, ClearFiltersButton, FilterChip } from '@/components/shared/collection-toolbar'
 import { EmptyState, ErrorState, TableShell, TableSkeleton, selectClassName } from '@/components/shared/operational-ui'
@@ -226,6 +226,7 @@ export default function PayablesPage() {
   }), [filterParams, urlState.page, urlState.pageSize, urlState.sort, urlState.direction])
   const { data, isLoading, isFetching, isError, refetch } = usePayables(queryParams)
   const { data: filteredTotal, isLoading: isTotalLoading, isError: isTotalError } = usePayablesTotal(filterParams)
+  const { data: settledTotal, isLoading: isSettledTotalLoading, isError: isSettledTotalError } = usePayablesSettledTotal(filterParams)
   const payables = data?.rows ?? []
   const total = data?.count ?? 0
 
@@ -308,12 +309,12 @@ export default function PayablesPage() {
 
   return (
     <div className="mx-auto max-w-[1480px]">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="font-serif text-3xl font-semibold tracking-tight">Contas a Pagar</h1>
           <p className="mt-1 text-sm text-slate-600">Acompanhe vencimentos, saldos em aberto e pagamentos do financeiro.</p>
         </div>
-        <FilteredTotalCard className="w-full sm:w-auto sm:min-w-[240px]" title="Total a pagar" total={filteredTotal} isLoading={isTotalLoading} isError={isTotalError} />
+         <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto"><FilteredTotalCard className="w-full sm:min-w-[220px]" title="Total a pagar" total={filteredTotal} isLoading={isTotalLoading} isError={isTotalError} /><FilteredTotalCard className="w-full sm:min-w-[220px]" title="Total pago" total={settledTotal} isLoading={isSettledTotalLoading} isError={isSettledTotalError} /></div>
       </div>
 
       <CollectionToolbar

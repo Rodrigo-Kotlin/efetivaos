@@ -368,19 +368,18 @@ export async function fetchPayables(params: PayableListParams = {}): Promise<Pag
 }
 
 export async function fetchPayablesTotal(params: PayableListParams = {}): Promise<number> {
-  const { data, error } = await supabase.rpc('finance_payables_filtered_total', {
-    p_search: params.search?.trim() || null,
-    p_due_date_from: params.dueDateFrom ?? null,
-    p_due_date_to: params.dueDateTo ?? null,
-    p_overdue: params.overdue ? params.overdue === 'overdue' : null,
-    p_status: params.status ?? null,
-    p_person_id: params.personId ?? null,
-    p_category_name: params.categoryName ?? null,
-    p_account_id: params.accountId ?? null,
-  })
+  const { data, error } = await supabase.rpc('finance_payables_filtered_total', filteredTotalRpcParams(params))
   if (error) throw error
   const total = Number(data ?? 0)
   if (!Number.isFinite(total)) throw new Error('Total de contas a pagar invalido.')
+  return total
+}
+
+export async function fetchPayablesSettledTotal(params: PayableListParams = {}): Promise<number> {
+  const { data, error } = await supabase.rpc('finance_payables_filtered_settled_total', filteredTotalRpcParams(params))
+  if (error) throw error
+  const total = Number(data ?? 0)
+  if (!Number.isFinite(total)) throw new Error('Total pago invalido.')
   return total
 }
 
@@ -430,6 +429,30 @@ export type ReceivableListParams = {
 }
 
 export type ReceivableListFilters = Omit<ReceivableListParams, 'page' | 'pageSize' | 'sort' | 'direction'>
+
+type FilteredTotalRpcParams = {
+  p_search: string | null
+  p_due_date_from: string | null
+  p_due_date_to: string | null
+  p_overdue: boolean | null
+  p_status: FinancialTransactionStatus | null
+  p_person_id: string | null
+  p_category_name: string | null
+  p_account_id: string | null
+}
+
+function filteredTotalRpcParams(params: PayableListParams | ReceivableListParams): FilteredTotalRpcParams {
+  return {
+    p_search: params.search?.trim() || null,
+    p_due_date_from: params.dueDateFrom ?? null,
+    p_due_date_to: params.dueDateTo ?? null,
+    p_overdue: params.overdue ? params.overdue === 'overdue' : null,
+    p_status: params.status ?? null,
+    p_person_id: params.personId ?? null,
+    p_category_name: params.categoryName ?? null,
+    p_account_id: params.accountId ?? null,
+  }
+}
 
 export type PaginatedReceivables = {
   rows: FinancialReceivableList[]
@@ -496,19 +519,18 @@ export async function fetchReceivables(params: ReceivableListParams = {}): Promi
 }
 
 export async function fetchReceivablesTotal(params: ReceivableListParams = {}): Promise<number> {
-  const { data, error } = await supabase.rpc('finance_receivables_filtered_total', {
-    p_search: params.search?.trim() || null,
-    p_due_date_from: params.dueDateFrom ?? null,
-    p_due_date_to: params.dueDateTo ?? null,
-    p_overdue: params.overdue ? params.overdue === 'overdue' : null,
-    p_status: params.status ?? null,
-    p_person_id: params.personId ?? null,
-    p_category_name: params.categoryName ?? null,
-    p_account_id: params.accountId ?? null,
-  })
+  const { data, error } = await supabase.rpc('finance_receivables_filtered_total', filteredTotalRpcParams(params))
   if (error) throw error
   const total = Number(data ?? 0)
   if (!Number.isFinite(total)) throw new Error('Total de contas a receber invalido.')
+  return total
+}
+
+export async function fetchReceivablesSettledTotal(params: ReceivableListParams = {}): Promise<number> {
+  const { data, error } = await supabase.rpc('finance_receivables_filtered_settled_total', filteredTotalRpcParams(params))
+  if (error) throw error
+  const total = Number(data ?? 0)
+  if (!Number.isFinite(total)) throw new Error('Total recebido invalido.')
   return total
 }
 

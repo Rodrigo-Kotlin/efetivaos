@@ -3,14 +3,18 @@ import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
 
 import type { FinancialReceivableList, FinancialTransactionList } from '@/types/database'
 import ReceivablesPage from './receivables-page'
-import { useCategories, useFinancialAccounts, useParties, usePaymentMethods, useReceivables, useReceivablesTotal, useReverseTransaction, useSettleTransaction, useTransactionDetail } from '../queries/finance-queries'
+import { useCategories, useFinancialAccounts, useParties, usePaymentMethods, useReceivables, useReceivablesSettledTotal, useReceivablesTotal, useReverseTransaction, useSettleTransaction, useTransactionDetail } from '../queries/finance-queries'
 
 vi.mock('../queries/finance-queries', () => ({
-  useCategories: vi.fn(), useFinancialAccounts: vi.fn(), useParties: vi.fn(), usePaymentMethods: vi.fn(), useReceivables: vi.fn(), useReceivablesTotal: vi.fn(), useReverseTransaction: vi.fn(), useSettleTransaction: vi.fn(), useTransactionDetail: vi.fn(),
+  useCategories: vi.fn(), useFinancialAccounts: vi.fn(), useParties: vi.fn(), usePaymentMethods: vi.fn(), useReceivables: vi.fn(), useReceivablesSettledTotal: vi.fn(), useReceivablesTotal: vi.fn(), useReverseTransaction: vi.fn(), useSettleTransaction: vi.fn(), useTransactionDetail: vi.fn(),
 }))
 
 function lastTotalFilters(): Record<string, unknown> | undefined {
   return vi.mocked(useReceivablesTotal).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
+}
+
+function lastSettledTotalFilters(): Record<string, unknown> | undefined {
+  return vi.mocked(useReceivablesSettledTotal).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
 }
 
 function lastListParams(): Record<string, unknown> | undefined {
@@ -49,6 +53,7 @@ function mockResources() {
   vi.mocked(useSettleTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useSettleTransaction>)
   vi.mocked(useReverseTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useReverseTransaction>)
   vi.mocked(useReceivablesTotal).mockReturnValue({ data: 1800, isLoading: false, isError: false } as unknown as ReturnType<typeof useReceivablesTotal>)
+  vi.mocked(useReceivablesSettledTotal).mockReturnValue({ data: 900, isLoading: false, isError: false } as unknown as ReturnType<typeof useReceivablesSettledTotal>)
   vi.mocked(useTransactionDetail).mockReturnValue({ data: receivableDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useTransactionDetail>)
 }
 
@@ -101,6 +106,13 @@ describe('ReceivablesPage', () => {
     render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
     expect(screen.getByText('Total a receber')).toBeInTheDocument()
     expect(screen.getByText(/R\$\s*125\.430,20/)).toBeInTheDocument()
+  })
+
+  it('exibe Total recebido e aplica os mesmos filtros aos dois cards', () => {
+    render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
+    expect(screen.getByText('Total recebido')).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*900,00/)).toBeInTheDocument()
+    expect(lastSettledTotalFilters()).toEqual(lastTotalFilters())
   })
 
   it('recalcula o total ao alterar o periodo', async () => {
@@ -271,5 +283,12 @@ describe('ReceivablesPage', () => {
     vi.mocked(useReceivablesTotal).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof useReceivablesTotal>)
     render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
     expect(screen.getByText('Não foi possível calcular')).toBeInTheDocument()
+  })
+
+  it('mantem erro do total recebido independente do total em aberto', () => {
+    vi.mocked(useReceivablesSettledTotal).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof useReceivablesSettledTotal>)
+    render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
+    expect(screen.getByText('Total a receber')).toBeInTheDocument()
+    expect(screen.getAllByText('Não foi possível calcular')).toHaveLength(1)
   })
 })

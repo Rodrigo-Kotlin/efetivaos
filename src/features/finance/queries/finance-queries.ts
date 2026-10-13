@@ -36,6 +36,14 @@ export function usePayablesTotal(filters: api.PayableListFilters = {}) {
   })
 }
 
+export function usePayablesSettledTotal(filters: api.PayableListFilters = {}) {
+  return useQuery({
+    queryKey: ['finance', 'payables', 'settled-total', filters],
+    queryFn: () => api.fetchPayablesSettledTotal(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
 export function useReceivables(params: api.ReceivableListParams = {}) {
   return useQuery({
     queryKey: ['finance', 'receivables', 'list', params],
@@ -50,6 +58,14 @@ export function useReceivablesTotal(filters: api.ReceivableListFilters = {}) {
   return useQuery({
     queryKey: ['finance', 'receivables', 'total', filters],
     queryFn: () => api.fetchReceivablesTotal(filters),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useReceivablesSettledTotal(filters: api.ReceivableListFilters = {}) {
+  return useQuery({
+    queryKey: ['finance', 'receivables', 'settled-total', filters],
+    queryFn: () => api.fetchReceivablesSettledTotal(filters),
     placeholderData: keepPreviousData,
   })
 }

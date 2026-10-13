@@ -8,6 +8,7 @@ import {
   useFinancialAccounts,
   useParties,
   usePayables,
+  usePayablesSettledTotal,
   usePayablesTotal,
   usePaymentMethods,
   useReverseTransaction,
@@ -20,6 +21,7 @@ vi.mock('../queries/finance-queries', () => ({
   useFinancialAccounts: vi.fn(),
   useParties: vi.fn(),
   usePayables: vi.fn(),
+  usePayablesSettledTotal: vi.fn(),
   usePayablesTotal: vi.fn(),
   usePaymentMethods: vi.fn(),
   useReverseTransaction: vi.fn(),
@@ -29,6 +31,10 @@ vi.mock('../queries/finance-queries', () => ({
 
 function lastTotalFilters(): Record<string, unknown> | undefined {
   return vi.mocked(usePayablesTotal).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
+}
+
+function lastSettledTotalFilters(): Record<string, unknown> | undefined {
+  return vi.mocked(usePayablesSettledTotal).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
 }
 
 function lastListParams(): Record<string, unknown> | undefined {
@@ -64,6 +70,7 @@ function mockResources() {
   vi.mocked(useSettleTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useSettleTransaction>)
   vi.mocked(useReverseTransaction).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useReverseTransaction>)
   vi.mocked(usePayablesTotal).mockReturnValue({ data: 1200, isLoading: false, isError: false } as unknown as ReturnType<typeof usePayablesTotal>)
+  vi.mocked(usePayablesSettledTotal).mockReturnValue({ data: 600, isLoading: false, isError: false } as unknown as ReturnType<typeof usePayablesSettledTotal>)
   vi.mocked(useTransactionDetail).mockReturnValue({ data: payableDetail, isLoading: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useTransactionDetail>)
 }
 
@@ -132,6 +139,13 @@ describe('PayablesPage', () => {
     render(<MemoryRouter><PayablesPage /></MemoryRouter>)
     expect(screen.getByText('Total a pagar')).toBeInTheDocument()
     expect(screen.getByText(/R\$\s*98\.765,40/)).toBeInTheDocument()
+  })
+
+  it('exibe Total pago e aplica os mesmos filtros aos dois cards', () => {
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    expect(screen.getByText('Total pago')).toBeInTheDocument()
+    expect(screen.getByText(/R\$\s*600,00/)).toBeInTheDocument()
+    expect(lastSettledTotalFilters()).toEqual(lastTotalFilters())
   })
 
   it('recalcula o total ao alterar o periodo', async () => {
@@ -302,5 +316,12 @@ describe('PayablesPage', () => {
     vi.mocked(usePayablesTotal).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof usePayablesTotal>)
     render(<MemoryRouter><PayablesPage /></MemoryRouter>)
     expect(screen.getByText('Não foi possível calcular')).toBeInTheDocument()
+  })
+
+  it('mantem erro do total pago independente do total em aberto', () => {
+    vi.mocked(usePayablesSettledTotal).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof usePayablesSettledTotal>)
+    render(<MemoryRouter><PayablesPage /></MemoryRouter>)
+    expect(screen.getByText('Total a pagar')).toBeInTheDocument()
+    expect(screen.getAllByText('Não foi possível calcular')).toHaveLength(1)
   })
 })

@@ -25,9 +25,11 @@ import {
   fetchPayables,
   fetchAllPayables,
   fetchPayablesTotal,
+  fetchPayablesSettledTotal,
   fetchReceivables,
   fetchAllReceivables,
   fetchReceivablesTotal,
+  fetchReceivablesSettledTotal,
   fetchJournalEntriesByTransaction,
   fetchJournalLinesByEntry,
   createTransaction,
@@ -456,6 +458,15 @@ describe('Payables API', () => {
     await expect(fetchPayablesTotal()).rejects.toThrow()
   })
 
+  it('fetchPayablesSettledTotal chama a RPC com os mesmos filtros', async () => {
+    serviceMocks.rpcResults.push({ data: '600.50', error: null })
+    await expect(fetchPayablesSettledTotal({ search: 'fornecedor', overdue: 'upcoming', status: 'settled' })).resolves.toBe(600.5)
+    expect(serviceMocks.operations[0]).toEqual({
+      method: 'rpc:finance_payables_filtered_settled_total',
+      args: [{ p_search: 'fornecedor', p_due_date_from: null, p_due_date_to: null, p_overdue: false, p_status: 'settled', p_person_id: null, p_category_name: null, p_account_id: null }],
+    })
+  })
+
   it('fetchPayables aplica busca, periodo, vencimento, status e filtros server-side', async () => {
     serviceMocks.tableResults.push({ data: [{ id: 'tx-party-1' }], error: null })
     serviceMocks.tableResults.push({ data: [], count: 75, error: null })
@@ -517,6 +528,13 @@ describe('Receivables API', () => {
     await expect(fetchReceivablesTotal()).resolves.toBe(0)
     serviceMocks.rpcResults.push({ data: null, error: { code: 'PGRST202', message: 'function not found' } })
     await expect(fetchReceivablesTotal()).rejects.toThrow()
+  })
+
+  it('fetchReceivablesSettledTotal preserva zero e propaga erro da RPC', async () => {
+    serviceMocks.rpcResults.push({ data: 0, error: null })
+    await expect(fetchReceivablesSettledTotal()).resolves.toBe(0)
+    serviceMocks.rpcResults.push({ data: null, error: { code: 'PGRST202', message: 'function not found' } })
+    await expect(fetchReceivablesSettledTotal()).rejects.toThrow()
   })
 
   it('fetchReceivables aplica busca, periodo, vencimento, status e filtros server-side', async () => {
