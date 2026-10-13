@@ -933,3 +933,15 @@ ot.toBeVisible no drawer apos a aprovacao e robusto contra toasts anteriores ain
 **Impacto futuro:** ao versionar um spec E2E, verificar a descoberta com `--list` e o `--project`/`--no-deps` corretos na mesma etapa do spec; ao auditar residuos no DEV, segmentar por `created_at` da sessao e por modulo (`E2E_3C3_*` para fixtures de homologacao) para nao atribuir a uma fase o que veio de outra; manter o prefixo `E2E_S2_*` ate a limpeza das fixtures antigas, para nao misturar telemetria de execucoes futuras com o residuo pendente.
 
 **Pendencia registrada:** fixtures antigas `E2E_S2_*` no DEV (12 fornecedores, 8 categorias, 8 itens, 7 cotacoes, 1 `price_list` inativa), todas de 2026-09-24, nao excluidas e nao limpas nesta fase; a limpeza exige etapa propria.
+
+### LL-071 - UX-FIN-ARAP-4: aggregates PostgREST desabilitados exigem RPC invoker
+
+**Data:** 2026-10-13 (DEV; PROD intocado)
+
+**Contexto:** As queries dos cards usavam `select('open_amount.sum()')`. O DEV respondeu `HTTP 400`, `PGRST123`, `Use of aggregate functions is not allowed`, inclusive com filtros e alias explícito.
+
+**Aprendido:** (1) O erro ocorre antes de retornar qualquer shape agregado; não é um problema de parser. (2) A alternativa correta é uma função SQL `STABLE SECURITY INVOKER` que consulta a view existente, preserva `COALESCE(SUM(open_amount), 0)` e recebe parâmetros tipados para os mesmos filtros da lista. (3) Fixture de valor não zero precisa incluir partidas contábeis válidas: inserir somente `financial_transactions` deixa `open_amount` zerado porque as views derivam o saldo do ledger. (4) `supabase db query --linked --file` aplica SQL no DEV sem exigir a senha PostgreSQL; depois, `migration repair --status applied` mantém o histórico remoto coerente.
+
+**Aplicado:** RPCs AR/AP criadas e validadas com valores transitórios `123.45` e `234.56`, com rollback; ACL confirma `authenticated` permitido e `anon`/`PUBLIC` negados; frontend migrou para `supabase.rpc`; suíte frontend 737/737, TypeScript e build aprovados.
+
+**Impacto futuro:** ao validar agregações Supabase, testar primeiro a capacidade efetiva do PostgREST e não assumir suporte a `.sum()`. Para funções invoker que consultam views `security_invoker`, manter `search_path = ''`, referências qualificadas e grants explícitos.

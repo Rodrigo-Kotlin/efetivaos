@@ -24,8 +24,10 @@ import {
   fetchAllTransactions,
   fetchPayables,
   fetchAllPayables,
+  fetchPayablesTotal,
   fetchReceivables,
   fetchAllReceivables,
+  fetchReceivablesTotal,
   fetchJournalEntriesByTransaction,
   fetchJournalLinesByEntry,
   createTransaction,
@@ -433,6 +435,25 @@ describe('Payables API', () => {
   beforeEach(() => {
     serviceMocks.operations.length = 0
     serviceMocks.tableResults.length = 0
+    serviceMocks.rpcResults.length = 0
+  })
+
+  it('fetchPayablesTotal chama a RPC com todos os filtros e ignora pagina/ordenacao', async () => {
+    serviceMocks.rpcResults.push({ data: '234.56', error: null })
+    const result = await fetchPayablesTotal({ search: 'fornecedor', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'overdue', status: 'pending', personId: 'party-1', categoryName: 'Servicos', accountId: 'account-1', page: 3, pageSize: 50, sort: 'original_amount', direction: 'desc' })
+
+    expect(result).toBe(234.56)
+    expect(serviceMocks.operations).toEqual([{
+      method: 'rpc:finance_payables_filtered_total',
+      args: [{ p_search: 'fornecedor', p_due_date_from: '2026-01-01', p_due_date_to: '2026-01-31', p_overdue: true, p_status: 'pending', p_person_id: 'party-1', p_category_name: 'Servicos', p_account_id: 'account-1' }],
+    }])
+  })
+
+  it('fetchPayablesTotal preserva zero e propaga erro da RPC', async () => {
+    serviceMocks.rpcResults.push({ data: 0, error: null })
+    await expect(fetchPayablesTotal()).resolves.toBe(0)
+    serviceMocks.rpcResults.push({ data: null, error: { code: 'PGRST202', message: 'function not found' } })
+    await expect(fetchPayablesTotal()).rejects.toThrow()
   })
 
   it('fetchPayables aplica busca, periodo, vencimento, status e filtros server-side', async () => {
@@ -477,6 +498,25 @@ describe('Receivables API', () => {
   beforeEach(() => {
     serviceMocks.operations.length = 0
     serviceMocks.tableResults.length = 0
+    serviceMocks.rpcResults.length = 0
+  })
+
+  it('fetchReceivablesTotal chama a RPC com todos os filtros e ignora pagina/ordenacao', async () => {
+    serviceMocks.rpcResults.push({ data: '123.45', error: null })
+    const result = await fetchReceivablesTotal({ search: 'cliente', dueDateFrom: '2026-01-01', dueDateTo: '2026-01-31', overdue: 'upcoming', status: 'settled', personId: 'party-1', categoryName: 'Servicos', accountId: 'account-1', page: 3, pageSize: 50, sort: 'original_amount', direction: 'desc' })
+
+    expect(result).toBe(123.45)
+    expect(serviceMocks.operations).toEqual([{
+      method: 'rpc:finance_receivables_filtered_total',
+      args: [{ p_search: 'cliente', p_due_date_from: '2026-01-01', p_due_date_to: '2026-01-31', p_overdue: false, p_status: 'settled', p_person_id: 'party-1', p_category_name: 'Servicos', p_account_id: 'account-1' }],
+    }])
+  })
+
+  it('fetchReceivablesTotal preserva zero e propaga erro da RPC', async () => {
+    serviceMocks.rpcResults.push({ data: 0, error: null })
+    await expect(fetchReceivablesTotal()).resolves.toBe(0)
+    serviceMocks.rpcResults.push({ data: null, error: { code: 'PGRST202', message: 'function not found' } })
+    await expect(fetchReceivablesTotal()).rejects.toThrow()
   })
 
   it('fetchReceivables aplica busca, periodo, vencimento, status e filtros server-side', async () => {

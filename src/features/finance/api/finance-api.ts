@@ -311,15 +311,6 @@ async function fetchPartyTransactionIds(personId: string, movementTypes: Financi
   return (data ?? []).map(row => row.id)
 }
 
-// Aggregated PostgREST responses expose the result of `column.sum()` as `{ sum }`.
-function readAggregateSum(data: unknown): number {
-  const row = Array.isArray(data) ? (data[0] as { sum?: number | string | null } | undefined) : undefined
-  const value = row?.sum
-  if (value === undefined || value === null) return 0
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : 0
-}
-
 // Single source of truth for payable filtering. The list and the aggregated total
 // share this builder so both always observe exactly the same criteria.
 async function buildPayablesQuery(params: PayableListParams, select: string, options?: { count?: 'exact' }) {
@@ -377,11 +368,20 @@ export async function fetchPayables(params: PayableListParams = {}): Promise<Pag
 }
 
 export async function fetchPayablesTotal(params: PayableListParams = {}): Promise<number> {
-  const built = await buildPayablesQuery(params, 'open_amount.sum()')
-  if (built.empty) return 0
-  const { data, error } = await built.query
+  const { data, error } = await supabase.rpc('finance_payables_filtered_total', {
+    p_search: params.search?.trim() || null,
+    p_due_date_from: params.dueDateFrom ?? null,
+    p_due_date_to: params.dueDateTo ?? null,
+    p_overdue: params.overdue ? params.overdue === 'overdue' : null,
+    p_status: params.status ?? null,
+    p_person_id: params.personId ?? null,
+    p_category_name: params.categoryName ?? null,
+    p_account_id: params.accountId ?? null,
+  })
   if (error) throw error
-  return readAggregateSum(data)
+  const total = Number(data ?? 0)
+  if (!Number.isFinite(total)) throw new Error('Total de contas a pagar invalido.')
+  return total
 }
 
 export async function fetchAllPayables(
@@ -496,11 +496,20 @@ export async function fetchReceivables(params: ReceivableListParams = {}): Promi
 }
 
 export async function fetchReceivablesTotal(params: ReceivableListParams = {}): Promise<number> {
-  const built = await buildReceivablesQuery(params, 'open_amount.sum()')
-  if (built.empty) return 0
-  const { data, error } = await built.query
+  const { data, error } = await supabase.rpc('finance_receivables_filtered_total', {
+    p_search: params.search?.trim() || null,
+    p_due_date_from: params.dueDateFrom ?? null,
+    p_due_date_to: params.dueDateTo ?? null,
+    p_overdue: params.overdue ? params.overdue === 'overdue' : null,
+    p_status: params.status ?? null,
+    p_person_id: params.personId ?? null,
+    p_category_name: params.categoryName ?? null,
+    p_account_id: params.accountId ?? null,
+  })
   if (error) throw error
-  return readAggregateSum(data)
+  const total = Number(data ?? 0)
+  if (!Number.isFinite(total)) throw new Error('Total de contas a receber invalido.')
+  return total
 }
 
 export async function fetchAllReceivables(

@@ -1176,3 +1176,19 @@ pm run build ok. E2E completo (55 testes): 50 passed + 5 failed — as 5 falhas 
 **Motivo:** a solução elimina a causa do scroll do documento sem sacrificar colunas nem alterar regras de negócio, RLS ou contratos de banco. A separação entre overflow de página e overflow de tabela torna o teste determinístico e preserva o padrão table-first.
 
 **Impacto:** nove fontes frontend, dois specs E2E e utilitários de homologação alterados; `npm test` 569/569, `npx tsc --noEmit`, build e lint escopado sem erros; E2E responsivo Admin/Equipe verde. Fixtures `E2E_3C3_*` foram criadas e removidas temporariamente no DEV, com zero resíduos; sem migrations, schema ou dados permanentes; PROD não tocado.
+
+---
+
+### DEC-074 - UX-FIN-ARAP-4: totais filtrados de AR/AP usam RPC invoker
+
+**Status:** FECHADA
+
+**Data:** 2026-10-13 (somente banco DEV e frontend; PROD intocado)
+
+**Contexto:** O PostgREST do DEV rejeita `open_amount.sum()` com `PGRST123` (aggregates desabilitados). Os cards de Contas a Receber e Contas a Pagar precisavam somar todos os registros filtrados, sem buscar somente a pagina atual.
+
+**Decisão:** Criar `finance_receivables_filtered_total(...)` e `finance_payables_filtered_total(...)` como funções `LANGUAGE sql STABLE SECURITY INVOKER`, com `SET search_path = ''`, consultando as views AR/AP existentes e retornando `COALESCE(SUM(open_amount), 0)`. As funções reproduzem os filtros dos builders atuais: busca, período em `due_date`, vencimento, status, pessoa, categoria e conta. Paginação e ordenação ficam fora da RPC.
+
+**Motivo:** Manter a agregação server-side, evitar soma incorreta da paginação e não habilitar aggregates globalmente nem criar `SECURITY DEFINER` sem necessidade.
+
+**Impacto:** Execute explícito somente para `authenticated`; `anon` e `PUBLIC` sem execute. Migration `20261013000100_add_finance_filtered_total_rpcs.sql` aplicada no DEV e não aplicada em PROD. O frontend deixou de usar o aggregate PostgREST e converte o `numeric` retornado pela RPC.
