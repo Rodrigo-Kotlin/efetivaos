@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
 
 import type { FinancialReceivableList, FinancialTransactionList } from '@/types/database'
 import ReceivablesPage from './receivables-page'
@@ -11,6 +11,28 @@ vi.mock('../queries/finance-queries', () => ({
 
 function lastTotalFilters(): Record<string, unknown> | undefined {
   return vi.mocked(useReceivablesTotal).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
+}
+
+function lastListParams(): Record<string, unknown> | undefined {
+  return vi.mocked(useReceivables).mock.calls.at(-1)?.[0] as Record<string, unknown> | undefined
+}
+
+function LocationProbe() {
+  return <output data-testid="location-search">{useLocation().search}</output>
+}
+
+async function advanceDebounce() {
+  await act(async () => { vi.advanceTimersByTime(300) })
+}
+
+function NavControls() {
+  const navigate = useNavigate()
+  return (
+    <div>
+      <button onClick={() => navigate(-1)}>voltar</button>
+      <button onClick={() => navigate(1)}>avancar</button>
+    </div>
+  )
 }
 
 const receivable: FinancialReceivableList = {
@@ -87,9 +109,126 @@ describe('ReceivablesPage', () => {
     await waitFor(() => expect(lastTotalFilters()).toMatchObject({ dueDateFrom: '2026-01-15' }))
   })
 
-  it('recalcula o total com a busca ativa', async () => {
-    render(<MemoryRouter initialEntries={['/finance/receivables?search=consulta']}><ReceivablesPage /></MemoryRouter>)
-    await waitFor(() => expect(lastTotalFilters()).toMatchObject({ search: 'consulta' }))
+  it('mantem a digitacao no input e nao busca antes do debounce', () => {
+    render(<MemoryRouter><ReceivablesPage /><LocationProbe /></MemoryRouter>)
+    const input = screen.getByPlaceholderText(/Buscar por/i)
+    fireEvent.change(input, { target: { value: 'cliente teste' } })
+    expect(input).toHaveValue('cliente teste')
+    expect(screen.getByTestId('location-search')).not.toHaveTextContent('search=')
+    expect(lastListParams()).toMatchObject({ search: '' })
+  })
+
+  it('aplica a busca na URL apos o debounce', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter><ReceivablesPage /><LocationProbe /></MemoryRouter>)
+      fireEvent.change(screen.getByPlaceholderText(/Buscar por/i), { target: { value: 'consulta' } })
+      expect(screen.getByTestId('location-search')).not.toHaveTextContent('search=')
+      await advanceDebounce()
+      expect(screen.getByTestId('location-search')).toHaveTextContent('search=consulta')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('envia a busca para a consulta da lista', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
+      fireEvent.change(screen.getByPlaceholderText(/Buscar por/i), { target: { value: 'consulta' } })
+      await advanceDebounce()
+      expect(lastListParams()).toMatchObject({ search: 'consulta' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('envia a busca para o total filtrado', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
+      fireEvent.change(screen.getByPlaceholderText(/Buscar por/i), { target: { value: 'consulta' } })
+      await advanceDebounce()
+      expect(lastTotalFilters()).toMatchObject({ search: 'consulta' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('reinicia a pagina para 1 ao aplicar a busca e preserva a busca ao paginar', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.mocked(useReceivables).mockReturnValue({ data: { rows: [receivable], count: 50, page: 2, pageSize: 25, pageCount: 2 }, isLoading: false, isFetching: false, isError: false, refetch: vi.fn() } as unknown as ReturnType<typeof useReceivables>)
+      render(<MemoryRouter initialEntries={['/finance/receivables?page=2']}><ReceivablesPage /></MemoryRouter>)
+      fireEvent.change(screen.getByPlaceholderText(/Buscar por/i), { target: { value: 'consulta' } })
+      await advanceDebounce()
+      expect(lastListParams()).toMatchObject({ page: 1, search: 'consulta' })
+      fireEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
+      expect(lastListParams()).toMatchObject({ page: 2, search: 'consulta' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('remove a busca da URL ao limpar o input', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter><ReceivablesPage /><LocationProbe /></MemoryRouter>)
+      const input = screen.getByPlaceholderText(/Buscar por/i)
+      fireEvent.change(input, { target: { value: 'consulta' } })
+      await advanceDebounce()
+      expect(screen.getByTestId('location-search')).toHaveTextContent('search=consulta')
+      fireEvent.change(input, { target: { value: '' } })
+      await advanceDebounce()
+      expect(screen.getByTestId('location-search')).not.toHaveTextContent('search=')
+      expect(lastTotalFilters()).toMatchObject({ search: '' })
+      expect(input).toHaveValue('')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('sincroniza input, lista e total em Back e Forward', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter initialEntries={['/finance/receivables']}><NavControls /><ReceivablesPage /><LocationProbe /></MemoryRouter>)
+      const input = screen.getByPlaceholderText(/Buscar por/i)
+      fireEvent.change(input, { target: { value: 'alpha' } })
+      await advanceDebounce()
+      expect(screen.getByTestId('location-search')).toHaveTextContent('search=alpha')
+      fireEvent.change(input, { target: { value: 'beta' } })
+      await advanceDebounce()
+      expect(screen.getByTestId('location-search')).toHaveTextContent('search=beta')
+
+      fireEvent.click(screen.getByRole('button', { name: 'voltar' }))
+      await act(async () => {})
+      expect(screen.getByTestId('location-search')).toHaveTextContent('search=alpha')
+      expect(input).toHaveValue('alpha')
+      expect(lastTotalFilters()).toMatchObject({ search: 'alpha' })
+
+      fireEvent.click(screen.getByRole('button', { name: 'avancar' }))
+      await act(async () => {})
+      expect(screen.getByTestId('location-search')).toHaveTextContent('search=beta')
+      expect(input).toHaveValue('beta')
+      expect(lastTotalFilters()).toMatchObject({ search: 'beta' })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('mantem busca combinada com periodo e status', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<MemoryRouter><ReceivablesPage /></MemoryRouter>)
+      fireEvent.change(screen.getByLabelText('De'), { target: { value: '2026-01-01' } })
+      fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'pending' } })
+      fireEvent.change(screen.getByPlaceholderText(/Buscar por/i), { target: { value: 'empresa x' } })
+      await advanceDebounce()
+      expect(lastListParams()).toMatchObject({ search: 'empresa x', dueDateFrom: '2026-01-01', status: 'pending' })
+      expect(lastTotalFilters()).toMatchObject({ search: 'empresa x', dueDateFrom: '2026-01-01', status: 'pending' })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('recalcula o total ao alterar o status', async () => {

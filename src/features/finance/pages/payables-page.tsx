@@ -16,7 +16,7 @@ import { CollectionActions, CollectionFilters, CollectionResultsCount, Collectio
 import { EmptyState, ErrorState, TableShell, TableSkeleton, selectClassName } from '@/components/shared/operational-ui'
 import { normalizeCollectionPage, parseCollectionUrl, serializeCollectionUrl, type CollectionPageSize, type CollectionUrlOptions, type CollectionUrlState } from '@/components/shared/collection-url-state'
 import { PaginationControls } from '@/components/shared/pagination-controls'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useCollectionSearch } from '@/components/shared/use-collection-search'
 import type { FinancialPayableList, FinancialTransactionStatus } from '@/types/database'
 import { FinancialTitleDetailDrawer } from '../financial-title-detail-drawer'
 
@@ -193,8 +193,6 @@ function ReverseDialog({ tx, open, onClose }: { tx: PayableRow | null; open: boo
 export default function PayablesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const urlState = useMemo(() => parseCollectionUrl(searchParams, PAYABLE_URL_OPTIONS), [searchParams])
-  const [searchDraft, setSearchDraft] = useState(urlState.search)
-  const debouncedSearch = useDebouncedValue(searchDraft, 300)
   const [settleTx, setSettleTx] = useState<PayableRow | null>(null)
   const [reverseTx, setReverseTx] = useState<PayableRow | null>(null)
   const [detailTx, setDetailTx] = useState<PayableRow | null>(null)
@@ -251,22 +249,12 @@ export default function PayablesPage() {
     for (const [key, value] of collectionParams.entries()) nextParams.append(key, value)
     setSearchParams(nextParams, { replace })
   }, [searchParams, setSearchParams])
+  const applySearch = useCallback((search: string) => updateUrl({ search }), [updateUrl])
+  const [searchDraft, setSearchDraft] = useCollectionSearch(urlState.search, applySearch)
 
   const setFilter = useCallback((key: string, value: string) => {
     updateUrl({ filters: { [key]: value ? [value] : [] } })
   }, [updateUrl])
-
-  useEffect(() => {
-    if (debouncedSearch !== urlState.search) updateUrl({ search: debouncedSearch }, true, true)
-  }, [debouncedSearch, updateUrl, urlState.search])
-
-  useEffect(() => {
-    if (searchDraft !== urlState.search && debouncedSearch === urlState.search) {
-      // Keep the input synchronized with browser back/forward without changing collection state.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSearchDraft(urlState.search)
-    }
-  }, [debouncedSearch, searchDraft, urlState.search])
 
   useEffect(() => {
     if (isLoading || isFetching || isError || !data) return
