@@ -945,3 +945,15 @@ ot.toBeVisible no drawer apos a aprovacao e robusto contra toasts anteriores ain
 **Aplicado:** RPCs AR/AP criadas e validadas com valores transitórios `123.45` e `234.56`, com rollback; ACL confirma `authenticated` permitido e `anon`/`PUBLIC` negados; frontend migrou para `supabase.rpc`; suíte frontend 737/737, TypeScript e build aprovados.
 
 **Impacto futuro:** ao validar agregações Supabase, testar primeiro a capacidade efetiva do PostgREST e não assumir suporte a `.sum()`. Para funções invoker que consultam views `security_invoker`, manter `search_path = ''`, referências qualificadas e grants explícitos.
+
+### LL-072 - FIN-RECON-3: substituição atômica é necessária para corrigir settled sem quebrar o append-only
+
+**Data:** 2026-10-14 (DEV; PROD intocado)
+
+**Contexto:** Uma transação liquidada importada com a natureza errada não pode ser corrigida por `UPDATE` do journal nem por duas chamadas operacionais independentes. O cancelamento append-only já sabia gerar reversões, e a criação já sabia gerar `SALDO_INICIAL`, mas a combinação precisava ser protegida por uma única RPC.
+
+**Aprendido:** (1) `reversal_of_entry_id` resolve a rastreabilidade do journal, mas a relação entre o cabeçalho original e seu substituto pode usar as `notes` existentes sem nova coluna quando o escopo é uma correção controlada; (2) chamar RPCs de reversão e criação dentro de uma função PostgreSQL torna o conjunto atômico e permite rollback completo quando a validação do substituto falha; (3) o teste de atomicidade deve provocar a falha depois da reversão, por exemplo desativando temporariamente a conta financeira, e verificar que o original continua `settled` e sem reversal persistido; (4) saldo inicial deve reutilizar a conta canônica de abertura e permanecer fora das contas de resultado.
+
+**Aplicado:** migration `20261014000100_add_atomic_financial_transaction_correction.sql`, suíte transacional `supabase/tests/fin_recon_3_atomic_correction.sql` e correção autorizada do `Caixa Inicial` no DEV. A RPC não usa descrição, ID ou data como critério de classificação; o ID é somente o alvo explícito da operação autorizada.
+
+**Impacto futuro:** qualquer correção de transação `settled` deve preferir uma RPC específica e transacional, preservar o journal original e validar o ledger antes de expor a operação na interface. A correção de duplicidades do Fluxo de Caixa e a amortização do empréstimo de R$ 10.000 permanecem gates separados.

@@ -1192,3 +1192,21 @@ pm run build ok. E2E completo (55 testes): 50 passed + 5 failed — as 5 falhas 
 **Motivo:** Manter a agregação server-side, evitar soma incorreta da paginação e não habilitar aggregates globalmente nem criar `SECURITY DEFINER` sem necessidade.
 
 **Impacto:** Execute explícito somente para `authenticated`; `anon` e `PUBLIC` sem execute. Migration `20261013000100_add_finance_filtered_total_rpcs.sql` aplicada no DEV e não aplicada em PROD. O frontend deixou de usar o aggregate PostgREST e converte o `numeric` retornado pela RPC.
+
+---
+
+### DEC-075 - FIN-RECON-3: correção de transação liquidada por RPC atômica e append-only
+
+**Status:** FECHADA
+
+**Data:** 2026-10-14 (somente DEV; PROD intocado)
+
+**Contexto:** O lançamento `Caixa Inicial` de R$ 4.386,45 havia sido importado como `RECEITA` liquidada, embora representasse saldo inicial. O engine já possuía `SALDO_INICIAL` e a conta canônica `2.3.99.001 - Contrapartida de Saldos Iniciais`, mas não existia uma operação segura para substituir uma transação liquidada sem apagar seu histórico.
+
+**Decisão:** Criar `correct_financial_transaction_to_opening_balance(uuid, text)` como RPC `SECURITY DEFINER`, `search_path = ''`, Admin-only, com execute apenas para `authenticated`. A RPC chama a reversão copy-based existente e a criação canônica de `SALDO_INICIAL` dentro da mesma transação PostgreSQL. O vínculo entre original e substituto é preservado nas notas dos cabeçalhos; o vínculo entre journal original e reversão usa `reversal_of_entry_id` existente. Nenhuma conta contábil nova ou coluna foi criada.
+
+**Motivo:** Garantir que reversão e substituição tenham sucesso conjunto, preservar o ledger append-only e remover a natureza de receita sem exceção textual na RPC de totais.
+
+**Impacto:** `20261014000100_add_atomic_financial_transaction_correction.sql` foi aplicada somente no DEV. A transação original permanece consultável como `cancelled`, com seus journals e reversões; o substituto é `SALDO_INICIAL`, debita Cora e credita `2.3.99.001`. O fluxo de caixa deve exibir o evento como saldo inicial/abertura, não como recebimento operacional; duplicidades Competência/Liquidação permanecem fora deste gate.
+
+**Validação:** Fixture feliz e falha forçada após a reversão passaram com rollback; ACL confirmou `authenticated=true`, `anon=false`, `PUBLIC=false`; `npm test` 750/750, TypeScript e build aprovados. A correção real do DEV foi autorizada para `2355fc24-7e84-4a9f-ade4-d08d6c81085c` e substituída por `19af3ca4-6571-4cce-bd03-3f8260f6fd6f`.
