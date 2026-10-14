@@ -1210,3 +1210,23 @@ pm run build ok. E2E completo (55 testes): 50 passed + 5 failed — as 5 falhas 
 **Impacto:** `20261014000100_add_atomic_financial_transaction_correction.sql` foi aplicada somente no DEV. A transação original permanece consultável como `cancelled`, com seus journals e reversões; o substituto é `SALDO_INICIAL`, debita Cora e credita `2.3.99.001`. O fluxo de caixa deve exibir o evento como saldo inicial/abertura, não como recebimento operacional; duplicidades Competência/Liquidação permanecem fora deste gate.
 
 **Validação:** Fixture feliz e falha forçada após a reversão passaram com rollback; ACL confirmou `authenticated=true`, `anon=false`, `PUBLIC=false`; `npm test` 750/750, TypeScript e build aprovados. A correção real do DEV foi autorizada para `2355fc24-7e84-4a9f-ade4-d08d6c81085c` e substituída por `19af3ca4-6571-4cce-bd03-3f8260f6fd6f`.
+
+---
+
+### DEC-076 - FIN-FIX-3.1: adiantamentos de sócios e bens de pequeno valor
+
+**Status:** FECHADA
+
+**Data:** 2026-10-14 (somente DEV; PROD intocado)
+
+**Contexto:** O saneamento financeiro identificou que adiantamento de pró-labore não deve ser tratado como despesa definitiva e que bens individualmente imateriais não precisam ser capitalizados.
+
+**Decisão:** Adiantamentos a sócios e administradores usam a conta patrimonial `1.1.02.006 - Adiantamentos a Sócios e Administradores`, no Ativo Circulante / Outros Créditos, classe `ATIVO`, natureza `DEBITO` e DFC `OPERACIONAL`. A categoria `Adiantamento de Pró-labore` aponta para essa conta e não deve usar conta de despesa, caixa ou receita.
+
+Bens de pequeno valor podem ser reconhecidos como despesa operacional quando forem individualmente imateriais, não representarem conjunto relevante de ativos, não exigirem controle patrimonial individualizado e forem permitidos pela política contábil da empresa. O valor de referência de `R$ 1.200,00` não é um threshold universal hardcoded no engine.
+
+Assim, a impressora de `R$ 989,00` e o suporte de TV de `R$ 25,00` serão classificados como despesa operacional quando seus históricos forem saneados. Nenhum dos dois é reclassificado neste gate.
+
+**Motivo:** Separar antecipações patrimoniais de despesas definitivas e aplicar materialidade com julgamento contábil, sem automatizar uma regra rígida baseada apenas em valor.
+
+**Impacto:** A configuração futura usa a nova conta patrimonial; correções históricas permanecem append-only e serão tratadas em gate separado. Compras futuras de bens de pequeno valor não devem ser automaticamente classificadas como `IMOBILIZADO` apenas por seu tipo.
