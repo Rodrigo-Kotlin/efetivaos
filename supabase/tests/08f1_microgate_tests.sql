@@ -11,6 +11,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Asset RPCs require an authenticated Admin after the 2H.1 security hardening.
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', '51000000-0000-0000-0000-000000000001', true);
+
 -- ===========================================================================
 -- SCHEMA / CONSTRAINTS (T01-T05)
 -- ===========================================================================

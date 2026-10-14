@@ -1230,3 +1230,19 @@ Assim, a impressora de `R$ 989,00` e o suporte de TV de `R$ 25,00` serão classi
 **Motivo:** Separar antecipações patrimoniais de despesas definitivas e aplicar materialidade com julgamento contábil, sem automatizar uma regra rígida baseada apenas em valor.
 
 **Impacto:** A configuração futura usa a nova conta patrimonial; correções históricas permanecem append-only e serão tratadas em gate separado. Compras futuras de bens de pequeno valor não devem ser automaticamente classificadas como `IMOBILIZADO` apenas por seu tipo.
+
+---
+
+### DEC-077 - FIN-FIX-3.2.1: valor residual não pode exceder a aquisição
+
+**Status:** FECHADA
+
+**Data:** 2026-10-14 (somente DEV; PROD intocado)
+
+**Contexto:** O trigger `normalize_financial_asset()` alterava silenciosamente `residual_value` para `acquisition_value`, apesar de a documentação do 08F definir rejeição e constraint de banco para essa inconsistência.
+
+**Decisão:** `residual_value` deve ser maior ou igual a zero e menor ou igual a `acquisition_value`. Valores superiores são rejeitados e nunca normalizados silenciosamente. O valor depreciável é `acquisition_value - residual_value`, podendo ser zero quando o residual for igual à aquisição.
+
+**Motivo:** Preservar a intenção contábil documentada, evitar alteração silenciosa de entrada e proteger a integridade também em DML direto.
+
+**Impacto:** A migration `20261014000700_enforce_asset_residual_value_bounds.sql` remove somente o clamp de residual do trigger e adiciona a constraint `chk_residual_lte_acquisition`. As demais normalizações do trigger e a validação explícita de `create_asset` permanecem.
