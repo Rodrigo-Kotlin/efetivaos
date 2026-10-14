@@ -120,10 +120,13 @@ insert into pg_temp.tap_results (result)
 select is((select open_amount from public.financial_receivables_v where transaction_id=(select id from pg_temp.fixture_ids where name='pending_revenue')), 200::numeric, 'pending revenue AR = 200 before cancel');
 
 -- Cancel the pending revenue
-perform public.cancel_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='pending_revenue'),
-  'Test cancel pending'
-);
+do $$
+begin
+  perform public.cancel_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='pending_revenue'),
+    'Test cancel pending'
+  );
+end $$;
 
 -- Check: status is now cancelled
 insert into pg_temp.tap_results (result)
@@ -166,12 +169,15 @@ select 'credit_revenue', public.create_financial_transaction(
 );
 
 -- Settle it
-perform public.settle_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='credit_revenue'),
-  '2099-09-25',
-  (select id from pg_temp.fixture_ids where name='bank_cora'),
-  null
-);
+do $$
+begin
+  perform public.settle_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='credit_revenue'),
+    '2099-09-25',
+    (select id from pg_temp.fixture_ids where name='bank_cora'),
+    null
+  );
+end $$;
 
 -- Check: settled has 2 entries (competencia + caixa)
 insert into pg_temp.tap_results (result)
@@ -182,10 +188,13 @@ insert into pg_temp.tap_results (result)
 select is((select open_amount from public.financial_receivables_v where transaction_id=(select id from pg_temp.fixture_ids where name='credit_revenue')), 0::numeric, 'settled credit revenue AR = 0');
 
 -- Now reverse (settle) it
-perform public.cancel_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='credit_revenue'),
-  'Test reverse settled'
-);
+do $$
+begin
+  perform public.cancel_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='credit_revenue'),
+    'Test reverse settled'
+  );
+end $$;
 
 -- Check: has 4 entries (2 original + 2 reversals)
 insert into pg_temp.tap_results (result)
@@ -236,11 +245,14 @@ insert into pg_temp.tap_results (result)
 select is((select open_amount from public.financial_payables_v where transaction_id=(select id from pg_temp.fixture_ids where name='pending_expense')), 100::numeric, 'pending expense AP = 100');
 
 -- Edit 100 -> 120
-perform public.update_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='pending_expense'),
-  1, -- expected_version
-  p_amount => 120
-);
+do $$
+begin
+  perform public.update_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='pending_expense'),
+    1, -- expected_version
+    p_amount => 120
+  );
+end $$;
 
 -- Check: AP = 120 (not 220!)
 insert into pg_temp.tap_results (result)
@@ -252,11 +264,14 @@ insert into pg_temp.tap_results (result)
 select is((select count(*) from public.financial_journal_entries where transaction_id=(select id from pg_temp.fixture_ids where name='pending_expense')), 3::bigint, 'after 1 edit, has 3 journal entries (1 orig + 1 reversal + 1 new)');
 
 -- Edit 120 -> 150
-perform public.update_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='pending_expense'),
-  2, -- expected_version after 1st edit
-  p_amount => 150
-);
+do $$
+begin
+  perform public.update_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='pending_expense'),
+    2, -- expected_version after 1st edit
+    p_amount => 150
+  );
+end $$;
 
 -- Check: AP = 150
 insert into pg_temp.tap_results (result)
@@ -342,10 +357,13 @@ insert into pg_temp.tap_results (result)
 select is((select settled_amount from public.financial_receivables_v where transaction_id=(select id from pg_temp.fixture_ids where name='settle_test')), 50::numeric, 'settled revenue settled_amount = original_amount');
 
 -- Reverse the settled revenue
-perform public.cancel_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='settle_test'),
-  'Test reverse for COR-12'
-);
+do $$
+begin
+  perform public.cancel_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='settle_test'),
+    'Test reverse for COR-12'
+  );
+end $$;
 
 insert into pg_temp.tap_results (result)
 select is((select settled_amount from public.financial_receivables_v where transaction_id=(select id from pg_temp.fixture_ids where name='settle_test')), 0::numeric, 'reversed settled revenue settled_amount = 0 (COR-12)');
@@ -367,22 +385,28 @@ select 'settled_expense', public.create_financial_transaction(
   p_idempotency_key => '08n-settled-expense'
 );
 
-perform public.settle_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='settled_expense'),
-  '2099-09-25',
-  (select id from pg_temp.fixture_ids where name='bank_cora'),
-  null
-);
+do $$
+begin
+  perform public.settle_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='settled_expense'),
+    '2099-09-25',
+    (select id from pg_temp.fixture_ids where name='bank_cora'),
+    null
+  );
+end $$;
 
 -- Check: settled expense has 2 entries
 insert into pg_temp.tap_results (result)
 select is((select count(*) from public.financial_journal_entries where transaction_id=(select id from pg_temp.fixture_ids where name='settled_expense')), 2::bigint, 'settled expense has 2 entries');
 
 -- Reverse it
-perform public.cancel_financial_transaction(
-  (select id from pg_temp.fixture_ids where name='settled_expense'),
-  'Test reverse settled expense'
-);
+do $$
+begin
+  perform public.cancel_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='settled_expense'),
+    'Test reverse settled expense'
+  );
+end $$;
 
 -- Check: reversed expense has 4 entries
 insert into pg_temp.tap_results (result)
