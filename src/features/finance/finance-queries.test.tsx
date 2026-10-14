@@ -4,11 +4,12 @@ import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from './api/finance-api'
-import { useCreateCategory, useUpdateCategory } from './queries/finance-queries'
+import { useCreateCategory, useUpdateCategory, useUpdateTransaction } from './queries/finance-queries'
 
 vi.mock('./api/finance-api', () => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
+  updateTransaction: vi.fn(),
 }))
 
 const categoryValues = {
@@ -54,5 +55,26 @@ describe('finance category mutations', () => {
     })
 
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'categories'] })
+  })
+})
+
+describe('financial transaction mutations', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  it('invalidates transaction, ledger and report queries after editing', async () => {
+    vi.mocked(api.updateTransaction).mockResolvedValue()
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries').mockResolvedValue()
+    const { result } = renderHook(() => useUpdateTransaction(), { wrapper: createWrapper(queryClient) })
+
+    await act(async () => {
+      await result.current.mutateAsync({ transactionId: 'tx-1', expectedVersion: 1, amount: 8500 })
+    })
+
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'transactions'] })
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'receivables'] })
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'payables'] })
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'cashflow'] })
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'income-statement'] })
   })
 })

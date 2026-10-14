@@ -114,7 +114,7 @@ export const transactionSchema = transactionBaseSchema.refine(
       case 'EMPRESTIMO_RECEBIDO':
         return !!data.destination_account_id
       case 'EMPRESTIMO_PAGO':
-        return !!data.origin_account_id
+        return !!data.destination_account_id
       case 'AJUSTE':
         return !!data.category_id
       default:

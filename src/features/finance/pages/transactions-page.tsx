@@ -43,8 +43,11 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-slate-100 text-slate-600',
 }
 
-const AR_AP_TYPES = ['RECEITA', 'DESPESA', 'IMOBILIZADO'] as const
 const CASH_CREDIT_TYPES = ['RECEITA', 'DESPESA', 'IMOBILIZADO'] as const
+
+function isArApType(movementType: FinancialMovementType): boolean {
+  return movementType === 'RECEITA' || movementType === 'DESPESA'
+}
 
 function formatCurrency(v: number | string) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
@@ -309,7 +312,7 @@ function TransactionDetailDrawer({ transactionId, onClose, onEdit, onSettle, onC
           {tx.status === 'pending' && (
             <>
               <Button size="sm" variant="outline" onClick={() => onEdit(tx)}><Pencil className="mr-1 size-3" />Editar</Button>
-              <Button size="sm" onClick={() => onSettle(tx)}><CheckCircle className="mr-1 size-3" />{AR_AP_TYPES.includes(tx.movement_type as any) ? 'Liquidar' : 'Receber/Pagar'}</Button>
+              {isArApType(tx.movement_type) && <Button size="sm" onClick={() => onSettle(tx)}><CheckCircle className="mr-1 size-3" />{tx.movement_type === 'RECEITA' ? 'Receber' : 'Pagar'}</Button>}
               <Button size="sm" variant="outline" onClick={() => onCancel(tx)}><Ban className="mr-1 size-3" />Cancelar</Button>
             </>
           )}
@@ -441,8 +444,8 @@ function TransactionCreateDrawer({ open, onClose, defaultType }: { open: boolean
     }
   }
 
-  const showOrigin = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_PAGO', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
-  const showDest = ['DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'APORTE', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
+  const showOrigin = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
+  const showDest = ['DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
   const showCategory = activeCategories.length > 0
   const showParty = ['RECEITA', 'DESPESA'].includes(mt)
 
@@ -632,6 +635,8 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
         competence_date: tx.competence_date,
         movement_type: tx.movement_type as TransactionBaseFormValues['movement_type'],
         amount: Number(tx.amount),
+        principal_amount: tx.movement_type === 'EMPRESTIMO_PAGO' ? Number(tx.amount) : null,
+        interest_amount: tx.movement_type === 'EMPRESTIMO_PAGO' ? 0 : null,
         category_id: tx.category_id,
         origin_account_id: tx.origin_account_id,
         destination_account_id: tx.destination_account_id,
@@ -681,6 +686,8 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
         paymentMethodId: fv.payment_method_id,
         dueDate: fv.due_date,
         notes: fv.notes,
+        principalAmount: fv.movement_type === 'EMPRESTIMO_PAGO' ? fv.principal_amount ?? fv.amount : null,
+        interestAmount: fv.movement_type === 'EMPRESTIMO_PAGO' ? fv.interest_amount ?? 0 : null,
       })
       toast.success('Lancamento atualizado com sucesso.')
       onClose()
@@ -693,8 +700,8 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
   if (!tx) return null
 
   const mt = fv.movement_type || 'RECEITA'
-  const showOrigin = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_PAGO', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
-  const showDest = ['DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'APORTE', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
+  const showOrigin = ['RECEITA', 'DESPESA', 'TRANSFERENCIA', 'RETIRADA', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
+  const showDest = ['DESPESA', 'TRANSFERENCIA', 'EMPRESTIMO_RECEBIDO', 'EMPRESTIMO_PAGO', 'APORTE', 'IMOBILIZADO', 'SALDO_INICIAL'].includes(mt)
   const showCategory = activeCategories.length > 0
   const showParty = ['RECEITA', 'DESPESA'].includes(mt)
 
@@ -705,7 +712,21 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
 
         <div>
           <label className="mb-1 block text-sm font-medium">Tipo de Movimento *</label>
-          <select className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" value={mt} disabled>
+          <select className="h-10 w-full rounded-lg border border-slate-200 px-3 text-sm" value={mt}
+            onChange={e => {
+              const movementType = e.target.value as TransactionBaseFormValues['movement_type']
+              setFv(p => ({
+                ...p,
+                movement_type: movementType,
+                category_id: p.category_id && activeCategories.find(category => category.id === p.category_id)?.movement_type === movementType
+                  ? p.category_id
+                  : null,
+                origin_account_id: movementType === 'EMPRESTIMO_PAGO' ? null : p.origin_account_id,
+                destination_account_id: movementType === 'EMPRESTIMO_PAGO' ? p.destination_account_id ?? p.origin_account_id : p.destination_account_id,
+                principal_amount: movementType === 'EMPRESTIMO_PAGO' ? p.principal_amount ?? p.amount ?? 0 : null,
+                interest_amount: movementType === 'EMPRESTIMO_PAGO' ? p.interest_amount ?? 0 : null,
+              }))
+            }}>
             {MOVEMENT_TYPE_GROUPS.map(g => (
               <optgroup key={g.label} label={g.label}>
                 {g.types.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
@@ -736,6 +757,19 @@ function TransactionEditDrawer({ tx, open, onClose }: { tx: FinancialTransaction
           <Input type="number" step="0.01" min="0" value={fv.amount || ''} onChange={e => setFv(p => ({ ...p, amount: parseFloat(e.target.value) || 0 }))} />
           {fe.amount && <p className="mt-1 text-xs text-red-600">{fe.amount}</p>}
         </div>
+
+        {mt === 'EMPRESTIMO_PAGO' && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Principal (R$) *</label>
+              <Input type="number" step="0.01" min="0.01" value={fv.principal_amount || ''} onChange={e => setFv(p => ({ ...p, principal_amount: parseFloat(e.target.value) || 0 }))} />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Juros (R$)</label>
+              <Input type="number" step="0.01" min="0" value={fv.interest_amount ?? ''} onChange={e => setFv(p => ({ ...p, interest_amount: parseFloat(e.target.value) || 0 }))} />
+            </div>
+          </div>
+        )}
 
         {showOrigin && (
           <div>

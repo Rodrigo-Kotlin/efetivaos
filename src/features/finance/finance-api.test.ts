@@ -36,6 +36,7 @@ import {
   settleTransaction,
   cancelTransaction,
   fetchIncomeStatement,
+  updateTransaction,
 } from './api/finance-api'
 
 const serviceMocks = vi.hoisted(() => ({
@@ -430,6 +431,18 @@ describe('Transactions API', () => {
   it('cancelTransaction propaga erro do RPC', async () => {
     serviceMocks.rpcResults.push({ data: null, error: { message: 'Already cancelled' } })
     await expect(cancelTransaction('tx-2')).rejects.toThrow()
+  })
+
+  it('updateTransaction envia valor, classificacao e amortizacao para a RPC', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: null })
+    await updateTransaction({
+      transactionId: 'tx-1', expectedVersion: 2, description: 'Retirada do caixa Cora',
+      transactionDate: '2026-01-01', competenceDate: '2026-01-01', movementType: 'EMPRESTIMO_PAGO',
+      amount: 10000, originAccountId: 'account-1', principalAmount: 10000, interestAmount: 0,
+    })
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:update_financial_transaction')
+    expect(rpcOp).toBeTruthy()
+    expect(rpcOp!.args[0]).toMatchObject({ p_transaction_id: 'tx-1', p_expected_version: 2, p_amount: 10000, p_movement_type: 'EMPRESTIMO_PAGO', p_principal_amount: 10000, p_interest_amount: 0 })
   })
 })
 
