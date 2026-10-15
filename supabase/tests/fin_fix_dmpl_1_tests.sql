@@ -17,8 +17,8 @@ INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT amount FROM public.get_income_statement('2026-01-01', '2026-01-31', null, null)
    WHERE row_code = 'RESULTADO_LIQUIDO'),
-  14074.79::numeric,
-  'January DRE net result is canonical'
+  11185.79::numeric,
+  'January post-saneamento DRE net result is canonical'
 );
 
 INSERT INTO pg_temp.tap_results (result)
@@ -43,8 +43,8 @@ INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT resultado_exercicio FROM public.get_statement_of_changes_in_equity('2026-01-01', '2026-01-31')
    WHERE row_label = 'Resultado do Periodo'),
-  14074.79::numeric,
-  'January DMPL period result is R$ 14,074.79'
+  11185.79::numeric,
+  'January post-saneamento DMPL period result is R$ 11,185.79'
 );
 
 INSERT INTO pg_temp.tap_results (result)

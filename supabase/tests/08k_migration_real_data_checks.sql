@@ -2,7 +2,7 @@
 -- ETAPA 08K - DEV financial configuration and ledger invariants
 --
 -- The former version asserted a 662-row import snapshot that is not present in
--- this DEV baseline. This gate intentionally validates the current 101/204/408
+-- this DEV baseline. This gate intentionally validates the current 107/228/456
 -- baseline without importing or rewriting historical January data.
 -- ============================================================================
 
@@ -99,11 +99,11 @@ SELECT _08k_assert(
 );
 
 SELECT _08k_assert(
-  (SELECT count(*) FROM public.financial_transactions) = 101
-  AND (SELECT count(*) FROM public.financial_journal_entries) = 204
-  AND (SELECT count(*) FROM public.financial_journal_lines) = 408
+  (SELECT count(*) FROM public.financial_transactions) = 107
+  AND (SELECT count(*) FROM public.financial_journal_entries) = 228
+  AND (SELECT count(*) FROM public.financial_journal_lines) = 456
   AND (SELECT count(*) FROM public.financial_assets) = 0,
-  '1.9 baseline DEV permanece 101/204/408/0'
+  '1.9 baseline DEV pos-saneamento permanece 107/228/456/0'
 );
 
 SELECT _08k_assert(

@@ -17,16 +17,16 @@ INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT amount FROM public.get_value_added_statement('2026-01-01', '2026-01-31')
    WHERE row_label = '= Valor Adicionado Total a Distribuir'),
-  36056.98::numeric,
-  'January total added value to distribute is canonical'
+  33167.98::numeric,
+  'January post-saneamento total added value to distribute is canonical'
 );
 
 INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT amount FROM public.get_value_added_statement('2026-01-01', '2026-01-31')
    WHERE row_label = '= Total Distribuido'),
-  36056.98::numeric,
-  'January total distributed equals canonical total'
+  33167.98::numeric,
+  'January post-saneamento total distributed equals canonical total'
 );
 
 INSERT INTO pg_temp.tap_results (result)
@@ -52,8 +52,8 @@ INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT amount FROM public.get_income_statement('2026-01-01', '2026-01-31', null, null)
    WHERE row_code = 'RESULTADO_LIQUIDO'),
-  14074.79::numeric,
-  'DRE net result is January reference'
+  11185.79::numeric,
+  'post-saneamento DRE net result is January reference'
 );
 
 INSERT INTO pg_temp.tap_results (result)

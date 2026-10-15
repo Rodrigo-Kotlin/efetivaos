@@ -29,8 +29,8 @@ SELECT
 INSERT INTO pg_temp.tap_results (result)
 SELECT extensions.is(
   (SELECT cash FROM bs_baseline),
-  5202.24::numeric,
-  'baseline: Banco Cora remains R$ 5,202.24'
+  2313.24::numeric,
+  'post-saneamento: Banco Cora is R$ 2,313.24'
 );
 
 INSERT INTO pg_temp.tap_results (result)
@@ -43,8 +43,8 @@ SELECT extensions.is(
 INSERT INTO pg_temp.tap_results (result)
 SELECT extensions.is(
   (SELECT january_result FROM bs_baseline),
-  14074.79::numeric,
-  'baseline: January DRE result is R$ 14,074.79'
+  11185.79::numeric,
+  'post-saneamento: January DRE result is R$ 11,185.79'
 );
 
 INSERT INTO pg_temp.tap_results (result)

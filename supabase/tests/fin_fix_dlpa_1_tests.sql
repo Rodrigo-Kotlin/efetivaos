@@ -26,8 +26,8 @@ INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT amount FROM public.get_retained_earnings_statement('2026-01-01', '2026-01-31')
    WHERE row_label = '(+) Resultado Liquido do Periodo'),
-  14074.79::numeric,
-  'DLPA result is R$ 14,074.79'
+  11185.79::numeric,
+  'DLPA result is R$ 11,185.79 after historical correction'
 );
 
 INSERT INTO pg_temp.tap_results (result)
@@ -50,8 +50,8 @@ INSERT INTO pg_temp.tap_results (result)
 SELECT is(
   (SELECT amount FROM public.get_retained_earnings_statement('2026-01-01', '2026-01-31')
    WHERE row_label = '= Saldo Final'),
-  14074.79::numeric,
-  'DLPA final is R$ 14,074.79'
+  11185.79::numeric,
+  'DLPA final is R$ 11,185.79 after historical correction'
 );
 
 INSERT INTO pg_temp.tap_results (result)
