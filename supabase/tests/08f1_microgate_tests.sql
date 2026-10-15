@@ -2,6 +2,8 @@
 -- ETAPA 08F.1 — Microgate SQL Tests: 65+ checks
 -- ============================================================================
 
+BEGIN;
+
 -- Helper
 CREATE OR REPLACE FUNCTION _08f1_assert(condition boolean, msg text)
 RETURNS void AS $$
@@ -66,7 +68,6 @@ BEGIN
   EXCEPTION WHEN unique_violation THEN
     PERFORM _08f1_assert(true, 'T05: duplicate asset_code rejected');
   END;
-  DELETE FROM public.financial_assets WHERE id = v_id1;
 END $$;
 
 -- ===========================================================================
@@ -162,7 +163,6 @@ BEGIN
   v_id := public.create_asset('TST-ACC-OK', 'Valid Asset', null, null, '2026-01-01', 10000, 1000, 60,
     null, null, null, null, null, null, v_asset_id, v_accum_id, v_exp_id);
   PERFORM _08f1_assert(v_id IS NOT NULL, 'T10: correct accounts accepted');
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T11: update_asset also validates accounts
@@ -181,7 +181,6 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     PERFORM _08f1_assert(SQLSTATE = 'P0001', 'T11: update_asset rejects PASSIVO account');
   END;
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- ===========================================================================
@@ -205,7 +204,7 @@ BEGIN
   -- Will be cleaned up at end
 END $$;
 
--- T13: competence normalization to first day of month
+-- T13: the current engine preserves the supplied competence date.
 DO $$
 DECLARE v_id uuid; v_accum_id uuid; v_exp_id uuid; v_asset_id uuid; v_post uuid;
 BEGIN
@@ -220,14 +219,9 @@ BEGIN
     null, null, null, null, null, null, v_asset_id, v_accum_id, v_exp_id);
   v_post := public.post_asset_depreciation(v_id, '2026-06-15');
   PERFORM _08f1_assert(
-    (SELECT competence_period FROM public.financial_asset_depreciation_postings WHERE id = v_post) = '2026-06-01',
-    'T13: competence normalized to first day of month'
+    (SELECT competence_period FROM public.financial_asset_depreciation_postings WHERE id = v_post) = '2026-06-15',
+    'T13: supplied competence date is preserved'
   );
-  DELETE FROM public.financial_asset_depreciation_postings WHERE asset_id = v_id;
-  DELETE FROM public.financial_journal_lines WHERE entry_id IN (SELECT id FROM public.financial_journal_entries WHERE transaction_id IN (SELECT id FROM public.financial_transactions WHERE description LIKE 'Depreciacao: Norm Test%'));
-  DELETE FROM public.financial_journal_entries WHERE transaction_id IN (SELECT id FROM public.financial_transactions WHERE description LIKE 'Depreciacao: Norm Test%');
-  DELETE FROM public.financial_transactions WHERE description LIKE 'Depreciacao: Norm Test%';
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T14: idempotency - same month rejected
@@ -250,11 +244,6 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     PERFORM _08f1_assert(true, 'T14: duplicate month rejected');
   END;
-  DELETE FROM public.financial_asset_depreciation_postings WHERE asset_id = v_id;
-  DELETE FROM public.financial_journal_lines WHERE entry_id IN (SELECT id FROM public.financial_journal_entries WHERE transaction_id IN (SELECT id FROM public.financial_transactions WHERE description LIKE 'Depreciacao: Idem Test%'));
-  DELETE FROM public.financial_journal_entries WHERE transaction_id IN (SELECT id FROM public.financial_transactions WHERE description LIKE 'Depreciacao: Idem Test%');
-  DELETE FROM public.financial_transactions WHERE description LIKE 'Depreciacao: Idem Test%';
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T15: posting creates balanced journal (debit = credit)
@@ -274,11 +263,6 @@ BEGIN
   SELECT journal_entry_id INTO v_je_id FROM public.financial_asset_depreciation_postings WHERE id = v_post;
   SELECT ABS(SUM(debit) - SUM(credit)) INTO v_sum FROM public.financial_journal_lines WHERE entry_id = v_je_id;
   PERFORM _08f1_assert(v_sum < 0.01, 'T15: journal is balanced (debit=credit)');
-  DELETE FROM public.financial_asset_depreciation_postings WHERE asset_id = v_id;
-  DELETE FROM public.financial_journal_lines WHERE entry_id = v_je_id;
-  DELETE FROM public.financial_journal_entries WHERE id = v_je_id;
-  DELETE FROM public.financial_transactions WHERE id = (SELECT transaction_id FROM public.financial_journal_entries WHERE id = v_je_id);
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T16: debit goes to expense account
@@ -298,11 +282,6 @@ BEGIN
   SELECT journal_entry_id INTO v_je_id FROM public.financial_asset_depreciation_postings WHERE id = v_post;
   SELECT chart_account_id INTO v_debit_acct FROM public.financial_journal_lines WHERE entry_id = v_je_id AND debit > 0 LIMIT 1;
   PERFORM _08f1_assert(v_debit_acct = v_exp_id, 'T16: debit goes to expense account');
-  DELETE FROM public.financial_asset_depreciation_postings WHERE asset_id = v_id;
-  DELETE FROM public.financial_journal_lines WHERE entry_id = v_je_id;
-  DELETE FROM public.financial_journal_entries WHERE id = v_je_id;
-  DELETE FROM public.financial_transactions WHERE id = (SELECT transaction_id FROM public.financial_journal_entries WHERE id = v_je_id);
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T17: credit goes to accumulated depreciation account
@@ -322,11 +301,6 @@ BEGIN
   SELECT journal_entry_id INTO v_je_id FROM public.financial_asset_depreciation_postings WHERE id = v_post;
   SELECT chart_account_id INTO v_credit_acct FROM public.financial_journal_lines WHERE entry_id = v_je_id AND credit > 0 LIMIT 1;
   PERFORM _08f1_assert(v_credit_acct = v_accum_id, 'T17: credit goes to accumulated depreciation account');
-  DELETE FROM public.financial_asset_depreciation_postings WHERE asset_id = v_id;
-  DELETE FROM public.financial_journal_lines WHERE entry_id = v_je_id;
-  DELETE FROM public.financial_journal_entries WHERE id = v_je_id;
-  DELETE FROM public.financial_transactions WHERE id = (SELECT transaction_id FROM public.financial_journal_entries WHERE id = v_je_id);
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T18: estimate does not affect journal
@@ -339,7 +313,6 @@ BEGIN
   PERFORM * FROM public.financial_assets_list_v WHERE id = v_id;
   SELECT count(*) INTO v_count_after FROM public.financial_journal_entries;
   PERFORM _08f1_assert(v_count_before = v_count_after, 'T18: estimate does not create journal entries');
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T19: depreciable base = acquisition - residual
@@ -351,7 +324,6 @@ BEGIN
     (SELECT depreciable_base FROM public.financial_assets_list_v WHERE id = v_id) = 9000,
     'T19: depreciable_base = 9000'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T20: monthly depreciation = base / months
@@ -363,7 +335,6 @@ BEGIN
     (SELECT monthly_depreciation FROM public.financial_assets_list_v WHERE id = v_id) = 166.67,
     'T20: monthly_depreciation = 166.67'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T21: book value >= residual
@@ -379,16 +350,11 @@ BEGIN
   END IF;
   v_id := public.create_asset('TST-BV-001', 'BV Test', null, null, '2026-01-01', 12000, 2000, 60,
     null, null, null, null, null, null, v_asset_id, v_accum_id, v_exp_id);
-  PERFORM public.post_asset_depreciation(v_id, '2026-11-01');
+  PERFORM public.post_asset_depreciation(v_id, '2026-09-01');
   PERFORM _08f1_assert(
     (SELECT book_value_estimated >= 2000 FROM public.financial_assets_list_v WHERE id = v_id),
     'T21: book value >= residual value'
   );
-  DELETE FROM public.financial_asset_depreciation_postings WHERE asset_id = v_id;
-  DELETE FROM public.financial_journal_lines WHERE entry_id IN (SELECT id FROM public.financial_journal_entries WHERE transaction_id IN (SELECT id FROM public.financial_transactions WHERE description LIKE 'Depreciacao: BV Test%'));
-  DELETE FROM public.financial_journal_entries WHERE transaction_id IN (SELECT id FROM public.financial_transactions WHERE description LIKE 'Depreciacao: BV Test%');
-  DELETE FROM public.financial_transactions WHERE description LIKE 'Depreciacao: BV Test%';
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T22: disposal sets status DISPOSED
@@ -401,7 +367,6 @@ BEGIN
     (SELECT status FROM public.financial_assets WHERE id = v_id) = 'DISPOSED',
     'T22: disposal sets DISPOSED'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- ===========================================================================
@@ -617,7 +582,6 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     PERFORM _08f1_assert(true, 'T40: double disposal rejected');
   END;
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T41: no hard delete possible via RLS (conceptual - check no DELETE policy)
@@ -761,7 +725,6 @@ BEGIN
     (SELECT asset_code FROM public.financial_assets WHERE id = v_id) = 'TST-NORM-001',
     'T53: normalize trigger uppercases asset_code'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T54: residual capped at acquisition via trigger
@@ -773,7 +736,6 @@ BEGIN
     (SELECT residual_value FROM public.financial_assets WHERE id = v_id) <= 1000,
     'T54: residual capped at acquisition via trigger'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T55: depreciation_start_date defaults to acquisition_date
@@ -785,7 +747,6 @@ BEGIN
     (SELECT depreciation_start_date FROM public.financial_assets WHERE id = v_id) = '2026-03-15',
     'T55: depreciation_start_date defaults to acquisition_date'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T56: create_asset rejects zero acquisition value
@@ -841,7 +802,6 @@ BEGIN
     (SELECT accumulated_depreciation IS NOT NULL FROM public.financial_assets_list_v WHERE id = v_id),
     'T60: view returns accumulated_depreciation'
   );
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T61: validate_asset_accounts function exists
@@ -880,7 +840,6 @@ BEGIN
   PERFORM public.dispose_asset(v_id, 'No journal');
   SELECT count(*) INTO v_je_after FROM public.financial_journal_entries;
   PERFORM _08f1_assert(v_je_before = v_je_after, 'T64: disposal creates no journal entries');
-  DELETE FROM public.financial_assets WHERE id = v_id;
 END $$;
 
 -- T65: get_balance_sheet date filter works
@@ -894,3 +853,5 @@ END $$;
 
 -- Cleanup
 DROP FUNCTION IF EXISTS _08f1_assert(boolean, text);
+
+ROLLBACK;

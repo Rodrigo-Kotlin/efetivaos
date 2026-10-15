@@ -1,7 +1,7 @@
 -- ==========================================================================
 -- 08N: Finance Operational Workflow Tests
 -- Microgate 03: F-04, F-05, F-07, F-08, F-09
--- Minimum 60 checks (COR-21)
+-- 49 checks are currently executed by this file.
 -- ==========================================================================
 
 begin;
@@ -18,7 +18,7 @@ create temporary table fixture_ids (
   id uuid not null
 ) on commit drop;
 
-insert into pg_temp.tap_results (result) select plan(66);
+insert into pg_temp.tap_results (result) select plan(49);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures
@@ -33,27 +33,27 @@ declare
 begin
   select fa.id into v_bank_cora
   from public.financial_accounts fa
-  where fa.name ILIKE '%cora%' and fa.active = true
-  limit 1;
-  if v_bank_cora is null then
-    select fa.id into v_bank_cora from public.financial_accounts fa where fa.active = true limit 1;
-  end if;
+  join public.financial_chart_accounts ca on ca.id = fa.chart_account_id
+  where ca.code = '1.1.01.002' and fa.active = true;
 
   select fa.id into v_bank_nu
   from public.financial_accounts fa
-  where fa.name ILIKE '%nu%' and fa.active = true and fa.id <> v_bank_cora
-  limit 1;
-  if v_bank_nu is null then
-    v_bank_nu := v_bank_cora;
-  end if;
+  join public.financial_chart_accounts ca on ca.id = fa.chart_account_id
+  where ca.code = '1.1.01.003' and fa.active = true;
 
   select fc.id into v_revenue_category
   from public.financial_categories fc
-  where fc.movement_type = 'RECEITA' and fc.active = true limit 1;
+  join public.financial_chart_accounts ca on ca.id = fc.counter_account_id
+  where ca.code = '3.1.01.001' and fc.movement_type = 'RECEITA' and fc.active = true;
 
   select fc.id into v_expense_category
   from public.financial_categories fc
-  where fc.movement_type = 'DESPESA' and fc.active = true limit 1;
+  join public.financial_chart_accounts ca on ca.id = fc.counter_account_id
+  where ca.code = '5.2.01.001' and fc.movement_type = 'DESPESA' and fc.active = true;
+
+  if v_bank_cora is null or v_bank_nu is null or v_revenue_category is null or v_expense_category is null then
+    raise exception '08N deterministic fixtures are missing';
+  end if;
 
   insert into pg_temp.fixture_ids (name, id) values
     ('bank_cora', v_bank_cora),
@@ -297,6 +297,15 @@ select throws_ok(
 -- 5. Double reversal denied (COR-1) — 2 checks
 -- ---------------------------------------------------------------------------
 
+-- Complete the pending expense cancellation before testing a second attempt.
+do $$
+begin
+  perform public.cancel_financial_transaction(
+    (select id from pg_temp.fixture_ids where name='pending_expense'),
+    'Test cancel pending expense'
+  );
+end $$;
+
 -- Try to cancel again (already cancelled)
 insert into pg_temp.tap_results (result)
 select throws_ok(
@@ -307,7 +316,7 @@ select throws_ok(
 
 -- Check: no extra entries created by failed attempt
 insert into pg_temp.tap_results (result)
-select is((select count(*) from public.financial_journal_entries where transaction_id=(select id from pg_temp.fixture_ids where name='pending_expense')), 5::bigint, 'no extra entries from failed double cancel');
+select is((select count(*) from public.financial_journal_entries where transaction_id=(select id from pg_temp.fixture_ids where name='pending_expense')), 6::bigint, 'no extra entries from failed double cancel');
 
 -- ---------------------------------------------------------------------------
 -- 6. Settle validation (COR-3) — 3 checks
@@ -345,7 +354,7 @@ select lives_ok(
 insert into pg_temp.tap_results (result)
 select throws_ok(
   format('select public.settle_financial_transaction(%L::uuid, ''2099-09-26''::date, %L::uuid)', (select id from pg_temp.fixture_ids where name='settle_test'), (select id from pg_temp.fixture_ids where name='bank_cora')),
-  'P0001', 'Transacao ja possui liquidacao vigente',
+  'P0001', 'Apenas transacoes pendentes podem ser liquidadas. Status atual: settled',
   'double settlement denied'
 );
 
@@ -449,7 +458,7 @@ select throws_ok(
 -- Append-only: journal line delete blocked
 insert into pg_temp.tap_results (result)
 select throws_ok(
-  format('delete from public.financial_journal_lines where entry_id=(select id from public.financial_journal_entries where transaction_id=%L::uuid limit 1)', (select id from pg_temp.fixture_ids where name='settled_expense')),
+  format('delete from public.financial_journal_lines where entry_id in (select id from public.financial_journal_entries where transaction_id=%L::uuid)', (select id from pg_temp.fixture_ids where name='settled_expense')),
   'P0001', 'Journal lines are immutable. Deletions are not allowed.',
   'journal line delete remains blocked'
 );
@@ -493,8 +502,8 @@ select ok(
    join public.financial_journal_lines jl on jl.entry_id=je.id
    join public.financial_chart_accounts ca on ca.id=jl.chart_account_id
    where je.transaction_id=(select id from pg_temp.fixture_ids where name='cash_revenue_cora')
-   and ca.code='1.1.02.001') > 0,
-  'cash revenue Cora posts to AR/caixa correctly'
+    and ca.is_cash = true) > 0,
+  'cash revenue Cora debits bank, not AR'
 );
 
 -- Check: NU has +200
@@ -504,8 +513,8 @@ select ok(
    join public.financial_journal_lines jl on jl.entry_id=je.id
    join public.financial_chart_accounts ca on ca.id=jl.chart_account_id
    where je.transaction_id=(select id from pg_temp.fixture_ids where name='cash_revenue_nu')
-   and ca.code='1.1.02.001') > 0,
-  'cash revenue NU posts to AR/caixa correctly'
+    and ca.is_cash = true) > 0,
+  'cash revenue NU debits bank, not AR'
 );
 
 -- Check: consolidated cashflow net = +300

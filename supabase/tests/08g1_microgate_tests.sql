@@ -3,6 +3,11 @@
 -- Adds T51-T80 to reach 80 total
 -- ============================================================================
 
+BEGIN;
+
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', '51000000-0000-0000-0000-000000000001', true);
+
 -- Helper: assert (recreate since 08g drops it)
 CREATE OR REPLACE FUNCTION _08g_assert(condition boolean, msg text)
 RETURNS void AS $$
@@ -48,13 +53,13 @@ BEGIN
   WHERE row_label = 'Saldo Inicial';
 
   SELECT COALESCE(SUM(total_pl), 0) INTO v_aportes FROM public.get_statement_of_changes_in_equity('2026-01-01', '2026-12-31')
-  WHERE row_label = 'Aportes';
+  WHERE row_label = 'Aportes de Capital';
 
   SELECT COALESCE(SUM(total_pl), 0) INTO v_resultado FROM public.get_statement_of_changes_in_equity('2026-01-01', '2026-12-31')
-  WHERE row_label = 'Resultado do Exercicio';
+  WHERE row_label = 'Resultado do Periodo';
 
   SELECT COALESCE(SUM(total_pl), 0) INTO v_distribuicoes FROM public.get_statement_of_changes_in_equity('2026-01-01', '2026-12-31')
-  WHERE row_label = 'Distribuicoes';
+  WHERE row_label = 'Distribuicoes / Retiradas';
 
   SELECT COALESCE(SUM(total_pl), 0) INTO v_ajustes FROM public.get_statement_of_changes_in_equity('2026-01-01', '2026-12-31')
   WHERE row_label = 'Ajustes de Exercicios Anteriores';
@@ -161,20 +166,22 @@ BEGIN
   );
 END $$;
 
--- T57: DLPA Saldo Final reconciles with PL LP account in BP
+-- T57: DLPA Saldo Final reconciles with the dynamic BP RE component
 DO $$
 DECLARE
   v_dlpa_final numeric(15,2);
-  v_bp_lp numeric(15,2);
+  v_bp_re numeric(15,2);
 BEGIN
   SELECT amount INTO v_dlpa_final FROM public.get_retained_earnings_statement('2026-01-01', '2026-12-31')
   WHERE row_label LIKE '%Saldo Final%';
 
-  SELECT COALESCE(SUM(bs.amount), 0) INTO v_bp_lp
+  -- T57_OLD_EXPECTATION: compare against physical 2.3.03.001.
+  -- T57_NEW_INVARIANT: compare against the BP's dynamic Resultado do Exercicio.
+  SELECT COALESCE(SUM(bs.amount), 0) INTO v_bp_re
   FROM public.get_balance_sheet('2026-12-31') bs
-  WHERE bs.label LIKE '%Lucros%Prejuizos%Acumulados%';
+  WHERE bs.row_code = 'RE';
 
-  PERFORM _08g_assert(ABS(v_dlpa_final - v_bp_lp) < 0.01, 'T57: DLPA Saldo Final = BP Lucros/Prejuizos Acumulados');
+  PERFORM _08g_assert(ABS(v_dlpa_final - v_bp_re) < 0.01, 'T57: DLPA Saldo Final = BP dynamic RE');
 END $$;
 
 -- T58: DLPA empty period returns rows
@@ -630,3 +637,5 @@ BEGIN
     'T80: create_manual_journal_adjustment has search_path set'
   );
 END $$;
+
+ROLLBACK;

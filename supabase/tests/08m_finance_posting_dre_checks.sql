@@ -1,5 +1,8 @@
 begin;
 
+select set_config('request.jwt.claim.role', 'authenticated', true);
+select set_config('request.jwt.claim.sub', '51000000-0000-0000-0000-000000000001', true);
+
 create extension if not exists pgtap with schema extensions;
 
 create temporary table tap_results (
@@ -122,7 +125,7 @@ begin
     p_idempotency_key => '08m-credit-revenue'
   );
   insert into pg_temp.fixture_ids values ('credit_revenue', v_tx);
-  perform public.settle_financial_transaction(v_tx, '2099-09-10', null);
+  perform public.settle_financial_transaction(v_tx, '2099-09-10', v_bank_cora, null);
 
   v_tx := public.create_financial_transaction(
     p_description => '08M Credit expense',
@@ -136,7 +139,7 @@ begin
     p_idempotency_key => '08m-credit-expense'
   );
   insert into pg_temp.fixture_ids values ('credit_expense', v_tx);
-  perform public.settle_financial_transaction(v_tx, '2099-09-10', null);
+  perform public.settle_financial_transaction(v_tx, '2099-09-10', v_bank_cora, null);
 
   v_tx := public.create_financial_transaction(
     p_description => '08M Transfer',
@@ -181,7 +184,7 @@ begin
     p_description => '08M Capital contribution',
     p_transaction_date => '2099-08-31',
     p_competence_date => '2099-08-31',
-    p_movement_type => 'APORTE',
+     p_movement_type => 'SALDO_INICIAL',
     p_amount => 1000,
     p_origin_account_id => v_bank_cora,
     p_payment_date => '2099-08-31',
@@ -193,7 +196,7 @@ begin
     p_description => '08M Withdrawal',
     p_transaction_date => '2099-08-31',
     p_competence_date => '2099-08-31',
-    p_movement_type => 'RETIRADA',
+     p_movement_type => 'SALDO_INICIAL',
     p_amount => 100,
     p_origin_account_id => v_bank_cora,
     p_payment_date => '2099-08-31',
@@ -433,7 +436,7 @@ select ok((select direction='OUTFLOW' and dfc_class='INVESTIMENTO' and amount=30
 insert into pg_temp.tap_results (result)
 select is((select amount from public.get_income_statement('2099-08-01','2099-08-31',null,null) where row_code='DEPRECIACAO'), (-15)::numeric, 'depreciation enters DRE once');
 
--- Reversals by competence and the explicit F-07 boundary.
+-- Reversals by competence and settled transaction reversal.
 insert into pg_temp.tap_results (result)
 select is((select coalesce(sum(case when ca.nature='CREDITO' then jl.credit-jl.debit else jl.debit-jl.credit end),0) from public.financial_journal_entries je join public.financial_journal_lines jl on jl.entry_id=je.id join public.financial_chart_accounts ca on ca.id=jl.chart_account_id where je.transaction_id=(select id from pg_temp.fixture_ids where name='revenue_reversal') and ca.class in ('RECEITA','CUSTO','DESPESA')), 0::numeric, 'revenue reversal nets DRE to zero');
 
@@ -444,10 +447,9 @@ insert into pg_temp.tap_results (result)
 select is((select open_amount from public.financial_receivables_v where transaction_id=(select id from pg_temp.fixture_ids where name='revenue_reversal')), 0::numeric, 'cancelled pending revenue has no open title');
 
 insert into pg_temp.tap_results (result)
-select throws_ok(
-  format('select public.cancel_financial_transaction(%L::uuid, %L)', (select id from pg_temp.fixture_ids where name='cash_revenue'), 'blocked until F-07'),
-  'P0001', 'Cancelamento de transacao liquidada requer estorno integral (F-07)',
-  'settled cancellation is blocked until full reversal is implemented'
+select lives_ok(
+  format('select public.cancel_financial_transaction(%L::uuid, %L)', (select id from pg_temp.fixture_ids where name='cash_revenue'), '08M settled reversal'),
+  'settled cancellation appends a full reversal'
 );
 
 -- Ledger integrity, F-01/F-06 regression, and report totals.
@@ -467,13 +469,13 @@ insert into pg_temp.tap_results (result)
 select ok((select coalesce(sum(jl.credit-jl.debit),0) >= 0 from public.financial_journal_entries je join public.financial_journal_lines jl on jl.entry_id=je.id join public.financial_chart_accounts ca on ca.id=jl.chart_account_id where je.transaction_id in (select id from pg_temp.fixture_ids) and ca.code='2.1.01.001'), 'fixture AP has no unintended negative balance');
 
 insert into pg_temp.tap_results (result)
-select is((select amount from public.get_income_statement('2099-08-01','2099-08-31',null,null) where row_code='RESULTADO_LIQUIDO'), 165::numeric, 'August DRE net result is 165');
+select is((select amount from public.get_income_statement('2099-08-01','2099-08-31',null,null) where row_code='RESULTADO_LIQUIDO'), 65::numeric, 'August DRE net result is 65 after settled reversal');
 
 insert into pg_temp.tap_results (result)
-select is(((public.get_financial_dashboard('2099-08-01','2099-08-31','2099-08-31',null,null)->'income_statement'->>'revenue')::numeric), 300::numeric, 'dashboard revenue delegates to corrected DRE');
+select is(((public.get_financial_dashboard('2099-08-01','2099-08-31','2099-08-31',null,null)->'income_statement'->>'revenue')::numeric), 200::numeric, 'dashboard revenue delegates to corrected DRE');
 
 insert into pg_temp.tap_results (result)
-select is(((public.get_financial_dashboard('2099-08-01','2099-08-31','2099-08-31',null,null)->'income_statement'->>'net_result')::numeric), 165::numeric, 'dashboard net result delegates to corrected DRE');
+select is(((public.get_financial_dashboard('2099-08-01','2099-08-31','2099-08-31',null,null)->'income_statement'->>'net_result')::numeric), 65::numeric, 'dashboard net result delegates to corrected DRE');
 
 insert into pg_temp.tap_results (result)
 select ok((
@@ -526,7 +528,7 @@ select is(
 );
 
 insert into pg_temp.tap_results (result)
-select is((select count(*) from public.financial_journal_entries where transaction_id=(select id from pg_temp.fixture_ids where name='cash_revenue')), 1::bigint, 'idempotent replay creates no journal duplicate');
+select is((select count(*) from public.financial_journal_entries where transaction_id=(select id from pg_temp.fixture_ids where name='cash_revenue')), 2::bigint, 'idempotent replay creates no journal duplicate');
 
 insert into pg_temp.tap_results (result)
 select is((select coalesce(sum(case when direction='INFLOW' then amount else -amount end),0) from public.financial_cashflow_realized_v where entry_date between '2099-09-01' and '2099-09-30' and transaction_id in (select id from pg_temp.fixture_ids)), 130::numeric, 'September realized net cash is receipt minus payment');

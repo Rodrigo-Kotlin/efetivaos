@@ -3,6 +3,9 @@
 -- 15 checks focused on permissions, competence, integrity, formulas
 -- ============================================================================
 
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', '51000000-0000-0000-0000-000000000001', true);
+
 SELECT * FROM (
   -- 1. security_definer
   SELECT 'security_definer' AS test_name,
@@ -14,10 +17,10 @@ SELECT * FROM (
 
   -- 2. search_path_set
   SELECT 'search_path_set',
-         (SELECT p.proconfig FROM pg_proc p
-          JOIN pg_namespace n ON n.oid = p.pronamespace
-          WHERE n.nspname = 'public' AND p.proname = 'get_income_statement')
-         @> ARRAY['search_path=public, pg_temp']
+   (SELECT p.proconfig FROM pg_proc p
+           JOIN pg_namespace n ON n.oid = p.pronamespace
+           WHERE n.nspname = 'public' AND p.proname = 'get_income_statement')
+          @> ARRAY['search_path=""']
 
   UNION ALL
 
@@ -74,10 +77,10 @@ SELECT * FROM (
 
   UNION ALL
 
-  -- 9. formula_ebitda: EBITDA = LUCRO_BRUTO - DESPESAS_OPERACIONAIS
+   -- 9. formula_ebitda: operating expenses are represented as negative amounts
   SELECT 'formula_ebitda',
          (SELECT count(*) = 0 FROM (
-           SELECT lb.amount - d.amount - e.amount AS diff
+            SELECT lb.amount + d.amount - e.amount AS diff
            FROM public.get_income_statement(NULL, NULL, NULL, NULL) lb
            JOIN public.get_income_statement(NULL, NULL, NULL, NULL) d ON d.row_code = 'DESPESAS_OPERACIONAIS'
            JOIN public.get_income_statement(NULL, NULL, NULL, NULL) e ON e.row_code = 'EBITDA'

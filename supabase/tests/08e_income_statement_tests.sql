@@ -3,6 +3,9 @@
 -- 50 checks: grants, structure, formulas, filters, integrity.
 -- ============================================================================
 
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', '51000000-0000-0000-0000-000000000001', true);
+
 -- 1. Function exists
 SELECT 'test_001_function_exists' AS test, CASE WHEN EXISTS (
   SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -70,18 +73,18 @@ SELECT 'test_010_deductions_non_positive', CASE WHEN (
   SELECT amount FROM public.get_income_statement() WHERE row_code = 'DEDUCOES'
 ) <= 0 THEN 'PASS' ELSE 'FAIL' END
 UNION ALL
--- 11. Lucro Bruto formula
+-- 11. Lucro Bruto formula (costs are represented as negative amounts)
 SELECT 'test_011_lucro_bruto_formula', CASE WHEN (
   (SELECT amount FROM public.get_income_statement() WHERE row_code = 'LUCRO_BRUTO')
   = (SELECT amount FROM public.get_income_statement() WHERE row_code = 'RECEITA_LIQUIDA')
-  - (SELECT amount FROM public.get_income_statement() WHERE row_code = 'CUSTOS')
+  + (SELECT amount FROM public.get_income_statement() WHERE row_code = 'CUSTOS')
 ) THEN 'PASS' ELSE 'FAIL' END
 UNION ALL
--- 12. EBITDA formula
+-- 12. EBITDA formula (operating expenses are represented as negative amounts)
 SELECT 'test_012_ebitda_formula', CASE WHEN (
   (SELECT amount FROM public.get_income_statement() WHERE row_code = 'EBITDA')
   = (SELECT amount FROM public.get_income_statement() WHERE row_code = 'LUCRO_BRUTO')
-  - (SELECT amount FROM public.get_income_statement() WHERE row_code = 'DESPESAS_OPERACIONAIS')
+  + (SELECT amount FROM public.get_income_statement() WHERE row_code = 'DESPESAS_OPERACIONAIS')
 ) THEN 'PASS' ELSE 'FAIL' END
 UNION ALL
 -- 13. EBIT formula
@@ -270,10 +273,12 @@ SELECT 'test_045_first_row_is_receita_bruta', CASE WHEN (
   SELECT sort_order FROM public.get_income_statement() WHERE row_code = 'RECEITA_BRUTA'
 ) = 10 THEN 'PASS' ELSE 'FAIL' END
 UNION ALL
--- 46. Total DRE reconciles: RESULTADO_LIQUIDO = sum of all other amounts
+-- 46. Total DRE reconciles from economic components, excluding derived subtotals
 SELECT 'test_046_total_reconciles', CASE WHEN (
   (SELECT amount FROM public.get_income_statement() WHERE row_code = 'RESULTADO_LIQUIDO')
-  = (SELECT SUM(amount) FROM public.get_income_statement() WHERE row_code != 'RESULTADO_LIQUIDO')
+  = (SELECT SUM(amount) FROM public.get_income_statement()
+     WHERE row_code IN ('RECEITA_BRUTA','DEDUCOES','CUSTOS','DESPESAS_OPERACIONAIS',
+                        'DEPRECIACAO','RESULTADO_FINANCEIRO','OUTROS_RESULTADOS','IMPOSTOS'))
 ) THEN 'PASS' ELSE 'FAIL' END
 UNION ALL
 -- 47. Deductions label contains parentheses

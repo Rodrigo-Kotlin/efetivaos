@@ -18,9 +18,12 @@ WHERE viewname = 'financial_receivables_v';
 -- so we check basic queryable property instead)
 SELECT 'view_is_queryable' AS test_name,
        count(*) > 0 AS passed
-FROM pg_views, pg_class pgc
-WHERE pgc.relname = 'financial_receivables_v'
-  AND pgc.oid = pg_views.viewrelid;
+FROM pg_views
+JOIN pg_class pgc ON pgc.relname = pg_views.viewname
+JOIN pg_namespace pgn ON pgn.oid = pgc.relnamespace
+WHERE pgn.nspname = 'public'
+  AND pg_views.schemaname = pgn.nspname
+  AND pg_views.viewname = 'financial_receivables_v';
 
 -- Teste 3: no duplicate rows on transaction_id
 SELECT 'no_duplicate_receivables_rows' AS test_name,
@@ -104,10 +107,10 @@ FROM pg_views WHERE true;
 -- Teste 10: duplicate settlements = 0
 SELECT 'duplicate_settlements_zero' AS test_name,
        (SELECT count(*) = 0 FROM (
-         SELECT transaction_id, count(*) as cnt
-         FROM public.financial_transactions
-         WHERE status = 'settled'
-         GROUP BY transaction_id
+          SELECT id AS transaction_id, count(*) as cnt
+          FROM public.financial_transactions
+          WHERE status = 'settled'
+          GROUP BY id
          HAVING count(*) > 1
        ) dup) AS passed
 FROM pg_views WHERE true;
@@ -115,7 +118,7 @@ FROM pg_views WHERE true;
 -- Teste 11: orphan entries = 0 (global)
 SELECT 'global_orphan_entries_zero' AS test_name,
        (SELECT count(*) = 0 FROM public.financial_journal_entries je
-        WHERE NOT EXISTS (SELECT 1 FROM public.financial_journal_lines jl WHERE je.entry_id = jl.id)) AS passed
+         WHERE NOT EXISTS (SELECT 1 FROM public.financial_journal_lines jl WHERE jl.entry_id = je.id)) AS passed
 FROM pg_views WHERE true;
 
 -- Teste 12: total consolidado

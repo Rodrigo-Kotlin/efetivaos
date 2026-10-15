@@ -2,6 +2,11 @@
 -- ETAPA 08G — Microgate SQL Tests: DMPL/DLPA/DVA/Adjustments/Notes
 -- ============================================================================
 
+BEGIN;
+
+SELECT set_config('request.jwt.claim.role', 'authenticated', true);
+SELECT set_config('request.jwt.claim.sub', '51000000-0000-0000-0000-000000000001', true);
+
 -- Helper: assert
 CREATE OR REPLACE FUNCTION _08g_assert(condition boolean, msg text)
 RETURNS void AS $$
@@ -84,7 +89,8 @@ SELECT _08g_assert(
 
 -- T08: financial_notes has RLS enabled
 SELECT _08g_assert(
-  (SELECT relrowsecurity FROM pg_class WHERE relname = 'financial_notes') = true,
+  (SELECT relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relname = 'financial_notes' AND n.nspname = 'public') = true,
   'T08: financial_notes has RLS enabled'
 );
 
@@ -166,8 +172,8 @@ DECLARE
   v_cash_id uuid;
   v_revenue_id uuid;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T16: SKIP (no suitable accounts)');
@@ -192,8 +198,8 @@ DECLARE
   v_revenue_id uuid;
   v_entry_id uuid;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T17: SKIP (no suitable accounts)');
@@ -220,8 +226,8 @@ DECLARE
   v_entry_id2 uuid;
   v_key uuid := gen_random_uuid();
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T18: SKIP (no suitable accounts)');
@@ -254,8 +260,8 @@ DECLARE
   v_entry_id uuid;
   v_entry_type text;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T19: SKIP (no suitable accounts)');
@@ -283,8 +289,8 @@ DECLARE
   v_entry_id uuid;
   v_movement_type text;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T20: SKIP (no suitable accounts)');
@@ -316,8 +322,8 @@ DECLARE
   v_total_debit numeric;
   v_total_credit numeric;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T21: SKIP (no suitable accounts)');
@@ -346,8 +352,8 @@ DECLARE
   v_entry_id uuid;
   v_note_count integer;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+   SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+   SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T22: SKIP (no suitable accounts)');
@@ -566,7 +572,7 @@ BEGIN
   PERFORM _08g_assert(v_exists, 'T35: DLPA has Saldo Final');
 END $$;
 
--- T36: DLPA result reconciles with DRE
+-- T36: DLPA result reconciles with the canonical DRE result
 DO $$
 DECLARE
   v_dlpa_result numeric(15,2);
@@ -575,21 +581,11 @@ BEGIN
   SELECT amount INTO v_dlpa_result FROM public.get_retained_earnings_statement('2026-01-01', '2026-12-31')
   WHERE row_label LIKE '%Resultado Liquido%';
 
-  SELECT COALESCE(SUM(
-    CASE WHEN ca.nature = 'CREDITO' THEN jl.debit - jl.credit
-         WHEN ca.nature = 'DEBITO' THEN jl.credit - jl.debit
-         ELSE 0 END
-  ), 0)
-  INTO v_dre_result
-  FROM public.financial_journal_lines jl
-  JOIN public.financial_journal_entries je ON je.id = jl.entry_id
-  JOIN public.financial_chart_accounts ca ON ca.id = jl.chart_account_id
-  WHERE ca.class IN ('RECEITA', 'CUSTO', 'DESPESA') AND ca.dre_class <> ''
-    AND ca.active = true
-    AND je.competence_date BETWEEN '2026-01-01' AND '2026-12-31'
-    AND je.status <> 'cancelled';
+  SELECT amount INTO v_dre_result
+  FROM public.get_income_statement('2026-01-01', '2026-12-31')
+  WHERE row_code = 'RESULTADO_LIQUIDO';
 
-  PERFORM _08g_assert(ABS(v_dlpa_result - v_dre_result) < 0.01, 'T36: DLPA result reconciles with DRE');
+  PERFORM _08g_assert(ABS(v_dlpa_result - v_dre_result) < 0.01, 'T36: DLPA result reconciles with canonical DRE');
 END $$;
 
 -- ============================================================================
@@ -720,8 +716,8 @@ DECLARE
   v_revenue_id uuid;
   v_entry_id uuid;
 BEGIN
-  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE is_cash = true AND active = true LIMIT 1;
-  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE class = 'RECEITA' AND active = true LIMIT 1;
+  SELECT id INTO v_cash_id FROM public.financial_chart_accounts WHERE code = '1.1.01.002' AND active = true;
+  SELECT id INTO v_revenue_id FROM public.financial_chart_accounts WHERE code = '3.1.01.001' AND active = true;
 
   IF v_cash_id IS NULL OR v_revenue_id IS NULL THEN
     PERFORM _08g_assert(true, 'T46: SKIP (no suitable accounts)');
@@ -745,16 +741,50 @@ BEGIN
   PERFORM _08g_cleanup_journal(v_entry_id);
 END $$;
 
--- T47: No new PL accounts invented
+-- T47: PL structure preserves semantic invariants, not a brittle row count
 DO $$
 DECLARE
-  v_pl_count integer;
+  v_missing integer;
+  v_bad_nature integer;
+  v_misclassified integer;
 BEGIN
-  SELECT count(*) INTO v_pl_count FROM public.financial_chart_accounts
-  WHERE class = 'PL' AND active = true;
+  -- T47_OLD_EXPECTATION: exactly 7 active PL rows. This counted test fixtures.
+  -- T47_NEW_INVARIANT: canonical PL codes exist with the expected nature.
+  SELECT count(*) INTO v_missing
+  FROM (VALUES
+    ('2.3.01.001', 'CREDITO'),
+    ('2.3.01.002', 'CREDITO'),
+    ('2.3.02.001', 'CREDITO'),
+    ('2.3.03.001', 'CREDITO'),
+    ('2.3.03.002', 'CREDITO'),
+    ('2.3.04.001', 'DEBITO'),
+    ('2.3.99.001', 'CREDITO')
+  ) AS expected(code, nature)
+  WHERE NOT EXISTS (
+    SELECT 1 FROM public.financial_chart_accounts ca
+    WHERE ca.code = expected.code
+      AND ca.class = 'PL'
+      AND ca.nature::text = expected.nature
+      AND ca.active = true
+  );
 
-  -- Should be exactly 7 PL accounts from seed
-  PERFORM _08g_assert(v_pl_count = 7, 'T47: PL account count matches seed (7)');
+  SELECT count(*) INTO v_bad_nature
+  FROM public.financial_chart_accounts ca
+  WHERE ca.class = 'PL'
+    AND ca.active = true
+    AND ca.code IN ('2.3.01.001','2.3.01.002','2.3.02.001','2.3.03.001','2.3.03.002','2.3.04.001','2.3.99.001')
+    AND ((ca.code = '2.3.04.001' AND ca.nature <> 'DEBITO')
+      OR (ca.code <> '2.3.04.001' AND ca.nature <> 'CREDITO'));
+
+  SELECT count(*) INTO v_misclassified
+  FROM public.financial_chart_accounts ca
+  WHERE ca.class = 'PL'
+    AND ca.active = true
+    AND (ca.code LIKE '1.%' OR ca.code LIKE '2.1.%' OR ca.code LIKE '2.2.%');
+
+  PERFORM _08g_assert(v_missing = 0, 'T47: canonical PL accounts exist');
+  PERFORM _08g_assert(v_bad_nature = 0, 'T47: canonical PL account natures are correct');
+  PERFORM _08g_assert(v_misclassified = 0, 'T47: no asset/liability account is classified as PL');
 END $$;
 
 -- T48: DVA class coverage
@@ -811,3 +841,5 @@ END $$;
 -- ============================================================================
 
 DROP FUNCTION IF EXISTS _08g_assert(boolean, text);
+
+ROLLBACK;
