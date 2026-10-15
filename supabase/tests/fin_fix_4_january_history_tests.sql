@@ -14,16 +14,16 @@ CREATE TEMPORARY TABLE tap_results (
 INSERT INTO pg_temp.tap_results (result) SELECT plan(28);
 
 INSERT INTO pg_temp.tap_results (result)
-SELECT is((SELECT count(*) FROM public.financial_transactions), 107::bigint,
-  'FIN-FIX-4 transactions are append-only: 101 + 6 replacements');
+SELECT is((SELECT count(*) FROM public.financial_transactions), 108::bigint,
+  'FIN-FIX-4 plus FIN-FIX-5.1 transactions are append-only: 101 + 6 replacements + 1 regularization');
 
 INSERT INTO pg_temp.tap_results (result)
-SELECT is((SELECT count(*) FROM public.financial_journal_entries), 228::bigint,
-  'FIN-FIX-4 journal entries are append-only: 204 + 24');
+SELECT is((SELECT count(*) FROM public.financial_journal_entries), 229::bigint,
+  'FIN-FIX-4 plus FIN-FIX-5.1 journals are append-only: 204 + 24 + 1 regularization');
 
 INSERT INTO pg_temp.tap_results (result)
-SELECT is((SELECT count(*) FROM public.financial_journal_lines), 456::bigint,
-  'FIN-FIX-4 journal lines are append-only: 408 + 48');
+SELECT is((SELECT count(*) FROM public.financial_journal_lines), 458::bigint,
+  'FIN-FIX-4 plus FIN-FIX-5.1 journal lines are append-only: 408 + 48 + 2 regularization lines');
 
 INSERT INTO pg_temp.tap_results (result)
 SELECT is((SELECT count(*) FROM public.financial_assets), 0::bigint,
