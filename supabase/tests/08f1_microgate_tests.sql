@@ -678,12 +678,22 @@ BEGIN
   );
 END $$;
 
--- T47: validate_asset_accounts is SECURITY DEFINER
+-- T47: validate_asset_accounts is an internal SECURITY INVOKER helper
 DO $$
 BEGIN
   PERFORM _08f1_assert(
-    (SELECT prosecdef FROM pg_proc WHERE proname = 'validate_asset_accounts') = true,
-    'T47: validate_asset_accounts is SECURITY DEFINER'
+    (SELECT prosecdef FROM pg_proc WHERE proname = 'validate_asset_accounts') = false,
+    'T47: validate_asset_accounts remains SECURITY INVOKER'
+  );
+  PERFORM _08f1_assert(
+    (SELECT proconfig @> ARRAY['search_path=""']::text[] FROM pg_proc WHERE proname = 'validate_asset_accounts'),
+    'T47: validate_asset_accounts has an empty search_path'
+  );
+  PERFORM _08f1_assert(
+    NOT has_function_privilege('anon', 'public.validate_asset_accounts(uuid,uuid,uuid)', 'EXECUTE')
+      AND NOT has_function_privilege('public', 'public.validate_asset_accounts(uuid,uuid,uuid)', 'EXECUTE')
+      AND NOT has_function_privilege('authenticated', 'public.validate_asset_accounts(uuid,uuid,uuid)', 'EXECUTE'),
+    'T47: internal helper has no direct EXECUTE grants'
   );
 END $$;
 
