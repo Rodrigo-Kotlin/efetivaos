@@ -1246,3 +1246,37 @@ Assim, a impressora de `R$ 989,00` e o suporte de TV de `R$ 25,00` serão classi
 **Motivo:** Preservar a intenção contábil documentada, evitar alteração silenciosa de entrada e proteger a integridade também em DML direto.
 
 **Impacto:** A migration `20261014000700_enforce_asset_residual_value_bounds.sql` remove somente o clamp de residual do trigger e adiciona a constraint `chk_residual_lte_acquisition`. As demais normalizações do trigger e a validação explícita de `create_asset` permanecem.
+
+---
+
+### DEC-078 - FIN-IMPORT-3C: aceitação do batch autoritativo de fevereiro/2026
+
+**Status:** FECHADA
+
+**Data:** 2026-10-16 (somente DEV; PROD intocado)
+
+**Contexto:** O teste runtime da RPC autoritativa foi executado com o manifesto
+de fevereiro/2026. O mecanismo externo de rollback não foi honrado e o batch
+foi persistido. A auditoria posterior confirmou 79/79 linhas, 79 transações,
+79 journals, 158 linhas de razão e reconciliação de caixa, DFC, BP, DMPL, DVA,
+DLPA e janeiro preservado.
+
+**Decisão:** Aceitar formalmente o batch existente
+`FIN-IMPORT-3::2026-02::79aeef88bf7c1561c230d1aa9bdcda383ee8b351be6a8bf1fe795d682ea280e9`
+como a importação autoritativa definitiva de fevereiro/2026. Não executar nova
+importação, reversão, cancelamento ou correção.
+
+`dre_effect = RECEITA` representa efeito positivo reconhecido no resultado. A
+apresentação detalhada segue o plano de contas: a row 38 permanece em
+`3.4.01.001 - Outras Receitas e Ganhos`, fora de `RECEITA_BRUTA`. Assim, a DRE
+apresenta Receita Bruta de `R$ 16.501,06`, Outros Resultados de `R$ 2.636,62`
+e efeito positivo total de `R$ 19.137,68`.
+
+**Motivo:** A auditoria row-level e contábil não encontrou corrupção ou
+divergência de posting; a diferença observada foi somente de apresentação
+analítica entre o efeito positivo do manifesto e a classificação detalhada da
+conta contábil.
+
+**Impacto:** O batch permanece imutável e passa a ser a fonte definitiva de
+fevereiro no DEV. O hash do manifesto não muda. Março não é iniciado por esta
+decisão.
