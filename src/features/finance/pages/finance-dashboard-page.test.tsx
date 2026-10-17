@@ -4,11 +4,23 @@ import { MemoryRouter } from 'react-router-dom'
 import type { FinancialDashboardData } from '../api/finance-api'
 
 import FinanceDashboardPage from './finance-dashboard-page'
-import { useFinancialDashboard } from '../queries/finance-queries'
+import { useCashflowRealized, useFinancialDashboard } from '../queries/finance-queries'
 
 vi.mock('../queries/finance-queries', () => ({
   useFinancialDashboard: vi.fn(),
+  useCashflowRealized: vi.fn(),
 }))
+
+const mockRealizedCashflow = [
+  { entry_date: '2026-08-01', direction: 'INFLOW', amount: '1000' },
+  { entry_date: '2026-08-01', direction: 'OUTFLOW', amount: '250' },
+  { entry_date: '2026-08-02', direction: 'INFLOW', amount: '500' },
+] as never
+
+const marchRealizedCashflow = [
+  { entry_date: '2026-03-01', direction: 'INFLOW', amount: '75591.68' },
+  { entry_date: '2026-03-02', direction: 'OUTFLOW', amount: '59474.22' },
+] as never
 
 const mockDashboard: FinancialDashboardData = {
   period: { from: '2026-08-01', to: '2026-08-31', as_of_date: '2026-08-31' },
@@ -40,6 +52,9 @@ describe('FinanceDashboardPage', () => {
     vi.mocked(useFinancialDashboard).mockReturnValue({
       data: mockDashboard, isLoading: false, isError: false,
     } as unknown as ReturnType<typeof useFinancialDashboard>)
+    vi.mocked(useCashflowRealized).mockReturnValue({
+      data: mockRealizedCashflow, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useCashflowRealized>)
   })
 
   it('renders dashboard title', () => {
@@ -50,6 +65,48 @@ describe('FinanceDashboardPage', () => {
   it('renders period subtitle', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
     expect(screen.getByText(/Visão consolidada/)).toBeInTheDocument()
+  })
+
+  it('renders realized cashflow with accessible daily movement summary', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText('Fluxo de Caixa')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /Gráfico de fluxo de caixa/ })).toBeInTheDocument()
+    expect(screen.getByText(/Entradas realizadas no gráfico: R\$ 1\.500,00/)).toBeInTheDocument()
+    expect(screen.getByText(/Saídas realizadas no gráfico: R\$ 250,00/)).toBeInTheDocument()
+  })
+
+  it('reconciles the March cashflow series with the official totals', () => {
+    vi.mocked(useFinancialDashboard).mockReturnValue({
+      data: {
+        ...mockDashboard,
+        period: { from: '2026-03-01', to: '2026-03-31', as_of_date: '2026-03-31' },
+        cashflow: { ...mockDashboard.cashflow, opening_balance: 2070.12, closing_balance: 18187.58 },
+      }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useFinancialDashboard>)
+    vi.mocked(useCashflowRealized).mockReturnValue({
+      data: marchRealizedCashflow, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useCashflowRealized>)
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=3']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText(/Entradas realizadas no gráfico: R\$ 75\.591,68/)).toBeInTheDocument()
+    expect(screen.getByText(/Saídas realizadas no gráfico: R\$ 59\.474,22/)).toBeInTheDocument()
+    expect(screen.getByText(/Saldo final: R\$ 18\.187,58/)).toBeInTheDocument()
+  })
+
+  it('shows loading, error and empty states for realized cashflow', () => {
+    vi.mocked(useCashflowRealized).mockReturnValue({ data: undefined, isLoading: true, isError: false } as unknown as ReturnType<typeof useCashflowRealized>)
+    const { rerender } = render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByLabelText('Carregando fluxo de caixa')).toBeInTheDocument()
+
+    vi.mocked(useCashflowRealized).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof useCashflowRealized>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Erro ao carregar o fluxo de caixa realizado.')).toBeInTheDocument()
+
+    vi.mocked(useCashflowRealized).mockReturnValue({ data: [], isLoading: false, isError: false } as unknown as ReturnType<typeof useCashflowRealized>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Nenhuma movimentação realizada encontrada para este período.')).toBeInTheDocument()
   })
 
   it('renders preset buttons', () => {
@@ -90,6 +147,10 @@ describe('FinanceDashboardPage', () => {
       from: '2026-09-01',
       to: '2026-09-30',
       asOfDate: '2026-09-30',
+    })
+    expect(vi.mocked(useCashflowRealized).mock.calls.find(call => call[0]?.from === '2026-09-01')?.[0]).toEqual({
+      from: '2026-09-01',
+      to: '2026-09-30',
     })
   })
 

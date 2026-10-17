@@ -1,10 +1,12 @@
 import { useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Plus, ArrowDownRight, ArrowLeftRight, List, CalendarDays, Wallet, TrendingUp, TrendingDown, Activity, Scale, CircleDollarSign, CircleHelp, ChevronDown } from 'lucide-react'
+import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useFinancialDashboard } from '../queries/finance-queries'
+import type { CashflowRealizedRow } from '@/types/database'
+import { useCashflowRealized, useFinancialDashboard } from '../queries/finance-queries'
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -63,6 +65,88 @@ function formatDate(date: string): string {
 function comparisonLabel(current: number, previous: number): string {
   if (previous === 0 || (current < 0 && previous > 0) || (current > 0 && previous < 0)) return '— vs mês anterior'
   return `${((current - previous) / Math.abs(previous) * 100).toFixed(1)}% vs mês anterior`
+}
+
+type DailyCashflowPoint = {
+  date: string
+  inflows: number
+  outflows: number
+  balance: number
+}
+
+function buildDailyCashflow(rows: CashflowRealizedRow[], openingBalance: number): DailyCashflowPoint[] {
+  const grouped = new Map<string, { inflows: number; outflows: number }>()
+
+  for (const row of rows) {
+    const amount = Math.abs(Number(row.amount))
+    if (!row.entry_date || !Number.isFinite(amount)) continue
+    const current = grouped.get(row.entry_date) ?? { inflows: 0, outflows: 0 }
+    if (row.direction === 'INFLOW') current.inflows += amount
+    if (row.direction === 'OUTFLOW') current.outflows += amount
+    grouped.set(row.entry_date, current)
+  }
+
+  let balance = openingBalance
+  return Array.from(grouped.entries())
+    .sort(([left], [right]) => new Date(left + 'T00:00:00').getTime() - new Date(right + 'T00:00:00').getTime())
+    .map(([date, values]) => {
+      balance += values.inflows - values.outflows
+      return { date, ...values, balance }
+    })
+}
+
+function CashflowChart({ rows, openingBalance, isLoading, isError }: {
+  rows?: CashflowRealizedRow[]
+  openingBalance: number
+  isLoading: boolean
+  isError: boolean
+}) {
+  const points = useMemo(() => buildDailyCashflow(rows ?? [], openingBalance), [rows, openingBalance])
+  const totals = useMemo(() => points.reduce((result, point) => ({
+    inflows: result.inflows + point.inflows,
+    outflows: result.outflows + point.outflows,
+  }), { inflows: 0, outflows: 0 }), [points])
+
+  if (isLoading) {
+    return <div aria-label="Carregando fluxo de caixa" className="h-[280px] animate-pulse rounded-lg bg-slate-100" />
+  }
+
+  if (isError) {
+    return <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">Erro ao carregar o fluxo de caixa realizado.</div>
+  }
+
+  if (!rows?.length) {
+    return <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">Nenhuma movimentação realizada encontrada para este período.</div>
+  }
+
+  return (
+    <div className="min-w-0 space-y-3">
+      <div
+        role="img"
+        aria-label="Gráfico de fluxo de caixa com entradas e saídas realizadas no período selecionado."
+        className="h-[280px] w-full min-w-0"
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={points} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+            <CartesianGrid stroke="#E3EAE6" strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="date" tickFormatter={formatDate} minTickGap={24} tick={{ fontSize: 11, fill: '#64748B' }} />
+            <YAxis tickFormatter={value => fmt(Number(value))} width={88} tick={{ fontSize: 11, fill: '#64748B' }} />
+            <Tooltip
+              labelFormatter={label => `Data: ${formatDate(String(label))}`}
+              formatter={(value, name) => [fmt(Number(value ?? 0)), name === 'inflows' ? 'Entradas' : name === 'outflows' ? 'Saídas' : 'Saldo']}
+            />
+            <Legend formatter={value => value === 'inflows' ? 'Entradas' : value === 'outflows' ? 'Saídas' : 'Saldo'} />
+            <Bar dataKey="inflows" name="inflows" fill="#2E7D5B" radius={[3, 3, 0, 0]} maxBarSize={28} />
+            <Bar dataKey="outflows" name="outflows" fill="#C62828" radius={[3, 3, 0, 0]} maxBarSize={28} />
+            <Line type="monotone" dataKey="balance" name="balance" stroke="#334155" strokeWidth={2} dot={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <p className="sr-only">
+        Entradas realizadas no gráfico: {fmt(totals.inflows)}. Saídas realizadas no gráfico: {fmt(totals.outflows)}. Saldo inicial: {fmt(openingBalance)}. Saldo final: {fmt(points.at(-1)?.balance ?? openingBalance)}.
+      </p>
+    </div>
+  )
 }
 
 const PRESETS = [
@@ -208,8 +292,14 @@ export default function FinanceDashboardPage() {
     asOfDate: asOf || null,
   }), [dateFrom, dateTo, asOf])
 
+  const cashflowFilters = useMemo(() => ({
+    from: dateFrom || null,
+    to: dateTo || null,
+  }), [dateFrom, dateTo])
+
   const previousFilters = period ? periodDates(previousPeriod(period)) : null
   const { data: dash, isLoading, isError } = useFinancialDashboard(filters)
+  const { data: realizedCashflow, isLoading: isCashflowLoading, isError: isCashflowError } = useCashflowRealized(cashflowFilters)
   const { data: previousDash } = useFinancialDashboard(
     previousFilters ? { ...previousFilters, asOfDate: previousFilters.to } : {},
     { enabled: !!previousFilters },
@@ -477,7 +567,7 @@ export default function FinanceDashboardPage() {
 
       {/* Caixa + Receber/Pagar */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Section title="Fluxo de Caixa">
+        <Section title="Resumo do Fluxo de Caixa">
           <div className="space-y-2 text-sm">
             <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium">{fmt(cf.opening_balance)}</span></div>
             <div className="flex justify-between text-emerald-700"><span>Entradas realizadas</span><span className="font-medium">{fmt(cf.realized_inflows)}</span></div>
@@ -513,6 +603,16 @@ export default function FinanceDashboardPage() {
           </Link>
         </Section>
       </div>
+
+      <Section title="Fluxo de Caixa">
+        <p className="mb-4 text-sm text-slate-500">Entradas, saídas e evolução do saldo no período selecionado.</p>
+        <CashflowChart
+          rows={realizedCashflow}
+          openingBalance={cf.opening_balance}
+          isLoading={isCashflowLoading}
+          isError={isCashflowError}
+        />
+      </Section>
 
       {/* Resultado + Patrimonio */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
