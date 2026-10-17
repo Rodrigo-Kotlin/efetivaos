@@ -1280,3 +1280,39 @@ conta contábil.
 **Impacto:** O batch permanece imutável e passa a ser a fonte definitiva de
 fevereiro no DEV. O hash do manifesto não muda. Março não é iniciado por esta
 decisão.
+
+---
+
+### DEC-079 - FIN-IMPORT-4.6: aceitacao formal de marco/2026
+
+**Status:** FECHADA
+
+**Data:** 2026-10-17 (somente DEV; PROD intocado)
+
+**Contexto:** A importacao autoritativa FIN-IMPORT-4 de marco/2026 foi
+persistida com 106 rows, 106 transactions, 106 journals e 212 journal lines.
+A analise FIN-IMPORT-4.5A investigou as divergencias que haviam sido
+reportadas como falha critica.
+
+**Decisao:** Aceitar formalmente o batch
+`811d30d7-2b2a-4f0c-9424-50f0dc1df75b` como a importacao autoritativa
+definitiva de marco/2026. O manifesto aceito possui o hash
+`a35fb5d177d8424c77373a0ef29eb12a2ad4c0ee0912f826d4b5960fb2f067fb`.
+Nao executar nova importacao, reversao, replacement, rollback ou correcao.
+
+O finding do BP e `GATE_EXPECTATION_ERROR_ONLY`: o BP apresenta resultado
+acumulado do exercicio ate 31/03/2026, R$ 20.039,82, e nao somente o resultado
+mensal de marco, R$ 22.124,61. O finding da DRE e
+`REPORT_PRESENTATION_FINDING_ONLY`: R$ 2.750,00 esperado analiticamente como
+custo aparece oficialmente em despesas porque a apresentacao segue
+`financial_chart_accounts.dre_class`. Nao ha `ACCOUNT_MAPPING_ERROR` nem
+erro contabil a corrigir.
+
+**Motivo:** A auditoria row-level confirmou integridade do ledger, caixa,
+DFC, BP, DRE, DMPL, DVA, DLPA e AR/AP. A equacao patrimonial fecha em zero,
+o resultado acumulado reconcilia Janeiro + Fevereiro + Marco e a diferenca
+da DRE nao altera o resultado liquido.
+
+**Impacto:** Marco/2026 fica formalmente encerrado no DEV. O ledger e os
+fatos persistidos permanecem imutaveis. O proximo periodo nao e iniciado
+automaticamente.
