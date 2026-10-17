@@ -54,24 +54,39 @@ describe('FinanceDashboardPage', () => {
 
   it('renders preset buttons', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText('Este mes')).toBeInTheDocument()
-    expect(screen.getByText('Mes anterior')).toBeInTheDocument()
+    expect(screen.getByText('Este mês')).toBeInTheDocument()
+    expect(screen.getByText('Mês anterior')).toBeInTheDocument()
     expect(screen.getByText('Este trimestre')).toBeInTheDocument()
     expect(screen.getByText('Este ano')).toBeInTheDocument()
+  })
+
+  it('keeps advanced date filters collapsed behind the mobile-friendly control', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+
+    const toggle = screen.getByRole('button', { name: 'Filtros avançados' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByLabelText('Data inicial')).not.toBeInTheDocument()
+
+    fireEvent.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByLabelText('Data inicial')).toBeInTheDocument()
+    expect(screen.getByLabelText('Data final')).toBeInTheDocument()
+    expect(screen.getByLabelText('Data de posição')).toBeInTheDocument()
   })
 
   it('uses the month and year context to query a monthly period', () => {
     render(<MemoryRouter initialEntries={['/finance?year=2026&month=8']}><FinanceDashboardPage /></MemoryRouter>)
 
     expect(screen.getByText('Agosto 2026')).toBeInTheDocument()
-    expect(vi.mocked(useFinancialDashboard).mock.lastCall?.[0]).toEqual({
+    expect(vi.mocked(useFinancialDashboard).mock.calls[0]?.[0]).toEqual({
       from: '2026-08-01',
       to: '2026-08-31',
       asOfDate: '2026-08-31',
     })
 
     fireEvent.change(screen.getByLabelText('Mês de referência'), { target: { value: '9' } })
-    expect(vi.mocked(useFinancialDashboard).mock.lastCall?.[0]).toEqual({
+    expect(vi.mocked(useFinancialDashboard).mock.calls.find(call => call[0]?.from === '2026-09-01')?.[0]).toEqual({
       from: '2026-09-01',
       to: '2026-09-30',
       asOfDate: '2026-09-30',
@@ -80,10 +95,78 @@ describe('FinanceDashboardPage', () => {
 
   it('renders KPI cards with correct values', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText('Caixa Atual')).toBeInTheDocument()
+    expect(screen.getByText('Saldo de Caixa')).toBeInTheDocument()
     expect(screen.getAllByText('R$ 52.000,00').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Resultado Líquido').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('R$ 21.500,00').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('exposes KPI descriptions through a focusable accessible tooltip', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+
+    const trigger = screen.getByRole('button', { name: 'Informação sobre Saldo de Caixa' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Saldo das contas financeiras na data de referência selecionada.')).not.toBeInTheDocument()
+
+    fireEvent.focus(trigger)
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(trigger).toHaveAttribute('aria-describedby')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Saldo das contas financeiras na data de referência selecionada.')
+
+    fireEvent.blur(trigger)
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('renders only formally supported indicator cards', () => {
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText('Saldo de Caixa')).toBeInTheDocument()
+    expect(screen.getAllByText('Receita Bruta').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Receita Líquida').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('Custos')).toBeInTheDocument()
+    expect(screen.getByText('Despesas')).toBeInTheDocument()
+    expect(screen.getAllByText('Liquidez Corrente').length).toBeGreaterThanOrEqual(1)
+    expect(screen.queryByText('Endividamento')).not.toBeInTheDocument()
+    expect(screen.queryByText('Gastos Operacionais')).not.toBeInTheDocument()
+  })
+
+  it('renders the accepted March values without mixing BP YTD result', () => {
+    vi.mocked(useFinancialDashboard).mockReturnValue({
+      data: {
+        ...mockDashboard,
+        period: { from: '2026-03-01', to: '2026-03-31', as_of_date: '2026-03-31' },
+        cashflow: { ...mockDashboard.cashflow, closing_balance: 18187.58 },
+        income_statement: {
+          ...mockDashboard.income_statement,
+          revenue: 75591.68, net_revenue: 75591.68, cogs: 24213.78,
+          opex: 29253.29, net_result: 22124.61,
+        },
+      }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useFinancialDashboard>)
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=3']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getAllByText('R$ 18.187,58').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('R$ 75.591,68').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('R$ 24.213,78').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('R$ 29.253,29').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('R$ 22.124,61').length).toBeGreaterThanOrEqual(1)
+    expect(screen.queryByText('R$ 20.039,82')).not.toBeInTheDocument()
+  })
+
+  it('uses an em dash for zero or sign-inverting previous comparisons', () => {
+    vi.mocked(useFinancialDashboard).mockImplementation((filters) => ({
+      data: filters?.from === '2026-07-01'
+        ? { ...mockDashboard, income_statement: { ...mockDashboard.income_statement, net_result: 0 } }
+        : { ...mockDashboard, income_statement: { ...mockDashboard.income_statement, net_result: -100 } },
+      isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useFinancialDashboard>))
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=8']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getAllByText('— vs mês anterior').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders EBITDA and margins', () => {
@@ -115,7 +198,7 @@ describe('FinanceDashboardPage', () => {
   it('renders income statement section', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
     expect(screen.getByText('Resultado do Período')).toBeInTheDocument()
-    expect(screen.getByText('Receita Bruta')).toBeInTheDocument()
+    expect(screen.getAllByText('Receita Bruta').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('(-) Deduções')).toBeInTheDocument()
   })
 

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, ArrowDownRight, ArrowLeftRight, List, CalendarDays } from 'lucide-react'
+import { Plus, ArrowDownRight, ArrowLeftRight, List, CalendarDays, Wallet, TrendingUp, TrendingDown, Activity, Scale, CircleDollarSign, CircleHelp, ChevronDown } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,9 +35,12 @@ function readPeriod(params: URLSearchParams): Period {
 function periodDates(period: Period) {
   const month = String(period.month).padStart(2, '0')
   const lastDay = new Date(period.year, period.month, 0).getDate()
+  const today = new Date()
+  const isCurrentMonth = period.year === today.getFullYear() && period.month === today.getMonth() + 1
+  const endDate = isCurrentMonth ? localDate(today) : `${period.year}-${month}-${String(lastDay).padStart(2, '0')}`
   return {
     from: `${period.year}-${month}-01`,
-    to: `${period.year}-${month}-${String(lastDay).padStart(2, '0')}`,
+    to: endDate,
   }
 }
 
@@ -47,9 +50,24 @@ function localDate(date: Date): string {
 
 const YEAR_OPTIONS = Array.from({ length: 7 }, (_, index) => new Date().getFullYear() - 3 + index)
 
+function previousPeriod(period: Period): Period {
+  const previous = new Date(period.year, period.month - 2, 1)
+  return { year: previous.getFullYear(), month: previous.getMonth() + 1 }
+}
+
+function formatDate(date: string): string {
+  const [year, month, day] = date.split('-')
+  return `${day}/${month}/${year}`
+}
+
+function comparisonLabel(current: number, previous: number): string {
+  if (previous === 0 || (current < 0 && previous > 0) || (current > 0 && previous < 0)) return '— vs mês anterior'
+  return `${((current - previous) / Math.abs(previous) * 100).toFixed(1)}% vs mês anterior`
+}
+
 const PRESETS = [
-  { label: 'Este mes', from: () => { const d = new Date(); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)) }, to: () => localDate(new Date()) },
-  { label: 'Mes anterior', from: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)) }, to: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return localDate(new Date(d.getFullYear(), d.getMonth() + 1, 0)) } },
+  { label: 'Este mês', from: () => { const d = new Date(); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)) }, to: () => localDate(new Date()) },
+  { label: 'Mês anterior', from: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)) }, to: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return localDate(new Date(d.getFullYear(), d.getMonth() + 1, 0)) } },
   { label: 'Este trimestre', from: () => { const d = new Date(); const q = Math.floor(d.getMonth() / 3); return localDate(new Date(d.getFullYear(), q * 3, 1)) }, to: () => localDate(new Date()) },
   { label: 'Este ano', from: () => `${new Date().getFullYear()}-01-01`, to: () => localDate(new Date()) },
 ]
@@ -72,18 +90,69 @@ function Skeleton() {
   )
 }
 
-function KpiCard({ label, value, variant = 'default', subtitle }: { label: string; value: string; variant?: 'default' | 'warning' | 'danger' | 'success'; subtitle?: string }) {
+function KpiTooltip({ label, description }: { label: string; description: string }) {
+  const [open, setOpen] = useState(false)
+  const tooltipId = useId()
+
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        aria-label={`Informação sobre ${label}`}
+        aria-describedby={open ? tooltipId : undefined}
+        aria-expanded={open}
+        onClick={() => setOpen(value => !value)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onKeyDown={event => {
+          if (event.key === 'Escape') setOpen(false)
+        }}
+        className="rounded-full p-0.5 text-slate-400 outline-none transition hover:text-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-700/40"
+      >
+        <CircleHelp className="size-3.5" aria-hidden="true" />
+      </button>
+      {open && (
+        <span
+          id={tooltipId}
+          role="tooltip"
+          className="absolute right-0 top-full z-20 mt-2 w-56 rounded-md bg-slate-800 px-3 py-2 text-left text-xs font-normal normal-case tracking-normal text-white shadow-lg"
+        >
+          {description}
+        </span>
+      )}
+    </span>
+  )
+}
+
+function KpiCard({ label, value, variant = 'default', subtitle, comparison, icon, description }: {
+  label: string
+  value: string
+  variant?: 'default' | 'warning' | 'danger' | 'success'
+  subtitle?: string
+  comparison?: string
+  icon?: React.ReactNode
+  description: string
+}) {
   const colors = {
-    default: 'border-slate-200 bg-white',
-    warning: 'border-amber-200 bg-amber-50',
-    danger: 'border-red-200 bg-red-50',
-    success: 'border-emerald-200 bg-emerald-50',
+    default: 'border-[#E3EAE6] bg-white',
+    warning: 'border-[#E3EAE6] bg-white',
+    danger: 'border-[#E3EAE6] bg-white',
+    success: 'border-[#E3EAE6] bg-white',
   }
   return (
-    <div className={`rounded-xl border p-4 ${colors[variant]}`}>
-      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
-      <p className="mt-1 font-serif text-2xl font-semibold text-slate-900">{value}</p>
+    <div className={`min-w-0 rounded-xl border p-4 shadow-sm ${colors[variant]}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
+          <KpiTooltip label={label} description={description} />
+        </div>
+        {icon && <span className="rounded-lg bg-emerald-50 p-2 text-emerald-700" aria-hidden="true">{icon}</span>}
+      </div>
+      <p className={`mt-3 min-w-0 whitespace-nowrap font-serif text-xl font-semibold tabular-nums sm:text-2xl ${variant === 'danger' ? 'text-[#C62828]' : 'text-slate-900'}`}>{value}</p>
       {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+      {comparison && <p className="mt-2 text-xs font-medium text-slate-500">{comparison}</p>}
     </div>
   )
 }
@@ -130,6 +199,7 @@ export default function FinanceDashboardPage() {
   const [dateTo, setDateTo] = useState(initialDates.to)
   const [asOf, setAsOf] = useState(initialDates.to)
   const [activePreset, setActivePreset] = useState<number | null>(() => searchParams.has('month') ? null : 0)
+  const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(false)
   const navigate = useNavigate()
 
   const filters = useMemo(() => ({
@@ -138,7 +208,12 @@ export default function FinanceDashboardPage() {
     asOfDate: asOf || null,
   }), [dateFrom, dateTo, asOf])
 
+  const previousFilters = period ? periodDates(previousPeriod(period)) : null
   const { data: dash, isLoading, isError } = useFinancialDashboard(filters)
+  const { data: previousDash } = useFinancialDashboard(
+    previousFilters ? { ...previousFilters, asOfDate: previousFilters.to } : {},
+    { enabled: !!previousFilters },
+  )
 
   const applyPreset = (idx: number) => {
     const p = PRESETS[idx]
@@ -189,6 +264,15 @@ export default function FinanceDashboardPage() {
   const ap = dash.payables
   const is = dash.income_statement
   const bs = dash.balance_sheet
+  const previousCf = previousDash?.cashflow
+  const previousIs = previousDash?.income_statement
+  const previousBs = previousDash?.balance_sheet
+  const periodReference = dash.period.as_of_date || asOf
+  const currentCash = cf.closing_balance
+  const currentCosts = Math.abs(is.cogs)
+  const currentExpenses = Math.abs(is.opex)
+  const currentNetRevenue = is.net_revenue
+  const currentNetResult = is.net_result
 
   const alerts: { level: 'critical' | 'warning'; text: string }[] = []
   if (ar.overdue > 0) alerts.push({ level: 'warning', text: `Recebíveis vencidos: ${fmt(ar.overdue)}` })
@@ -198,20 +282,20 @@ export default function FinanceDashboardPage() {
   if (is.net_result < 0) alerts.push({ level: 'warning', text: `Resultado líquido negativo: ${fmt(is.net_result)}` })
 
   return (
-    <div className="mx-auto max-w-[1480px] space-y-6 p-6">
+    <div className="mx-auto max-w-[1480px] space-y-4 p-4 sm:space-y-6 sm:p-6">
       {/* Header */}
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-serif text-3xl font-semibold tracking-tight">Financeiro 360</h1>
+          <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-3xl">Financeiro 360</h1>
           {period && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">{MONTHS[period.month - 1]} {period.year}</span>}
         </div>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 hidden text-sm text-slate-500 sm:block">
           Visão consolidada de caixa, resultado, obrigações e posição patrimonial.
         </p>
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         <Button size="sm" onClick={() => navigate('/finance/transactions?create=RECEITA')}><Plus className="mr-1 size-3.5" />+ Receita</Button>
         <Button size="sm" variant="outline" onClick={() => navigate('/finance/transactions?create=DESPESA')}><ArrowDownRight className="mr-1 size-3.5" />+ Despesa</Button>
         <Button size="sm" variant="outline" onClick={() => navigate('/finance/transactions?create=TRANSFERENCIA')}><ArrowLeftRight className="mr-1 size-3.5" />Transferir</Button>
@@ -219,60 +303,77 @@ export default function FinanceDashboardPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="flex items-end gap-2 rounded-xl border border-emerald-100 bg-emerald-50/60 p-2">
-          <CalendarDays className="mb-2 size-4 text-emerald-700" aria-hidden="true" />
-          <label className="text-xs font-medium text-slate-600">
-            Mês
-            <select
-              aria-label="Mês de referência"
-              value={period?.month ?? ''}
-              onChange={e => period && changePeriod({ ...period, month: Number(e.target.value) })}
-              className="mt-1 block h-9 rounded-md border border-emerald-200 bg-white px-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-700/20"
-            >
-              {!period && <option value="">Personalizado</option>}
-              {MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
-            </select>
-          </label>
-          <label className="text-xs font-medium text-slate-600">
-            Ano
-            <select
-              aria-label="Ano de referência"
-              value={period?.year ?? ''}
-              onChange={e => period && changePeriod({ ...period, year: Number(e.target.value) })}
-              className="mt-1 block h-9 rounded-md border border-emerald-200 bg-white px-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-700/20"
-            >
-              {!period && <option value="">-</option>}
-              {YEAR_OPTIONS.map(year => <option key={year} value={year}>{year}</option>)}
-            </select>
-          </label>
+      <div className="space-y-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="flex w-full items-end gap-2 rounded-xl border border-emerald-100 bg-emerald-50/60 p-2 sm:w-auto">
+            <CalendarDays className="mb-2 size-4 text-emerald-700" aria-hidden="true" />
+            <label className="text-xs font-medium text-slate-600">
+              Mês
+              <select
+                aria-label="Mês de referência"
+                value={period?.month ?? ''}
+                onChange={e => period && changePeriod({ ...period, month: Number(e.target.value) })}
+                className="mt-1 block h-9 rounded-md border border-emerald-200 bg-white px-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-700/20"
+              >
+                {!period && <option value="">Personalizado</option>}
+                {MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
+              </select>
+            </label>
+            <label className="text-xs font-medium text-slate-600">
+              Ano
+              <select
+                aria-label="Ano de referência"
+                value={period?.year ?? ''}
+                onChange={e => period && changePeriod({ ...period, year: Number(e.target.value) })}
+                className="mt-1 block h-9 rounded-md border border-emerald-200 bg-white px-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-700/20"
+              >
+                {!period && <option value="">-</option>}
+                {YEAR_OPTIONS.map(year => <option key={year} value={year}>{year}</option>)}
+              </select>
+            </label>
+          </div>
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+            {PRESETS.map((p, i) => (
+              <Button
+                key={p.label}
+                variant={activePreset === i ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => applyPreset(i)}
+              >
+                {p.label}
+              </Button>
+            ))}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {PRESETS.map((p, i) => (
-            <Button
-              key={p.label}
-              variant={activePreset === i ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => applyPreset(i)}
-            >
-              {p.label}
-            </Button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">De:</span>
-          <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPeriod(null); setActivePreset(null) }} className="w-36" />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Ate:</span>
-          <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPeriod(null); setActivePreset(null) }} className="w-36" />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Posição:</span>
-          <Input type="date" value={asOf} onChange={e => setAsOf(e.target.value)} className="w-36" />
-        </div>
-        {(dateFrom || dateTo || asOf) && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar</Button>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-expanded={advancedFiltersOpen}
+          aria-controls="finance-advanced-filters"
+          onClick={() => setAdvancedFiltersOpen(value => !value)}
+          className="w-full justify-between sm:w-auto"
+        >
+          Filtros avançados
+          <ChevronDown className={`size-4 transition-transform ${advancedFiltersOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </Button>
+        {advancedFiltersOpen && (
+          <div id="finance-advanced-filters" className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              De:
+              <Input aria-label="Data inicial" type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPeriod(null); setActivePreset(null) }} className="w-36 bg-white" />
+            </label>
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              Até:
+              <Input aria-label="Data final" type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPeriod(null); setActivePreset(null) }} className="w-36 bg-white" />
+            </label>
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              Posição:
+              <Input aria-label="Data de posição" type="date" value={asOf} onChange={e => setAsOf(e.target.value)} className="w-36 bg-white" />
+            </label>
+            {(dateFrom || dateTo || asOf) && (
+              <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar</Button>
+            )}
+          </div>
         )}
       </div>
 
@@ -289,20 +390,89 @@ export default function FinanceDashboardPage() {
         </div>
       )}
 
-      {/* KPIs Row 1: Caixa + Resultado */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard label="Caixa Atual" value={fmt(cf.closing_balance)} />
-        <KpiCard label="Resultado Líquido" value={fmt(is.net_result)} variant={is.net_result < 0 ? 'danger' : 'default'} />
-        <KpiCard label="Receita Líquida" value={fmt(is.net_revenue)} />
-        <KpiCard label="EBITDA" value={fmt(is.ebitda)} subtitle={`Margem: ${pct(is.margin_ebitda)}`} />
+      {/* KPIs Row 1: Receita e operação */}
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiCard
+          label="Saldo de Caixa"
+          value={fmt(currentCash)}
+          subtitle={`Posição em ${formatDate(periodReference)}`}
+          comparison={previousCf ? comparisonLabel(currentCash, previousCf.closing_balance) : undefined}
+          icon={<Wallet className="size-4" />}
+          description="Saldo das contas financeiras na data de referência selecionada."
+        />
+        <KpiCard
+          label="Receita Bruta"
+          value={fmt(is.revenue)}
+          comparison={previousIs ? comparisonLabel(is.revenue, previousIs.revenue) : undefined}
+          icon={<TrendingUp className="size-4" />}
+          description="Receita Bruta da DRE oficial no período selecionado."
+        />
+        <KpiCard
+          label="Receita Líquida"
+          value={fmt(currentNetRevenue)}
+          comparison={previousIs ? comparisonLabel(currentNetRevenue, previousIs.net_revenue) : undefined}
+          icon={<Activity className="size-4" />}
+          description="Receita Bruta menos deduções da receita na DRE oficial."
+        />
+        <KpiCard
+          label="Custos"
+          value={fmt(currentCosts)}
+          comparison={previousIs ? comparisonLabel(currentCosts, Math.abs(previousIs.cogs)) : undefined}
+          icon={<TrendingDown className="size-4" />}
+          description="Custos dos Serviços Prestados na apresentação oficial da DRE."
+        />
+        <KpiCard
+          label="Despesas"
+          value={fmt(currentExpenses)}
+          comparison={previousIs ? comparisonLabel(currentExpenses, Math.abs(previousIs.opex)) : undefined}
+          icon={<TrendingDown className="size-4" />}
+          description="Despesas Operacionais na apresentação oficial da DRE."
+        />
       </div>
 
-      {/* KPIs Row 2: Margens + Indicadores */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard label="Margem EBITDA" value={pct(is.margin_ebitda)} variant={is.margin_ebitda < 0 ? 'danger' : is.margin_ebitda > 10 ? 'success' : 'default'} />
-        <KpiCard label="Margem Líquida" value={pct(is.margin_net)} variant={is.margin_net < 0 ? 'danger' : 'default'} />
-        <KpiCard label="Liquidez Corrente" value={bs.current_ratio.toFixed(2)} variant={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'warning' : 'default'} />
-        <KpiCard label="Endividamento" value={bs.leverage.toFixed(2)} subtitle="Passivo / PL" />
+      {/* KPIs Row 2: Resultado e indicadores suportados */}
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiCard
+          label="Resultado Líquido"
+          value={fmt(currentNetResult)}
+          variant={currentNetResult < 0 ? 'danger' : 'default'}
+          comparison={previousIs ? comparisonLabel(currentNetResult, previousIs.net_result) : undefined}
+          icon={<CircleDollarSign className="size-4" />}
+          description="Resultado da DRE oficial no período selecionado."
+        />
+        <KpiCard
+          label="EBITDA"
+          value={fmt(is.ebitda)}
+          subtitle={`Margem: ${pct(is.margin_ebitda)}`}
+          variant={is.ebitda < 0 ? 'danger' : 'default'}
+          comparison={previousIs ? comparisonLabel(is.ebitda, previousIs.ebitda) : undefined}
+          icon={<Activity className="size-4" />}
+          description="EBITDA Gerencial da DRE oficial no período selecionado."
+        />
+        <KpiCard
+          label="Margem EBITDA"
+          value={pct(is.margin_ebitda)}
+          variant={is.margin_ebitda < 0 ? 'danger' : 'default'}
+          comparison={previousIs ? comparisonLabel(is.margin_ebitda, previousIs.margin_ebitda) : undefined}
+          icon={<TrendingUp className="size-4" />}
+          description="EBITDA dividido pela Receita Líquida, conforme a DRE oficial."
+        />
+        <KpiCard
+          label="Margem Líquida"
+          value={pct(is.margin_net)}
+          variant={is.margin_net < 0 ? 'danger' : 'default'}
+          comparison={previousIs ? comparisonLabel(is.margin_net, previousIs.margin_net) : undefined}
+          icon={<TrendingUp className="size-4" />}
+          description="Resultado Líquido dividido pela Receita Líquida, conforme a DRE oficial."
+        />
+        <KpiCard
+          label="Liquidez Corrente"
+          value={bs.current_ratio.toFixed(2)}
+          variant={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'warning' : 'default'}
+          comparison={previousBs ? comparisonLabel(bs.current_ratio, previousBs.current_ratio) : undefined}
+          icon={<Scale className="size-4" />}
+          description="Ativo Circulante dividido pelo Passivo Circulante no BP até a data de referência."
+        />
       </div>
 
       {/* Caixa + Receber/Pagar */}

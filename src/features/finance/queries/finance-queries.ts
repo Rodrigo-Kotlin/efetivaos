@@ -640,9 +640,10 @@ export const DASHBOARD_KEYS = {
     [...DASHBOARD_KEYS.all, from, to, asOf] as const,
 }
 
-export function useFinancialDashboard(filters: api.DashboardFilters = {}) {
+export function useFinancialDashboard(filters: api.DashboardFilters = {}, options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: DASHBOARD_KEYS.filtered(filters.from ?? null, filters.to ?? null, filters.asOfDate ?? null),
     queryFn: () => api.fetchFinancialDashboard(filters),
+    enabled: options.enabled ?? true,
   })
 }
