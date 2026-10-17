@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 import type { FinancialDashboardData } from '../api/finance-api'
@@ -36,6 +36,7 @@ const mockDashboard: FinancialDashboardData = {
 
 describe('FinanceDashboardPage', () => {
   beforeEach(() => {
+    vi.mocked(useFinancialDashboard).mockClear()
     vi.mocked(useFinancialDashboard).mockReturnValue({
       data: mockDashboard, isLoading: false, isError: false,
     } as unknown as ReturnType<typeof useFinancialDashboard>)
@@ -57,6 +58,24 @@ describe('FinanceDashboardPage', () => {
     expect(screen.getByText('Mes anterior')).toBeInTheDocument()
     expect(screen.getByText('Este trimestre')).toBeInTheDocument()
     expect(screen.getByText('Este ano')).toBeInTheDocument()
+  })
+
+  it('uses the month and year context to query a monthly period', () => {
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=8']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText('Agosto 2026')).toBeInTheDocument()
+    expect(vi.mocked(useFinancialDashboard).mock.lastCall?.[0]).toEqual({
+      from: '2026-08-01',
+      to: '2026-08-31',
+      asOfDate: '2026-08-31',
+    })
+
+    fireEvent.change(screen.getByLabelText('Mês de referência'), { target: { value: '9' } })
+    expect(vi.mocked(useFinancialDashboard).mock.lastCall?.[0]).toEqual({
+      from: '2026-09-01',
+      to: '2026-09-30',
+      asOfDate: '2026-09-30',
+    })
   })
 
   it('renders KPI cards with correct values', () => {

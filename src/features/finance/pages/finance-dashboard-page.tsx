@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Plus, ArrowDownRight, ArrowLeftRight, List } from 'lucide-react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Plus, ArrowDownRight, ArrowLeftRight, List, CalendarDays } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,11 +11,47 @@ const fmt = (v: number) =>
 
 const pct = (v: number) => `${v.toFixed(1)}%`
 
+const MONTHS = [
+  'Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+]
+
+type Period = { year: number; month: number }
+
+function currentPeriod(): Period {
+  const now = new Date()
+  return { year: now.getFullYear(), month: now.getMonth() + 1 }
+}
+
+function readPeriod(params: URLSearchParams): Period {
+  const fallback = currentPeriod()
+  const year = Number(params.get('year'))
+  const month = Number(params.get('month'))
+  return Number.isInteger(year) && year >= 2000 && year <= 2100 && Number.isInteger(month) && month >= 1 && month <= 12
+    ? { year, month }
+    : fallback
+}
+
+function periodDates(period: Period) {
+  const month = String(period.month).padStart(2, '0')
+  const lastDay = new Date(period.year, period.month, 0).getDate()
+  return {
+    from: `${period.year}-${month}-01`,
+    to: `${period.year}-${month}-${String(lastDay).padStart(2, '0')}`,
+  }
+}
+
+function localDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
+
+const YEAR_OPTIONS = Array.from({ length: 7 }, (_, index) => new Date().getFullYear() - 3 + index)
+
 const PRESETS = [
-  { label: 'Este mes', from: () => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10), to: () => new Date().toISOString().slice(0, 10) },
-  { label: 'Mes anterior', from: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10) }, to: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().slice(0, 10) } },
-  { label: 'Este trimestre', from: () => { const q = Math.floor(new Date().getMonth() / 3); return new Date(new Date().getFullYear(), q * 3, 1).toISOString().slice(0, 10) }, to: () => new Date().toISOString().slice(0, 10) },
-  { label: 'Este ano', from: () => `${new Date().getFullYear()}-01-01`, to: () => new Date().toISOString().slice(0, 10) },
+  { label: 'Este mes', from: () => { const d = new Date(); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)) }, to: () => localDate(new Date()) },
+  { label: 'Mes anterior', from: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return localDate(new Date(d.getFullYear(), d.getMonth(), 1)) }, to: () => { const d = new Date(); d.setMonth(d.getMonth() - 1); return localDate(new Date(d.getFullYear(), d.getMonth() + 1, 0)) } },
+  { label: 'Este trimestre', from: () => { const d = new Date(); const q = Math.floor(d.getMonth() / 3); return localDate(new Date(d.getFullYear(), q * 3, 1)) }, to: () => localDate(new Date()) },
+  { label: 'Este ano', from: () => `${new Date().getFullYear()}-01-01`, to: () => localDate(new Date()) },
 ]
 
 function Skeleton() {
@@ -87,10 +123,13 @@ function StatementLinks() {
 }
 
 export default function FinanceDashboardPage() {
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
-  const [asOf, setAsOf] = useState('')
-  const [activePreset, setActivePreset] = useState<number | null>(0)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [period, setPeriod] = useState<Period | null>(() => readPeriod(searchParams))
+  const initialDates = periodDates(period ?? currentPeriod())
+  const [dateFrom, setDateFrom] = useState(initialDates.from)
+  const [dateTo, setDateTo] = useState(initialDates.to)
+  const [asOf, setAsOf] = useState(initialDates.to)
+  const [activePreset, setActivePreset] = useState<number | null>(() => searchParams.has('month') ? null : 0)
   const navigate = useNavigate()
 
   const filters = useMemo(() => ({
@@ -105,14 +144,29 @@ export default function FinanceDashboardPage() {
     const p = PRESETS[idx]
     setDateFrom(p.from())
     setDateTo(p.to())
-    setAsOf('')
+    setAsOf(p.to())
     setActivePreset(idx)
+    setPeriod(idx < 2 ? (() => {
+      const date = new Date(`${p.from()}T00:00:00`)
+      return { year: date.getFullYear(), month: date.getMonth() + 1 }
+    })() : null)
+  }
+
+  const changePeriod = (next: Period) => {
+    const dates = periodDates(next)
+    setPeriod(next)
+    setDateFrom(dates.from)
+    setDateTo(dates.to)
+    setAsOf(dates.to)
+    setActivePreset(null)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('year', String(next.year))
+    nextParams.set('month', String(next.month))
+    setSearchParams(nextParams, { replace: true })
   }
 
   const clearFilters = () => {
-    setDateFrom('')
-    setDateTo('')
-    setAsOf('')
+    changePeriod(currentPeriod())
     setActivePreset(0)
   }
 
@@ -147,7 +201,10 @@ export default function FinanceDashboardPage() {
     <div className="mx-auto max-w-[1480px] space-y-6 p-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl font-semibold tracking-tight">Financeiro 360</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">Financeiro 360</h1>
+          {period && <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">{MONTHS[period.month - 1]} {period.year}</span>}
+        </div>
         <p className="mt-1 text-sm text-slate-500">
           Visão consolidada de caixa, resultado, obrigações e posição patrimonial.
         </p>
@@ -163,6 +220,33 @@ export default function FinanceDashboardPage() {
 
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
+        <div className="flex items-end gap-2 rounded-xl border border-emerald-100 bg-emerald-50/60 p-2">
+          <CalendarDays className="mb-2 size-4 text-emerald-700" aria-hidden="true" />
+          <label className="text-xs font-medium text-slate-600">
+            Mês
+            <select
+              aria-label="Mês de referência"
+              value={period?.month ?? ''}
+              onChange={e => period && changePeriod({ ...period, month: Number(e.target.value) })}
+              className="mt-1 block h-9 rounded-md border border-emerald-200 bg-white px-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-700/20"
+            >
+              {!period && <option value="">Personalizado</option>}
+              {MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-medium text-slate-600">
+            Ano
+            <select
+              aria-label="Ano de referência"
+              value={period?.year ?? ''}
+              onChange={e => period && changePeriod({ ...period, year: Number(e.target.value) })}
+              className="mt-1 block h-9 rounded-md border border-emerald-200 bg-white px-2 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-emerald-700/20"
+            >
+              {!period && <option value="">-</option>}
+              {YEAR_OPTIONS.map(year => <option key={year} value={year}>{year}</option>)}
+            </select>
+          </label>
+        </div>
         <div className="flex gap-2">
           {PRESETS.map((p, i) => (
             <Button
@@ -177,11 +261,11 @@ export default function FinanceDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">De:</span>
-          <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setActivePreset(null) }} className="w-36" />
+          <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPeriod(null); setActivePreset(null) }} className="w-36" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">Ate:</span>
-          <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setActivePreset(null) }} className="w-36" />
+          <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPeriod(null); setActivePreset(null) }} className="w-36" />
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">Posição:</span>
