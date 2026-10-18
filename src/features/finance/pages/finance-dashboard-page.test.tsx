@@ -4,11 +4,12 @@ import { MemoryRouter } from 'react-router-dom'
 import type { FinancialDashboardData } from '../api/finance-api'
 
 import FinanceDashboardPage from './finance-dashboard-page'
-import { useCashflowRealized, useFinancialDashboard } from '../queries/finance-queries'
+import { useCashflowRealized, useExpenseComposition, useFinancialDashboard } from '../queries/finance-queries'
 
 vi.mock('../queries/finance-queries', () => ({
   useFinancialDashboard: vi.fn(),
   useCashflowRealized: vi.fn(),
+  useExpenseComposition: vi.fn(),
 }))
 
 const mockRealizedCashflow = [
@@ -55,6 +56,12 @@ describe('FinanceDashboardPage', () => {
     vi.mocked(useCashflowRealized).mockReturnValue({
       data: mockRealizedCashflow, isLoading: false, isError: false,
     } as unknown as ReturnType<typeof useCashflowRealized>)
+    vi.mocked(useExpenseComposition).mockReturnValue({
+      data: [
+        { account_code: '5.2.01.001', account_name: 'Aluguéis e Condomínio', amount: 2750, percentage: 9.4 },
+        { account_code: '5.9.01.001', account_name: 'Outras Despesas Operacionais', amount: 17250, percentage: 59.15 },
+      ], isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useExpenseComposition>)
   })
 
   it('renders dashboard title', () => {
@@ -74,6 +81,39 @@ describe('FinanceDashboardPage', () => {
     expect(screen.getByRole('img', { name: /Gráfico de fluxo de caixa/ })).toBeInTheDocument()
     expect(screen.getByText(/Entradas realizadas no gráfico: R\$ 1\.500,00/)).toBeInTheDocument()
     expect(screen.getByText(/Saídas realizadas no gráfico: R\$ 250,00/)).toBeInTheDocument()
+  })
+
+  it('renders the official expense composition with the March rent account and total', () => {
+    vi.mocked(useFinancialDashboard).mockReturnValue({
+      data: { ...mockDashboard, period: { from: '2026-03-01', to: '2026-03-31', as_of_date: '2026-03-31' } }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useFinancialDashboard>)
+    vi.mocked(useExpenseComposition).mockReturnValue({
+      data: [
+        { account_code: '5.2.01.001', account_name: 'Aluguéis e Condomínio', amount: 2750, percentage: 9.4 },
+        { account_code: '5.9.01.001', account_name: 'Outras Despesas Operacionais', amount: 26503.29, percentage: 90.6 },
+      ], isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useExpenseComposition>)
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=3']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText('Composição das Despesas')).toBeInTheDocument()
+    expect(screen.getByText('R$ 29.253,29')).toBeInTheDocument()
+    expect(screen.getByText('5.2.01.001')).toBeInTheDocument()
+    expect(vi.mocked(useExpenseComposition).mock.calls.some(call => call[0]?.from === '2026-03-01' && call[0]?.to === '2026-03-31')).toBe(true)
+  })
+
+  it('keeps composition loading, error and empty states separate from the dashboard', () => {
+    vi.mocked(useExpenseComposition).mockReturnValue({ data: undefined, isLoading: true, isError: false } as unknown as ReturnType<typeof useExpenseComposition>)
+    const { rerender } = render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByLabelText('Carregando composição das despesas')).toBeInTheDocument()
+
+    vi.mocked(useExpenseComposition).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof useExpenseComposition>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Erro ao carregar a composição das despesas.')).toBeInTheDocument()
+
+    vi.mocked(useExpenseComposition).mockReturnValue({ data: [], isLoading: false, isError: false } as unknown as ReturnType<typeof useExpenseComposition>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Nenhuma despesa operacional encontrada para este período.')).toBeInTheDocument()
   })
 
   it('reconciles the March cashflow series with the official totals', () => {

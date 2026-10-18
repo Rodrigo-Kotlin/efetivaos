@@ -28,6 +28,7 @@ export type {
   Cashflow13WeekRow,
   CashflowSummaryRow,
   IncomeStatementRow,
+  ExpenseCompositionRow,
   FinancialAssetStatus,
   FinancialAssetDepreciationMethod,
   FinancialAsset,

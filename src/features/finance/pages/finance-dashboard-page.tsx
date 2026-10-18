@@ -6,7 +6,8 @@ import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, T
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CashflowRealizedRow } from '@/types/database'
-import { useCashflowRealized, useFinancialDashboard } from '../queries/finance-queries'
+import { useCashflowRealized, useExpenseComposition, useFinancialDashboard } from '../queries/finance-queries'
+import { ExpenseCompositionChart } from '../components/expense-composition-chart'
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -300,6 +301,13 @@ export default function FinanceDashboardPage() {
   const previousFilters = period ? periodDates(previousPeriod(period)) : null
   const { data: dash, isLoading, isError } = useFinancialDashboard(filters)
   const { data: realizedCashflow, isLoading: isCashflowLoading, isError: isCashflowError } = useCashflowRealized(cashflowFilters)
+  const expenseCompositionFilters = useMemo(() => ({
+    from: dateFrom || null,
+    to: dateTo || null,
+    costCenterId: null,
+    serviceLineId: null,
+  }), [dateFrom, dateTo])
+  const { data: expenseComposition, isLoading: isExpenseCompositionLoading, isError: isExpenseCompositionError } = useExpenseComposition(expenseCompositionFilters)
   const { data: previousDash } = useFinancialDashboard(
     previousFilters ? { ...previousFilters, asOfDate: previousFilters.to } : {},
     { enabled: !!previousFilters },
@@ -611,6 +619,15 @@ export default function FinanceDashboardPage() {
           openingBalance={cf.opening_balance}
           isLoading={isCashflowLoading}
           isError={isCashflowError}
+        />
+      </Section>
+
+      <Section title="Composição das Despesas">
+        <p className="mb-4 text-sm text-slate-500">Distribuição das despesas operacionais por conta contábil no período selecionado.</p>
+        <ExpenseCompositionChart
+          rows={expenseComposition}
+          isLoading={isExpenseCompositionLoading}
+          isError={isExpenseCompositionError}
         />
       </Section>
 

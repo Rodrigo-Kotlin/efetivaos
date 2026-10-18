@@ -432,6 +432,24 @@ export function useIncomeStatement(filters: api.IncomeStatementFilters = {}) {
   })
 }
 
+export const EXPENSE_COMPOSITION_KEYS = {
+  all: ['finance', 'expense-composition'] as const,
+  period: (from: string | null, to: string | null, costCenterId: string | null, serviceLineId: string | null) =>
+    [...EXPENSE_COMPOSITION_KEYS.all, from, to, costCenterId, serviceLineId] as const,
+}
+
+export function useExpenseComposition(filters: api.ExpenseCompositionFilters = {}) {
+  const from = filters.from ?? null
+  const to = filters.to ?? null
+  const costCenterId = filters.costCenterId ?? null
+  const serviceLineId = filters.serviceLineId ?? null
+
+  return useQuery({
+    queryKey: EXPENSE_COMPOSITION_KEYS.period(from, to, costCenterId, serviceLineId),
+    queryFn: () => api.fetchExpenseComposition({ from, to, costCenterId, serviceLineId }),
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Assets (ETAPA 08F)
 // ---------------------------------------------------------------------------

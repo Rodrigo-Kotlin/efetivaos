@@ -1,15 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import * as api from './api/finance-api'
-import { useCreateCategory, useUpdateCategory, useUpdateTransaction } from './queries/finance-queries'
+import { useCreateCategory, useExpenseComposition, useUpdateCategory, useUpdateTransaction } from './queries/finance-queries'
 
 vi.mock('./api/finance-api', () => ({
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
   updateTransaction: vi.fn(),
+  fetchExpenseComposition: vi.fn(),
 }))
 
 const categoryValues = {
@@ -76,5 +77,33 @@ describe('financial transaction mutations', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'payables'] })
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'cashflow'] })
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['finance', 'income-statement'] })
+  })
+})
+
+describe('expense composition query', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  it('passes the official RPC filters and includes them in the query key', async () => {
+    vi.mocked(api.fetchExpenseComposition).mockResolvedValue([
+      { account_code: '5.2.01.001', account_name: 'Aluguéis e Condomínio', amount: 2750, percentage: 9.4 },
+    ])
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const { result } = renderHook(() => useExpenseComposition({ from: '2026-03-01', to: '2026-03-31' }), { wrapper: createWrapper(queryClient) })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(api.fetchExpenseComposition).toHaveBeenCalledWith({
+      from: '2026-03-01', to: '2026-03-31', costCenterId: null, serviceLineId: null,
+    })
+    expect(queryClient.getQueryCache().find({ queryKey: ['finance', 'expense-composition', '2026-03-01', '2026-03-31', null, null] })).toBeDefined()
+  })
+
+  it('exposes RPC errors without converting them into empty data', async () => {
+    vi.mocked(api.fetchExpenseComposition).mockRejectedValue(new Error('Access denied'))
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const { result } = renderHook(() => useExpenseComposition(), { wrapper: createWrapper(queryClient) })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(result.current.data).toBeUndefined()
   })
 })

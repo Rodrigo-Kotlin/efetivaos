@@ -23,9 +23,12 @@ import type {
   Cashflow13WeekRow,
   CashflowSummaryRow,
   IncomeStatementRow,
+  ExpenseCompositionRow,
   FinancialAssetList,
   BalanceSheetRow,
 } from '@/types/database'
+
+export type { ExpenseCompositionRow } from '@/types/database'
 
 type FinanceTables = Database['public']['Tables']
 
@@ -931,6 +934,25 @@ export async function fetchIncomeStatement(filters: IncomeStatementFilters = {})
   })
   if (error) throw error
   return (data ?? []) as IncomeStatementRow[]
+}
+
+// Official operating expense composition source (FIN-UI-BACKEND-2.1).
+export interface ExpenseCompositionFilters {
+  from?: string | null
+  to?: string | null
+  costCenterId?: string | null
+  serviceLineId?: string | null
+}
+
+export async function fetchExpenseComposition(filters: ExpenseCompositionFilters = {}): Promise<ExpenseCompositionRow[]> {
+  const { data, error } = await supabase.rpc('get_expense_composition', {
+    p_date_from: filters.from ?? null,
+    p_date_to: filters.to ?? null,
+    p_cost_center_id: filters.costCenterId ?? null,
+    p_service_line_id: filters.serviceLineId ?? null,
+  })
+  if (error) throw error
+  return data ?? []
 }
 
 // ---------------------------------------------------------------------------

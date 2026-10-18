@@ -598,6 +598,13 @@ export type IncomeStatementRow = {
   sort_order: number
 }
 
+export type ExpenseCompositionRow = {
+  account_code: string
+  account_name: string
+  amount: number
+  percentage: number
+}
+
 // ---------------------------------------------------------------------------
 // Assets / Balance Sheet (ETAPA 08F)
 // ---------------------------------------------------------------------------
@@ -1583,6 +1590,15 @@ code?: string
       get_income_statement: {
         Args: { p_from?: string | null; p_to?: string | null; p_cost_center_id?: string | null; p_service_line_id?: string | null }
         Returns: IncomeStatementRow[]
+      }
+      get_expense_composition: {
+        Args: {
+          p_date_from?: string | null
+          p_date_to?: string | null
+          p_cost_center_id?: string | null
+          p_service_line_id?: string | null
+        }
+        Returns: ExpenseCompositionRow[]
       }
       create_asset: {
         Args: {

@@ -36,6 +36,7 @@ import {
   settleTransaction,
   cancelTransaction,
   fetchIncomeStatement,
+  fetchExpenseComposition,
   updateTransaction,
 } from './api/finance-api'
 
@@ -623,5 +624,36 @@ describe('Income Statement API', () => {
   it('fetchIncomeStatement propaga erro do RPC', async () => {
     serviceMocks.rpcResults.push({ data: null, error: { message: 'Access denied' } })
     await expect(fetchIncomeStatement()).rejects.toThrow()
+  })
+})
+
+describe('Expense Composition API', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.rpcResults.length = 0
+  })
+
+  it('fetchExpenseComposition chama a RPC oficial com o intervalo e filtros nulos', async () => {
+    const rows = [{ account_code: '5.2.01.001', account_name: 'Aluguéis e Condomínio', amount: 2750, percentage: 9.4 }]
+    serviceMocks.rpcResults.push({ data: rows, error: null })
+
+    const result = await fetchExpenseComposition({ from: '2026-03-01', to: '2026-03-31' })
+
+    expect(result).toEqual(rows)
+    const rpcOp = serviceMocks.operations.find(op => op.method === 'rpc:get_expense_composition')
+    expect(rpcOp?.args[0]).toEqual({
+      p_date_from: '2026-03-01',
+      p_date_to: '2026-03-31',
+      p_cost_center_id: null,
+      p_service_line_id: null,
+    })
+  })
+
+  it('fetchExpenseComposition propaga erro e normaliza resposta vazia', async () => {
+    serviceMocks.rpcResults.push({ data: null, error: null })
+    await expect(fetchExpenseComposition()).resolves.toEqual([])
+
+    serviceMocks.rpcResults.push({ data: null, error: { message: 'Access denied' } })
+    await expect(fetchExpenseComposition()).rejects.toThrow()
   })
 })
