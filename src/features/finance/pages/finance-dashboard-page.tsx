@@ -6,9 +6,10 @@ import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, T
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CashflowRealizedRow } from '@/types/database'
-import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, useTransactions } from '../queries/finance-queries'
+import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, usePayables, useReceivables, useTransactions } from '../queries/finance-queries'
 import { ExpenseCompositionChart } from '../components/expense-composition-chart'
 import { FinancialMovementsList } from '../components/financial-movements-list'
+import { DashboardCollectionPreview } from '../components/dashboard-collection-preview'
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -306,11 +307,21 @@ export default function FinanceDashboardPage() {
     sort: 'transaction_date' as const,
     direction: 'desc' as const,
   }), [dateFrom, dateTo])
+  const collectionPreviewFilters = useMemo(() => ({
+    page: 1,
+    pageSize: 5,
+    dueDateFrom: dateFrom || undefined,
+    dueDateTo: dateTo || undefined,
+    sort: 'due_date' as const,
+    direction: 'asc' as const,
+  }), [dateFrom, dateTo])
 
   const previousFilters = period ? periodDates(previousPeriod(period)) : null
   const { data: dash, isLoading, isError } = useFinancialDashboard(filters)
   const { data: realizedCashflow, isLoading: isCashflowLoading, isError: isCashflowError } = useCashflowRealized(cashflowFilters)
   const { data: movements, isLoading: isMovementsLoading, isFetching: isMovementsFetching, isError: isMovementsError } = useTransactions(movementFilters)
+  const { data: receivables, isLoading: isReceivablesLoading, isError: isReceivablesError } = useReceivables(collectionPreviewFilters)
+  const { data: payables, isLoading: isPayablesLoading, isError: isPayablesError } = usePayables(collectionPreviewFilters)
   const expenseCompositionFilters = useMemo(() => ({
     from: dateFrom || null,
     to: dateTo || null,
@@ -605,27 +616,19 @@ export default function FinanceDashboardPage() {
         </Section>
 
         <Section title="Contas a Receber">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-600">Em aberto</span><span className="font-medium">{fmt(ar.open)}</span></div>
-            <div className="flex justify-between"><span className="text-red-600">Vencidos</span><span className="font-medium text-red-700">{fmt(ar.overdue)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Vence em 7 dias</span><span>{fmt(ar.due_in_7_days)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Vence em 30 dias</span><span>{fmt(ar.due_in_30_days)}</span></div>
+          <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ar.open)}</p></div>
+            <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ar.overdue)}</p></div>
           </div>
-          <Link to="/finance/receivables" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
-            Ver contas a receber &rarr;
-          </Link>
+          <DashboardCollectionPreview rows={receivables?.rows} isLoading={isReceivablesLoading} isError={isReceivablesError} emptyMessage="Nenhuma conta a receber neste período." errorMessage="Erro ao carregar as contas a receber." viewHref="/finance/receivables" viewLabel="Ver contas a receber" />
         </Section>
 
         <Section title="Contas a Pagar">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-600">Em aberto</span><span className="font-medium">{fmt(ap.open)}</span></div>
-            <div className="flex justify-between"><span className="text-red-600">Vencidos</span><span className="font-medium text-red-700">{fmt(ap.overdue)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Vence em 7 dias</span><span>{fmt(ap.due_in_7_days)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Vence em 30 dias</span><span>{fmt(ap.due_in_30_days)}</span></div>
+          <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ap.open)}</p></div>
+            <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ap.overdue)}</p></div>
           </div>
-          <Link to="/finance/payables" className="mt-3 block text-xs font-medium text-emerald-700 hover:underline">
-            Ver contas a pagar &rarr;
-          </Link>
+          <DashboardCollectionPreview rows={payables?.rows} isLoading={isPayablesLoading} isError={isPayablesError} emptyMessage="Nenhuma conta a pagar neste período." errorMessage="Erro ao carregar as contas a pagar." viewHref="/finance/payables" viewLabel="Ver contas a pagar" />
         </Section>
       </div>
 

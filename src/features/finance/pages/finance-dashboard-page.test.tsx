@@ -4,12 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 import type { FinancialDashboardData } from '../api/finance-api'
 
 import FinanceDashboardPage from './finance-dashboard-page'
-import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, useTransactions } from '../queries/finance-queries'
+import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, usePayables, useReceivables, useTransactions } from '../queries/finance-queries'
 
 vi.mock('../queries/finance-queries', () => ({
   useFinancialDashboard: vi.fn(),
   useCashflowRealized: vi.fn(),
   useExpenseComposition: vi.fn(),
+  useReceivables: vi.fn(),
+  usePayables: vi.fn(),
   useTransactions: vi.fn(),
 }))
 
@@ -57,6 +59,12 @@ describe('FinanceDashboardPage', () => {
     vi.mocked(useCashflowRealized).mockReturnValue({
       data: mockRealizedCashflow, isLoading: false, isError: false,
     } as unknown as ReturnType<typeof useCashflowRealized>)
+    vi.mocked(useReceivables).mockReturnValue({
+      data: { rows: [], count: 0, page: 1, pageSize: 5, pageCount: 1 }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useReceivables>)
+    vi.mocked(usePayables).mockReturnValue({
+      data: { rows: [], count: 0, page: 1, pageSize: 5, pageCount: 1 }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof usePayables>)
     vi.mocked(useExpenseComposition).mockReturnValue({
       data: [
         { account_code: '5.2.01.001', account_name: 'Aluguéis e Condomínio', amount: 2750, percentage: 9.4 },
@@ -76,6 +84,38 @@ describe('FinanceDashboardPage', () => {
   it('renders period subtitle', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
     expect(screen.getByText(/Visão consolidada/)).toBeInTheDocument()
+  })
+
+  it('renders official AR/AP previews using the selected period and keeps navigation internal', () => {
+    vi.mocked(useReceivables).mockReturnValue({
+      data: { rows: [{ transaction_id: 'ar-1', description: 'Mensalidade cliente', movement_type: 'RECEITA', status: 'pending', original_amount: '1200', settled_amount: '0', open_amount: '1200', transaction_date: '2026-03-10', competence_date: '2026-03-10', due_date: '2026-03-15', overdue: true, days_overdue: 3, party_name: 'Cliente A' }], count: 1, page: 1, pageSize: 5, pageCount: 1 }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useReceivables>)
+    vi.mocked(usePayables).mockReturnValue({
+      data: { rows: [{ transaction_id: 'ap-1', description: 'Fornecedor mensal', movement_type: 'DESPESA', status: 'settled', original_amount: '900', settled_amount: '900', open_amount: '0', transaction_date: '2026-03-12', competence_date: '2026-03-12', due_date: '2026-03-12', overdue: false, days_overdue: null, party_name: 'Fornecedor B' }], count: 1, page: 1, pageSize: 5, pageCount: 1 }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof usePayables>)
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=3']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText('Mensalidade cliente')).toBeInTheDocument()
+    expect(screen.getByText('Fornecedor mensal')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Ver contas a receber/ })).toHaveAttribute('href', '/finance/receivables')
+    expect(screen.getByRole('link', { name: /Ver contas a pagar/ })).toHaveAttribute('href', '/finance/payables')
+    expect(vi.mocked(useReceivables).mock.calls.some(call => call[0]?.dueDateFrom === '2026-03-01' && call[0]?.dueDateTo === '2026-03-31' && call[0]?.pageSize === 5)).toBe(true)
+    expect(vi.mocked(usePayables).mock.calls.some(call => call[0]?.dueDateFrom === '2026-03-01' && call[0]?.dueDateTo === '2026-03-31' && call[0]?.pageSize === 5)).toBe(true)
+  })
+
+  it('keeps AR/AP preview loading, error and empty states explicit', () => {
+    vi.mocked(useReceivables).mockReturnValue({ data: undefined, isLoading: true, isError: false } as unknown as ReturnType<typeof useReceivables>)
+    vi.mocked(usePayables).mockReturnValue({ data: undefined, isLoading: false, isError: true } as unknown as ReturnType<typeof usePayables>)
+    const { rerender } = render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getAllByLabelText('Carregando contas financeiras')).toHaveLength(1)
+    expect(screen.getByText('Erro ao carregar as contas a pagar.')).toBeInTheDocument()
+
+    vi.mocked(useReceivables).mockReturnValue({ data: { rows: [], count: 0 }, isLoading: false, isError: false } as unknown as ReturnType<typeof useReceivables>)
+    vi.mocked(usePayables).mockReturnValue({ data: { rows: [], count: 0 }, isLoading: false, isError: false } as unknown as ReturnType<typeof usePayables>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Nenhuma conta a receber neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma conta a pagar neste período.')).toBeInTheDocument()
   })
 
   it('renders realized cashflow with accessible daily movement summary', () => {
