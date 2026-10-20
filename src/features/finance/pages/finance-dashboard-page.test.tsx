@@ -118,6 +118,22 @@ describe('FinanceDashboardPage', () => {
     expect(screen.getByText('Nenhuma conta a pagar neste período.')).toBeInTheDocument()
   })
 
+  it('does not present stale block data while an independent query refetches', () => {
+    vi.mocked(useCashflowRealized).mockReturnValue({ data: [{ entry_date: '2026-03-01', direction: 'INFLOW', amount: '100' }], isLoading: false, isFetching: true, isError: false } as unknown as ReturnType<typeof useCashflowRealized>)
+    vi.mocked(useExpenseComposition).mockReturnValue({ data: [{ account_code: 'old', account_name: 'Despesa antiga', amount: 100, percentage: 100 }], isLoading: false, isFetching: true, isError: false } as unknown as ReturnType<typeof useExpenseComposition>)
+    vi.mocked(useReceivables).mockReturnValue({ data: { rows: [{ transaction_id: 'old-ar', description: 'Recebível antigo' }], count: 1 }, isLoading: false, isFetching: true, isError: false } as unknown as ReturnType<typeof useReceivables>)
+    vi.mocked(usePayables).mockReturnValue({ data: { rows: [{ transaction_id: 'old-ap', description: 'Pagável antigo' }], count: 1 }, isLoading: false, isFetching: true, isError: false } as unknown as ReturnType<typeof usePayables>)
+
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByLabelText('Carregando fluxo de caixa')).toBeInTheDocument()
+    expect(screen.getByLabelText('Carregando composição das despesas')).toBeInTheDocument()
+    expect(screen.getAllByLabelText('Carregando contas financeiras')).toHaveLength(2)
+    expect(screen.queryByText('Recebível antigo')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pagável antigo')).not.toBeInTheDocument()
+    expect(screen.queryByText('Despesa antiga')).not.toBeInTheDocument()
+  })
+
   it('renders realized cashflow with accessible daily movement summary', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
 

@@ -161,17 +161,25 @@ const PRESETS = [
 
 function Skeleton() {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6">
       <div className="h-8 w-64 animate-pulse rounded bg-slate-200" />
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div className="h-12 animate-pulse rounded-xl bg-slate-100" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        {Array.from({ length: 10 }).map((_, i) => (
           <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100" />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-48 animate-pulse rounded-xl bg-slate-100" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-64 animate-pulse rounded-xl bg-slate-100" />
         ))}
+      </div>
+      <div className="h-80 animate-pulse rounded-xl bg-slate-100" />
+      <div className="h-72 animate-pulse rounded-xl bg-slate-100" />
+      <div className="h-80 animate-pulse rounded-xl bg-slate-100" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="h-72 animate-pulse rounded-xl bg-slate-100" />
+        <div className="h-72 animate-pulse rounded-xl bg-slate-100" />
       </div>
     </div>
   )
@@ -318,17 +326,17 @@ export default function FinanceDashboardPage() {
 
   const previousFilters = period ? periodDates(previousPeriod(period)) : null
   const { data: dash, isLoading, isError } = useFinancialDashboard(filters)
-  const { data: realizedCashflow, isLoading: isCashflowLoading, isError: isCashflowError } = useCashflowRealized(cashflowFilters)
+  const { data: realizedCashflow, isLoading: isCashflowLoading, isFetching: isCashflowFetching, isError: isCashflowError } = useCashflowRealized(cashflowFilters)
   const { data: movements, isLoading: isMovementsLoading, isFetching: isMovementsFetching, isError: isMovementsError } = useTransactions(movementFilters)
-  const { data: receivables, isLoading: isReceivablesLoading, isError: isReceivablesError } = useReceivables(collectionPreviewFilters)
-  const { data: payables, isLoading: isPayablesLoading, isError: isPayablesError } = usePayables(collectionPreviewFilters)
+  const { data: receivables, isLoading: isReceivablesLoading, isFetching: isReceivablesFetching, isError: isReceivablesError } = useReceivables(collectionPreviewFilters)
+  const { data: payables, isLoading: isPayablesLoading, isFetching: isPayablesFetching, isError: isPayablesError } = usePayables(collectionPreviewFilters)
   const expenseCompositionFilters = useMemo(() => ({
     from: dateFrom || null,
     to: dateTo || null,
     costCenterId: null,
     serviceLineId: null,
   }), [dateFrom, dateTo])
-  const { data: expenseComposition, isLoading: isExpenseCompositionLoading, isError: isExpenseCompositionError } = useExpenseComposition(expenseCompositionFilters)
+  const { data: expenseComposition, isLoading: isExpenseCompositionLoading, isFetching: isExpenseCompositionFetching, isError: isExpenseCompositionError } = useExpenseComposition(expenseCompositionFilters)
   const { data: previousDash } = useFinancialDashboard(
     previousFilters ? { ...previousFilters, asOfDate: previousFilters.to } : {},
     { enabled: !!previousFilters },
@@ -601,44 +609,34 @@ export default function FinanceDashboardPage() {
         />
       </div>
 
-      {/* Caixa + Receber/Pagar */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Section title="Resumo do Fluxo de Caixa">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium">{fmt(cf.opening_balance)}</span></div>
-            <div className="flex justify-between text-emerald-700"><span>Entradas realizadas</span><span className="font-medium">{fmt(cf.realized_inflows)}</span></div>
-            <div className="flex justify-between text-red-700"><span>Saídas realizadas</span><span className="font-medium">{fmt(cf.realized_outflows)}</span></div>
-            <div className="border-t pt-2 font-medium"><span>Saldo realizado</span><span>{fmt(cf.closing_balance)}</span></div>
-            <div className="flex justify-between text-emerald-600"><span>Entradas previstas</span><span>{fmt(cf.projected_inflows)}</span></div>
-            <div className="flex justify-between text-red-600"><span>Saídas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
-            <div className="border-t pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance < 0 ? 'text-red-700' : ''}>{fmt(cf.projected_balance)}</span></div>
-          </div>
-        </Section>
-
-        <Section title="Contas a Receber">
-          <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ar.open)}</p></div>
-            <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ar.overdue)}</p></div>
-          </div>
-          <DashboardCollectionPreview rows={receivables?.rows} isLoading={isReceivablesLoading} isError={isReceivablesError} emptyMessage="Nenhuma conta a receber neste período." errorMessage="Erro ao carregar as contas a receber." viewHref="/finance/receivables" viewLabel="Ver contas a receber" />
-        </Section>
-
-        <Section title="Contas a Pagar">
-          <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ap.open)}</p></div>
-            <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ap.overdue)}</p></div>
-          </div>
-          <DashboardCollectionPreview rows={payables?.rows} isLoading={isPayablesLoading} isError={isPayablesError} emptyMessage="Nenhuma conta a pagar neste período." errorMessage="Erro ao carregar as contas a pagar." viewHref="/finance/payables" viewLabel="Ver contas a pagar" />
-        </Section>
-      </div>
+      <Section title="Resumo do Fluxo de Caixa">
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium">{fmt(cf.opening_balance)}</span></div>
+          <div className="flex justify-between text-emerald-700"><span>Entradas realizadas</span><span className="font-medium">{fmt(cf.realized_inflows)}</span></div>
+          <div className="flex justify-between text-red-700"><span>Saídas realizadas</span><span className="font-medium">{fmt(cf.realized_outflows)}</span></div>
+          <div className="border-t pt-2 font-medium"><span>Saldo realizado</span><span>{fmt(cf.closing_balance)}</span></div>
+          <div className="flex justify-between text-emerald-600"><span>Entradas previstas</span><span>{fmt(cf.projected_inflows)}</span></div>
+          <div className="flex justify-between text-red-600"><span>Saídas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
+          <div className="border-t pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance < 0 ? 'text-red-700' : ''}>{fmt(cf.projected_balance)}</span></div>
+        </div>
+      </Section>
 
       <Section title="Fluxo de Caixa">
         <p className="mb-4 text-sm text-slate-500">Entradas, saídas e evolução do saldo no período selecionado.</p>
         <CashflowChart
           rows={realizedCashflow}
           openingBalance={cf.opening_balance}
-          isLoading={isCashflowLoading}
+          isLoading={isCashflowLoading || isCashflowFetching}
           isError={isCashflowError}
+        />
+      </Section>
+
+      <Section title="Composição das Despesas">
+        <p className="mb-4 text-sm text-slate-500">Distribuição das despesas operacionais por conta contábil no período selecionado.</p>
+        <ExpenseCompositionChart
+          rows={expenseComposition}
+          isLoading={isExpenseCompositionLoading || isExpenseCompositionFetching}
+          isError={isExpenseCompositionError}
         />
       </Section>
 
@@ -652,14 +650,23 @@ export default function FinanceDashboardPage() {
         />
       </Section>
 
-      <Section title="Composição das Despesas">
-        <p className="mb-4 text-sm text-slate-500">Distribuição das despesas operacionais por conta contábil no período selecionado.</p>
-        <ExpenseCompositionChart
-          rows={expenseComposition}
-          isLoading={isExpenseCompositionLoading}
-          isError={isExpenseCompositionError}
-        />
-      </Section>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Section title="Contas a Receber">
+          <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ar.open)}</p></div>
+            <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ar.overdue)}</p></div>
+          </div>
+          <DashboardCollectionPreview rows={receivables?.rows} isLoading={isReceivablesLoading || isReceivablesFetching} isError={isReceivablesError} emptyMessage="Nenhuma conta a receber neste período." errorMessage="Erro ao carregar as contas a receber." viewHref="/finance/receivables" viewLabel="Ver contas a receber" />
+        </Section>
+
+        <Section title="Contas a Pagar">
+          <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ap.open)}</p></div>
+            <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ap.overdue)}</p></div>
+          </div>
+          <DashboardCollectionPreview rows={payables?.rows} isLoading={isPayablesLoading || isPayablesFetching} isError={isPayablesError} emptyMessage="Nenhuma conta a pagar neste período." errorMessage="Erro ao carregar as contas a pagar." viewHref="/finance/payables" viewLabel="Ver contas a pagar" />
+        </Section>
+      </div>
 
       {/* Resultado + Patrimonio */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
