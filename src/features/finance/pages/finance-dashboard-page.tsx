@@ -6,8 +6,9 @@ import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, T
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CashflowRealizedRow } from '@/types/database'
-import { useCashflowRealized, useExpenseComposition, useFinancialDashboard } from '../queries/finance-queries'
+import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, useTransactions } from '../queries/finance-queries'
 import { ExpenseCompositionChart } from '../components/expense-composition-chart'
+import { FinancialMovementsList } from '../components/financial-movements-list'
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -297,10 +298,19 @@ export default function FinanceDashboardPage() {
     from: dateFrom || null,
     to: dateTo || null,
   }), [dateFrom, dateTo])
+  const movementFilters = useMemo(() => ({
+    page: 1,
+    pageSize: 8,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    sort: 'transaction_date' as const,
+    direction: 'desc' as const,
+  }), [dateFrom, dateTo])
 
   const previousFilters = period ? periodDates(previousPeriod(period)) : null
   const { data: dash, isLoading, isError } = useFinancialDashboard(filters)
   const { data: realizedCashflow, isLoading: isCashflowLoading, isError: isCashflowError } = useCashflowRealized(cashflowFilters)
+  const { data: movements, isLoading: isMovementsLoading, isFetching: isMovementsFetching, isError: isMovementsError } = useTransactions(movementFilters)
   const expenseCompositionFilters = useMemo(() => ({
     from: dateFrom || null,
     to: dateTo || null,
@@ -342,6 +352,13 @@ export default function FinanceDashboardPage() {
     changePeriod(currentPeriod())
     setActivePreset(0)
   }
+
+  const movementsHref = useMemo(() => {
+    const params = new URLSearchParams()
+    if (dateFrom) params.set('dateFrom', dateFrom)
+    if (dateTo) params.set('dateTo', dateTo)
+    return `/finance/transactions${params.toString() ? `?${params.toString()}` : ''}`
+  }, [dateFrom, dateTo])
 
   if (isLoading) return <Skeleton />
 
@@ -619,6 +636,16 @@ export default function FinanceDashboardPage() {
           openingBalance={cf.opening_balance}
           isLoading={isCashflowLoading}
           isError={isCashflowError}
+        />
+      </Section>
+
+      <Section title="Movimentações Financeiras">
+        <p className="mb-4 text-sm text-slate-500">Últimos lançamentos do período selecionado.</p>
+        <FinancialMovementsList
+          rows={movements?.rows}
+          isLoading={isMovementsLoading || isMovementsFetching}
+          isError={isMovementsError}
+          viewHref={movementsHref}
         />
       </Section>
 

@@ -4,12 +4,13 @@ import { MemoryRouter } from 'react-router-dom'
 import type { FinancialDashboardData } from '../api/finance-api'
 
 import FinanceDashboardPage from './finance-dashboard-page'
-import { useCashflowRealized, useExpenseComposition, useFinancialDashboard } from '../queries/finance-queries'
+import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, useTransactions } from '../queries/finance-queries'
 
 vi.mock('../queries/finance-queries', () => ({
   useFinancialDashboard: vi.fn(),
   useCashflowRealized: vi.fn(),
   useExpenseComposition: vi.fn(),
+  useTransactions: vi.fn(),
 }))
 
 const mockRealizedCashflow = [
@@ -62,6 +63,9 @@ describe('FinanceDashboardPage', () => {
         { account_code: '5.9.01.001', account_name: 'Outras Despesas Operacionais', amount: 17250, percentage: 59.15 },
       ], isLoading: false, isError: false,
     } as unknown as ReturnType<typeof useExpenseComposition>)
+    vi.mocked(useTransactions).mockReturnValue({
+      data: { rows: [], count: 0, page: 1, pageSize: 8, pageCount: 1 }, isLoading: false, isFetching: false, isError: false,
+    } as unknown as ReturnType<typeof useTransactions>)
   })
 
   it('renders dashboard title', () => {
@@ -81,6 +85,57 @@ describe('FinanceDashboardPage', () => {
     expect(screen.getByRole('img', { name: /Gráfico de fluxo de caixa/ })).toBeInTheDocument()
     expect(screen.getByText(/Entradas realizadas no gráfico: R\$ 1\.500,00/)).toBeInTheDocument()
     expect(screen.getByText(/Saídas realizadas no gráfico: R\$ 250,00/)).toBeInTheDocument()
+  })
+
+  it('queries and links recent movements using the selected period', () => {
+    vi.mocked(useTransactions).mockReturnValue({
+      data: {
+        rows: [{
+          id: 'movement-1', description: 'Recebimento de cliente', transaction_date: '2026-03-20', competence_date: '2026-03-20',
+          movement_type: 'RECEITA', amount: '1250', status: 'settled', category_id: null, category_name: 'Serviços',
+          origin_account_id: null, origin_account_name: 'Banco', destination_account_id: null, destination_account_name: null,
+          party_id: null, party_name: 'Cliente', cost_center_id: null, cost_center_name: null, service_line_id: null, service_line_name: null,
+          payment_method_id: null, payment_method_name: null, due_date: null, payment_date: '2026-03-20', notes: null,
+          review_required: false, version: 1, created_at: '2026-03-20T10:00:00Z', created_by: null, updated_at: '2026-03-20T10:00:00Z',
+          updated_by: null, journal_entry_count: 1, total_debit: '0', total_credit: '1250',
+        }], count: 1, page: 1, pageSize: 8, pageCount: 1,
+      }, isLoading: false, isFetching: false, isError: false,
+    } as unknown as ReturnType<typeof useTransactions>)
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=3']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByText('Movimentações Financeiras')).toBeInTheDocument()
+    expect(screen.getAllByText('Recebimento de cliente')).toHaveLength(2)
+    expect(screen.getAllByText('Receita')).toHaveLength(2)
+    expect(screen.getAllByText('Recebido')).toHaveLength(2)
+    expect(screen.getAllByText('R$ 1.250,00')).toHaveLength(2)
+    expect(vi.mocked(useTransactions).mock.calls.some(call => call[0]?.dateFrom === '2026-03-01' && call[0]?.dateTo === '2026-03-31' && call[0]?.pageSize === 8)).toBe(true)
+    expect(screen.getByRole('link', { name: 'Ver lançamentos' })).toHaveAttribute('href', '/finance/transactions?dateFrom=2026-03-01&dateTo=2026-03-31')
+  })
+
+  it('keeps movement loading, error and empty states explicit', () => {
+    vi.mocked(useTransactions).mockReturnValue({ data: undefined, isLoading: true, isFetching: false, isError: false } as unknown as ReturnType<typeof useTransactions>)
+    const { rerender } = render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByLabelText('Carregando movimentações financeiras')).toBeInTheDocument()
+
+    vi.mocked(useTransactions).mockReturnValue({ data: undefined, isLoading: false, isFetching: false, isError: true } as unknown as ReturnType<typeof useTransactions>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Erro ao carregar as movimentações financeiras.')).toBeInTheDocument()
+
+    vi.mocked(useTransactions).mockReturnValue({ data: { rows: [], count: 0, page: 1, pageSize: 8, pageCount: 1 }, isLoading: false, isFetching: false, isError: false } as unknown as ReturnType<typeof useTransactions>)
+    rerender(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+    expect(screen.getByText('Nenhuma movimentação encontrada neste período.')).toBeInTheDocument()
+  })
+
+  it('does not present previous movements while the selected period is refetching', () => {
+    vi.mocked(useTransactions).mockReturnValue({
+      data: { rows: [{ id: 'old' }], count: 1, page: 1, pageSize: 8, pageCount: 1 }, isLoading: false, isFetching: true, isError: false,
+    } as unknown as ReturnType<typeof useTransactions>)
+
+    render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.getByLabelText('Carregando movimentações financeiras')).toBeInTheDocument()
+    expect(screen.queryByText('Nenhuma movimentação encontrada neste período.')).not.toBeInTheDocument()
   })
 
   it('renders the official expense composition with the March rent account and total', () => {
