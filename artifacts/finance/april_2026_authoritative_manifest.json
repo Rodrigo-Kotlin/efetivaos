@@ -1,0 +1,4416 @@
+{
+  "schema_version": "FIN-IMPORT-5.2A.v1",
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "ABRIL",
+    "range": "A1:I190"
+  },
+  "period": {
+    "year": 2026,
+    "month": 4
+  },
+  "policy": {
+    "applied": true,
+    "name": "LEGACY_MIXED_SETTLEMENT_POLICY_5_2A",
+    "artificial_allocation": false,
+    "retroactive_months_changed": false,
+    "suspense_account_created": false,
+    "disclosures_required": true
+  },
+  "approved_totals": {
+    "opening_balance": "18187.58",
+    "cash_inflows": "56185.87",
+    "cash_outflows": "62733.49",
+    "net_change": "-6547.62",
+    "closing_balance": "11639.96",
+    "revenue": "56185.87",
+    "deductions": "78.28",
+    "net_revenue": "56107.59",
+    "costs": "12578.39",
+    "expenses": "45726.82",
+    "financial_result": "0.00",
+    "other_results": "0.00",
+    "income_taxes": "0.00",
+    "net_income": "-2197.62",
+    "dfc_operating": "-6547.62",
+    "dfc_investing": "0.00",
+    "dfc_financing": "0.00"
+  },
+  "validation": {
+    "source_rows": 92,
+    "inflows_count": 35,
+    "outflows_count": 57,
+    "duplicate_source_rows": 0,
+    "missing_source_rows": 0,
+    "unknown_accounts": 0,
+    "unbalanced_journals": 0,
+    "balanced_journals": 92,
+    "balanced_journals_percent": "100%",
+    "cash_difference": "0.00",
+    "bp_difference": "0.00"
+  },
+  "bp": {
+    "basis": "APRIL_PERIOD_MOVEMENT",
+    "opening_balances_available": false,
+    "assets_period_delta": "-2197.62",
+    "liabilities_period_delta": "0.00",
+    "equity_period_delta": "-2197.62",
+    "difference": "0.00",
+    "balanced": true,
+    "suspense_account": false,
+    "note": "Absolute closing BP balances require opening BP balances; April period movement reconciles exactly."
+  },
+  "rows": [
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 9,
+      "raw_date": "2026-04-30",
+      "normalized_date": "2026-04-30",
+      "normalization_reason": "NONE",
+      "raw_description": "Frigorífico Ribeiro - M B de Carvalho",
+      "normalized_description": "Frigorífico Ribeiro - M B de Carvalho",
+      "amount": "4121.22",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.001",
+      "credit_account_name": "Receita de Assessoria e Consultoria SST",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::9::2026-04-30::4121.22::039f4423c3926da0b7d790e4b793bbd37c6823c558be2431448327fdf9fd085e",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::9::2026-04-30::4121.22::039f4423c3926da0b7d790e4b793bbd37c6823c558be2431448327fdf9fd085e::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "4121.22"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.001",
+            "account_name": "Receita de Assessoria e Consultoria SST",
+            "amount": "4121.22"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 10,
+      "raw_date": "2026-04-30",
+      "normalized_date": "2026-04-30",
+      "normalization_reason": "NONE",
+      "raw_description": "Frigorífico Ribeiro - V de carvalho",
+      "normalized_description": "Frigorífico Ribeiro - V de carvalho",
+      "amount": "4121.22",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.001",
+      "credit_account_name": "Receita de Assessoria e Consultoria SST",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::10::2026-04-30::4121.22::5ba44457e90d4316d8e8f2a58be6870df8079e4dddee869ffd5c4a001a7a4586",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::10::2026-04-30::4121.22::5ba44457e90d4316d8e8f2a58be6870df8079e4dddee869ffd5c4a001a7a4586::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "4121.22"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.001",
+            "account_name": "Receita de Assessoria e Consultoria SST",
+            "amount": "4121.22"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 13,
+      "raw_date": "2026-04-14",
+      "normalized_date": "2026-04-14",
+      "normalization_reason": "NONE",
+      "raw_description": "Grupo Lar Brasil",
+      "normalized_description": "Grupo Lar Brasil",
+      "amount": "6303.05",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.001",
+      "credit_account_name": "Receita de Assessoria e Consultoria SST",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::13::2026-04-14::6303.05::4ac4ca191ded27822331c167416e6588281d452bee1bdfca13bb1641568386c7",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::13::2026-04-14::6303.05::4ac4ca191ded27822331c167416e6588281d452bee1bdfca13bb1641568386c7::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "6303.05"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.001",
+            "account_name": "Receita de Assessoria e Consultoria SST",
+            "amount": "6303.05"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 15,
+      "raw_date": "2026-04-16",
+      "normalized_date": "2026-04-16",
+      "normalization_reason": "NONE",
+      "raw_description": "Rio Tapajós Shopping Center",
+      "normalized_description": "Rio Tapajós Shopping Center",
+      "amount": "3393.95",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.001",
+      "credit_account_name": "Receita de Assessoria e Consultoria SST",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::15::2026-04-16::3393.95::94786fd5ff3e91c83383a72def4243e552715355e0ca83a2193cdac71c237c55",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::15::2026-04-16::3393.95::94786fd5ff3e91c83383a72def4243e552715355e0ca83a2193cdac71c237c55::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "3393.95"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.001",
+            "account_name": "Receita de Assessoria e Consultoria SST",
+            "amount": "3393.95"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 17,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Rio Tapajós Shopping Center",
+      "normalized_description": "Rio Tapajós Shopping Center",
+      "amount": "20000.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.001",
+      "credit_account_name": "Receita de Assessoria e Consultoria SST",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::17::2026-04-20::20000.00::8597a93978d9e8cf21feac278c2878fd39dc9f97b06e6a9c180aa28e5b775687",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::17::2026-04-20::20000.00::8597a93978d9e8cf21feac278c2878fd39dc9f97b06e6a9c180aa28e5b775687::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "20000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.001",
+            "account_name": "Receita de Assessoria e Consultoria SST",
+            "amount": "20000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 21,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Centro odontológico de Santarém - COS",
+      "normalized_description": "Centro odontológico de Santarém - COS",
+      "amount": "250.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.004",
+      "credit_account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::21::2026-04-13::250.00::944a47a773c1cdd9f563884f749cedb05e307c24677da3c12034a7f77472c27a",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::21::2026-04-13::250.00::944a47a773c1cdd9f563884f749cedb05e307c24677da3c12034a7f77472c27a::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "250.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.004",
+            "account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+            "amount": "250.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 22,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Tapajós Informática",
+      "normalized_description": "Tapajós Informática",
+      "amount": "145.46",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.004",
+      "credit_account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::22::2026-04-15::145.46::b0b47cc5006c7b828a53c0f47c6ab97356302b42a05f0d2e60032188c8d818dc",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::22::2026-04-15::145.46::b0b47cc5006c7b828a53c0f47c6ab97356302b42a05f0d2e60032188c8d818dc::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "145.46"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.004",
+            "account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+            "amount": "145.46"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 23,
+      "raw_date": "2026-04-24",
+      "normalized_date": "2026-04-24",
+      "normalization_reason": "NONE",
+      "raw_description": "Estampa MIXX",
+      "normalized_description": "Estampa MIXX",
+      "amount": "180.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.004",
+      "credit_account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::23::2026-04-24::180.00::14c0f797a536f36ca3b79c6615353d5a196ba9705b75584c4ceb6e9955ddda7a",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::23::2026-04-24::180.00::14c0f797a536f36ca3b79c6615353d5a196ba9705b75584c4ceb6e9955ddda7a::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "180.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.004",
+            "account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+            "amount": "180.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 24,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Macedo Engenharia",
+      "normalized_description": "Macedo Engenharia",
+      "amount": "200.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.004",
+      "credit_account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::24::2026-04-15::200.00::a2df56a3539c4205dfd4e0aa3ea4d2290dee0e230c4e0825e85e6b0a68a9fc09",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::24::2026-04-15::200.00::a2df56a3539c4205dfd4e0aa3ea4d2290dee0e230c4e0825e85e6b0a68a9fc09::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "200.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.004",
+            "account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+            "amount": "200.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 26,
+      "raw_date": "2026-04-10",
+      "normalized_date": "2026-04-10",
+      "normalization_reason": "NONE",
+      "raw_description": "Canuto & Silva - Glaudia",
+      "normalized_description": "Canuto & Silva - Glaudia",
+      "amount": "280.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.004",
+      "credit_account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::26::2026-04-10::280.00::1043ec0e49e2129cea304a010fc208f6fac50276d40c02a75d4315a44e63fecc",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::26::2026-04-10::280.00::1043ec0e49e2129cea304a010fc208f6fac50276d40c02a75d4315a44e63fecc::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "280.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.004",
+            "account_name": "Receita Recorrente eSocial / Mensageria / SGG",
+            "amount": "280.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 31,
+      "raw_date": "2026-04-01",
+      "normalized_date": "2026-04-01",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs Figueira e Silva",
+      "normalized_description": "ASOs Figueira e Silva",
+      "amount": "164.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::31::2026-04-01::164.00::cb2040b6fe6507e4d3eb8c2ce63dfcbf1af23849be3aef6b465d2c7b37f9c7a8",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::31::2026-04-01::164.00::cb2040b6fe6507e4d3eb8c2ce63dfcbf1af23849be3aef6b465d2c7b37f9c7a8::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "164.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "164.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 32,
+      "raw_date": "2026-04-06",
+      "normalized_date": "2026-04-06",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Alex da Silva",
+      "normalized_description": "ASO Alex da Silva",
+      "amount": "50.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::32::2026-04-06::50.00::49dbf709a726d85db26499eca284148509e83f8b1cbfe71d80d8c9ed7db26eac",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::32::2026-04-06::50.00::49dbf709a726d85db26499eca284148509e83f8b1cbfe71d80d8c9ed7db26eac::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "50.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "50.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 33,
+      "raw_date": "2026-04-06",
+      "normalized_date": "2026-04-06",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs Poli Medicina",
+      "normalized_description": "ASOs Poli Medicina",
+      "amount": "470.40",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::33::2026-04-06::470.40::e8c00c15cc3a933bb3934902e3091aa0f1b345fc9fee468a1c83a79672f9949a",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::33::2026-04-06::470.40::e8c00c15cc3a933bb3934902e3091aa0f1b345fc9fee468a1c83a79672f9949a::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "470.40"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "470.40"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 34,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Villa Eden",
+      "normalized_description": "ASO Villa Eden",
+      "amount": "50.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::34::2026-04-07::50.00::928c07a3c9d8ef0e1797f6c7354aeb659cdda450b781d9762fd91db5b3f6ca7e",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::34::2026-04-07::50.00::928c07a3c9d8ef0e1797f6c7354aeb659cdda450b781d9762fd91db5b3f6ca7e::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "50.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "50.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 35,
+      "raw_date": "2026-04-08",
+      "normalized_date": "2026-04-08",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO B S de Oliveira",
+      "normalized_description": "ASO B S de Oliveira",
+      "amount": "278.11",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::35::2026-04-08::278.11::553e220a9d691dd28790e60802b20dd75681ac79c958c82024c970defae03e5f",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::35::2026-04-08::278.11::553e220a9d691dd28790e60802b20dd75681ac79c958c82024c970defae03e5f::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "278.11"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "278.11"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 36,
+      "raw_date": "2026-04-08",
+      "normalized_date": "2026-04-08",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOS Buriti",
+      "normalized_description": "ASOS Buriti",
+      "amount": "2333.10",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::36::2026-04-08::2333.10::80caa932a5a4eae9b417cbe7a0944042bdb904f70f9d1998ed80c72e86b658b6",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::36::2026-04-08::2333.10::80caa932a5a4eae9b417cbe7a0944042bdb904f70f9d1998ed80c72e86b658b6::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "2333.10"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "2333.10"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 37,
+      "raw_date": "2026-04-10",
+      "normalized_date": "2026-04-10",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs Poli Medicina",
+      "normalized_description": "ASOs Poli Medicina",
+      "amount": "340.40",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::37::2026-04-10::340.40::122daa3ac27dbe435c2534cd23f16e272f8fda296d7a6793d6b09b3b9a896e18",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::37::2026-04-10::340.40::122daa3ac27dbe435c2534cd23f16e272f8fda296d7a6793d6b09b3b9a896e18::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "340.40"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "340.40"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 38,
+      "raw_date": "2026-04-10",
+      "normalized_date": "2026-04-10",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Luzinete Rodrigues",
+      "normalized_description": "ASO Luzinete Rodrigues",
+      "amount": "50.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::38::2026-04-10::50.00::9bc039d22a0ba24a547517c13c2c6403a73fc594d225cee26ae0f561a58be0a3",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::38::2026-04-10::50.00::9bc039d22a0ba24a547517c13c2c6403a73fc594d225cee26ae0f561a58be0a3::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "50.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "50.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 39,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs COS",
+      "normalized_description": "ASOs COS",
+      "amount": "80.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::39::2026-04-13::80.00::c1464002735197affa4ea03420bb14447f543dd502bfc1c9d802ef17b8cdec2c",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::39::2026-04-13::80.00::c1464002735197affa4ea03420bb14447f543dd502bfc1c9d802ef17b8cdec2c::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "80.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "80.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 40,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs Jambers",
+      "normalized_description": "ASOs Jambers",
+      "amount": "81.68",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::40::2026-04-13::81.68::f6d5b59707bcf473625f78edf3520e44b6fe2e9076d57775e05aa52ddac535ac",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::40::2026-04-13::81.68::f6d5b59707bcf473625f78edf3520e44b6fe2e9076d57775e05aa52ddac535ac::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "81.68"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "81.68"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 41,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOS Pena Florestal",
+      "normalized_description": "ASOS Pena Florestal",
+      "amount": "541.12",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::41::2026-04-13::541.12::52ae08f735d729b7cd3059878608eaf2ba6f8a5b62addec94b0043d2698ea661",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::41::2026-04-13::541.12::52ae08f735d729b7cd3059878608eaf2ba6f8a5b62addec94b0043d2698ea661::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "541.12"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "541.12"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 42,
+      "raw_date": "2026-04-14",
+      "normalized_date": "2026-04-14",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Astral Tucurui",
+      "normalized_description": "ASO Astral Tucurui",
+      "amount": "100.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::42::2026-04-14::100.00::f9e5cadb648ccee97413f6116d336df24b35c859555bdc27fbf519e4f61400ed",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::42::2026-04-14::100.00::f9e5cadb648ccee97413f6116d336df24b35c859555bdc27fbf519e4f61400ed::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "100.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "100.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 43,
+      "raw_date": "2026-04-17",
+      "normalized_date": "2026-04-17",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs Drawind",
+      "normalized_description": "ASOs Drawind",
+      "amount": "369.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::43::2026-04-17::369.00::491d2b725a5dfc3b6ac9fcf4abde87a6db10829f5dfdcfa216dc7f649a7114cc",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::43::2026-04-17::369.00::491d2b725a5dfc3b6ac9fcf4abde87a6db10829f5dfdcfa216dc7f649a7114cc::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "369.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "369.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 44,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs V de carvalho",
+      "normalized_description": "ASOs V de carvalho",
+      "amount": "1120.97",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::44::2026-04-20::1120.97::3f14673f5e36a643be6884401132e90909a9fad140eff4002076ee8251d6c8d0",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::44::2026-04-20::1120.97::3f14673f5e36a643be6884401132e90909a9fad140eff4002076ee8251d6c8d0::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1120.97"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "1120.97"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 45,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs M B de Carvalho",
+      "normalized_description": "ASOs M B de Carvalho",
+      "amount": "1080.25",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::45::2026-04-20::1080.25::e42c69c64021742e334ea639914727dc15f57cd38410a1d47961f02918e7bffd",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::45::2026-04-20::1080.25::e42c69c64021742e334ea639914727dc15f57cd38410a1d47961f02918e7bffd::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1080.25"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "1080.25"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 46,
+      "raw_date": "2026-04-22",
+      "normalized_date": "2026-04-22",
+      "normalization_reason": "NONE",
+      "raw_description": "ASOs O de Moraes",
+      "normalized_description": "ASOs O de Moraes",
+      "amount": "769.94",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::46::2026-04-22::769.94::74c2720e8e6338e48bc1a9b428d7a58ea4d8c655d54aa295d8137f369e361087",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::46::2026-04-22::769.94::74c2720e8e6338e48bc1a9b428d7a58ea4d8c655d54aa295d8137f369e361087::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "769.94"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "769.94"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 47,
+      "raw_date": "2026-04-24",
+      "normalized_date": "2026-04-24",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Edinaldo Figueira dos Santos",
+      "normalized_description": "ASO Edinaldo Figueira dos Santos",
+      "amount": "50.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::47::2026-04-24::50.00::876f4db898aa2c2abaad4275b34420bec3c768735fff949709c06b575d285da8",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::47::2026-04-24::50.00::876f4db898aa2c2abaad4275b34420bec3c768735fff949709c06b575d285da8::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "50.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "50.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 48,
+      "raw_date": "2026-04-27",
+      "normalized_date": "2026-04-27",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Fiama Santos",
+      "normalized_description": "ASO Fiama Santos",
+      "amount": "50.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::48::2026-04-27::50.00::d7bc45bdea018dd8b2da3ba574cddac4f04dbaf11d74b5e0a61226317f97dcf7",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::48::2026-04-27::50.00::d7bc45bdea018dd8b2da3ba574cddac4f04dbaf11d74b5e0a61226317f97dcf7::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "50.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "50.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 49,
+      "raw_date": "2026-04-27",
+      "normalized_date": "2026-04-27",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Poli Medicina",
+      "normalized_description": "ASO Poli Medicina",
+      "amount": "130.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::49::2026-04-27::130.00::982797182f66b58892ac8581651b7107b5558c51fc450f4bb903d54db684161a",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::49::2026-04-27::130.00::982797182f66b58892ac8581651b7107b5558c51fc450f4bb903d54db684161a::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "130.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "130.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 50,
+      "raw_date": "2026-04-29",
+      "normalized_date": "2026-04-29",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO Super Kilão",
+      "normalized_description": "ASO Super Kilão",
+      "amount": "92.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::50::2026-04-29::92.00::ba2599da48f6ebeea3e6f51ebc260ad54f38a91121c370b5f12164ff1ba137bb",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::50::2026-04-29::92.00::ba2599da48f6ebeea3e6f51ebc260ad54f38a91121c370b5f12164ff1ba137bb::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "92.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "92.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 51,
+      "raw_date": "2026-04-30",
+      "normalized_date": "2026-04-30",
+      "normalization_reason": "NONE",
+      "raw_description": "ASO T A Neves",
+      "normalized_description": "ASO T A Neves",
+      "amount": "50.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.002",
+      "credit_account_name": "Receita de Clínica Ocupacional",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::51::2026-04-30::50.00::fe389032eda0b0f6ff4033c7db2e2ee292a8df708293e85cbac409fae9f5c686",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::51::2026-04-30::50.00::fe389032eda0b0f6ff4033c7db2e2ee292a8df708293e85cbac409fae9f5c686::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "50.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.002",
+            "account_name": "Receita de Clínica Ocupacional",
+            "amount": "50.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 60,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Consuminas",
+      "normalized_description": "Consuminas",
+      "amount": "4800.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.003",
+      "credit_account_name": "Receita de Engenharia, Laudos e Documentos",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::60::2026-04-07::4800.00::119b9f00e76239d11a8759dddf91989d9a9d2f59f69e45ee38a7cb32c6f57e90",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::60::2026-04-07::4800.00::119b9f00e76239d11a8759dddf91989d9a9d2f59f69e45ee38a7cb32c6f57e90::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "4800.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.003",
+            "account_name": "Receita de Engenharia, Laudos e Documentos",
+            "amount": "4800.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 61,
+      "raw_date": "2026-04-10",
+      "normalized_date": "2026-04-10",
+      "normalization_reason": "NONE",
+      "raw_description": "Documento AC Parceria",
+      "normalized_description": "Documento AC Parceria",
+      "amount": "1800.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.003",
+      "credit_account_name": "Receita de Engenharia, Laudos e Documentos",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::61::2026-04-10::1800.00::d82768edfd6c6bc78aaea37e2dbbcd5f4ad7d29d97a4a6456c12557b66657063",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::61::2026-04-10::1800.00::d82768edfd6c6bc78aaea37e2dbbcd5f4ad7d29d97a4a6456c12557b66657063::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1800.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.003",
+            "account_name": "Receita de Engenharia, Laudos e Documentos",
+            "amount": "1800.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 62,
+      "raw_date": "2026-04-16",
+      "normalized_date": "2026-04-16",
+      "normalization_reason": "NONE",
+      "raw_description": "Neviton",
+      "normalized_description": "Neviton",
+      "amount": "800.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.003",
+      "credit_account_name": "Receita de Engenharia, Laudos e Documentos",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::62::2026-04-16::800.00::17295aa0b7cc4e732f28de939a07d87083d74190ab9c1ecfe76f163ff9fd4309",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::62::2026-04-16::800.00::17295aa0b7cc4e732f28de939a07d87083d74190ab9c1ecfe76f163ff9fd4309::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "800.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.003",
+            "account_name": "Receita de Engenharia, Laudos e Documentos",
+            "amount": "800.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 63,
+      "raw_date": "2026-04-24",
+      "normalized_date": "2026-04-24",
+      "normalization_reason": "NONE",
+      "raw_description": "Documentação A Regional",
+      "normalized_description": "Documentação A Regional",
+      "amount": "1540.00",
+      "direction": "INFLOW",
+      "movement_type": "RECEITA",
+      "debit_account_code": "1.1.01.002",
+      "debit_account_name": "Banco Cora",
+      "credit_account_code": "3.1.01.003",
+      "credit_account_name": "Receita de Engenharia, Laudos e Documentos",
+      "dre_effect": "RECEITA",
+      "dre_presentation": "RECEITA_BRUTA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento de receita existente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::63::2026-04-24::1540.00::03104e0bed3b4597153c58dbb8769f0bc6815c59bc5bab94b13acba8a12a5639",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::63::2026-04-24::1540.00::03104e0bed3b4597153c58dbb8769f0bc6815c59bc5bab94b13acba8a12a5639::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1540.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "3.1.01.003",
+            "account_name": "Receita de Engenharia, Laudos e Documentos",
+            "amount": "1540.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 70,
+      "raw_date": "2026-04-01",
+      "normalized_date": "2026-04-01",
+      "normalization_reason": "NONE",
+      "raw_description": "Alimentação",
+      "normalized_description": "Alimentação",
+      "amount": "610.82",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::70::2026-04-01::610.82::7eb01a3dea815e7058ffd4fb7c33ceca9e508e47a451c1e87c5dd9f0a607256d",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::70::2026-04-01::610.82::7eb01a3dea815e7058ffd4fb7c33ceca9e508e47a451c1e87c5dd9f0a607256d::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "610.82"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "610.82"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 71,
+      "raw_date": "2026-04-01",
+      "normalized_date": "2026-04-01",
+      "normalization_reason": "NONE",
+      "raw_description": "Prolabore",
+      "normalized_description": "Prolabore",
+      "amount": "5000.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.002",
+      "debit_account_name": "Pro-labore",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: pró-labore de Abril; não combinar com adiantamento.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::71::2026-04-01::5000.00::edfda79b3a282c13c0c01c39cc5933392b290982257760166dd6695c35723acf",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::71::2026-04-01::5000.00::edfda79b3a282c13c0c01c39cc5933392b290982257760166dd6695c35723acf::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.002",
+            "account_name": "Pro-labore",
+            "amount": "5000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "5000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 72,
+      "raw_date": "2026-04-01",
+      "normalized_date": "2026-04-01",
+      "normalization_reason": "NONE",
+      "raw_description": "Manutenção carro",
+      "normalized_description": "Manutenção carro",
+      "amount": "1155.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.5.01.002",
+      "debit_account_name": "Aluguel e Manutencao de Veiculos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::72::2026-04-01::1155.00::67bcda5c3d765461e693bf3b07192a50a03c699deb1b2d83635bc19fb6385bf7",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::72::2026-04-01::1155.00::67bcda5c3d765461e693bf3b07192a50a03c699deb1b2d83635bc19fb6385bf7::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.5.01.002",
+            "account_name": "Aluguel e Manutencao de Veiculos",
+            "amount": "1155.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1155.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 73,
+      "raw_date": "2026-04-02",
+      "normalized_date": "2026-04-02",
+      "normalization_reason": "NONE",
+      "raw_description": "Exames de Raio-x e Ultrasson UDI",
+      "normalized_description": "Exames de Raio-x e Ultrasson UDI",
+      "amount": "741.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::73::2026-04-02::741.00::8fa99c83a3d94d457a5e601d9e9eae621672fbc3ad05af5f18801843ef2f55c8",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::73::2026-04-02::741.00::8fa99c83a3d94d457a5e601d9e9eae621672fbc3ad05af5f18801843ef2f55c8::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "741.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "741.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 74,
+      "raw_date": "2026-04-05",
+      "normalized_date": "2026-04-05",
+      "normalization_reason": "NONE",
+      "raw_description": "Abastecimento carro",
+      "normalized_description": "Abastecimento carro",
+      "amount": "400.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.5.01.001",
+      "debit_account_name": "Combustivel e Despesas com Veiculos Administrativos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: combustível/veículo administrativo.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::74::2026-04-05::400.00::78e9f9e8d7defa14adb5ecdb560c6024fef294c7ba445025617c79937b945298",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::74::2026-04-05::400.00::78e9f9e8d7defa14adb5ecdb560c6024fef294c7ba445025617c79937b945298::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.5.01.001",
+            "account_name": "Combustivel e Despesas com Veiculos Administrativos",
+            "amount": "400.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "400.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 75,
+      "raw_date": "2026-04-06",
+      "normalized_date": "2026-04-06",
+      "normalization_reason": "NONE",
+      "raw_description": "ART PGRSS Efetiva",
+      "normalized_description": "ART PGRSS Efetiva",
+      "amount": "108.39",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::75::2026-04-06::108.39::25c4e13e4e2469ced9e624028af34709d95e7ba3b5240e8f4a11b609f7463561",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::75::2026-04-06::108.39::25c4e13e4e2469ced9e624028af34709d95e7ba3b5240e8f4a11b609f7463561::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "108.39"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "108.39"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 76,
+      "raw_date": "2026-04-06",
+      "normalized_date": "2026-04-06",
+      "normalization_reason": "NONE",
+      "raw_description": "ART TUV",
+      "normalized_description": "ART TUV",
+      "amount": "108.39",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::76::2026-04-06::108.39::f4cd3ec2fe2fe63cb628ba783089b898b891b7035955542bea4b65f8ba978d38",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::76::2026-04-06::108.39::f4cd3ec2fe2fe63cb628ba783089b898b891b7035955542bea4b65f8ba978d38::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "108.39"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "108.39"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 77,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento Salário Luciana",
+      "normalized_description": "Pagamento Salário Luciana",
+      "amount": "1499.43",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.001",
+      "debit_account_name": "Salarios Administrativos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida conforme tratamento aprovado de salários.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::77::2026-04-07::1499.43::e7935a50ccb4feb769f7387cb3faeceb7f92a697b267c18b82829f050f534a5e",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::77::2026-04-07::1499.43::e7935a50ccb4feb769f7387cb3faeceb7f92a697b267c18b82829f050f534a5e::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.001",
+            "account_name": "Salarios Administrativos",
+            "amount": "1499.43"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1499.43"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 78,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento salário Randrea",
+      "normalized_description": "Pagamento salário Randrea",
+      "amount": "1499.43",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.001",
+      "debit_account_name": "Salarios Administrativos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida conforme tratamento aprovado de salários.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::78::2026-04-07::1499.43::593c85a20918af400cb8e1d8803bff733c853bbec898ae4b23cf6d3ed6f1b5fd",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::78::2026-04-07::1499.43::593c85a20918af400cb8e1d8803bff733c853bbec898ae4b23cf6d3ed6f1b5fd::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.001",
+            "account_name": "Salarios Administrativos",
+            "amount": "1499.43"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1499.43"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 79,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento saldo de salário Endrew",
+      "normalized_description": "Pagamento saldo de salário Endrew",
+      "amount": "749.43",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.001",
+      "debit_account_name": "Salarios Administrativos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: salário separado do vale Endrew.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::79::2026-04-07::749.43::c7b805b8318a53344f00a7d498306f55b8de59a8adf77f006e0c407bab696bcc",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::79::2026-04-07::749.43::c7b805b8318a53344f00a7d498306f55b8de59a8adf77f006e0c407bab696bcc::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.001",
+            "account_name": "Salarios Administrativos",
+            "amount": "749.43"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "749.43"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 80,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento saldo de salário Janderson",
+      "normalized_description": "Pagamento saldo de salário Janderson",
+      "amount": "1049.32",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.001",
+      "debit_account_name": "Salarios Administrativos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: salário separado do vale Janderson.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::80::2026-04-07::1049.32::59d5b64721b0b80b6429524dd430569bc77b6533d50b7c71ca30bd5292697df5",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::80::2026-04-07::1049.32::59d5b64721b0b80b6429524dd430569bc77b6533d50b7c71ca30bd5292697df5::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.001",
+            "account_name": "Salarios Administrativos",
+            "amount": "1049.32"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1049.32"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 81,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento BC David Hill",
+      "normalized_description": "Pagamento BC David Hill",
+      "amount": "3000.00",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.4.01.001",
+      "debit_account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Bombeiro Civil, R$ 12.000,00, conta 4.4.01.001.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::81::2026-04-07::3000.00::210834446ee9571ee43624d4732693e4cc33b98226c03dc5d05e837809f706e5",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::81::2026-04-07::3000.00::210834446ee9571ee43624d4732693e4cc33b98226c03dc5d05e837809f706e5::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.4.01.001",
+            "account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+            "amount": "3000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "3000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 82,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento BC Allan Henning",
+      "normalized_description": "Pagamento BC Allan Henning",
+      "amount": "3000.00",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.4.01.001",
+      "debit_account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Bombeiro Civil, R$ 12.000,00, conta 4.4.01.001.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::82::2026-04-07::3000.00::1e1a0144e22b083623a72d7fe23b53827a4cd7cc88372bd5ee265058da14e840",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::82::2026-04-07::3000.00::1e1a0144e22b083623a72d7fe23b53827a4cd7cc88372bd5ee265058da14e840::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.4.01.001",
+            "account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+            "amount": "3000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "3000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 83,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento BC Iwerng Souza",
+      "normalized_description": "Pagamento BC Iwerng Souza",
+      "amount": "3000.00",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.4.01.001",
+      "debit_account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Bombeiro Civil, R$ 12.000,00, conta 4.4.01.001.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::83::2026-04-07::3000.00::83c7ce259f692e454abdf81c651cf1c301331eba670c1ff2a6946c5bc5f917cf",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::83::2026-04-07::3000.00::83c7ce259f692e454abdf81c651cf1c301331eba670c1ff2a6946c5bc5f917cf::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.4.01.001",
+            "account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+            "amount": "3000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "3000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 84,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento BC Danillo Uchoa",
+      "normalized_description": "Pagamento BC Danillo Uchoa",
+      "amount": "3000.00",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.4.01.001",
+      "debit_account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Bombeiro Civil, R$ 12.000,00, conta 4.4.01.001.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::84::2026-04-07::3000.00::6b6d05982613bddd3edb6a22018d18d16fe12dae113fde0dbe9748dff013a3d0",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::84::2026-04-07::3000.00::6b6d05982613bddd3edb6a22018d18d16fe12dae113fde0dbe9748dff013a3d0::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.4.01.001",
+            "account_name": "Prestadores de Bombeiro Civil / SESMT Terceirizado",
+            "amount": "3000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "3000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 85,
+      "raw_date": "2026-04-07",
+      "normalized_date": "2026-04-07",
+      "normalization_reason": "NONE",
+      "raw_description": "Saldo de salário Rodrigo",
+      "normalized_description": "Saldo de salário Rodrigo",
+      "amount": "1500.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.001",
+      "debit_account_name": "Salários Administrativos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: pagamento parcial do salário de Abril de Rodrigo; salário mensal real R$ 3.000,00.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::85::2026-04-07::1500.00::5ac30cb2cac07fd826dd147d81a57bb0049bb7892336b7d009bb5310bc013563",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::85::2026-04-07::1500.00::5ac30cb2cac07fd826dd147d81a57bb0049bb7892336b7d009bb5310bc013563::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.001",
+            "account_name": "Salários Administrativos",
+            "amount": "1500.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1500.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 86,
+      "raw_date": "2026-04-08",
+      "normalized_date": "2026-04-08",
+      "normalization_reason": "NONE",
+      "raw_description": "Despesas Viagem Trombetas",
+      "normalized_description": "Despesas Viagem Trombetas",
+      "amount": "416.40",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: Viagem Trombetas é administrativa.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::86::2026-04-08::416.40::52b0af1566e9a9c2bf0837e68a4eaf8abe0c4465bc2db520df8c4b021b2b34ef",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::86::2026-04-08::416.40::52b0af1566e9a9c2bf0837e68a4eaf8abe0c4465bc2db520df8c4b021b2b34ef::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "416.40"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "416.40"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 87,
+      "raw_date": "2026-04-09",
+      "normalized_date": "2026-04-09",
+      "normalization_reason": "NONE",
+      "raw_description": "Aceite de negociação Impostos",
+      "normalized_description": "Aceite de negociação Impostos",
+      "amount": "1000.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.7.01.001",
+      "debit_account_name": "Taxas, Licencas e Anuidades",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão FIN-IMPORT-5.2A: Negociação de impostos anterior; principal e encargos não segregados. Aplicação da política contábil aprovada para legado; sem rateio artificial e sem passivo histórico retroativo.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::87::2026-04-09::1000.00::1e8293c4b836ddf1e21b9014e13db1b5b3a2407de2fe846721ff45ba3a535143",
+      "row_status": "READY",
+      "disclosure": "Pagamento de negociação de obrigação tributária anterior, incluindo encargos. Principal, juros e multa não estavam segregados na fonte e não havia passivo histórico determinístico no ledger. Valor integral reconhecido no período do pagamento sem rateio artificial.",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::87::2026-04-09::1000.00::1e8293c4b836ddf1e21b9014e13db1b5b3a2407de2fe846721ff45ba3a535143::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.7.01.001",
+            "account_name": "Taxas, Licencas e Anuidades",
+            "amount": "1000.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1000.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 88,
+      "raw_date": "2026-04-12",
+      "normalized_date": "2026-04-12",
+      "normalization_reason": "NONE",
+      "raw_description": "Conta vivo",
+      "normalized_description": "Conta vivo",
+      "amount": "315.09",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.2.01.003",
+      "debit_account_name": "Telefonia e Internet",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::88::2026-04-12::315.09::886e10625aed41b493e9fc73be6fa0ba0328065b8967deb76c4d9726ed169cbc",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::88::2026-04-12::315.09::886e10625aed41b493e9fc73be6fa0ba0328065b8967deb76c4d9726ed169cbc::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.2.01.003",
+            "account_name": "Telefonia e Internet",
+            "amount": "315.09"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "315.09"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 89,
+      "raw_date": "2026-04-12",
+      "normalized_date": "2026-04-12",
+      "normalization_reason": "NONE",
+      "raw_description": "Vale Valdilene",
+      "normalized_description": "Vale Valdilene",
+      "amount": "2100.00",
+      "direction": "OUTFLOW",
+      "movement_type": "ADIANTAMENTO_SOCIO_ADMIN",
+      "debit_account_code": "1.1.02.006",
+      "debit_account_name": "Adiantamentos a Sócios e Administradores",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "NONE",
+      "dre_presentation": "NONE",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Vale Valdilene, conta 1.1.02.006.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::89::2026-04-12::2100.00::8cba31f6b621b6bb9cca90a72d71d8a9f9d9faa271b15cc3f0bc5325b4a79d88",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::89::2026-04-12::2100.00::8cba31f6b621b6bb9cca90a72d71d8a9f9d9faa271b15cc3f0bc5325b4a79d88::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.02.006",
+            "account_name": "Adiantamentos a Sócios e Administradores",
+            "amount": "2100.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "2100.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 90,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Brave Soluções Tecnoclogicas",
+      "normalized_description": "Brave Soluções Tecnoclogicas",
+      "amount": "228.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.4.01.001",
+      "debit_account_name": "Contabilidade, Juridico e Consultorias Administrativas",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::90::2026-04-13::228.00::8d8fb50216f3726392bd4e1f49f39d61108c488170d6721746b2570a94838679",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::90::2026-04-13::228.00::8d8fb50216f3726392bd4e1f49f39d61108c488170d6721746b2570a94838679::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.4.01.001",
+            "account_name": "Contabilidade, Juridico e Consultorias Administrativas",
+            "amount": "228.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "228.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 91,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Mensalidade VR Ponto Mais",
+      "normalized_description": "Mensalidade VR Ponto Mais",
+      "amount": "92.91",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.003",
+      "debit_account_name": "Beneficios, Vales e Auxilios",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::91::2026-04-13::92.91::6dcbf35bfee657298f2fb5dc3dfec8dd68ec03153247a1b918e71630f6f86afb",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::91::2026-04-13::92.91::6dcbf35bfee657298f2fb5dc3dfec8dd68ec03153247a1b918e71630f6f86afb::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.003",
+            "account_name": "Beneficios, Vales e Auxilios",
+            "amount": "92.91"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "92.91"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 92,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento contratação Ambiental",
+      "normalized_description": "Pagamento contratação Ambiental",
+      "amount": "200.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.2.01.004",
+      "debit_account_name": "Vigilancia, Limpeza e Manutencao Predial",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: recolhimento de resíduos da Clínica.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::92::2026-04-13::200.00::1d49db534b57e98375edddc9d215f86c64bbfff85c0b42bf9f9c887dee8692db",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::92::2026-04-13::200.00::1d49db534b57e98375edddc9d215f86c64bbfff85c0b42bf9f9c887dee8692db::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.2.01.004",
+            "account_name": "Vigilancia, Limpeza e Manutencao Predial",
+            "amount": "200.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "200.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 93,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Mensalidades Janeiro e Fevereiro ACES",
+      "normalized_description": "Mensalidades Janeiro e Fevereiro ACES",
+      "amount": "160.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.3.01.002",
+      "debit_account_name": "Associacoes e Mensalidades Institucionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada; sem passivo histórico comprovado.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::93::2026-04-13::160.00::3d42680aa63ea8a5bf5a24846cd91f3d83aee08ba2ab7ce36aca5be208164d64",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::93::2026-04-13::160.00::3d42680aa63ea8a5bf5a24846cd91f3d83aee08ba2ab7ce36aca5be208164d64::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.3.01.002",
+            "account_name": "Associacoes e Mensalidades Institucionais",
+            "amount": "160.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "160.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 94,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Mensalidade ACES",
+      "normalized_description": "Mensalidade ACES",
+      "amount": "81.68",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::94::2026-04-13::81.68::d871d3acb2cf2cbdaf02c5d2707cf34e3c01ad661f6f28b6bdf69e471c7c5ac4",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::94::2026-04-13::81.68::d871d3acb2cf2cbdaf02c5d2707cf34e3c01ad661f6f28b6bdf69e471c7c5ac4::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "81.68"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "81.68"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 95,
+      "raw_date": "2026-04-13",
+      "normalized_date": "2026-04-13",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento mensalidade Zoho",
+      "normalized_description": "Pagamento mensalidade Zoho",
+      "amount": "112.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::95::2026-04-13::112.00::8a5510ddd560e7fdbe7e420d2d28d4cae3e75b2d8cb35a466dbe9bd07f6db986",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::95::2026-04-13::112.00::8a5510ddd560e7fdbe7e420d2d28d4cae3e75b2d8cb35a466dbe9bd07f6db986::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "112.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "112.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 96,
+      "raw_date": "2026-04-14",
+      "normalized_date": "2026-04-14",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento Treinamento Eleny",
+      "normalized_description": "Pagamento Treinamento Eleny",
+      "amount": "150.00",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.1.01.002",
+      "debit_account_name": "Medicos, Responsaveis Tecnicos e Assistenciais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: Eleny é instrutora/prestadora em treinamento vendido a cliente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::96::2026-04-14::150.00::201b884e2480e70d6f546aaea63dd5bf03960128935a1aae0dfcde734005c6a3",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::96::2026-04-14::150.00::201b884e2480e70d6f546aaea63dd5bf03960128935a1aae0dfcde734005c6a3::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.1.01.002",
+            "account_name": "Medicos, Responsaveis Tecnicos e Assistenciais",
+            "amount": "150.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "150.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 97,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Equatorial Março",
+      "normalized_description": "Equatorial Março",
+      "amount": "939.70",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.2.01.002",
+      "debit_account_name": "Energia Eletrica",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Equatorial Março reconhecido em Abril sem alterar Março.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::97::2026-04-15::939.70::fb41d6c99e0d574515dce2ebbdbb9eac296aeda06218d7674065a4550de5436e",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::97::2026-04-15::939.70::fb41d6c99e0d574515dce2ebbdbb9eac296aeda06218d7674065a4550de5436e::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.2.01.002",
+            "account_name": "Energia Eletrica",
+            "amount": "939.70"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "939.70"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 98,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Sistema SGG",
+      "normalized_description": "Sistema SGG",
+      "amount": "716.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.3.01.001",
+      "debit_account_name": "Sistemas, Softwares e Assinaturas",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::98::2026-04-15::716.00::ad16183c5497462942c3f2642331724223c5d6a56b5e88dd1052d1b367137e30",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::98::2026-04-15::716.00::ad16183c5497462942c3f2642331724223c5d6a56b5e88dd1052d1b367137e30::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.3.01.001",
+            "account_name": "Sistemas, Softwares e Assinaturas",
+            "amount": "716.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "716.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 99,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Entrada negociação DAS",
+      "normalized_description": "Entrada negociação DAS",
+      "amount": "495.81",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.7.01.001",
+      "debit_account_name": "Taxas, Licencas e Anuidades",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão FIN-IMPORT-5.2A: Negociação fiscal/DAS distinta; principal e encargos não segregados. Aplicação da política contábil aprovada para legado; sem rateio artificial e sem passivo histórico retroativo.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::99::2026-04-15::495.81::37ebcfd4b2473ed9f8d4f5247e278930043e73b99ab6c0fa042cf8d293f59c5a",
+      "row_status": "READY",
+      "disclosure": "Pagamento de negociação fiscal com principal e encargos não segregados na fonte; reconhecido integralmente no período do pagamento.",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::99::2026-04-15::495.81::37ebcfd4b2473ed9f8d4f5247e278930043e73b99ab6c0fa042cf8d293f59c5a::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.7.01.001",
+            "account_name": "Taxas, Licencas e Anuidades",
+            "amount": "495.81"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "495.81"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 100,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Bioclin",
+      "normalized_description": "Bioclin",
+      "amount": "1037.50",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::100::2026-04-15::1037.50::f01cdcd22bbab02a9ca445a88e0c6033923b65d0b708b50af4149d59d1bb207f",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::100::2026-04-15::1037.50::f01cdcd22bbab02a9ca445a88e0c6033923b65d0b708b50af4149d59d1bb207f::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "1037.50"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1037.50"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 101,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento Gilvandro Fono",
+      "normalized_description": "Pagamento Gilvandro Fono",
+      "amount": "700.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::101::2026-04-15::700.00::7de10ffe380795433b770d47d2da24076795300540c1d271eb7545a94846879c",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::101::2026-04-15::700.00::7de10ffe380795433b770d47d2da24076795300540c1d271eb7545a94846879c::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "700.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "700.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 102,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento médica - Ana Paula",
+      "normalized_description": "Pagamento médica - Ana Paula",
+      "amount": "2500.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::102::2026-04-15::2500.00::32bd92e250e7fdbaeb1602f2a4073fb76adb61ed315dc88e1ce53eff678b466a",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::102::2026-04-15::2500.00::32bd92e250e7fdbaeb1602f2a4073fb76adb61ed315dc88e1ce53eff678b466a::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "2500.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "2500.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 103,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamneto restante prestação de serviços Rodrigo",
+      "normalized_description": "Pagamneto restante prestação de serviços Rodrigo",
+      "amount": "1417.80",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::103::2026-04-15::1417.80::990096d4403f0ef3d67ed4961fa055198e0cf1b3dc563b4803f658d11f5cbee3",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::103::2026-04-15::1417.80::990096d4403f0ef3d67ed4961fa055198e0cf1b3dc563b4803f658d11f5cbee3::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "1417.80"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1417.80"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 104,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Cartão Caixa",
+      "normalized_description": "Cartão Caixa",
+      "amount": "468.75",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: lançamento geral de fatura; compras não lançadas individualmente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::104::2026-04-15::468.75::5da9eaa420e9b9b110015c14805c537b70922bf06a757aeabb7ed846efd7e7d9",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::104::2026-04-15::468.75::5da9eaa420e9b9b110015c14805c537b70922bf06a757aeabb7ed846efd7e7d9::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "468.75"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "468.75"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 105,
+      "raw_date": "2026-04-17",
+      "normalized_date": "2026-04-17",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento RT Roger",
+      "normalized_description": "Pagamento RT Roger",
+      "amount": "1500.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.4.01.001",
+      "debit_account_name": "Contabilidade, Juridico e Consultorias Administrativas",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: RT Roger, serviço profissional do Médico do Trabalho.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::105::2026-04-17::1500.00::727f17487808dc1ad235e5504feb03765fb1626445e0059db48a9ead5c8c8161",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::105::2026-04-17::1500.00::727f17487808dc1ad235e5504feb03765fb1626445e0059db48a9ead5c8c8161::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.4.01.001",
+            "account_name": "Contabilidade, Juridico e Consultorias Administrativas",
+            "amount": "1500.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1500.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 106,
+      "raw_date": "2026-04-15",
+      "normalized_date": "2026-04-15",
+      "normalization_reason": "NONE",
+      "raw_description": "Vale Janderson",
+      "normalized_description": "Vale Janderson",
+      "amount": "1500.00",
+      "direction": "OUTFLOW",
+      "movement_type": "ADIANTAMENTO_EMPREGADO",
+      "debit_account_code": "1.1.02.003",
+      "debit_account_name": "Adiantamentos a Empregados",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "NONE",
+      "dre_presentation": "NONE",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Vale Janderson, conta 1.1.02.003.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::106::2026-04-15::1500.00::0a319dc467436e821c383bb83c7b27a929b905768ec1939019098f7ca70b2723",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::106::2026-04-15::1500.00::0a319dc467436e821c383bb83c7b27a929b905768ec1939019098f7ca70b2723::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.02.003",
+            "account_name": "Adiantamentos a Empregados",
+            "amount": "1500.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1500.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 107,
+      "raw_date": "2026-04-17",
+      "normalized_date": "2026-04-17",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento Conecta",
+      "normalized_description": "Pagamento Conecta",
+      "amount": "617.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::107::2026-04-17::617.00::cc5fb35fb310fcfd0297d5939f0bd1b01854283a6481db02b815f43ac7926411",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::107::2026-04-17::617.00::cc5fb35fb310fcfd0297d5939f0bd1b01854283a6481db02b815f43ac7926411::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "617.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "617.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 108,
+      "raw_date": "2026-04-17",
+      "normalized_date": "2026-04-17",
+      "normalization_reason": "NONE",
+      "raw_description": "ART Arati 2026",
+      "normalized_description": "ART Arati 2026",
+      "amount": "108.39",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.2.01.002",
+      "debit_account_name": "ART / CREA / Taxas Diretamente Vinculadas a Servicos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: ART vinculada ao serviço da ARATI.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::108::2026-04-17::108.39::72a6e4359636d3ac53cadcf3203a981f10598d49e3bb0fc183f14a35c2575513",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::108::2026-04-17::108.39::72a6e4359636d3ac53cadcf3203a981f10598d49e3bb0fc183f14a35c2575513::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.2.01.002",
+            "account_name": "ART / CREA / Taxas Diretamente Vinculadas a Servicos",
+            "amount": "108.39"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "108.39"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 109,
+      "raw_date": "2026-04-18",
+      "normalized_date": "2026-04-18",
+      "normalization_reason": "NONE",
+      "raw_description": "Insumos de limpeza",
+      "normalized_description": "Insumos de limpeza",
+      "amount": "98.55",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.6.01.001",
+      "debit_account_name": "Material de Escritorio, Limpeza e Copa",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: materiais/limpeza, conta 5.6.01.001.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::109::2026-04-18::98.55::925e4c162f1f8f31f79e1c0a6efff722d362062a59f2a1997c53874c4d207a69",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::109::2026-04-18::98.55::925e4c162f1f8f31f79e1c0a6efff722d362062a59f2a1997c53874c4d207a69::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.6.01.001",
+            "account_name": "Material de Escritorio, Limpeza e Copa",
+            "amount": "98.55"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "98.55"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 110,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Placa Shopping",
+      "normalized_description": "Placa Shopping",
+      "amount": "250.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.4.01.002",
+      "debit_account_name": "Marketing, Publicidade e Brindes",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: placa para marketing institucional da Efetiva.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::110::2026-04-20::250.00::c349d080f9861670497fb401e0f17cd417c3147335178a14fd10d01dcf2437a8",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::110::2026-04-20::250.00::c349d080f9861670497fb401e0f17cd417c3147335178a14fd10d01dcf2437a8::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.4.01.002",
+            "account_name": "Marketing, Publicidade e Brindes",
+            "amount": "250.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "250.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 111,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Sistema Psicomater",
+      "normalized_description": "Sistema Psicomater",
+      "amount": "199.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::111::2026-04-20::199.00::b5e8e6de4c6c5979843865176103aab4413421fc0f3676dfb6811f1070898585",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::111::2026-04-20::199.00::b5e8e6de4c6c5979843865176103aab4413421fc0f3676dfb6811f1070898585::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "199.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "199.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 112,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "FGTS",
+      "normalized_description": "FGTS",
+      "amount": "589.04",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.004",
+      "debit_account_name": "FGTS, INSS e Encargos Trabalhistas",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: FGTS corrente de Abril.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::112::2026-04-20::589.04::acc3857b5496deb136cb614d197a5505170995d7b000d2ad848449e661790ebf",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::112::2026-04-20::589.04::acc3857b5496deb136cb614d197a5505170995d7b000d2ad848449e661790ebf::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.004",
+            "account_name": "FGTS, INSS e Encargos Trabalhistas",
+            "amount": "589.04"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "589.04"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 113,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "DAS",
+      "normalized_description": "DAS",
+      "amount": "2430.64",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.7.01.001",
+      "debit_account_name": "Taxas, Licencas e Anuidades",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: DAS é tributo corrente pago em Abril.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::113::2026-04-20::2430.64::3a6a00491ab50b2621430b73b996d964e01d4f3e19c805dcb0e588b565f50041",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::113::2026-04-20::2430.64::3a6a00491ab50b2621430b73b996d964e01d4f3e19c805dcb0e588b565f50041::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.7.01.001",
+            "account_name": "Taxas, Licencas e Anuidades",
+            "amount": "2430.64"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "2430.64"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 114,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "DARF",
+      "normalized_description": "DARF",
+      "amount": "840.39",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.7.01.001",
+      "debit_account_name": "Taxas, Licencas e Anuidades",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: DARF pago à Receita Federal; espécie/código não identificado.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::114::2026-04-20::840.39::e0e859552010f01a7e3f5236051a9150014b88715687e81e2e23a6f82baf98ed",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::114::2026-04-20::840.39::e0e859552010f01a7e3f5236051a9150014b88715687e81e2e23a6f82baf98ed::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.7.01.001",
+            "account_name": "Taxas, Licencas e Anuidades",
+            "amount": "840.39"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "840.39"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 115,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "ISS",
+      "normalized_description": "ISS",
+      "amount": "78.28",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "3.2.01.002",
+      "debit_account_name": "(-) Tributos sobre Faturamento - Gerencial",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DEDUCAO_RECEITA",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: ISS próprio sobre faturamento/serviços.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::115::2026-04-20::78.28::1b372653499c02d920d92e566709e065612f57372f6e24003930fcdc4d6c6a10",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::115::2026-04-20::78.28::1b372653499c02d920d92e566709e065612f57372f6e24003930fcdc4d6c6a10::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "3.2.01.002",
+            "account_name": "(-) Tributos sobre Faturamento - Gerencial",
+            "amount": "78.28"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "78.28"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 116,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "FGTS em atraso",
+      "normalized_description": "FGTS em atraso",
+      "amount": "1949.24",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.1.01.004",
+      "debit_account_name": "FGTS, INSS e Encargos Trabalhistas",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão FIN-IMPORT-5.2A: FGTS em atraso; principal e encargos não segregados. Aplicação da política contábil aprovada para legado; sem rateio artificial e sem passivo histórico retroativo.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::116::2026-04-20::1949.24::8a564a7e5f874a861189affa122867d428419e0c1ece1567b6046aea5c396809",
+      "row_status": "READY",
+      "disclosure": "Pagamento de FGTS em atraso com encargos incluídos; composição entre principal, juros e multa não disponível na fonte. Valor integral reconhecido no período do pagamento sem rateio artificial.",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::116::2026-04-20::1949.24::8a564a7e5f874a861189affa122867d428419e0c1ece1567b6046aea5c396809::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.1.01.004",
+            "account_name": "FGTS, INSS e Encargos Trabalhistas",
+            "amount": "1949.24"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1949.24"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 117,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Serviços de Contabilidade",
+      "normalized_description": "Serviços de Contabilidade",
+      "amount": "400.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.4.01.001",
+      "debit_account_name": "Contabilidade, Juridico e Consultorias Administrativas",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::117::2026-04-20::400.00::c51890d5a8315257eef706789d5567661085592b31e883534fd4178b6c154778",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::117::2026-04-20::400.00::c51890d5a8315257eef706789d5567661085592b31e883534fd4178b6c154778::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.4.01.001",
+            "account_name": "Contabilidade, Juridico e Consultorias Administrativas",
+            "amount": "400.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "400.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 118,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Vale Endrew",
+      "normalized_description": "Vale Endrew",
+      "amount": "750.00",
+      "direction": "OUTFLOW",
+      "movement_type": "ADIANTAMENTO_EMPREGADO",
+      "debit_account_code": "1.1.02.003",
+      "debit_account_name": "Adiantamentos a Empregados",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "NONE",
+      "dre_presentation": "NONE",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: Vale Endrew, conta 1.1.02.003.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::118::2026-04-20::750.00::10dd83f3c630941738fed356309a9e14d96ce6a72ea285eb5f4f763ea0cc82f2",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::118::2026-04-20::750.00::10dd83f3c630941738fed356309a9e14d96ce6a72ea285eb5f4f763ea0cc82f2::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "1.1.02.003",
+            "account_name": "Adiantamentos a Empregados",
+            "amount": "750.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "750.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 119,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Laboratorio Biotest",
+      "normalized_description": "Laboratorio Biotest",
+      "amount": "740.71",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::119::2026-04-20::740.71::76c87833e9bb5764fd89c9a7081b96505764c88ca8845ba1ecee0244b905240e",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::119::2026-04-20::740.71::76c87833e9bb5764fd89c9a7081b96505764c88ca8845ba1ecee0244b905240e::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "740.71"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "740.71"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 120,
+      "raw_date": "2026-04-20",
+      "normalized_date": "2026-04-20",
+      "normalization_reason": "NONE",
+      "raw_description": "Laboratório Uniscientific",
+      "normalized_description": "Laboratório Uniscientific",
+      "amount": "1829.24",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::120::2026-04-20::1829.24::9b2390cf5925ebce1eb9d34c2f2a735bc332b217b3b64b1ca56651d2a15df2ed",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::120::2026-04-20::1829.24::9b2390cf5925ebce1eb9d34c2f2a735bc332b217b3b64b1ca56651d2a15df2ed::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "1829.24"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1829.24"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 121,
+      "raw_date": "2026-04-24",
+      "normalized_date": "2026-04-24",
+      "normalization_reason": "NONE",
+      "raw_description": "ART A Regional",
+      "normalized_description": "ART A Regional",
+      "amount": "108.39",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::121::2026-04-24::108.39::a3929a3336a9c4eb601f776af2b672528f97a7d119de398fd7f114c8bf7e8e4b",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::121::2026-04-24::108.39::a3929a3336a9c4eb601f776af2b672528f97a7d119de398fd7f114c8bf7e8e4b::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "108.39"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "108.39"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 122,
+      "raw_date": "2026-04-24",
+      "normalized_date": "2026-04-24",
+      "normalization_reason": "NONE",
+      "raw_description": "Aquisição de EPI - Capacete Bombeiros",
+      "normalized_description": "Aquisição de EPI - Capacete Bombeiros",
+      "amount": "320.00",
+      "direction": "OUTFLOW",
+      "movement_type": "CUSTO",
+      "debit_account_code": "4.4.01.002",
+      "debit_account_name": "Uniformes, EPIs e Materiais da Operação de Bombeiro Civil",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "CUSTO",
+      "dre_presentation": "CUSTO_SERVICO",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão já resolvida: EPI Bombeiro, conta 4.4.01.002.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::122::2026-04-24::320.00::066c00614a91f524550bf6d3f0dfa0effe01a1dcb2f650e72a67bc182181501e",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::122::2026-04-24::320.00::066c00614a91f524550bf6d3f0dfa0effe01a1dcb2f650e72a67bc182181501e::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "4.4.01.002",
+            "account_name": "Uniformes, EPIs e Materiais da Operação de Bombeiro Civil",
+            "amount": "320.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "320.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 123,
+      "raw_date": "2026-04-27",
+      "normalized_date": "2026-04-27",
+      "normalization_reason": "NONE",
+      "raw_description": "Aluguel carro",
+      "normalized_description": "Aluguel carro",
+      "amount": "622.41",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.5.01.002",
+      "debit_account_name": "Aluguel e Manutencao de Veiculos",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: aluguel de carro para uso administrativo geral.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::123::2026-04-27::622.41::493d889c670199a95b2a83f2f899b775ab939fc8874a9cf2b66e96c5064d94f8",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::123::2026-04-27::622.41::493d889c670199a95b2a83f2f899b775ab939fc8874a9cf2b66e96c5064d94f8::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.5.01.002",
+            "account_name": "Aluguel e Manutencao de Veiculos",
+            "amount": "622.41"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "622.41"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 124,
+      "raw_date": "2026-04-28",
+      "normalized_date": "2026-04-28",
+      "normalization_reason": "NONE",
+      "raw_description": "Aluguel clínica",
+      "normalized_description": "Aluguel clínica",
+      "amount": "2500.00",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.2.01.001",
+      "debit_account_name": "Alugueis e Condominio",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Fonte canônica ABRIL e mapeamento existente; sem decisão humana pendente.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::124::2026-04-28::2500.00::df4e323cf9472808a3ea41340102252f25e1a6c603e2350d4acf2a2936695fbe",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::124::2026-04-28::2500.00::df4e323cf9472808a3ea41340102252f25e1a6c603e2350d4acf2a2936695fbe::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.2.01.001",
+            "account_name": "Alugueis e Condominio",
+            "amount": "2500.00"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "2500.00"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 125,
+      "raw_date": "2026-04-30",
+      "normalized_date": "2026-04-30",
+      "normalization_reason": "NONE",
+      "raw_description": "Taxa SEFA",
+      "normalized_description": "Taxa SEFA",
+      "amount": "1251.87",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.7.01.001",
+      "debit_account_name": "Taxas, Licencas e Anuidades",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: Taxa/licença SEFA.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::125::2026-04-30::1251.87::0e894507b838ec56fc5eee44b98b6f65479f2d8bab0e7d66983aeeee8e804542",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::125::2026-04-30::1251.87::0e894507b838ec56fc5eee44b98b6f65479f2d8bab0e7d66983aeeee8e804542::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.7.01.001",
+            "account_name": "Taxas, Licencas e Anuidades",
+            "amount": "1251.87"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "1251.87"
+          }
+        ]
+      }
+    },
+    {
+      "schema_version": "FIN-IMPORT-5.2A.v1",
+      "source_file": "FLUXO_CAIXA_2026.xlsx",
+      "source_sheet": "ABRIL",
+      "source_row": 126,
+      "raw_date": "2026-04-30",
+      "normalized_date": "2026-04-30",
+      "normalization_reason": "NONE",
+      "raw_description": "Pagamento Serviços prestados 2025",
+      "normalized_description": "Pagamento Serviços prestados 2025",
+      "amount": "4497.49",
+      "direction": "OUTFLOW",
+      "movement_type": "DESPESA",
+      "debit_account_code": "5.9.01.001",
+      "debit_account_name": "Outras Despesas Operacionais",
+      "credit_account_code": "1.1.01.002",
+      "credit_account_name": "Banco Cora",
+      "dre_effect": "DESPESA",
+      "dre_presentation": "DESPESA_OPERACIONAL",
+      "dfc_class": "OPERACIONAL",
+      "ar_ap_effect": "DIRECT_CASH",
+      "confidence": "HIGH",
+      "evidence": "Decisão humana aprovada: serviços prestados em 2025, sem passivo previamente registrado.",
+      "decision_source": "CONSOLIDATED_FIN-IMPORT-5.2",
+      "idempotency_key": "FIN-IMPORT-5.2A::2026-04::126::2026-04-30::4497.49::09c937e0b28c6e94e802fb2045b206d6cc38b7b48032a90333dd174d34bb3286",
+      "row_status": "READY",
+      "disclosure": "",
+      "journal": {
+        "journal_idempotency_key": "FIN-IMPORT-5.2A::2026-04::126::2026-04-30::4497.49::09c937e0b28c6e94e802fb2045b206d6cc38b7b48032a90333dd174d34bb3286::JOURNAL",
+        "balanced": true,
+        "lines": [
+          {
+            "side": "DEBIT",
+            "account_code": "5.9.01.001",
+            "account_name": "Outras Despesas Operacionais",
+            "amount": "4497.49"
+          },
+          {
+            "side": "CREDIT",
+            "account_code": "1.1.01.002",
+            "account_name": "Banco Cora",
+            "amount": "4497.49"
+          }
+        ]
+      }
+    }
+  ],
+  "account_catalog": [
+    {
+      "code": "1.1.01.002",
+      "name": "Banco Cora"
+    },
+    {
+      "code": "3.1.01.001",
+      "name": "Receita de Assessoria e Consultoria SST"
+    },
+    {
+      "code": "3.1.01.004",
+      "name": "Receita Recorrente eSocial / Mensageria / SGG"
+    },
+    {
+      "code": "3.1.01.002",
+      "name": "Receita de Clínica Ocupacional"
+    },
+    {
+      "code": "3.1.01.003",
+      "name": "Receita de Engenharia, Laudos e Documentos"
+    },
+    {
+      "code": "5.9.01.001",
+      "name": "Outras Despesas Operacionais"
+    },
+    {
+      "code": "5.1.01.002",
+      "name": "Pro-labore"
+    },
+    {
+      "code": "5.5.01.002",
+      "name": "Aluguel e Manutencao de Veiculos"
+    },
+    {
+      "code": "5.5.01.001",
+      "name": "Combustivel e Despesas com Veiculos Administrativos"
+    },
+    {
+      "code": "5.1.01.001",
+      "name": "Salários Administrativos"
+    },
+    {
+      "code": "4.4.01.001",
+      "name": "Prestadores de Bombeiro Civil / SESMT Terceirizado"
+    },
+    {
+      "code": "5.7.01.001",
+      "name": "Taxas, Licencas e Anuidades"
+    },
+    {
+      "code": "5.2.01.003",
+      "name": "Telefonia e Internet"
+    },
+    {
+      "code": "1.1.02.006",
+      "name": "Adiantamentos a Sócios e Administradores"
+    },
+    {
+      "code": "5.4.01.001",
+      "name": "Contabilidade, Juridico e Consultorias Administrativas"
+    },
+    {
+      "code": "5.1.01.003",
+      "name": "Beneficios, Vales e Auxilios"
+    },
+    {
+      "code": "5.2.01.004",
+      "name": "Vigilancia, Limpeza e Manutencao Predial"
+    },
+    {
+      "code": "5.3.01.002",
+      "name": "Associacoes e Mensalidades Institucionais"
+    },
+    {
+      "code": "4.1.01.002",
+      "name": "Medicos, Responsaveis Tecnicos e Assistenciais"
+    },
+    {
+      "code": "5.2.01.002",
+      "name": "Energia Eletrica"
+    },
+    {
+      "code": "5.3.01.001",
+      "name": "Sistemas, Softwares e Assinaturas"
+    },
+    {
+      "code": "1.1.02.003",
+      "name": "Adiantamentos a Empregados"
+    },
+    {
+      "code": "4.2.01.002",
+      "name": "ART / CREA / Taxas Diretamente Vinculadas a Servicos"
+    },
+    {
+      "code": "5.6.01.001",
+      "name": "Material de Escritorio, Limpeza e Copa"
+    },
+    {
+      "code": "5.4.01.002",
+      "name": "Marketing, Publicidade e Brindes"
+    },
+    {
+      "code": "5.1.01.004",
+      "name": "FGTS, INSS e Encargos Trabalhistas"
+    },
+    {
+      "code": "3.2.01.002",
+      "name": "(-) Tributos sobre Faturamento - Gerencial"
+    },
+    {
+      "code": "4.4.01.002",
+      "name": "Uniformes, EPIs e Materiais da Operação de Bombeiro Civil"
+    },
+    {
+      "code": "5.2.01.001",
+      "name": "Alugueis e Condominio"
+    }
+  ],
+  "executed": false
+}

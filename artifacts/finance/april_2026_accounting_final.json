@@ -1,0 +1,129 @@
+{
+  "gate": "FIN-IMPORT-5.2A",
+  "status": "COMPLETED_WITH_FINDINGS",
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "ABRIL",
+    "range": "A1:I190"
+  },
+  "policy": {
+    "applied": true,
+    "name": "LEGACY_MIXED_SETTLEMENT_POLICY_5_2A",
+    "artificial_allocation": false,
+    "retroactive_months_changed": false,
+    "suspense_account_created": false,
+    "disclosures_required": true
+  },
+  "readiness": {
+    "READY": 92,
+    "UNRESOLVED_ALLOCATION": 0,
+    "DECISION_REQUIRED": 0,
+    "ACCOUNT_MAPPING_GAP": 0,
+    "POTENTIAL_DUPLICATE": 0,
+    "PRIOR_PERIOD_REVIEW": 0,
+    "TOTAL": 92
+  },
+  "rows": {
+    "87": {
+      "amount": "1000.00",
+      "account": "5.7.01.001 Taxas, Licencas e Anuidades",
+      "dre": "DESPESA_OPERACIONAL",
+      "dfc": "OPERACIONAL",
+      "status": "READY",
+      "disclosure": "Pagamento de negociação de obrigação tributária anterior, incluindo encargos. Principal, juros e multa não estavam segregados na fonte e não havia passivo histórico determinístico no ledger. Valor integral reconhecido no período do pagamento sem rateio artificial."
+    },
+    "99": {
+      "amount": "495.81",
+      "account": "5.7.01.001 Taxas, Licencas e Anuidades",
+      "dre": "DESPESA_OPERACIONAL",
+      "dfc": "OPERACIONAL",
+      "status": "READY",
+      "disclosure": "Pagamento de negociação fiscal com principal e encargos não segregados na fonte; reconhecido integralmente no período do pagamento."
+    },
+    "116": {
+      "amount": "1949.24",
+      "account": "5.1.01.004 FGTS, INSS e Encargos Trabalhistas",
+      "dre": "DESPESA_OPERACIONAL",
+      "dfc": "OPERACIONAL",
+      "status": "READY",
+      "disclosure": "Pagamento de FGTS em atraso com encargos incluídos; composição entre principal, juros e multa não disponível na fonte. Valor integral reconhecido no período do pagamento sem rateio artificial."
+    }
+  },
+  "cash": {
+    "opening_balance": "18187.58",
+    "cash_inflows": "56185.87",
+    "cash_outflows": "62733.49",
+    "net_change": "-6547.62",
+    "closing_balance": "11639.96",
+    "revenue": "56185.87",
+    "deductions": "78.28",
+    "net_revenue": "56107.59",
+    "costs": "12578.39",
+    "expenses": "45726.82",
+    "financial_result": "0.00",
+    "other_results": "0.00",
+    "income_taxes": "0.00",
+    "net_income": "-2197.62",
+    "dfc_operating": "-6547.62",
+    "dfc_investing": "0.00",
+    "dfc_financing": "0.00"
+  },
+  "dre": {
+    "revenue": "56185.87",
+    "deductions": "78.28",
+    "net_revenue": "56107.59",
+    "costs": "12578.39",
+    "operating_expenses": "45726.82",
+    "financial_result": "0.00",
+    "other_results": "0.00",
+    "taxes": "0.00",
+    "net_result": "-2197.62",
+    "expected_reference": "-2197.62",
+    "recalculated_row_level": true,
+    "official_ready": true
+  },
+  "dfc": {
+    "opening": "18187.58",
+    "operating": "-6547.62",
+    "investing": "0.00",
+    "financing": "0.00",
+    "net": "-6547.62",
+    "closing": "11639.96",
+    "difference": "0.00",
+    "official_ready": true
+  },
+  "bp": {
+    "basis": "APRIL_PERIOD_MOVEMENT",
+    "opening_balances_available": false,
+    "assets_period_delta": "-2197.62",
+    "liabilities_period_delta": "0.00",
+    "equity_period_delta": "-2197.62",
+    "difference": "0.00",
+    "balanced": true,
+    "suspense_account": false,
+    "note": "Absolute closing BP balances require opening BP balances; April period movement reconciles exactly."
+  },
+  "manifest": {
+    "authoritative": true,
+    "rows": 92,
+    "missing_source_rows": 0,
+    "duplicate_source_rows": 0,
+    "unknown_accounts": 0,
+    "unbalanced_journals": 0,
+    "executed": false
+  },
+  "safety": {
+    "financial_writes": 0,
+    "journal_writes": 0,
+    "ledger_writes": 0,
+    "database_changes": 0,
+    "migrations": 0,
+    "rpc_changes": 0,
+    "views": 0,
+    "rls": 0,
+    "prod": false,
+    "january_changed": false,
+    "february_changed": false,
+    "march_changed": false
+  }
+}

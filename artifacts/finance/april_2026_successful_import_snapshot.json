@@ -1,0 +1,53 @@
+{
+  "gate": "FIN-IMPORT-5.3H",
+  "status": "COMPLETED",
+  "environment": "DEV",
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "executor": "execute_authoritative_financial_import_april_2026",
+  "call_count": 1,
+  "file_sha256": "6605a548fdb031d83e95e84945cb5853bbd816485eab17ed2b7bdc42749af662",
+  "canonical_payload_sha256": "adf6e94c52bfe00a6c997127377f8ed4a8edc4db0ab501e3536fe84ebc5039f9",
+  "batch_id": "e9a91c8c-c4dd-4f90-8486-72aa0b96c638",
+  "coverage": {
+    "expected": 92,
+    "imported": 92,
+    "missing": 0,
+    "duplicates": 0,
+    "extra": 0
+  },
+  "references": {
+    "transaction_count": 92,
+    "journal_count": 92,
+    "transaction_id_query": "public.financial_transactions.idempotency_key LIKE 'FIN-IMPORT-5.2A::2026-04::%'",
+    "journal_id_query": "public.financial_journal_entries.idempotency_key LIKE 'FIN-IMPORT-5.2A::2026-04::%'",
+    "critical_rows": {
+      "70": {"transaction_id": "15e0d66f-e53a-4312-ac70-200bbde023d8", "journal_id": "818ae006-b0a9-4af3-a7c1-00e3a25d96da"},
+      "81": {"transaction_id": "021cc1fd-7c0a-49dc-8b6d-87d457ab8052", "journal_id": "cbfdd724-e08a-491b-b4db-ad60565b4f25"},
+      "82": {"transaction_id": "9b902ae5-622a-4024-aeb2-8ee7fe8c5fb2", "journal_id": "11da834d-42f2-48b4-8c07-9e533200577a"},
+      "83": {"transaction_id": "76ec6a30-c2d3-4db5-91af-ace648bb7077", "journal_id": "d87a0fc4-f1a1-4e17-84d6-dceac63b4ab7"},
+      "84": {"transaction_id": "3e29ed08-43e6-477f-8b9b-33cd0beb4cbe", "journal_id": "c821e678-9d54-4a7a-ad7f-3489a0a0a9af"},
+      "87": {"transaction_id": "1b36c79c-675f-4287-b055-a3efd71c3566", "journal_id": "0169b51f-ad17-4ac8-ae33-29c352404b92"},
+      "89": {"transaction_id": "2b28f968-e2ed-4ffa-9a5e-5b54ff280f36", "journal_id": "3618e998-9a76-48f3-92e0-b0d99b48fd0c"},
+      "99": {"transaction_id": "5e8e510c-3e18-4e7e-a522-8f11027f00d3", "journal_id": "3ef4d515-9194-4565-a92f-3791225ae3b5"},
+      "104": {"transaction_id": "3592e17b-631e-48fd-8bd2-c563823751d2", "journal_id": "7f0ca9d0-be45-4eb7-8809-fd19b0c98923"},
+      "106": {"transaction_id": "16c781cd-c4a7-434d-927f-a67aee47c80b", "journal_id": "cc67545c-46d7-407a-8e22-1df40a3de567"},
+      "108": {"transaction_id": "341e4eba-3781-44a4-b910-71ee1e980e9c", "journal_id": "5b7de1ee-9156-418e-aa4e-6a65de32e7b7"},
+      "110": {"transaction_id": "20aa9b24-3cfe-4406-942f-5f635cd74d04", "journal_id": "6d4bfd02-5b48-404a-bcfe-da3fcdbeb90e"},
+      "115": {"transaction_id": "78d16486-9d80-4c3a-bc80-fd3987708019", "journal_id": "cc661546-2125-4c93-aef2-5180ba008588"},
+      "116": {"transaction_id": "adb519d6-80d4-4627-9747-80225b5b2fa0", "journal_id": "487e674f-f131-4b9b-b810-5699a7ab61c4"},
+      "118": {"transaction_id": "3672ac89-e03c-498e-aca7-ec21b6b87cbc", "journal_id": "af127a22-c3aa-4516-980d-24d9a5a63798"},
+      "122": {"transaction_id": "0abc489b-408a-4f37-9e7a-25a10a9f13d3", "journal_id": "d9151a60-1c74-4661-b875-25dcf57dbfe6"},
+      "126": {"transaction_id": "ebda70b9-5660-4f24-a4da-419acf3036f6", "journal_id": "d82897b9-ff3c-4e3e-8c3a-f1bfbc09bd40"}
+    }
+  },
+  "cash": {"opening": "18187.58", "inflows": "56185.87", "outflows": "62733.49", "net": "-6547.62", "closing": "11639.96", "difference": "0.00"},
+  "dre": {"revenue": "56185.87", "deductions": "-78.28", "net_revenue": "56107.59", "costs": "-12578.39", "operating_expenses": "-45726.82", "financial_result": "0.00", "other_results": "0.00", "net_result": "-2197.62"},
+  "dfc": {"operating": "-6547.62", "investing": "0.00", "financing": "0.00", "net": "-6547.62", "closing": "11639.96", "difference": "0.00"},
+  "bp": {"march": {"assets": "34426.27", "liabilities": "10000.00", "equity": "24426.27"}, "april": {"assets": "32228.65", "liabilities": "10000.00", "equity": "22228.65"}, "movement_difference": "0.00", "suspense": false},
+  "ar_ap": {"direct_ar_writes": 0, "direct_ap_writes": 0, "receivables_projection": "PASS", "payables_projection": "PASS", "artificial_open": 0},
+  "closed_months": {"january_changed": false, "february_changed": false, "march_changed": false},
+  "findings": [
+    "APRIL_DATABASE_CLOSING_FLAG=NOT_IMPLEMENTED: the existing financial_period_locks audit trigger references NEW.created_by while the table uses locked_by; the closing INSERT failed before persistence.",
+    "Legacy post-import test suites contain unrelated assertion mismatches: 08e test_009, 08m tests 8 and 15, and 08l test 14. No production code or data was changed to bypass them."
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "gate": "FIN-IMPORT-5.3H",
+  "status": "COMPLETED",
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "manifest": {
+    "path": "artifacts/finance/april_2026_authoritative_manifest.json",
+    "file_sha256": "6605a548fdb031d83e95e84945cb5853bbd816485eab17ed2b7bdc42749af662",
+    "canonical_payload_sha256": "adf6e94c52bfe00a6c997127377f8ed4a8edc4db0ab501e3536fe84ebc5039f9",
+    "rows": 92,
+    "inflows_count": 35,
+    "outflows_count": 57,
+    "inflows": "56185.87",
+    "outflows": "62733.49",
+    "net": "-6547.62",
+    "opening": "18187.58",
+    "closing": "11639.96",
+    "duplicate_source_rows": 0,
+    "missing_source_rows": 0,
+    "unknown_accounts": 0,
+    "unbalanced_journals": 0
+  },
+  "execution": {
+    "executor": "execute_authoritative_financial_import_april_2026",
+    "call_count": 1,
+    "atomic": true,
+    "committed": true,
+    "rolled_back": false,
+    "batch_id": "e9a91c8c-c4dd-4f90-8486-72aa0b96c638",
+    "imported_facts": 92,
+    "missing": 0,
+    "duplicates": 0,
+    "extra": 0,
+    "debits": "118919.36",
+    "credits": "118919.36",
+    "error": null
+  },
+  "reconciliation": {
+    "cash": {
+      "opening": "18187.58",
+      "inflows": "56185.87",
+      "outflows": "62733.49",
+      "net": "-6547.62",
+      "closing": "11639.96",
+      "difference": "0.00"
+    },
+    "dre_official": {
+      "revenue": "56185.87",
+      "deductions": "-78.28",
+      "net_revenue": "56107.59",
+      "costs": "-12578.39",
+      "operating_expenses": "-45726.82",
+      "financial_result": "0.00",
+      "other_results": "0.00",
+      "net_result": "-2197.62",
+      "difference": "0.00"
+    },
+    "dfc_official": {
+      "operating": "-6547.62",
+      "investing": "0.00",
+      "financing": "0.00",
+      "net": "-6547.62",
+      "closing": "11639.96",
+      "difference": "0.00"
+    },
+    "bp": {
+      "absolute_baseline_available": true,
+      "march_assets": "34426.27",
+      "april_assets": "32228.65",
+      "march_liabilities": "10000.00",
+      "april_liabilities": "10000.00",
+      "march_equity": "24426.27",
+      "april_equity": "22228.65",
+      "april_movement_difference": "0.00",
+      "suspense": false
+    },
+    "ar_ap": {
+      "direct_ar_writes": 0,
+      "direct_ap_writes": 0,
+      "receivables_projection_count": 35,
+      "payables_projection_count": 54,
+      "open_receivables": "0.00",
+      "open_payables": "0.00",
+      "projection": "PASS"
+    }
+  },
+  "journals": {
+    "created": 92,
+    "balanced": 92,
+    "unbalanced": 0,
+    "difference": "0.00",
+    "reference": "financial_journal_entries.idempotency_key LIKE FIN-IMPORT-5.2A::2026-04::%"
+  },
+  "closed_months": {
+    "january_before": 107,
+    "january_after": 107,
+    "february_before": 80,
+    "february_after": 80,
+    "march_before": 107,
+    "march_after": 107,
+    "january_changed": false,
+    "february_changed": false,
+    "march_changed": false
+  },
+  "formal_closing": {
+    "april_formally_reconciled": true,
+    "period": "2026-04",
+    "database_closing_flag": "NOT_IMPLEMENTED",
+    "lock_registration_attempted": true,
+    "lock_registration_persisted": false,
+    "finding": "Existing financial_period_locks trigger references NEW.created_by, but the table column is locked_by; insert failed before persistence. No schema or trigger change was made."
+  },
+  "safety": {
+    "destructive_updates": 0,
+    "deletes": 0,
+    "new_migrations": 0,
+    "function_changes": 0,
+    "rpc_changes": 0,
+    "rls_changes": 0,
+    "schema_changes": 0,
+    "prod": false
+  },
+  "readiness": {
+    "april_imported_dev": true,
+    "april_92_92": true,
+    "april_journals_balanced": true,
+    "april_cash_reconciled": true,
+    "april_dre_reconciled": true,
+    "april_dfc_reconciled": true,
+    "april_bp_movement_reconciled": true,
+    "april_arap_validated": true,
+    "ready_for_fin_import_5_4_closing_and_versioning": true,
+    "ready_for_prod": false
+  }
+}
