@@ -108,10 +108,12 @@
   "formal_closing": {
     "april_formally_reconciled": true,
     "period": "2026-04",
-    "database_closing_flag": "NOT_IMPLEMENTED",
+    "database_closing_flag": "YES",
     "lock_registration_attempted": true,
-    "lock_registration_persisted": false,
-    "finding": "Existing financial_period_locks trigger references NEW.created_by, but the table column is locked_by; insert failed before persistence. No schema or trigger change was made."
+    "lock_registration_persisted": true,
+    "lock_id": "1c7a5ea8-db31-47db-9a41-c1070205ef00",
+    "locked_by": "51000000-0000-0000-0000-000000000001",
+    "finding": null
   },
   "safety": {
     "destructive_updates": 0,

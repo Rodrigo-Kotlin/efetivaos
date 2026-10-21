@@ -47,7 +47,12 @@
   "ar_ap": {"direct_ar_writes": 0, "direct_ap_writes": 0, "receivables_projection": "PASS", "payables_projection": "PASS", "artificial_open": 0},
   "closed_months": {"january_changed": false, "february_changed": false, "march_changed": false},
   "findings": [
-    "APRIL_DATABASE_CLOSING_FLAG=NOT_IMPLEMENTED: the existing financial_period_locks audit trigger references NEW.created_by while the table uses locked_by; the closing INSERT failed before persistence.",
     "Legacy post-import test suites contain unrelated assertion mismatches: 08e test_009, 08m tests 8 and 15, and 08l test 14. No production code or data was changed to bypass them."
-  ]
+  ],
+  "period_lock": {
+    "period": "2026-04",
+    "lock_id": "1c7a5ea8-db31-47db-9a41-c1070205ef00",
+    "locked_by": "51000000-0000-0000-0000-000000000001",
+    "enforced": true
+  }
 }

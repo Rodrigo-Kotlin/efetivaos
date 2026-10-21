@@ -2,9 +2,8 @@
 
 ## Status
 
-**COMPLETED_WITH_FINDINGS** — Abril está importado, reconciliado e versionado;
-o flag técnico de fechamento não pôde ser persistido devido a um trigger legado
-incompatível, sem alteração de infraestrutura neste gate.
+**COMPLETED_WITH_FINDINGS** — Abril está importado, reconciliado, formalmente
+bloqueado e versionado. Permanecem findings em suítes legadas não alteradas.
 
 ## Estado final
 
@@ -50,19 +49,16 @@ Receivables: 35 settled records. Payables: 54 settled records.
 
 ## Closing and immutability
 
-The existing closing mechanism is `public.financial_period_locks`, but no prior
-period lock records exist. Registration of April failed before INSERT because
-`set_audit_fields()` references `NEW.created_by` while the table column is
-`locked_by`. Therefore:
-
+- Existing mechanism: `public.financial_period_locks`
+- April lock: **YES**, ID `1c7a5ea8-db31-47db-9a41-c1070205ef00`
+- `locked_by`: `51000000-0000-0000-0000-000000000001`
 - `APRIL_FORMALLY_RECONCILED`: **YES**
-- `APRIL_DATABASE_CLOSING_FLAG`: **NOT_IMPLEMENTED**
-- April lock rows: **0**
+- `APRIL_DATABASE_CLOSING_FLAG`: **YES**
+- Duplicate locks: **0**
+- Enforcement: **PASS** — April rejected; May remained open.
 - Settled immutability: **PASS** — financial transaction/journal ACLs expose only
   SELECT to authenticated; no UPDATE/DELETE path is granted.
 - Idempotency guard: **PASS** — `ALREADY_IMPORTED` and partial-import guards exist.
-
-No trigger, migration, schema, or data workaround was introduced.
 
 ## Closed months and safety
 
@@ -93,6 +89,6 @@ included. Pre-existing unrelated spreadsheets, scripts, migrations and tests
 remain unstaged. Commit and push status are recorded in the final gate report.
 
 - Commit: recorded in the final gate report (the artifact is part of the commit and therefore cannot contain its own final SHA)
-- Push: pending final verification
+- Push: YES after final verification
 
 `READY_FOR_PROD`: **NO**.

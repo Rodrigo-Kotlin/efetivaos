@@ -129,14 +129,19 @@ PASS**, with zero mismatches. All 92 persisted manifest rows matched exactly.
 
 ## Formal closing mechanism
 
-The repository contains the approved `public.financial_period_locks` table, but
-there are no existing January–March lock records to copy. A single authorized
-attempt to register `2026-04-01` through `2026-04-30` failed before persistence
-because the existing `set_audit_fields()` trigger assigns `NEW.created_by`,
-while this table defines `locked_by`. The resulting read-only state is
-`APRIL_DATABASE_CLOSING_FLAG: NOT_IMPLEMENTED`; April remains formally
-reconciled in documentation. No trigger, schema, migration, or data workaround
-was applied.
+The approved `public.financial_period_locks` table was repaired by the scoped
+FIN-IMPORT-5.5 migration. Its shared audit trigger now handles
+`financial_period_locks` with `locked_at`, `locked_by`, and `created_at`, while
+preserving the established behavior for other tables.
+
+April lock persisted successfully:
+
+- Period: `2026-04-01` to `2026-04-30`
+- Lock ID: `1c7a5ea8-db31-47db-9a41-c1070205ef00`
+- `locked_by`: `51000000-0000-0000-0000-000000000001`
+- Duplicate locks: 0
+- `APRIL_DATABASE_CLOSING_FLAG`: **YES**
+- Enforcement: **PASS** — April rejected by `assert_period_unlocked`; May remained open.
 
 ## Test findings
 
