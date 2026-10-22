@@ -1,0 +1,275 @@
+{
+  "gate": "FIN-IMPORT-6.3",
+  "status": "COMPLETED",
+  "environment": "DEV",
+  "period": "2026-05",
+  "batch_id": "9ca5ddfc-e2dc-40f5-b319-5430430e1ccd",
+  "manifest_hash": "a3d4440b0026625cdc6931b41f1ec864a2d079aed7fc24948c3b37709f588fef",
+  "facts": {
+    "expected": 83,
+    "actual": 83,
+    "unique_idempotency_keys": 83,
+    "missing_source_metadata": 0,
+    "outside_period": 0,
+    "orphan_facts": 0,
+    "facts_without_journal": 0,
+    "journals_per_fact_violations": 0
+  },
+  "journals": {
+    "expected": 83,
+    "actual": 83,
+    "balanced": 83,
+    "unbalanced": 0,
+    "lines_expected": 166,
+    "lines_actual": 166,
+    "orphan_lines": 0,
+    "zero_line_journals": 0,
+    "debit_only": 0,
+    "credit_only": 0,
+    "total_debits": 133761.78,
+    "total_credits": 133761.78,
+    "difference": 0,
+    "suspense_or_unclassified_lines": 0
+  },
+  "cash_reconciliation": {
+    "opening": 11639.96,
+    "inflows": 63015.98,
+    "outflows": 70745.8,
+    "net": -7729.82,
+    "closing": 3910.14,
+    "expected_closing": 3910.14,
+    "difference": 0,
+    "reconciled": true
+  },
+  "dre": {
+    "revenue": 46707.68,
+    "costs": 17859.78,
+    "operating_expenses": 33590.37,
+    "financial_expenses": 0,
+    "other": 0,
+    "result": -4742.47,
+    "account_dre_class_used": true,
+    "formula": "46707.68 - 17859.78 - 33590.37 = -4742.47",
+    "composition_by_account": {
+      "1.1.01.002": 0,
+      "5.5.01.002": 600,
+      "5.5.01.001": 400,
+      "5.9.01.001": 1412.98,
+      "4.1.01.005": 24,
+      "5.1.01.001": 5798.18,
+      "1.1.02.003": 3350,
+      "4.2.01.001": 247,
+      "5.3.01.002": 845.02,
+      "4.4.01.001": 12000,
+      "5.1.01.005": 6830.12,
+      "5.2.01.003": 102.27,
+      "5.1.01.002": 10609.86,
+      "4.1.01.001": 712,
+      "4.1.01.002": 4000,
+      "4.1.01.003": 420,
+      "5.3.01.001": 1025.33,
+      "5.7.01.001": 4240.05,
+      "5.1.01.004": 459.36,
+      "5.2.01.001": 267.2,
+      "4.2.01.002": 216.78,
+      "4.1.01.004": 240,
+      "5.2.01.002": 1000,
+      "2.1.06.001": 15945.65
+    }
+  },
+  "dfc": {
+    "operational": -6774.17,
+    "investing": 0,
+    "financing": -955.65,
+    "net": -7729.82,
+    "opening": 11639.96,
+    "closing": 3910.14,
+    "difference": 0
+  },
+  "ledger": {
+    "total_debits": 133761.78,
+    "total_credits": 133761.78,
+    "difference": 0,
+    "net_movement_by_account": {
+      "1.1.01.002": -7729.82,
+      "3.1.01.099": -23315.13,
+      "3.1.01.001": -23392.55,
+      "2.1.06.001": 955.65,
+      "1.1.02.005": -1318.3,
+      "5.5.01.002": 600,
+      "5.5.01.001": 400,
+      "5.9.01.001": 1412.98,
+      "4.1.01.005": 24,
+      "5.1.01.001": 5798.18,
+      "1.1.02.003": 3350,
+      "4.2.01.001": 247,
+      "5.3.01.002": 845.02,
+      "4.4.01.001": 12000,
+      "5.1.01.005": 6830.12,
+      "5.2.01.003": 102.27,
+      "5.1.01.002": 10609.86,
+      "4.1.01.001": 712,
+      "4.1.01.002": 4000,
+      "4.1.01.003": 420,
+      "5.3.01.001": 1025.33,
+      "5.7.01.001": 4240.05,
+      "5.1.01.004": 459.36,
+      "5.2.01.001": 267.2,
+      "4.2.01.002": 216.78,
+      "4.1.01.004": 240,
+      "5.2.01.002": 1000
+    }
+  },
+  "special_cases": {
+    "loan_received": {
+      "source_row": 61,
+      "amount": 14990,
+      "movement": "EMPRESTIMO_RECEBIDO",
+      "dre": "NONE",
+      "dfc": "FINANCIAMENTO",
+      "accounts": [
+        "1.1.01.002",
+        "2.1.06.001"
+      ],
+      "pass": true
+    },
+    "loan_repayment": {
+      "source_row": 182,
+      "amount": 15945.65,
+      "movement": "EMPRESTIMO_PAGO",
+      "dre": "NONE",
+      "dfc": "FINANCIAMENTO",
+      "accounts": [
+        "2.1.06.001",
+        "1.1.01.002"
+      ],
+      "legacy": true,
+      "pass": true
+    },
+    "advances": {
+      "rows": [
+        77,
+        95,
+        115
+      ],
+      "account": "1.1.02.003",
+      "dre": "NONE",
+      "pass": true
+    },
+    "valdilene": {
+      "source_row": 105,
+      "account": "5.1.01.002",
+      "center": "Diretoria/Sócios",
+      "pass": true
+    },
+    "endrew": {
+      "rescisao_rows": [
+        85,
+        86
+      ],
+      "rescisao_journals": 2,
+      "separate_fgts_row": 84,
+      "third_rescisao_journal": false,
+      "pass": true
+    },
+    "recupera": {
+      "source_row": 62,
+      "dre": "NONE",
+      "dfc": "OPERACIONAL",
+      "client_identified": false,
+      "pass": true
+    },
+    "conecta_laudos": {
+      "source_row": 78,
+      "account": "4.2.01.001",
+      "cost_center": null,
+      "service_line": null,
+      "dre": "CUSTO_SERVICO",
+      "pass": true
+    },
+    "criffer": {
+      "rows": [
+        89,
+        106
+      ],
+      "distinct": true,
+      "centers": [
+        "Clinica Ocupacional",
+        "Clinica Ocupacional"
+      ],
+      "pass": true
+    },
+    "card": {
+      "source_row": 111,
+      "account": "5.9.01.001",
+      "legacy": true,
+      "pass": true
+    },
+    "tax_installments": {
+      "rows": [
+        99,
+        100
+      ],
+      "legacy": true,
+      "full_amount": true,
+      "undisclosed_components": true,
+      "pass": true
+    }
+  },
+  "legacy_policy": {
+    "expected": 10,
+    "actual": 10,
+    "source_rows": [
+      62,
+      76,
+      90,
+      99,
+      100,
+      101,
+      102,
+      103,
+      111,
+      182
+    ],
+    "matches_inventory": true
+  },
+  "april_continuity": {
+    "locked": true,
+    "lock_count": 1,
+    "transactions": 92,
+    "journals": 92,
+    "altered_by_may_import": false,
+    "writes": 0
+  },
+  "may_lock_status": {
+    "locked": false,
+    "lock_count": 0
+  },
+  "arap": {
+    "artificial_historical_titles_created": 0,
+    "fictitious_clients_created": 0,
+    "fictitious_suppliers_created": 0,
+    "receivables_view_rows": 34,
+    "payables_view_rows": 44,
+    "interpretation": "settled projections from financial_transactions views; no separate historical titles created"
+  },
+  "idempotency": {
+    "second_execution": "PASS",
+    "second_execution_result": "batch already exists",
+    "new_transactions": 0,
+    "new_journals": 0,
+    "new_journal_lines": 0,
+    "new_batches": 0,
+    "same_manifest_hash": true
+  },
+  "prod_untouched": true,
+  "git": {
+    "head": "c2c02a5aa0662c7512739f1ffe464b2a97ba8cf9",
+    "origin_main": "c2c02a5aa0662c7512739f1ffe464b2a97ba8cf9",
+    "commit_created": false,
+    "push": false
+  },
+  "blockers": [],
+  "ready_for_close": true,
+  "ready_for_fin_import_6_4": true
+}

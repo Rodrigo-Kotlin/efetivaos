@@ -1,0 +1,11 @@
+source_row,normalized_date,normalized_description,amount,legacy_reason,treatment,limitation
+"62","2026-05-12","Recebimento parcial de crédito antigo via Recupera — cliente não identificado no legado","1318.3","READY_LEGACY_POLICY","Recebimento parcial de crédito antigo via Recupera; cliente não identificado; sem recebível fictício.","Valor integral preservado; sem rateio inventado."
+"76","2026-05-08","Saldo de salário Janderson","1299.32","READY_LEGACY_POLICY","Saldo salarial de Abril pago em Maio; passivo não reconhecido em Abril.","Valor integral preservado; sem rateio inventado."
+"90","2026-05-13","Raio x UDI março","60","READY_LEGACY_POLICY","Pagamento de Março realizado em Maio; competência histórica não reaberta.","Valor integral preservado; sem rateio inventado."
+"99","2026-05-19","Parcela DAS 2/42","500.76","READY_LEGACY_POLICY","Parcelamento tributário antigo; principal, juros e multa não discriminados.","Valor integral preservado; sem rateio inventado."
+"100","2026-05-19","Parcela DARF - 2/19","529.68","READY_LEGACY_POLICY","Parcelamento tributário antigo; principal, juros e multa não discriminados.","Valor integral preservado; sem rateio inventado."
+"101","2026-05-19","DAS Abril","2357.58","READY_LEGACY_POLICY","Obrigação de Abril paga em Maio; passivo histórico não reconstruído.","Valor integral preservado; sem rateio inventado."
+"102","2026-05-19","FGTS Abril","459.36","READY_LEGACY_POLICY","Obrigação de Abril paga em Maio; passivo histórico não reconstruído.","Valor integral preservado; sem rateio inventado."
+"103","2026-05-19","DARF Abril","852.03","READY_LEGACY_POLICY","Obrigação de Abril paga em Maio; passivo histórico não reconstruído.","Valor integral preservado; sem rateio inventado."
+"111","2026-05-22","Pagamento Cartão Caixa","462.37","READY_LEGACY_POLICY","Política histórica aprovada para pagamento de cartão/empréstimo sem composição.","Valor integral preservado; sem rateio inventado."
+"182","2026-05-31","Pagamento/Amortização de Empréstimo Cora — composição entre principal e juros não discriminada","15945.65","READY_LEGACY_POLICY","Política histórica aprovada para pagamento de cartão/empréstimo sem composição.","Valor integral preservado; sem rateio inventado."

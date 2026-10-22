@@ -1,0 +1,70 @@
+{
+  "gate": "FIN-IMPORT-6.4",
+  "status": "COMPLETED",
+  "environment": "DEV",
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "period": "2026-05",
+  "batch_id": "9ca5ddfc-e2dc-40f5-b319-5430430e1ccd",
+  "manifest_hash": "a3d4440b0026625cdc6931b41f1ec864a2d079aed7fc24948c3b37709f588fef",
+  "period_lock_id": "3f3e1760-264f-441e-b6f8-f0fe2db97b9f",
+  "locked": true,
+  "locked_from": "2026-05-01",
+  "locked_to": "2026-05-31",
+  "locked_by": "51000000-0000-0000-0000-000000000001",
+  "locked_at": "2026-10-22T22:24:36.928409+00:00",
+  "lock_reason": "FIN-IMPORT-6.4 authoritative close after successful FIN-IMPORT-6.3 preclose audit; batch 9ca5ddfc-c4dd-4f90-8486-72aa0b96c638; manifest a3d4440b0026625cdc6931b41f1ec864a2d079aed7fc24948c3b37709f588fef",
+  "period_immutability": "PASS",
+  "facts": 83,
+  "journals": 83,
+  "journal_lines": 166,
+  "legacy_policy": 10,
+  "cash": {
+    "opening": 11639.96,
+    "inflows": 63015.98,
+    "outflows": 70745.8,
+    "net": -7729.82,
+    "closing": 3910.14,
+    "difference": 0
+  },
+  "dre": {
+    "revenue": 46707.68,
+    "costs": 17859.78,
+    "operating_expenses": 33590.37,
+    "result": -4742.47
+  },
+  "dfc": {
+    "operating": -6774.17,
+    "investing": 0,
+    "financing": -955.65,
+    "net": -7729.82
+  },
+  "ledger": {
+    "debits": 133761.78,
+    "credits": 133761.78,
+    "difference": 0
+  },
+  "april": {
+    "locked": true,
+    "lock_count": 1,
+    "transactions": 92,
+    "journals": 92,
+    "altered": false
+  },
+  "may": {
+    "locked": true,
+    "exact_lock_count": 1,
+    "overlap_count": 1
+  },
+  "june": {
+    "expected_opening": 3910.14,
+    "imported": false
+  },
+  "idempotency": "PASS",
+  "prod_untouched": true,
+  "blockers": [],
+  "ready_for_june_import": true,
+  "git": {
+    "commit_created": true,
+    "push": false
+  }
+}

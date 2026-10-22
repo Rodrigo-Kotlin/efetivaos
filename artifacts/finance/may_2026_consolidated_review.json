@@ -1,0 +1,113 @@
+{
+  "gate": "FIN-IMPORT-6.1",
+  "status": "COMPLETED",
+  "baseline": {
+    "facts": 83,
+    "opening": 1163996,
+    "inflows": 6301598,
+    "outflows": 7074580,
+    "closing": 391014,
+    "reconciliation_difference": 0
+  },
+  "final_status_counts": {
+    "READY": 73,
+    "READY_LEGACY_POLICY": 10,
+    "DECISION_REQUIRED": 0,
+    "POTENTIAL_DUPLICATE": 0,
+    "PRIOR_PERIOD_REVIEW": 0,
+    "UNRESOLVED_ALLOCATION": 0,
+    "ACCOUNT_MAPPING_GAP": 0,
+    "PATRIMONIAL_REVIEW": 0,
+    "INVALID": 0
+  },
+  "total_final_statuses": 83,
+  "blockers": [],
+  "reconciliation": {
+    "opening": 1163996,
+    "inflows": 6301598,
+    "outflows": 7074580,
+    "variation": -772982,
+    "calculated_closing": 391014,
+    "expected_closing": 391014,
+    "difference": 0,
+    "reconciled": true
+  },
+  "decisions_applied": {
+    "loan_cora_inflow": [
+      61
+    ],
+    "loan_cora_repayment": [
+      182
+    ],
+    "recupera": [
+      62
+    ],
+    "rodrigo": [
+      77,
+      94
+    ],
+    "janderson": [
+      76,
+      95,
+      115
+    ],
+    "valdilene": [
+      105
+    ],
+    "endrew": [
+      84,
+      85,
+      86
+    ],
+    "conecta_laudos": [
+      78
+    ],
+    "criffer": [
+      89,
+      106
+    ],
+    "cartao_caixa": [
+      111
+    ],
+    "tax_installments": [
+      99,
+      100
+    ],
+    "distinct_transactions": [
+      15,
+      17,
+      89,
+      106,
+      109,
+      114
+    ],
+    "prior_period_cash_legacy": [
+      76,
+      90,
+      101,
+      102,
+      103
+    ]
+  },
+  "period_control": {
+    "april_locked": true,
+    "may_locked": false,
+    "april_writes": 0,
+    "april_data_changed": false
+  },
+  "safety": {
+    "dev_writes": 0,
+    "prod_writes": 0,
+    "migrations": 0,
+    "journals_created": 0,
+    "transactions_created": 0,
+    "period_locks_created": 0,
+    "rpc_changes": 0,
+    "views_changes": 0,
+    "rls_changes": 0
+  },
+  "readiness": {
+    "READY_FOR_FIN_IMPORT_6_2": true,
+    "READY_FOR_IMPORT": false
+  }
+}

@@ -1,0 +1,672 @@
+{
+  "gate": "FIN-IMPORT-6.0",
+  "status": "COMPLETED_WITH_FINDINGS",
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "MAIO",
+    "range": "A1:I191",
+    "formulas": [
+      "C19",
+      "C29",
+      "C58",
+      "C65",
+      "B66",
+      "B174",
+      "B178",
+      "B179",
+      "B180",
+      "B184"
+    ]
+  },
+  "opening": {
+    "april_official_closing": 1163996,
+    "source_opening": 1163996,
+    "difference": 0,
+    "reconciled": true
+  },
+  "cash": {
+    "opening": 1163996,
+    "inflows": 6301598,
+    "outflows": 7074580,
+    "detail_outflows": 5480015,
+    "withdrawal": 1594565,
+    "net": 391014,
+    "closing": 391014,
+    "difference": 0,
+    "reconciled": true
+  },
+  "counts": {
+    "total_source_facts": 83,
+    "inflows": 35,
+    "outflows": 48,
+    "ignored_non_fact_rows": 108,
+    "status_counts": {
+      "READY": 59,
+      "DECISION_REQUIRED": 11,
+      "ACCOUNT_MAPPING_GAP": 0,
+      "POTENTIAL_DUPLICATE": 6,
+      "PRIOR_PERIOD_REVIEW": 4,
+      "PATRIMONIAL_REVIEW": 0,
+      "UNRESOLVED_ALLOCATION": 3
+    }
+  },
+  "ignored_rows": [
+    {
+      "source_row": 1,
+      "reason": "header/label/non-fact text",
+      "raw_text": "CAIXA CORA"
+    },
+    {
+      "source_row": 2,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 3,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 4,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 5,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 6,
+      "reason": "header/label/non-fact text",
+      "raw_text": "DATA | RECEITAS | DESCRIÇÃO"
+    },
+    {
+      "source_row": 7,
+      "reason": "header/label/non-fact text",
+      "raw_text": "ASSESSORIAS/CONSULTORIAS"
+    },
+    {
+      "source_row": 8,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Arati Distribuidora de Bebidas matriz e filiais"
+    },
+    {
+      "source_row": 10,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Frigorífico Ribeiro - V de carvalho "
+    },
+    {
+      "source_row": 11,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Frigorífico Ribeiro - M B de Carvalho"
+    },
+    {
+      "source_row": 12,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Frigorífico Ribeiro - V de carvalho "
+    },
+    {
+      "source_row": 14,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Macedo Engenharia "
+    },
+    {
+      "source_row": 16,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "União Transportes"
+    },
+    {
+      "source_row": 19,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "34927.68000000001"
+    },
+    {
+      "source_row": 20,
+      "reason": "header/label/non-fact text",
+      "raw_text": "RECORRÊNCIAS ESOCIAL"
+    },
+    {
+      "source_row": 25,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Macedo Engenharia "
+    },
+    {
+      "source_row": 27,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 28,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 29,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Total | 1149.6599999999999"
+    },
+    {
+      "source_row": 30,
+      "reason": "header/label/non-fact text",
+      "raw_text": "SERVIÇOS CLÍNICA EFETIVA"
+    },
+    {
+      "source_row": 52,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 53,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 54,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 55,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 56,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 57,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 58,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "7375.64"
+    },
+    {
+      "source_row": 59,
+      "reason": "header/label/non-fact text",
+      "raw_text": "SERVIÇOS ENGENHARIA EFETIVA"
+    },
+    {
+      "source_row": 64,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 65,
+      "reason": "descriptive continuation without amount",
+      "raw_text": "Total | 19563"
+    },
+    {
+      "source_row": 66,
+      "reason": "subtotal or summary formula",
+      "raw_text": "Total | 63015.98000000001"
+    },
+    {
+      "source_row": 67,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 68,
+      "reason": "header/label/non-fact text",
+      "raw_text": "DETALHAMENTO DIÁRIO DE CAIXA"
+    },
+    {
+      "source_row": 69,
+      "reason": "header/label/non-fact text",
+      "raw_text": "DATA | DESPESAS | DESCRIÇÃO"
+    },
+    {
+      "source_row": 117,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 118,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 119,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 120,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 121,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 122,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 123,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 124,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 125,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 126,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 127,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 128,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 129,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 130,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 131,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 132,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 133,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 134,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 135,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 136,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 137,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 138,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 139,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 140,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 141,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 142,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 143,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 144,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 145,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 146,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 147,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 148,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 149,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 150,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 151,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 152,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 153,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 154,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 155,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 156,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 157,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 158,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 159,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 160,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 161,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 162,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 163,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 164,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 165,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 166,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 167,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 168,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 169,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 170,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 171,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 172,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 173,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 174,
+      "reason": "subtotal or summary formula",
+      "raw_text": "Total | 54800.15099999999"
+    },
+    {
+      "source_row": 175,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 176,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 177,
+      "reason": "header/label/non-fact text",
+      "raw_text": "RESUMO MENSAL"
+    },
+    {
+      "source_row": 178,
+      "reason": "subtotal or summary formula",
+      "raw_text": "CAIXA INICIAL | 11639.959999999977"
+    },
+    {
+      "source_row": 179,
+      "reason": "subtotal or summary formula",
+      "raw_text": "RECEITAS | 63015.98000000001 |  "
+    },
+    {
+      "source_row": 180,
+      "reason": "subtotal or summary formula",
+      "raw_text": "Despesa Bruta | 54800.15099999999"
+    },
+    {
+      "source_row": 181,
+      "reason": "header/label/non-fact text",
+      "raw_text": "Caixa interno"
+    },
+    {
+      "source_row": 183,
+      "reason": "header/label/non-fact text",
+      "raw_text": "Saldo Cora"
+    },
+    {
+      "source_row": 184,
+      "reason": "subtotal or summary formula",
+      "raw_text": "Saldo Atual | 3910.1389999999974"
+    },
+    {
+      "source_row": 185,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 186,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 187,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 188,
+      "reason": "header/label/non-fact text",
+      "raw_text": "Atualizado em : | 46169"
+    },
+    {
+      "source_row": 189,
+      "reason": "header/label/non-fact text",
+      "raw_text": "0.7125"
+    },
+    {
+      "source_row": 190,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 191,
+      "reason": "blank/separator",
+      "raw_text": ""
+    }
+  ],
+  "ambiguities": [
+    61,
+    62,
+    72,
+    77,
+    86,
+    94,
+    95,
+    105,
+    111,
+    115,
+    182
+  ],
+  "potential_duplicates": [
+    15,
+    17,
+    89,
+    106,
+    109,
+    114
+  ],
+  "prior_period_items": [
+    90,
+    101,
+    102,
+    103
+  ],
+  "patrimonial_items": [],
+  "mapping_gaps": [],
+  "human_questions": [
+    "Rows 15 e 17: são duas cobranças distintas de Rio Tapajós Shopping Center?",
+    "Rows 89 e 106: são parcelas Criffer distintas ou possível duplicidade?",
+    "Rows 109 e 114: ART TUV e ART TUV oriximiná são serviços distintos?",
+    "Row 61: Emprestimo Cora tem contrato e não é receita/transferência?",
+    "Row 62: Recupera é recuperação, receita ou outra origem?",
+    "Row 111: a fatura do Cartão Caixa já teve itens lançados individualmente?",
+    "Rows 72, 77, 94, 95, 105 e 115: qual pessoa, natureza e competência?",
+    "Rows 99 e 100: qual parcelamento/tributo e composição principal, juros e multa?",
+    "Rows 101, 102 e 103: pagamentos de Abril já foram reconhecidos no período fechado?",
+    "Row 84: qual parcela é principal FGTS e qual parcela é multa/encargo?",
+    "Row 86: restante de rescisão é parcela distinta e qual competência?",
+    "Row 90: Raio X UDI março já foi reconhecido em Março?",
+    "Row 182: retirada é principal/juros do empréstimo Cora ou transferência?"
+  ],
+  "preliminary_dre": {
+    "revenue": 2331513,
+    "deductions": 0,
+    "costs": 1758300,
+    "operating_expenses": 2217786,
+    "financial_result": 0,
+    "other_results": 0,
+    "deterministic_net_result": -1644573,
+    "unresolved_amount": 7068579,
+    "official_ready": false
+  },
+  "preliminary_dfc": {
+    "operating": -1644573,
+    "investing": 0,
+    "financing": 0,
+    "unclassified": 871591,
+    "net": -1644573,
+    "closing": -480577,
+    "difference": 0
+  },
+  "period_control": {
+    "april_locked": true,
+    "may_locked": false
+  },
+  "safety": {
+    "financial_writes": 0,
+    "database_changes": 0,
+    "migrations": 0,
+    "rpc_changes": 0,
+    "views_changes": 0,
+    "rls_changes": 0,
+    "prod": "NO"
+  }
+}

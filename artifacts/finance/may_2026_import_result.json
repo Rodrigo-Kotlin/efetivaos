@@ -1,0 +1,109 @@
+{
+  "gate": "FIN-IMPORT-6.2",
+  "status": "COMPLETED",
+  "environment": "DEV",
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "batch_id": "9ca5ddfc-e2dc-40f5-b319-5430430e1ccd",
+  "manifest_hash": "a3d4440b0026625cdc6931b41f1ec864a2d079aed7fc24948c3b37709f588fef",
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "MAIO",
+    "period": "2026-05"
+  },
+  "facts": {
+    "expected": 83,
+    "imported": 83,
+    "ignored_by_idempotency": 0,
+    "failed": 0,
+    "unique_idempotency_keys": 83
+  },
+  "journals": {
+    "count": 83,
+    "balanced": 83,
+    "unbalanced": 0,
+    "journal_lines": 166,
+    "total_debits": 133761.78,
+    "total_credits": 133761.78,
+    "difference": 0
+  },
+  "reconciliation": {
+    "opening": 11639.96,
+    "inflows": 63015.98,
+    "outflows": 70745.8,
+    "variation": -7729.82,
+    "closing": 3910.14,
+    "expected_closing": 3910.14,
+    "difference": 0
+  },
+  "dre": {
+    "revenue_operational": 46707.68,
+    "costs_services": 17859.78,
+    "operating_expenses": 33590.37,
+    "financial_expenses": 0,
+    "other": 0,
+    "net_result": -4742.47,
+    "official_account_class_source": true
+  },
+  "dfc": {
+    "operational": -6774.17,
+    "investing": 0,
+    "financing": -955.65,
+    "net": -7729.82,
+    "opening": 11639.96,
+    "closing": 3910.14
+  },
+  "bp_ledger": {
+    "total_debits": 133761.78,
+    "total_credits": 133761.78,
+    "difference": 0
+  },
+  "legacy_policy": {
+    "expected": 10,
+    "effective": 10,
+    "rows": [
+      62,
+      76,
+      90,
+      99,
+      100,
+      101,
+      102,
+      103,
+      111,
+      182
+    ]
+  },
+  "idempotency": {
+    "second_execution": "REEXECUTION_BLOCKED_AS_EXPECTED",
+    "second_execution_error": "batch already exists",
+    "new_transactions": 0,
+    "new_journals": 0,
+    "new_journal_lines": 0,
+    "same_manifest_hash": true,
+    "batch_collision_guard": "PASS"
+  },
+  "april": {
+    "locked": true,
+    "transactions_unchanged": 92,
+    "journals_unchanged": 92,
+    "writes": 0
+  },
+  "may": {
+    "locked": false
+  },
+  "prod": {
+    "touched": false
+  },
+  "writes": {
+    "dev_financial_data": 83,
+    "prod": 0,
+    "migrations": 0,
+    "rpc_changes": 0,
+    "views_changes": 0,
+    "rls_changes": 0
+  },
+  "readiness": {
+    "READY_FOR_FIN_IMPORT_6_3": true,
+    "READY_FOR_IMPORT": false
+  }
+}
