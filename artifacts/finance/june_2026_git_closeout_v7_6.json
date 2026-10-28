@@ -1,0 +1,48 @@
+{
+  "gate": "FIN-IMPORT-7.6",
+  "status": "COMPLETE",
+  "versioned": true,
+  "commit_sha": "763af74a91a88dbe7a4110507d9b3e7acd1a4b4f",
+  "branch": "main",
+  "remote": "https://github.com/Rodrigo-Kotlin/efetivaos.git",
+  "head": "763af74a91a88dbe7a4110507d9b3e7acd1a4b4f",
+  "origin_main": "763af74a91a88dbe7a4110507d9b3e7acd1a4b4f",
+  "head_equals_origin_main": true,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "financial_state": {
+    "lock_id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+    "period_start": "2026-06-01",
+    "period_end": "2026-06-30",
+    "batch_id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+    "batch_key": "FIN-IMPORT-7.3-JUNE-2026",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39",
+    "june_2026_closed": true
+  },
+  "post_git_finance_state": {
+    "status": "PASS",
+    "lock_id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+    "facts": 94,
+    "journals": 94,
+    "lines": 188,
+    "debits": 159497.73,
+    "credits": 159497.73,
+    "imbalance": 0,
+    "cora_closing": 7021.13,
+    "dre": {
+      "CUSTO_SERVICO": 22675.82,
+      "DESPESA_OPERACIONAL": 22499.1,
+      "RECEITA_BRUTA": 64964.03
+    },
+    "april_locks": 1,
+    "may_locks": 1,
+    "june_locks": 1,
+    "july_locks": 0
+  },
+  "git_remote_sync": "PASS",
+  "no_financial_write_in_7_6": true,
+  "ready_for_fin_import_7_6": "YES"
+}
