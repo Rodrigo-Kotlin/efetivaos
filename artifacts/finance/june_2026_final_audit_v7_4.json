@@ -1,0 +1,212 @@
+{
+  "gate": "FIN-IMPORT-7.4",
+  "status": "PASS",
+  "read_only": true,
+  "writes_performed": 0,
+  "migrations_executed": 0,
+  "commit": false,
+  "push": false,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "batch": {
+    "id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+    "key": "FIN-IMPORT-7.3-JUNE-2026",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39",
+    "db_record": [
+      {
+        "file_name": "FIN-IMPORT-7.3-JUNE-2026",
+        "file_type": "xlsx",
+        "id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+        "imported_rows": 94,
+        "mapping": {
+          "gate": "FIN-IMPORT-7.3",
+          "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39",
+          "project_ref": "bxviuzluxcijbqqbpyzb",
+          "schema_version": "FIN-IMPORT-7.3.v1",
+          "source_file": "FLUXO_CAIXA_2026.xlsx",
+          "source_sheet": "JUNHO"
+        },
+        "status": "completed",
+        "total_rows": 94,
+        "valid_rows": 94
+      }
+    ]
+  },
+  "checks": {
+    "BATCH_INTEGRITY": "PASS",
+    "FACT_INTEGRITY": "PASS",
+    "LEDGER_INTEGRITY": "PASS",
+    "INTERNAL_TRANSFER_INTEGRITY": "PASS",
+    "LOAN_RECEIPT_INTEGRITY": "PASS",
+    "LOAN_REPAYMENT_INTEGRITY": "PASS",
+    "OFFICIAL_DRE_INTEGRITY": "PASS",
+    "DFC_INTEGRITY": "PASS",
+    "CORA_RECONCILIATION": "PASS",
+    "NU_RECONCILIATION": "PASS",
+    "IDEMPOTENCY": "PASS",
+    "PRIOR_PERIOD_IMMUTABILITY": "PASS",
+    "LEGACY_POLICY_INTEGRITY": "PASS",
+    "HISTORICAL_AR_AP_INTEGRITY": "PASS",
+    "PROD_UNTOUCHED": "PASS"
+  },
+  "metrics": {
+    "credits": 159497.73,
+    "debits": 159497.73,
+    "external_duplicate_rows": 0,
+    "facts": 94,
+    "facts_without_journal": 0,
+    "journals": 94,
+    "journals_without_fact": 0,
+    "lines": 188,
+    "unbalanced": 0,
+    "unique_external_ids": 94
+  },
+  "cash": {
+    "opening": 3910.14,
+    "inflows": 81304.36,
+    "outflows": 78193.37,
+    "internal_transfer": 12000.0,
+    "external_outflows": 66193.37,
+    "cora_closing": 7021.13,
+    "cora_variation": 3110.99
+  },
+  "dfc": {
+    "operating": 17780.12,
+    "investing": 0.0,
+    "financing": -2669.13,
+    "consolidated_variation": 15110.99,
+    "internal_transfer": 12000.0,
+    "consolidated_transfer_effect": 0.0
+  },
+  "dre": {
+    "revenue": 64964.03,
+    "cost": 22675.82,
+    "expense": 22499.1,
+    "result": 19789.11
+  },
+  "nu": {
+    "opening_balance": "UNKNOWN",
+    "imported_transfer": 12000.0,
+    "other_june_movements": "NONE_EVIDENCED",
+    "ledger_balance_from_imported_movements": 12000.0,
+    "historical_absolute_closing": "UNKNOWN"
+  },
+  "loan_receipt": {
+    "amount": 15000,
+    "classification_status": "READY",
+    "date": "2026-06-05",
+    "description": "Empréstimo recebido — finalidade: cobertura de despesas da empresa",
+    "dfc_class": "FINANCIAMENTO",
+    "external_id": "FIN-IMPORT-7.3::2026-06::ROW-184",
+    "lines": [
+      {
+        "account_code": "1.1.01.002",
+        "account_name": "Banco Cora",
+        "credit": 0,
+        "debit": 15000
+      },
+      {
+        "account_code": "2.1.06.001",
+        "account_name": "Emprestimos e Financiamentos - Curto Prazo",
+        "credit": 15000,
+        "debit": 0
+      }
+    ],
+    "movement_type": "EMPRESTIMO_RECEBIDO"
+  },
+  "loan_repayment": {
+    "amount": 17669.13,
+    "classification_status": "READY_LEGACY_POLICY",
+    "date": "2026-06-30",
+    "description": "Pagamento/Amortização de Empréstimo — composição entre principal e juros não discriminada",
+    "dfc_class": "FINANCIAMENTO",
+    "external_id": "FIN-IMPORT-7.3::2026-06::ROW-183",
+    "lines": [
+      {
+        "account_code": "2.1.06.001",
+        "account_name": "Emprestimos e Financiamentos - Curto Prazo",
+        "credit": 0,
+        "debit": 17669.13
+      },
+      {
+        "account_code": "1.1.01.002",
+        "account_name": "Banco Cora",
+        "credit": 17669.13,
+        "debit": 0
+      }
+    ],
+    "movement_type": "EMPRESTIMO_PAGO"
+  },
+  "transfer": {
+    "amount": 12000,
+    "classification_status": "READY",
+    "dfc_class": "INTERNAL_TRANSFER",
+    "external_id": "FIN-IMPORT-7.3::2026-06::ROW-181",
+    "lines": [
+      {
+        "account_code": "1.1.01.003",
+        "account_name": "Banco Nubank",
+        "credit": 0,
+        "debit": 12000
+      },
+      {
+        "account_code": "1.1.01.002",
+        "account_name": "Banco Cora",
+        "credit": 12000,
+        "debit": 0
+      }
+    ],
+    "movement_type": "TRANSFERENCIA"
+  },
+  "legacy": {
+    "persisted_ready": 84,
+    "persisted_ready_legacy_policy": 10,
+    "expected_ready": 84,
+    "expected_ready_legacy_policy": 10
+  },
+  "ar_ap": {
+    "payable_lines": 0,
+    "receivable_lines": 0,
+    "receivable_or_payable_lines": 0
+  },
+  "idempotency_evidence": {
+    "gate": "FIN-IMPORT-7.3",
+    "batch_key": "FIN-IMPORT-7.3-JUNE-2026",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39",
+    "first_run": {
+      "facts": 94,
+      "journals": 94,
+      "lines": 188,
+      "batch_id": "a6a093f4-9128-414a-bbe3-857d7128f072"
+    },
+    "second_run": {
+      "result": "blocked before insert",
+      "error": "FIN-IMPORT-7.3 idempotency conflict: batch already exists",
+      "new_facts": 0,
+      "new_journals": 0,
+      "new_lines": 0,
+      "new_batches": 0
+    },
+    "counts_unchanged": true,
+    "status": "PASS"
+  },
+  "continuity": {
+    "may_closing_cora": 3910.14,
+    "june_opening_cora": 3910.14,
+    "difference": 0.0,
+    "status": "PASS"
+  },
+  "official_dre_basis": "account.dre_class",
+  "dre_decision": "ACCEPT_PERSISTED_ACCOUNT_DRE_CLASS",
+  "no_account_reclassification": true,
+  "no_journal_correction": true,
+  "readiness": {
+    "READY_FOR_JUNE_CLOSE": "YES",
+    "FIN_IMPORT_7_4": "PASS"
+  },
+  "failures": [],
+  "period": "2026-06"
+}

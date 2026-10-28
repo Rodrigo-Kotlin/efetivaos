@@ -1,0 +1,21 @@
+﻿domain,metric,actual,expected,status
+BATCH,batch_id,a6a093f4-9128-414a-bbe3-857d7128f072,completed,PASS
+FACTS,imported facts,94/94,94 expected,PASS
+JOURNALS,journals / lines,94 / 188,94 / 188,PASS
+LEDGER,debits,159497.73,159497.73,PASS
+LEDGER,credits,159497.73,159497.73,PASS
+LEDGER,difference,0.00,0.00,PASS
+CASH,Cora closing,7021.13,7021.13,PASS
+CASH,external outflows,66193.37,66193.37,PASS
+DFC,operating,17780.12,17780.12,PASS
+DFC,investing,0.00,0.00,PASS
+DFC,financing,-2669.13,-2669.13,PASS
+DFC,consolidated variation,15110.99,15110.99,PASS
+DRE,revenue,64964.03,64964.03,PASS
+DRE,costs by account.dre_class,22675.82,3802.62,FAIL
+DRE,expenses by account.dre_class,22499.10,41372.30,FAIL
+DRE,result,19789.11,19789.11,PASS
+PERIOD,April locked,1,1,PASS
+PERIOD,May locked,1,1,PASS
+PERIOD,June locked,0,0,PASS
+IDEMPOTENCY,second run,blocked: batch already exists,no new rows,PASS

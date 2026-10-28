@@ -1,0 +1,94 @@
+{
+  "gate": "FIN-IMPORT-7.3A",
+  "status": "COMPLETED_WITH_FINDINGS",
+  "mode": "READ_ONLY",
+  "writes_performed": 0,
+  "migrations_executed": 0,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "source_batch": {
+    "id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39"
+  },
+  "integrity": {
+    "april_locks": 1,
+    "batch": 1,
+    "credits": 159497.73,
+    "debits": 159497.73,
+    "facts": 94,
+    "journals": 94,
+    "june_locks": 0,
+    "lines": 188,
+    "may_locks": 1
+  },
+  "persisted_dre": {
+    "revenue": 64964.03,
+    "costs": 22675.82,
+    "expenses": 22499.1,
+    "result": 19789.11
+  },
+  "expected_v7_1_dre": {
+    "revenue": 64964.03,
+    "costs": 3802.62,
+    "expenses": 41372.3,
+    "result": 19789.11
+  },
+  "differences": {
+    "cost": 18873.2,
+    "expense": -18873.2,
+    "result": 0.0,
+    "divergent_total": 18873.2
+  },
+  "divergent_accounts": [
+    "4.1.01.001",
+    "4.1.01.002",
+    "4.1.01.003",
+    "4.1.01.007",
+    "4.4.01.001"
+  ],
+  "affected_fact_count": 9,
+  "affected_journal_count": 9,
+  "migration_provenance": {
+    "4.1.01.001": "20260826000100_create_finance_foundation_schema.sql (seed chart of accounts, lines 581-592)",
+    "4.1.01.002": "20260826000100_create_finance_foundation_schema.sql (seed chart of accounts, lines 581-592)",
+    "4.1.01.003": "20260826000100_create_finance_foundation_schema.sql (seed chart of accounts, lines 581-592)",
+    "4.1.01.007": "20261015070000_add_operational_cost_accounts.sql (FIN-IMPORT-2.5.2, lines 17-67)",
+    "4.4.01.001": "20260826000100_create_finance_foundation_schema.sql (seed chart of accounts, lines 581-592)"
+  },
+  "root_cause": {
+    "scenario": "C",
+    "conclusion": "FIN-IMPORT-7.1 used dre_effect as a nominal DRE classification without enforcing the official account.dre_class contract. The imported journals use the projected accounts; those accounts are structurally COST/CUSTO_SERVICO and are reused as costs in prior periods.",
+    "chart_of_accounts_error": false,
+    "v7_1_mapping_contract_error": true,
+    "journal_account_error": false,
+    "economic_error": false
+  },
+  "retroactive_simulation": {
+    "hypothesis": "Change all divergent CUSTO_SERVICO accounts to DESPESA_OPERACIONAL",
+    "months": [
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06"
+    ],
+    "net_result_effect_each_month": 0.0,
+    "would_affect_closed_periods": true
+  },
+  "reconciliation": {
+    "status": "PASS",
+    "expected_divergence": 18873.2,
+    "explained_divergence": 18873.2,
+    "residual": 0.0
+  },
+  "readiness_for_dre_corrective_decision": "YES",
+  "recommendations": [
+    "OPÇÃO 1 (preferencial): manter account.dre_class e revisar o contrato/artefato FIN-IMPORT-7.1 para usar a classificação oficial do plano de contas.",
+    "OPÇÃO 2: alterar account.dre_class somente após aprovação contábil e análise dos impactos retroativos em Janeiro–Maio; a simulação mostra impacto nominal nesses meses, embora resultado líquido permaneça inalterado.",
+    "OPÇÃO 3: reclassificação append-only somente se for decidido que os journals de Junho usaram contas incorretas; não executar nesta auditoria."
+  ]
+}

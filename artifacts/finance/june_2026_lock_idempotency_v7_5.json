@@ -1,0 +1,13 @@
+{
+  "gate": "FIN-IMPORT-7.5",
+  "period": "2026-06",
+  "lock_id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+  "second_run": {
+    "existing_lock_id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+    "june_lock_count": 1,
+    "new_lock_required": false,
+    "second_run_outcome": "blocked_before_insert"
+  },
+  "status": "PASS",
+  "no_second_lock_created": true
+}

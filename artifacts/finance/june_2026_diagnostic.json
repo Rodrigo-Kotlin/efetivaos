@@ -1,0 +1,735 @@
+{
+  "gate": "FIN-IMPORT-7.0",
+  "status": "COMPLETED_WITH_FINDINGS",
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "JUNHO",
+    "range": "A1:I192",
+    "formulas": [
+      "C19",
+      "C29",
+      "C58",
+      "C65",
+      "B66",
+      "B174",
+      "B178",
+      "B179",
+      "B180",
+      "B181",
+      "B182",
+      "B183",
+      "B184",
+      "B185"
+    ]
+  },
+  "continuity": {
+    "may_closing": 3910.14,
+    "june_expected_opening": 3910.14,
+    "source_opening": 3910.14,
+    "difference": 0,
+    "april_locked": true,
+    "may_locked": true,
+    "june_locked": false
+  },
+  "cash": {
+    "opening": 3910.14,
+    "inflows": 81304.36,
+    "outflows": 78193.37,
+    "net": 3110.99,
+    "calculated_closing": 7021.13,
+    "source_closing": 7021.13,
+    "difference": 0,
+    "reconciled": true
+  },
+  "counts": {
+    "source_rows": 192,
+    "financial_facts": 94,
+    "ignored_rows": 98,
+    "status_counts": {
+      "READY": 63,
+      "DECISION_REQUIRED": 17,
+      "POTENTIAL_DUPLICATE": 4,
+      "PRIOR_PERIOD_REVIEW": 10,
+      "UNRESOLVED_ALLOCATION": 0,
+      "ACCOUNT_MAPPING_GAP": 0,
+      "PATRIMONIAL_REVIEW": 0,
+      "INVALID": 0
+    }
+  },
+  "ignored_rows": [
+    {
+      "source_row": 1,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 2,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 3,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 4,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 5,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 6,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 7,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 8,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 11,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 14,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 19,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 20,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 23,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 28,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 29,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 30,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 56,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 57,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 58,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 59,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 63,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 64,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 65,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 66,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 67,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 68,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 69,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 119,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 120,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 121,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 122,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 123,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 124,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 125,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 126,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 127,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 128,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 129,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 130,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 131,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 132,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 133,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 134,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 135,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 136,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 137,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 138,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 139,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 140,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 141,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 142,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 143,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 144,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 145,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 146,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 147,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 148,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 149,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 150,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 151,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 152,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 153,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 154,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 155,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 156,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 157,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 158,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 159,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 160,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 161,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 162,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 163,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 164,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 165,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 166,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 167,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 168,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 169,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 170,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 171,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 172,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 173,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 174,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 175,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 176,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 177,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 178,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 179,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 180,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 182,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 185,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 186,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 187,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 188,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 189,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 190,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 191,
+      "reason": "blank/separator",
+      "raw_text": ""
+    },
+    {
+      "source_row": 192,
+      "reason": "blank/separator",
+      "raw_text": ""
+    }
+  ],
+  "ambiguities": [
+    61,
+    72,
+    75,
+    80,
+    88,
+    89,
+    90,
+    94,
+    95,
+    98,
+    99,
+    108,
+    114,
+    115,
+    181,
+    183,
+    184
+  ],
+  "potential_duplicates": [
+    9,
+    12,
+    15,
+    17
+  ],
+  "prior_period_items": [
+    27,
+    45,
+    79,
+    82,
+    102,
+    103,
+    104,
+    111,
+    112,
+    113
+  ],
+  "loans": [
+    181,
+    183,
+    184
+  ],
+  "people": [
+    75,
+    79,
+    80,
+    89,
+    90,
+    94,
+    95,
+    98,
+    99
+  ],
+  "cards": [],
+  "installments": [
+    114
+  ],
+  "patrimonial_review": [],
+  "mapping_gaps": [],
+  "human_questions": [
+    {
+      "source_row": 61,
+      "question": "06/11, Recupera Cobranças (R$ 1.340,33): é recebimento parcial de crédito antigo, receita de serviço ou outra origem?",
+      "priority": "4_other"
+    },
+    {
+      "source_row": 72,
+      "question": "02/06, Alimentação (R$ 563,92): é despesa administrativa, custo de serviço, viagem ou reembolso?",
+      "priority": "5_general"
+    },
+    {
+      "source_row": 75,
+      "question": "03/06, Pagamento Valdilene (R$ 1.200,45): é pró-labore, adiantamento, saldo anterior ou prestação?",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 80,
+      "question": "05/06, Prestação de serviços Rodrigo (R$ 1.500,00): é salário, adiantamento ou serviço de terceiro?",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 88,
+      "question": "10/06, Pagamento Conecta (R$ 637,00): é o mesmo tipo de laudo técnico de Maio?",
+      "priority": "4_other"
+    },
+    {
+      "source_row": 89,
+      "question": "12/06, Vale Valdilene (R$ 1.000,00): é adiantamento de pró-labore ou outra natureza?",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 90,
+      "question": "12/06, Vale Rodrigo (R$ 100,00): confirmar se é adiantamento salarial.",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 94,
+      "question": "18/06, Vale Rodrigo (R$ 200,00): confirmar se é adiantamento salarial ou reembolso.",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 95,
+      "question": "19/06, Vale Janderson (R$ 200,00): confirmar se é adiantamento salarial.",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 98,
+      "question": "24/06, Pagamento prestação Rodrigo (R$ 1.200,00): é quitação salarial, prestação ou outro pagamento?",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 99,
+      "question": "24/06, Vale quinzena Janderson (R$ 1.200,00): confirmar adiantamento e relação com o saldo de Maio.",
+      "priority": "2_people"
+    },
+    {
+      "source_row": 108,
+      "question": "26/06, Núcleo Inf. Coord. Ponto (R$ 40,00): identificar natureza e conta.",
+      "priority": "5_general"
+    },
+    {
+      "source_row": 114,
+      "question": "30/06, Parcelamento DAS 3/42 (R$ 506,07): confirmar dívida, composição e se é obrigação histórica.",
+      "priority": "4_other"
+    },
+    {
+      "source_row": 115,
+      "question": "30/06, Contabilidade (R$ 680,00): confirmar se é serviço administrativo corrente.",
+      "priority": "5_general"
+    },
+    {
+      "source_row": 181,
+      "question": "Junho, Saída Caixa NU (R$ 12.000,00): é transferência para conta distinta, retirada, empréstimo concedido ou outro movimento?",
+      "priority": "1_loans"
+    },
+    {
+      "source_row": 183,
+      "question": "Junho, Empréstimo (S) (R$ 17.669,13): confirmar amortização, juros, empréstimo concedido ou outra natureza; composição não informada.",
+      "priority": "1_loans"
+    },
+    {
+      "source_row": 184,
+      "question": "Junho, Empréstimo (E) (R$ 15.000,00): confirmar empréstimo recebido, aporte, transferência ou outra origem.",
+      "priority": "1_loans"
+    }
+  ],
+  "preliminary_dre": {
+    "revenue": 32993.54,
+    "costs": 20548.82,
+    "operating_expenses": 11897.93,
+    "deterministic_result": 546.79,
+    "unresolved_cash_effect": 2970.32,
+    "official_ready": false
+  },
+  "preliminary_dfc": {
+    "operating": 140.67,
+    "investing": 0,
+    "financing": 0,
+    "unclassified": 2970.32,
+    "net": 140.67,
+    "closing": 4050.81
+  },
+  "database": {
+    "may_batch": "9ca5ddfc-e2dc-40f5-b319-5430430e1ccd",
+    "may_lock": "3f3e1760-264f-441e-b6f8-f0fe2db97b9f",
+    "june_transactions": 0,
+    "june_journals": 0,
+    "june_lock": false
+  },
+  "safety": {
+    "writes": 0,
+    "transactions": 0,
+    "journals": 0,
+    "locks": 0,
+    "migrations": 0,
+    "rpc_changes": 0,
+    "views_changes": 0,
+    "rls_changes": 0,
+    "prod_touched": false
+  },
+  "readiness": {
+    "READY_FOR_FIN_IMPORT_7_1": true,
+    "READY_FOR_IMPORT": false
+  }
+}

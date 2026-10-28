@@ -1,0 +1,80 @@
+{
+  "gate": "FIN-IMPORT-7.3",
+  "status": "COMPLETED_WITH_FINDINGS",
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "batch": {
+    "id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+    "key": "FIN-IMPORT-7.3-JUNE-2026",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39",
+    "status": "completed",
+    "expected_facts": 94,
+    "imported_facts": 94
+  },
+  "atomic_import": {
+    "status": "PASS",
+    "transaction": "single BEGIN/COMMIT with rollback on exception",
+    "partial_rows": 0
+  },
+  "idempotency_precheck": "PASS",
+  "actual_post_write": {
+    "facts": 94,
+    "journals": 94,
+    "lines": 188,
+    "debits": 159497.73,
+    "credits": 159497.73,
+    "ledger_difference": 0.0,
+    "unbalanced": 0,
+    "inflows": 81304.36,
+    "outflows_total": 78193.37,
+    "external_outflows": 66193.37,
+    "internal_transfer": 12000.0,
+    "cora_closing": 7021.13,
+    "nu_balance_after": 12000.0,
+    "dfc_operating": 17780.12,
+    "dfc_investing": 0.0,
+    "dfc_financing": -2669.13,
+    "dfc_variation": 15110.99,
+    "dre_revenue": 64964.03,
+    "dre_costs_persisted_by_account_dre_class": 22675.82,
+    "dre_expenses_persisted_by_account_dre_class": 22499.1,
+    "dre_result": 19789.11
+  },
+  "expected_contract": {
+    "facts": 94,
+    "journals": 94,
+    "lines": 188,
+    "debits": 159497.73,
+    "credits": 159497.73,
+    "inflows": 81304.36,
+    "outflows_total": 78193.37,
+    "external_outflows": 66193.37,
+    "internal_transfer": 12000.0,
+    "cora_closing": 7021.13,
+    "dfc_operating": 17780.12,
+    "dfc_investing": 0.0,
+    "dfc_financing": -2669.13,
+    "dfc_variation": 15110.99,
+    "dre_revenue": 64964.03,
+    "dre_costs": 3802.62,
+    "dre_expenses": 41372.3,
+    "dre_result": 19789.11
+  },
+  "statuses": {
+    "CORA_POST_IMPORT_RECONCILIATION": "PASS",
+    "DFC_RECONCILIATION": "PASS",
+    "LEDGER_RECONCILIATION": "PASS",
+    "DRE_RECONCILIATION": "FAIL",
+    "PRIOR_PERIOD_IMMUTABILITY": "PASS",
+    "JUNE_REMAINS_UNLOCKED": "PASS",
+    "IDEMPOTENCY_SECOND_RUN": "PASS"
+  },
+  "findings": [
+    "Persisted DRE by account.dre_class is revenue 64964.03, costs 22675.82, expenses 22499.10, result 19789.11. FIN-IMPORT-7.1 nominal split expected costs 3802.62 and expenses 41372.30; category split differs by R$ 18,873.20 while total result is unchanged.",
+    "No reclassification or destructive update was applied after import; the discrepancy requires a separately approved correction/manifest decision."
+  ],
+  "readiness_for_fin_import_7_4": "NO"
+}

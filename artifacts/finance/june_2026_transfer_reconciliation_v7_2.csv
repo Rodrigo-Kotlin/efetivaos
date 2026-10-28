@@ -1,0 +1,2 @@
+﻿source_row,date,description,amount,origin,destination,debit_account_code,credit_account_code,dre,dfc,note,journal_id,journal_difference
+181,2026-06-30,Transferência interna Cora → NU,12000.00,Cora,NU,1.1.01.003,1.1.01.002,NONE,INTERNAL_TRANSFER / consolidated effect 0.00,Data estimada para fins de migração; data real não identificada na fonte.,JUN26-V71-092,0.00

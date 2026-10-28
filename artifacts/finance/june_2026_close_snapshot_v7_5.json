@@ -1,0 +1,76 @@
+{
+  "gate": "FIN-IMPORT-7.5",
+  "snapshot_stage": "PRE_LOCK",
+  "captured_before_lock": true,
+  "read_only_capture": true,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "period": {
+    "start": "2026-06-01",
+    "end": "2026-06-30"
+  },
+  "batch": {
+    "batch_id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+    "batch_key": "FIN-IMPORT-7.3-JUNE-2026",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39"
+  },
+  "facts": 94,
+  "journals": 94,
+  "journal_lines": 188,
+  "debits": 159497.73,
+  "credits": 159497.73,
+  "imbalance": 0.0,
+  "cash": {
+    "opening": 3910.14,
+    "inflows": 81304.36,
+    "outflows": 78193.37,
+    "internal_transfer": 12000.0,
+    "external_outflows": 66193.37,
+    "cora_closing": 7021.13,
+    "cora_variation": 3110.99
+  },
+  "dre": {
+    "basis": "account.dre_class",
+    "revenue": 64964.03,
+    "cost": 22675.82,
+    "expense": 22499.1,
+    "result": 19789.11
+  },
+  "dfc": {
+    "operating": 17780.12,
+    "investing": 0.0,
+    "financing": -2669.13,
+    "consolidated_variation": 15110.99,
+    "internal_transfer": 12000.0,
+    "consolidated_transfer_effect": 0.0
+  },
+  "nu": {
+    "opening_balance": "UNKNOWN",
+    "derived_imported_movements_balance": 12000.0
+  },
+  "source_precheck": {
+    "admin_count": 4,
+    "april_locks": 1,
+    "batch_completed": 1,
+    "batch_count": 1,
+    "credits": 159497.73,
+    "debits": 159497.73,
+    "dre": {
+      "CUSTO_SERVICO": 22675.82,
+      "DESPESA_OPERACIONAL": 22499.1,
+      "RECEITA_BRUTA": 64964.03
+    },
+    "facts": 94,
+    "journals": 94,
+    "july_locks": 0,
+    "june_locks": 0,
+    "lines": 188,
+    "may_locks": 1,
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "unbalanced": 0
+  },
+  "snapshot_sha256": "62bdf4f5963e60f932f4929a332b933f53bf5b9cbefe84a8a74ffbde72ddd964"
+}

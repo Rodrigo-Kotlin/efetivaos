@@ -1,0 +1,29 @@
+{
+  "gate": "FIN-IMPORT-7.4",
+  "status": "READY_FOR_JUNE_CLOSE",
+  "read_only": true,
+  "june_lock_created": false,
+  "preconditions": {
+    "BATCH_INTEGRITY": "PASS",
+    "FACT_INTEGRITY": "PASS",
+    "LEDGER_INTEGRITY": "PASS",
+    "INTERNAL_TRANSFER_INTEGRITY": "PASS",
+    "LOAN_RECEIPT_INTEGRITY": "PASS",
+    "LOAN_REPAYMENT_INTEGRITY": "PASS",
+    "OFFICIAL_DRE_INTEGRITY": "PASS",
+    "DFC_INTEGRITY": "PASS",
+    "CORA_RECONCILIATION": "PASS",
+    "NU_RECONCILIATION": "PASS",
+    "IDEMPOTENCY": "PASS",
+    "PRIOR_PERIOD_IMMUTABILITY": "PASS",
+    "LEGACY_POLICY_INTEGRITY": "PASS",
+    "HISTORICAL_AR_AP_INTEGRITY": "PASS",
+    "PROD_UNTOUCHED": "PASS"
+  },
+  "official_dre_basis": "account.dre_class",
+  "nu_opening_balance": "UNKNOWN",
+  "nu_closing_absolute": "UNKNOWN",
+  "derived_nu_ledger_balance": 12000.0,
+  "next_gate": "June controlled period close; not executed in FIN-IMPORT-7.4.",
+  "period": "2026-06"
+}

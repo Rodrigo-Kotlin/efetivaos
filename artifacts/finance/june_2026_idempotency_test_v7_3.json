@@ -1,0 +1,21 @@
+{
+  "gate": "FIN-IMPORT-7.3",
+  "batch_key": "FIN-IMPORT-7.3-JUNE-2026",
+  "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39",
+  "first_run": {
+    "facts": 94,
+    "journals": 94,
+    "lines": 188,
+    "batch_id": "a6a093f4-9128-414a-bbe3-857d7128f072"
+  },
+  "second_run": {
+    "result": "blocked before insert",
+    "error": "FIN-IMPORT-7.3 idempotency conflict: batch already exists",
+    "new_facts": 0,
+    "new_journals": 0,
+    "new_lines": 0,
+    "new_batches": 0
+  },
+  "counts_unchanged": true,
+  "status": "PASS"
+}

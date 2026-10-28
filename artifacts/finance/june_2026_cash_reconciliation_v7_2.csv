@@ -1,0 +1,14 @@
+﻿check,scope,amount,calculation_or_evidence,status
+CORA_OPENING_BALANCE,Cora,3910.14,Saldo final oficial de Maio; abertura de Junho,PASS
+CORA_INFLOW,Cora,81304.36,Total de entradas da fonte JUNHO,PASS
+CORA_OUTFLOW_TOTAL,Cora,78193.37,Total de saídas da fonte JUNHO,PASS
+INTERNAL_TRANSFER_CORA_TO_NU,Cora → NU,12000.00,Saída interna; row 181; data técnica 30/06/2026,PASS
+CORA_EXTERNAL_OUTFLOWS,Cora,66193.37,78193.37 − 12000.00,PASS
+CORA_CLOSING_BALANCE,Cora,7021.13,3910.14 + 81304.36 − 78193.37,PASS
+CORA_VARIATION,Cora,3110.99,81304.36 − 78193.37,PASS
+CONSOLIDATED_VARIATION,Consolidated,15110.99,3110.99 + 12000.00; transfer eliminated,PASS
+DFC_OPERATING,Consolidated,17780.12,Approved FIN-IMPORT-7.1 DFC,PASS
+DFC_INVESTING,Consolidated,0.00,Approved FIN-IMPORT-7.1 DFC,PASS
+DFC_FINANCING,Consolidated,-2669.13,Approved FIN-IMPORT-7.1 DFC,PASS
+DFC_VARIATION,Consolidated,15110.99,17780.12 + 0.00 − 2669.13,PASS
+CONSOLIDATED_DFC_EFFECT_INTERNAL_TRANSFER,Consolidated,0.00,Internal transfer excluded from consolidated DFC,PASS

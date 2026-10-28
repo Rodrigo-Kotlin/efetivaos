@@ -1,0 +1,4 @@
+﻿account,chart_account_code,opening_balance,inflows,outflows_total,internal_inflows,internal_outflows,other_movements,closing_balance,status,evidence
+Cora,1.1.01.002,3910.14,81304.36,78193.37,0.00,12000.00,66193.37 external outflows,7021.13,PASS,FIN-IMPORT-7.0/7.1 approved source totals; source row 181.
+NU,1.1.01.003,UNKNOWN,12000.00,UNKNOWN,12000.00,UNKNOWN,NOT EVIDENCED in repository artifacts,NOT DETERMINED,LIMITED,Schema declares Banco Nubank chart account 1.1.01.003; FIN-IMPORT-7.1 projection has only the Cora→NU transfer. No NU statement/balance artifact was supplied.
+Consolidado,N/A,NOT DETERMINED,NOT DETERMINED,NOT DETERMINED,ELIMINATED,ELIMINATED,Cora external movements plus approved DFC classes,NOT DETERMINED,VARIATION_PASS_BALANCE_LIMITED,NU opening balance unavailable; do not infer consolidated closing balance.

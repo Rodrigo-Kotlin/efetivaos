@@ -1,0 +1,105 @@
+{
+  "gate": "FIN-IMPORT-7.2",
+  "status": "COMPLETED_WITH_FINDINGS",
+  "read_only": true,
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "JUNHO",
+    "range": "A1:I192"
+  },
+  "fin_import_7_1_integrity": {
+    "facts": 94,
+    "classified": 94,
+    "ready": 84,
+    "ready_legacy_policy": 10,
+    "pending": 0,
+    "duplicates": 0,
+    "prior_period_review": 0,
+    "blocked": 0
+  },
+  "cora_reconciliation": {
+    "opening": 3910.14,
+    "inflows": 81304.36,
+    "outflows": 78193.37,
+    "internal_transfer_outflow": 12000.0,
+    "external_outflows": 66193.37,
+    "closing": 7021.13,
+    "variation": 3110.99,
+    "formula": "3910.14 + 81304.36 - 78193.37 = 7021.13",
+    "difference": 0.0,
+    "status": "PASS"
+  },
+  "nu_reconciliation": {
+    "account_chart_code": "1.1.01.003",
+    "opening_balance": "UNKNOWN",
+    "internal_inflow": 12000.0,
+    "other_june_movements": "NOT EVIDENCED IN REPOSITORY ARTIFACTS",
+    "closing_balance": "NOT DETERMINED",
+    "status": "LIMITED",
+    "limitation": "No NU statement, opening balance, persisted read result, or other NU movement artifact was available; no balance was invented."
+  },
+  "consolidated_cash": {
+    "cora_variation": 3110.99,
+    "transfer_added_back": 12000.0,
+    "variation": 15110.99,
+    "formula": "3110.99 + 12000.00 = 15110.99",
+    "closing_balance": "NOT DETERMINED",
+    "status": "PASS_FOR_VARIATION_LIMITED_FOR_CLOSING"
+  },
+  "dfc": {
+    "operating": 17780.12,
+    "investing": 0.0,
+    "financing": -2669.13,
+    "consolidated_variation": 15110.99,
+    "formula": "17780.12 + 0.00 - 2669.13 = 15110.99",
+    "internal_transfer": 12000.0,
+    "consolidated_internal_transfer_effect": 0.0,
+    "difference_vs_consolidated_variation": 0.0,
+    "status": "PASS"
+  },
+  "ledger_projection": {
+    "journals": 94,
+    "lines": 188,
+    "debits": 159497.73,
+    "credits": 159497.73,
+    "difference": 0.0,
+    "unbalanced_journals": 0,
+    "transfer_journal": {
+      "source_row": 181,
+      "date": "2026-06-30",
+      "description": "Transferência interna Cora → NU",
+      "amount": "12000.00",
+      "origin": "Cora",
+      "destination": "NU",
+      "debit_account_code": "1.1.01.003",
+      "credit_account_code": "1.1.01.002",
+      "dre": "NONE",
+      "dfc": "INTERNAL_TRANSFER / consolidated effect 0.00",
+      "note": "Data estimada para fins de migração; data real não identificada na fonte.",
+      "journal_id": "JUN26-V71-092",
+      "journal_difference": "0.00"
+    }
+  },
+  "continuity": {
+    "may_closing_cora": 3910.14,
+    "june_opening_cora": 3910.14,
+    "difference": 0.0,
+    "status": "PASS"
+  },
+  "safety": {
+    "writes": 0,
+    "batches": 0,
+    "real_journals": 0,
+    "locks": 0,
+    "migrations": 0,
+    "commits": 0,
+    "pushes": 0,
+    "prod_touched": false
+  },
+  "limitations": [
+    "NU_OPENING_BALANCE = UNKNOWN",
+    "CONSOLIDATED_CLOSING_BALANCE = NOT DETERMINED",
+    "No NU statement or persisted read-only DEV query result was available in repository artifacts."
+  ],
+  "readiness_for_fin_import_7_3": "YES"
+}

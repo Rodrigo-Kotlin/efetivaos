@@ -1,0 +1,5 @@
+﻿metric,basis,actual,expected,difference,status
+revenue,account.dre_class=RECEITA_BRUTA,64964.03,64964.03,0.00,PASS
+cost,account.dre_class=CUSTO_SERVICO,22675.82,22675.82,0.00,PASS
+expense,account.dre_class=DESPESA_OPERACIONAL,22499.10,22499.10,0.00,PASS
+result,revenue-cost-expense,19789.11,19789.11,0.00,PASS

@@ -1,0 +1,83 @@
+{
+  "gate": "FIN-IMPORT-7.1",
+  "status": "COMPLETED",
+  "source": {
+    "file": "FLUXO_CAIXA_2026.xlsx",
+    "sheet": "JUNHO",
+    "range": "A1:I192"
+  },
+  "continuity": {
+    "may_closing": 3910.14,
+    "june_opening": 3910.14,
+    "difference": 0
+  },
+  "cash": {
+    "opening": 3910.14,
+    "inflows": 81304.36,
+    "outflows": 78193.37,
+    "variation": 3110.99,
+    "closing": 7021.13,
+    "source_closing": 7021.13,
+    "difference": 0
+  },
+  "counts": {
+    "total_facts": 94,
+    "classified": 94,
+    "READY": 84,
+    "READY_LEGACY_POLICY": 10,
+    "DECISION_REQUIRED": 0,
+    "POTENTIAL_DUPLICATE": 0,
+    "PRIOR_PERIOD_REVIEW": 0,
+    "BLOCKED": 0,
+    "human_pending": 0,
+    "duplicate_pending": 0,
+    "blocked": 0
+  },
+  "dre": {
+    "current": {
+      "RECEITA": 62539.78,
+      "CUSTO": 2312.62,
+      "DESPESA": 39259.02,
+      "NONE": 29400.0,
+      "RESULTADO": 20968.14
+    },
+    "legacy_policy": {
+      "RECEITA": 2424.25,
+      "CUSTO": 1490.0,
+      "DESPESA": 2113.28,
+      "NONE": 19958.78,
+      "RESULTADO": -1179.03
+    },
+    "total": {
+      "RECEITA": 64964.03,
+      "CUSTO": 3802.62,
+      "DESPESA": 41372.3,
+      "NONE": 49358.78,
+      "RESULTADO": 19789.11
+    }
+  },
+  "dfc": {
+    "OPERACIONAL": 17780.12,
+    "INVESTIMENTO": 0.0,
+    "FINANCIAMENTO": -2669.13,
+    "TRANSFERENCIA": 0.0
+  },
+  "ledger_projection": {
+    "journals": 94,
+    "lines": 188,
+    "debits": 159497.73,
+    "credits": 159497.73,
+    "difference": 0,
+    "unbalanced_journals": 0
+  },
+  "safety": {
+    "writes": 0,
+    "migrations": 0,
+    "batches": 0,
+    "real_journals": 0,
+    "locks": 0,
+    "prod_touched": false
+  },
+  "remaining_pending": [],
+  "readiness_for_fin_import_7_2": "YES"
+}

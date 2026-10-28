@@ -1,0 +1,136 @@
+{
+  "gate": "FIN-IMPORT-7.5",
+  "status": "PASS",
+  "read_only_after_lock": true,
+  "authorized_write": "one official June period lock only",
+  "writes_performed": 1,
+  "migrations_executed": 0,
+  "commit": false,
+  "push": false,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "period": {
+    "start": "2026-06-01",
+    "end": "2026-06-30"
+  },
+  "lock": {
+    "id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+    "locked_at": "2026-10-28 19:24:19.522051+00",
+    "locked_by": "3014c86d-d84e-416d-ac3a-bb7dabb098c5",
+    "reason": "Fechamento financeiro Junho/2026 — FIN-IMPORT-7.5",
+    "count_for_june": 1
+  },
+  "batch": {
+    "batch_id": "a6a093f4-9128-414a-bbe3-857d7128f072",
+    "batch_key": "FIN-IMPORT-7.3-JUNE-2026",
+    "manifest_hash": "c0448eccef1bd83d2b4011e2f8d7a9a042035d3c07481496d5d51a72dfa19e39"
+  },
+  "snapshot_sha256": "62bdf4f5963e60f932f4929a332b933f53bf5b9cbefe84a8a74ffbde72ddd964",
+  "checks": {
+    "JUNE_CLOSE_PRECHECK": "PASS",
+    "OPENING_CONTINUITY": "PASS",
+    "JUNE_LOCK_INTEGRITY": "PASS",
+    "JUNE_IMMUTABILITY_TEST": "PASS",
+    "POST_CLOSE_RECONCILIATION": "PASS",
+    "CLOSE_IDEMPOTENCY": "PASS",
+    "PRIOR_PERIOD_LOCK_INTEGRITY": "PASS",
+    "PROD_TOUCHED": "NO"
+  },
+  "precheck": {
+    "admin_count": 4,
+    "april_locks": 1,
+    "batch_completed": 1,
+    "batch_count": 1,
+    "credits": 159497.73,
+    "debits": 159497.73,
+    "dre": {
+      "CUSTO_SERVICO": 22675.82,
+      "DESPESA_OPERACIONAL": 22499.1,
+      "RECEITA_BRUTA": 64964.03
+    },
+    "facts": 94,
+    "journals": 94,
+    "july_locks": 0,
+    "june_locks": 0,
+    "lines": 188,
+    "may_locks": 1,
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "unbalanced": 0
+  },
+  "post_close": {
+    "cash": {
+      "cora_closing": 7021.13,
+      "external_outflows": 66193.37,
+      "inflows": 81304.36,
+      "nu_ledger": 12000,
+      "opening": 3910.14,
+      "outflows": 78193.37
+    },
+    "credits": 159497.73,
+    "debits": 159497.73,
+    "dfc": {
+      "financing": -2669.13,
+      "operating": 17780.12,
+      "transfer": 12000
+    },
+    "dre": {
+      "CUSTO_SERVICO": 22675.82,
+      "DESPESA_OPERACIONAL": 22499.1,
+      "RECEITA_BRUTA": 64964.03
+    },
+    "facts": 94,
+    "journals": 94,
+    "lines": 188,
+    "lock": [
+      {
+        "id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+        "locked_at": "2026-10-28T19:24:19.522051+00:00",
+        "locked_by": "3014c86d-d84e-416d-ac3a-bb7dabb098c5",
+        "period_end": "2026-06-30",
+        "period_start": "2026-06-01",
+        "reason": "Fechamento financeiro Junho/2026 ÔÇö FIN-IMPORT-7.5"
+      }
+    ],
+    "lock_counts": {
+      "april": 1,
+      "july": 0,
+      "june": 1,
+      "may": 1
+    },
+    "unbalanced": 0
+  },
+  "immutability": {
+    "status": "PASS",
+    "june_rejected": true,
+    "april_rejected": true,
+    "may_rejected": true,
+    "july_unlocked": true,
+    "test_transaction_rolled_back": true
+  },
+  "idempotency": {
+    "gate": "FIN-IMPORT-7.5",
+    "period": "2026-06",
+    "lock_id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+    "second_run": {
+      "existing_lock_id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+      "june_lock_count": 1,
+      "new_lock_required": false,
+      "second_run_outcome": "blocked_before_insert"
+    },
+    "status": "PASS",
+    "no_second_lock_created": true
+  },
+  "official_dre_basis": "account.dre_class",
+  "dre_decision": "ACCEPT_PERSISTED_ACCOUNT_DRE_CLASS",
+  "no_account_reclassification": true,
+  "no_journal_correction": true,
+  "readiness": {
+    "FIN_IMPORT_7_5": "PASS",
+    "JUNE_2026_CLOSED": "YES",
+    "READY_FOR_FIN_IMPORT_7_6": "YES"
+  },
+  "failures": []
+}
