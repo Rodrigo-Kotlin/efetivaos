@@ -1,6 +1,6 @@
 import { useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, ArrowDownRight, ArrowLeftRight, List, CalendarDays, Wallet, TrendingUp, TrendingDown, Activity, Scale, CircleDollarSign, CircleHelp, ChevronDown } from 'lucide-react'
+import { Plus, ArrowDownRight, ArrowLeftRight, List, CalendarDays, Wallet, TrendingUp, TrendingDown, Activity, Scale, CircleDollarSign, CircleHelp, ChevronDown, AlertTriangle } from 'lucide-react'
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { Button } from '@/components/ui/button'
@@ -173,9 +173,9 @@ function CashflowChart({ rows, openingBalance, isLoading, isError }: {
                 )
               }}
             />
-            <Legend formatter={value => value === 'inflows' ? 'Entradas' : value === 'outflows' ? 'Saídas' : 'Saldo'} />
-            <Bar dataKey="inflows" name="inflows" fill="#16A34A" radius={[3, 3, 0, 0]} maxBarSize={28} />
-            <Bar dataKey="outflows" name="outflows" fill="#DC2626" radius={[3, 3, 0, 0]} maxBarSize={28} />
+            <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} formatter={value => value === 'inflows' ? 'Entradas' : value === 'outflows' ? 'Saídas' : 'Saldo'} />
+            <Bar dataKey="inflows" name="inflows" fill="#16A34A" radius={[4, 4, 0, 0]} maxBarSize={28} />
+            <Bar dataKey="outflows" name="outflows" fill="#DC2626" radius={[4, 4, 0, 0]} maxBarSize={28} />
             <Line type="monotone" dataKey="balance" name="balance" stroke="#2563EB" strokeWidth={2.5} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
@@ -266,25 +266,25 @@ function KpiCard({ label, value, variant = 'cash', subtitle, comparison, icon, d
   description: string
 }) {
   const colors: Record<KpiVariant, { card: string; icon: string; value: string }> = {
-    cash: { card: 'border border-blue-200 border-t-2 border-t-blue-600', icon: 'bg-blue-50 text-blue-700', value: 'text-slate-900' },
-    revenue: { card: 'border border-emerald-200 border-t-2 border-t-emerald-600', icon: 'bg-emerald-50 text-emerald-700', value: 'text-slate-900' },
-    'net-revenue': { card: 'border border-teal-200 border-t-2 border-t-teal-600', icon: 'bg-teal-50 text-teal-700', value: 'text-slate-900' },
-    cost: { card: 'border border-amber-200 border-t-2 border-t-amber-600', icon: 'bg-amber-50 text-amber-700', value: 'text-slate-900' },
-    expense: { card: 'border border-red-200 border-t-2 border-t-red-600', icon: 'bg-red-50 text-red-700', value: 'text-slate-900' },
-    'profit-positive': { card: 'border border-emerald-200 border-t-2 border-t-emerald-600', icon: 'bg-emerald-50 text-emerald-700', value: 'text-emerald-700' },
-    'profit-negative': { card: 'border border-red-200 border-t-2 border-t-red-600', icon: 'bg-red-50 text-red-700', value: 'text-red-700' },
-    'profit-neutral': { card: 'border border-slate-200 border-t-2 border-t-slate-500', icon: 'bg-slate-100 text-slate-600', value: 'text-slate-700' },
-    analytics: { card: 'border border-indigo-200 border-t-2 border-t-indigo-600', icon: 'bg-indigo-50 text-indigo-700', value: 'text-slate-900' },
-    margin: { card: 'border border-violet-200 border-t-2 border-t-violet-600', icon: 'bg-violet-50 text-violet-700', value: 'text-slate-900' },
-    'margin-secondary': { card: 'border border-purple-200 border-t-2 border-t-purple-600', icon: 'bg-purple-50 text-purple-700', value: 'text-slate-900' },
-    liquidity: { card: 'border border-cyan-200 border-t-2 border-t-cyan-600', icon: 'bg-cyan-50 text-cyan-700', value: 'text-slate-900' },
+    cash: { card: 'border border-blue-200 border-t-2 border-t-blue-600 bg-blue-50/30', icon: 'bg-blue-50 text-blue-700', value: 'text-slate-900' },
+    revenue: { card: 'border border-emerald-200 border-t-2 border-t-emerald-600 bg-emerald-50/30', icon: 'bg-emerald-50 text-emerald-700', value: 'text-slate-900' },
+    'net-revenue': { card: 'border border-teal-200 border-t-2 border-t-teal-600 bg-teal-50/30', icon: 'bg-teal-50 text-teal-700', value: 'text-slate-900' },
+    cost: { card: 'border border-amber-200 border-t-2 border-t-amber-600 bg-amber-50/30', icon: 'bg-amber-50 text-amber-700', value: 'text-slate-900' },
+    expense: { card: 'border border-red-200 border-t-2 border-t-red-600 bg-red-50/30', icon: 'bg-red-50 text-red-700', value: 'text-slate-900' },
+    'profit-positive': { card: 'border border-emerald-200 border-t-2 border-t-emerald-600 bg-emerald-50/30', icon: 'bg-emerald-50 text-emerald-700', value: 'text-emerald-700' },
+    'profit-negative': { card: 'border border-red-200 border-t-2 border-t-red-600 bg-red-50/30', icon: 'bg-red-50 text-red-700', value: 'text-red-700' },
+    'profit-neutral': { card: 'border border-slate-200 border-t-2 border-t-slate-500 bg-slate-50', icon: 'bg-slate-100 text-slate-600', value: 'text-slate-700' },
+    analytics: { card: 'border border-indigo-200 border-t-2 border-t-indigo-600 bg-indigo-50/30', icon: 'bg-indigo-50 text-indigo-700', value: 'text-slate-900' },
+    margin: { card: 'border border-violet-200 border-t-2 border-t-violet-600 bg-violet-50/30', icon: 'bg-violet-50 text-violet-700', value: 'text-slate-900' },
+    'margin-secondary': { card: 'border border-purple-200 border-t-2 border-t-purple-600 bg-purple-50/30', icon: 'bg-purple-50 text-purple-700', value: 'text-slate-900' },
+    liquidity: { card: 'border border-cyan-200 border-t-2 border-t-cyan-600 bg-cyan-50/30', icon: 'bg-cyan-50 text-cyan-700', value: 'text-slate-900' },
   }
   const color = colors[variant]
   return (
-    <div className={`min-w-0 rounded-xl bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${color.card}`}>
+    <div className={`min-w-0 rounded-xl p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${color.card}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-1.5">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">{label}</p>
           <KpiTooltip label={label} description={description} />
         </div>
         {icon && <span className={`rounded-lg p-2 ${color.icon}`} aria-hidden="true">{icon}</span>}
@@ -298,9 +298,9 @@ function KpiCard({ label, value, variant = 'cash', subtitle, comparison, icon, d
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-slate-300 hover:shadow-md">
-      <h3 className="font-serif text-lg font-semibold text-slate-800">{title}</h3>
-      <div className="mt-3">{children}</div>
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-slate-300 hover:shadow-md sm:p-6">
+      <h3 className="font-serif text-lg font-semibold tracking-tight text-slate-800">{title}</h3>
+      <div className="mt-4">{children}</div>
     </div>
   )
 }
@@ -427,11 +427,13 @@ export default function FinanceDashboardPage() {
 
   if (isError || !dash) {
     return (
-      <div className="mx-auto max-w-[1480px] p-6">
-        <h1 className="font-serif text-3xl font-semibold tracking-tight">Financeiro 360</h1>
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-8 text-center">
-          <p className="text-sm font-medium text-red-800">Nao foi possivel carregar o dashboard financeiro.</p>
-          <Button variant="outline" className="mt-3" onClick={clearFilters}>Tentar novamente</Button>
+      <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6">
+        <div className="mx-auto max-w-[1480px]">
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">Financeiro 360</h1>
+          <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-8 text-center">
+            <p className="text-sm font-medium text-red-800">Nao foi possivel carregar o dashboard financeiro.</p>
+            <Button variant="outline" className="mt-3" onClick={clearFilters}>Tentar novamente</Button>
+          </div>
         </div>
       </div>
     )
@@ -460,7 +462,8 @@ export default function FinanceDashboardPage() {
   if (is.net_result < 0) alerts.push({ level: 'warning', text: `Resultado líquido negativo: ${fmt(is.net_result)}` })
 
   return (
-    <div className="mx-auto max-w-[1480px] space-y-4 p-4 sm:space-y-6 sm:p-6">
+    <div className="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 sm:py-6">
+      <div className="mx-auto max-w-[1480px] space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
         <div className="flex flex-wrap items-center gap-3">
@@ -559,10 +562,11 @@ export default function FinanceDashboardPage() {
       {alerts.length > 0 && (
         <div className="space-y-2">
           {alerts.map((a, i) => (
-            <div key={i} className={`rounded-lg border px-4 py-2 text-sm font-medium ${
+            <div key={i} role="alert" className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium ${
               a.level === 'critical' ? 'border-red-300 bg-red-50 text-red-800' : 'border-amber-300 bg-amber-50 text-amber-800'
             }`}>
-              {a.text}
+              <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+              <span>{a.text}</span>
             </div>
           ))}
         </div>
@@ -659,14 +663,20 @@ export default function FinanceDashboardPage() {
       </div>
 
       <Section title="Resumo do Fluxo de Caixa">
-        <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium text-blue-700">{fmt(cf.opening_balance)}</span></div>
-          <div className="flex justify-between text-emerald-700"><span>Entradas realizadas</span><span className="font-medium">{fmt(cf.realized_inflows)}</span></div>
-          <div className="flex justify-between text-red-700"><span>Saídas realizadas</span><span className="font-medium">{fmt(cf.realized_outflows)}</span></div>
-            <div className="border-t border-blue-100 pt-2 font-medium"><span>Saldo realizado</span><span className="text-blue-700">{fmt(cf.closing_balance)}</span></div>
-          <div className="flex justify-between text-emerald-600"><span>Entradas previstas</span><span>{fmt(cf.projected_inflows)}</span></div>
-          <div className="flex justify-between text-red-600"><span>Saídas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
-            <div className="border-t border-slate-200 pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance !== null && cf.projected_balance < 0 ? 'text-red-700' : 'text-blue-700'}>{fmt(cf.projected_balance)}</span></div>
+        <div className="grid gap-5 text-sm md:grid-cols-2 md:gap-8">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Realizado</p>
+            <div className="flex justify-between gap-4"><span className="text-slate-600">Saldo inicial</span><span className="font-medium tabular-nums text-blue-700">{fmt(cf.opening_balance)}</span></div>
+            <div className="flex justify-between gap-4 text-emerald-700"><span>Entradas realizadas</span><span className="font-medium tabular-nums">{fmt(cf.realized_inflows)}</span></div>
+            <div className="flex justify-between gap-4 text-red-700"><span>Saídas realizadas</span><span className="font-medium tabular-nums">{fmt(cf.realized_outflows)}</span></div>
+            <div className="flex justify-between gap-4 border-t border-blue-100 pt-3 font-semibold"><span>Saldo realizado</span><span className="tabular-nums text-blue-700">{fmt(cf.closing_balance)}</span></div>
+          </div>
+          <div className="space-y-2 border-t border-slate-100 pt-4 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Projetado</p>
+            <div className="flex justify-between gap-4 text-emerald-600"><span>Entradas previstas</span><span className="tabular-nums">{fmt(cf.projected_inflows)}</span></div>
+            <div className="flex justify-between gap-4 text-red-600"><span>Saídas previstas</span><span className="tabular-nums">{fmt(cf.projected_outflows)}</span></div>
+            <div className="flex justify-between gap-4 border-t border-slate-200 pt-3 font-semibold"><span>Saldo projetado</span><span className={`tabular-nums ${cf.projected_balance !== null && cf.projected_balance < 0 ? 'text-red-700' : 'text-blue-700'}`}>{fmt(cf.projected_balance)}</span></div>
+          </div>
         </div>
       </Section>
 
@@ -731,17 +741,17 @@ export default function FinanceDashboardPage() {
             <div className="flex justify-between font-medium border-t border-indigo-100 pt-1"><span className="text-indigo-700">EBITDA</span><span className="text-indigo-700">{fmt(is.ebitda)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Resultado Financeiro</span><span>{fmt(is.financial_result)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Impostos</span><span>{fmt(is.tax)}</span></div>
-            <div className="flex justify-between border-t border-slate-200 pt-1 text-lg font-semibold"><span>Resultado Líquido</span><span className={is.net_result > 0 ? 'text-emerald-700' : is.net_result < 0 ? 'text-red-700' : 'text-slate-600'}>{fmt(is.net_result)}</span></div>
+            <div className="-mx-2 mt-2 flex justify-between rounded-lg border-t border-slate-200 bg-slate-50/70 px-2 pt-3 text-lg font-semibold"><span>Resultado Líquido</span><span className={is.net_result > 0 ? 'text-emerald-700' : is.net_result < 0 ? 'text-red-700' : 'text-slate-600'}>{fmt(is.net_result)}</span></div>
           </div>
         </Section>
 
         <Section title="Posição Patrimonial">
           <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between"><span className="text-cyan-700">Ativo Total</span><span className="font-medium text-cyan-700">{fmt(bs.total_assets)}</span></div>
+            <div className="flex justify-between rounded-lg bg-cyan-50/50 px-2 py-1"><span className="font-medium text-cyan-700">Ativo Total</span><span className="font-semibold text-cyan-700">{fmt(bs.total_assets)}</span></div>
             <div className="flex justify-between"><span className="text-amber-700">Passivo Circulante</span><span>{fmt(bs.current_liabilities)}</span></div>
             <div className="flex justify-between"><span className="text-amber-700">Passivo Não Circulante</span><span>{fmt(bs.non_current_liabilities)}</span></div>
             <div className="flex justify-between font-medium"><span>Passivo Total</span><span>{fmt(bs.total_liabilities)}</span></div>
-            <div className="flex justify-between font-medium border-t border-violet-100 pt-1"><span className="text-violet-700">Patrimônio Líquido</span><span className="text-violet-700">{fmt(bs.equity)}</span></div>
+            <div className="flex justify-between rounded-lg border-t border-violet-100 bg-violet-50/40 px-2 pt-3 font-semibold"><span className="text-violet-700">Patrimônio Líquido</span><span className="text-violet-700">{fmt(bs.equity)}</span></div>
             <div className="flex justify-between border-t pt-1"><span>Capital Circulante Líquido</span><span className={bs.working_capital < 0 ? 'text-red-700 font-medium' : 'font-medium'}>{fmt(bs.working_capital)}</span></div>
             <div className="flex justify-between"><span className="text-cyan-700">Liquidez Corrente</span><span className={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'text-amber-700 font-medium' : 'font-medium text-cyan-700'}>{bs.current_ratio.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Endividamento Geral</span><span>{bs.leverage.toFixed(2)}</span></div>
@@ -753,6 +763,7 @@ export default function FinanceDashboardPage() {
       <Section title="Demonstrações Financeiras">
         <StatementLinks />
       </Section>
+      </div>
     </div>
   )
 }

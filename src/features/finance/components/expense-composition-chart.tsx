@@ -39,7 +39,7 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
 
   return (
     <div className="min-w-0 space-y-4">
-      <div className="grid min-w-0 gap-5 md:grid-cols-[minmax(240px,0.9fr)_minmax(260px,1.1fr)] md:items-center">
+      <div className="grid min-w-0 gap-8 md:grid-cols-[minmax(250px,0.9fr)_minmax(280px,1.1fr)] md:items-center">
         <div
           role="img"
           aria-label="Gráfico de composição das despesas operacionais por conta contábil no período selecionado."
@@ -58,9 +58,13 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
                 strokeWidth={2}
               >
                 {sortedRows.map(row => (
-                  <Cell key={row.account_code} fill={colorForAccount(row.account_code)} />
-                ))}
+                <Cell key={row.account_code} fill={colorForAccount(row.account_code)} />
+              ))}
               </Pie>
+              <text x="50%" y="47%" textAnchor="middle" dominantBaseline="middle" aria-hidden="true">
+                <tspan x="50%" dy="-0.1em" className="fill-slate-500 text-[11px]">Total</tspan>
+                <tspan x="50%" dy="1.35em" className="fill-slate-800 text-[13px] font-semibold">{fmt(total)}</tspan>
+              </text>
               <Tooltip
                 content={({ active, payload }) => {
                   const row = payload?.[0]?.payload as ExpenseCompositionRow | undefined
@@ -79,7 +83,7 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
           </ResponsiveContainer>
         </div>
 
-        <div className="space-y-2" aria-label="Detalhamento da composição das despesas">
+        <div className="space-y-2.5" aria-label="Detalhamento da composição das despesas">
           {sortedRows.map(row => (
             <div key={row.account_code} className="flex min-w-0 items-start gap-2 text-sm">
                    <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorForAccount(row.account_code) }} aria-hidden="true" />
@@ -96,7 +100,7 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
         </div>
       </div>
 
-      <div className="border-t pt-3 text-right text-sm">
+       <div className="border-t border-slate-100 pt-3 text-right text-sm">
         <span className="text-slate-500">Total despesas operacionais</span>{' '}
         <strong className="tabular-nums text-slate-800">{fmt(total)}</strong>
       </div>

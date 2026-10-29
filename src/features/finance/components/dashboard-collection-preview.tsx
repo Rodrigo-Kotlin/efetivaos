@@ -31,7 +31,7 @@ function CollectionRowPreview({ row, viewHref }: { row: CollectionRow; viewHref:
   return (
     <Link
       to={viewHref}
-      className="block rounded-lg border border-slate-100 p-3 transition hover:border-emerald-200 hover:bg-emerald-50/40"
+      className="block rounded-lg border border-slate-100 p-3 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50/40 hover:shadow-sm"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -50,7 +50,7 @@ function CollectionRowPreview({ row, viewHref }: { row: CollectionRow; viewHref:
         </span>
         <span className="text-right">
           <span className="block text-slate-500">{amountLabel}</span>
-          <span className="font-mono font-medium text-slate-900">{fmt(amount)}</span>
+          <span className="font-mono text-sm font-semibold tabular-nums text-slate-900">{fmt(amount)}</span>
         </span>
       </div>
     </Link>
