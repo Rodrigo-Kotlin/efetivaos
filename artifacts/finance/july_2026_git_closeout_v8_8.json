@@ -41,9 +41,10 @@
   "prod_touched": false,
   "git": {
     "finance_commit_created": true,
-    "closeout_commit_created": false,
-    "push_status": "pending",
-    "head_origin_main_match": "pending"
+    "closeout_commit_created": true,
+    "closeout_commit_sha": "130c5e0a8f638d1131c8205badcc98ede92de507",
+    "push_status": "pushed",
+    "head_origin_main_match": true
   },
-  "status": "PENDING_PUSH"
+  "status": "PASS"
 }
