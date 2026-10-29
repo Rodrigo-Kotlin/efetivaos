@@ -313,6 +313,22 @@ describe('FinanceDashboardPage', () => {
     expect(screen.getAllByText('R$ 21.500,00').length).toBeGreaterThanOrEqual(1)
   })
 
+  it('renders unavailable cash balances as an em dash instead of NaN', () => {
+    vi.mocked(useFinancialDashboard).mockReturnValue({
+      data: { ...mockDashboard, cashflow: {
+        ...mockDashboard.cashflow,
+        opening_balance: null,
+        closing_balance: null,
+        projected_balance: null,
+      } }, isLoading: false, isError: false,
+    } as unknown as ReturnType<typeof useFinancialDashboard>)
+
+    render(<MemoryRouter initialEntries={['/finance?year=2026&month=2']}><FinanceDashboardPage /></MemoryRouter>)
+
+    expect(screen.queryByText(/NaN/)).not.toBeInTheDocument()
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(4)
+  })
+
   it('exposes KPI descriptions through a focusable accessible tooltip', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
 

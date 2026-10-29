@@ -39,6 +39,8 @@ import {
   fetchExpenseComposition,
   updateTransaction,
   fetchFinancialDashboard,
+  fetchCashflowSummary,
+  toFiniteMoney,
 } from './api/finance-api'
 
 const serviceMocks = vi.hoisted(() => ({
@@ -128,6 +130,18 @@ describe('Financial dashboard cash balance', () => {
     serviceMocks.rpcResults.length = 0
   })
 
+  it.each([
+    [2313.24, 2313.24],
+    ['2313.24', 2313.24],
+    [null, null],
+    [undefined, null],
+    ['', null],
+    [Number.NaN, null],
+    [Number.POSITIVE_INFINITY, null],
+  ])('parses monetary value %s safely', (input, expected) => {
+    expect(toFiniteMoney(input)).toBe(expected)
+  })
+
   it('uses Cora continuity and does not add NU without a reliable opening balance', async () => {
     serviceMocks.rpcResults.push({
       data: { cashflow: { opening_balance: 19021.13, closing_balance: 25657.76 } },
@@ -141,7 +155,7 @@ describe('Financial dashboard cash balance', () => {
       error: null,
     })
     serviceMocks.rpcResults.push({
-      data: {
+      data: [{
         opening_balance: '7021.13',
         realized_inflows: '86264.61',
         realized_outflows: '79627.98',
@@ -149,7 +163,7 @@ describe('Financial dashboard cash balance', () => {
         projected_inflows: '0',
         projected_outflows: '0',
         projected_balance: '13657.76',
-      },
+      }],
       error: null,
     })
 
@@ -173,6 +187,120 @@ describe('Financial dashboard cash balance', () => {
         p_cost_center_id: null,
         p_service_line_id: null,
       }],
+    })
+  })
+
+  it('normalizes the RPC row array and numeric strings without producing NaN', async () => {
+    serviceMocks.rpcResults.push({
+      data: [{
+        opening_balance: '2313.24',
+        realized_inflows: '16501.06',
+        realized_outflows: '16744.18',
+        closing_balance: '2070.12',
+        projected_inflows: '0',
+        projected_outflows: '0',
+        projected_balance: '2070.12',
+      }],
+      error: null,
+    })
+
+    await expect(fetchCashflowSummary({ from: '2026-02-01', to: '2026-02-28', financialAccountId: 'cora-account' })).resolves.toEqual({
+      opening_balance: 2313.24,
+      realized_inflows: 16501.06,
+      realized_outflows: 16744.18,
+      closing_balance: 2070.12,
+      projected_inflows: 0,
+      projected_outflows: 0,
+      projected_balance: 2070.12,
+    })
+  })
+
+  it('also accepts a single RPC object for compatibility', async () => {
+    serviceMocks.rpcResults.push({
+      data: {
+        opening_balance: '2313.24',
+        realized_inflows: '0',
+        realized_outflows: '0',
+        closing_balance: '2313.24',
+        projected_inflows: '0',
+        projected_outflows: '0',
+        projected_balance: '2313.24',
+      },
+      error: null,
+    })
+
+    await expect(fetchCashflowSummary()).resolves.toMatchObject({ opening_balance: 2313.24, closing_balance: 2313.24 })
+  })
+
+  it.each([
+    ['2026-01-01', '4386.45', '2313.24'],
+    ['2026-02-01', '2313.24', '2070.12'],
+    ['2026-03-01', '2070.12', '18187.58'],
+    ['2026-04-01', '18187.58', '11639.96'],
+    ['2026-05-01', '11639.96', '3910.14'],
+    ['2026-06-01', '3910.14', '7021.13'],
+    ['2026-07-01', '7021.13', '13657.76'],
+  ])('preserves the official Cora continuity for %s', async (from, opening, closing) => {
+    serviceMocks.rpcResults.push({
+      data: [{
+        opening_balance: opening,
+        realized_inflows: '0',
+        realized_outflows: '0',
+        closing_balance: closing,
+        projected_inflows: '0',
+        projected_outflows: '0',
+        projected_balance: closing,
+      }],
+      error: null,
+    })
+
+    await expect(fetchCashflowSummary({ from, to: from })).resolves.toMatchObject({
+      opening_balance: Number(opening),
+      closing_balance: Number(closing),
+    })
+  })
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+  ])('preserves %s RPC balance fields as unavailable', async (_label, value) => {
+    serviceMocks.rpcResults.push({
+      data: [{
+        opening_balance: value,
+        realized_inflows: '10',
+        realized_outflows: '2',
+        closing_balance: value,
+        projected_inflows: '0',
+        projected_outflows: '0',
+        projected_balance: value,
+      }],
+      error: null,
+    })
+
+    await expect(fetchCashflowSummary()).resolves.toMatchObject({
+      opening_balance: null,
+      closing_balance: null,
+      projected_balance: null,
+      realized_inflows: 10,
+      realized_outflows: 2,
+    })
+  })
+
+  it.each([null, []])('returns unavailable values for empty RPC response %s', async data => {
+    serviceMocks.rpcResults.push({ data, error: null })
+    await expect(fetchCashflowSummary()).resolves.toBeNull()
+  })
+
+  it('returns an unavailable summary for an unexpected object shape', async () => {
+    serviceMocks.rpcResults.push({ data: { unexpected: true }, error: null })
+    await expect(fetchCashflowSummary()).resolves.toEqual({
+      opening_balance: null,
+      realized_inflows: null,
+      realized_outflows: null,
+      closing_balance: null,
+      projected_inflows: null,
+      projected_outflows: null,
+      projected_balance: null,
     })
   })
 })

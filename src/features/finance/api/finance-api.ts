@@ -21,7 +21,6 @@ import type {
   CashflowForecastRow,
   CashflowStatementRow,
   Cashflow13WeekRow,
-  CashflowSummaryRow,
   IncomeStatementRow,
   ExpenseCompositionRow,
   FinancialAssetList,
@@ -836,7 +835,38 @@ export interface CashflowFilters {
   serviceLineId?: string | null
 }
 
-export async function fetchCashflowOpeningBalance(date: string, financialAccountId?: string | null): Promise<number> {
+export type CashflowSummaryData = {
+  opening_balance: number | null
+  realized_inflows: number | null
+  realized_outflows: number | null
+  closing_balance: number | null
+  projected_inflows: number | null
+  projected_outflows: number | null
+  projected_balance: number | null
+}
+
+export function toFiniteMoney(value: unknown): number | null {
+  if (value === null || value === undefined) return null
+  if (typeof value === 'string' && value.trim() === '') return null
+  if (typeof value !== 'number' && typeof value !== 'string') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const CASHFLOW_SUMMARY_FIELDS: Array<keyof CashflowSummaryData> = [
+  'opening_balance', 'realized_inflows', 'realized_outflows',
+  'closing_balance', 'projected_inflows', 'projected_outflows', 'projected_balance',
+]
+
+function normalizeCashflowSummary(data: unknown): CashflowSummaryData | null {
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row || typeof row !== 'object') return null
+
+  const source = row as Record<string, unknown>
+  return Object.fromEntries(CASHFLOW_SUMMARY_FIELDS.map(field => [field, toFiniteMoney(source[field])])) as CashflowSummaryData
+}
+
+export async function fetchCashflowOpeningBalance(date: string, financialAccountId?: string | null): Promise<number | null> {
   // Resolve financialAccountId to chart_account_id
   let chartAccountId: string | null = null
   if (financialAccountId) {
@@ -848,10 +878,11 @@ export async function fetchCashflowOpeningBalance(date: string, financialAccount
     p_account_id: chartAccountId,
   })
   if (error) throw error
-  return Number(data ?? 0)
+  const row = Array.isArray(data) ? data[0] : data
+  return toFiniteMoney((row as { opening_balance?: unknown } | null | undefined)?.opening_balance)
 }
 
-export async function fetchCashflowSummary(filters: CashflowFilters = {}): Promise<CashflowSummaryRow> {
+export async function fetchCashflowSummary(filters: CashflowFilters = {}): Promise<CashflowSummaryData | null> {
   const { data, error } = await supabase.rpc('cashflow_summary', {
     p_from: filters.from ?? null,
     p_to: filters.to ?? null,
@@ -860,10 +891,7 @@ export async function fetchCashflowSummary(filters: CashflowFilters = {}): Promi
     p_service_line_id: filters.serviceLineId ?? null,
   })
   if (error) throw error
-  return (data as unknown as CashflowSummaryRow) ?? {
-    opening_balance: '0', realized_inflows: '0', realized_outflows: '0',
-    closing_balance: '0', projected_inflows: '0', projected_outflows: '0', projected_balance: '0',
-  }
+  return normalizeCashflowSummary(data)
 }
 
 export async function fetchCashflowRealized(filters: CashflowFilters = {}): Promise<CashflowRealizedRow[]> {
@@ -1296,9 +1324,9 @@ export interface DashboardFilters {
 export interface FinancialDashboardData {
   period: { from: string; to: string; as_of_date: string }
   cashflow: {
-    opening_balance: number; closing_balance: number
-    realized_inflows: number; realized_outflows: number
-    projected_inflows: number; projected_outflows: number; projected_balance: number
+    opening_balance: number | null; closing_balance: number | null
+    realized_inflows: number | null; realized_outflows: number | null
+    projected_inflows: number | null; projected_outflows: number | null; projected_balance: number | null
   }
   receivables: { open: number; overdue: number; due_in_7_days: number; due_in_30_days: number }
   payables: { open: number; overdue: number; due_in_7_days: number; due_in_30_days: number }
@@ -1347,13 +1375,13 @@ export async function fetchFinancialDashboard(filters: DashboardFilters = {}): P
   return {
     ...(data as unknown as FinancialDashboardData),
     cashflow: {
-      opening_balance: Number(cashflow.opening_balance),
-      closing_balance: Number(cashflow.closing_balance),
-      realized_inflows: Number(cashflow.realized_inflows),
-      realized_outflows: Number(cashflow.realized_outflows),
-      projected_inflows: Number(cashflow.projected_inflows),
-      projected_outflows: Number(cashflow.projected_outflows),
-      projected_balance: Number(cashflow.projected_balance),
+      opening_balance: cashflow?.opening_balance ?? null,
+      closing_balance: cashflow?.closing_balance ?? null,
+      realized_inflows: cashflow?.realized_inflows ?? null,
+      realized_outflows: cashflow?.realized_outflows ?? null,
+      projected_inflows: cashflow?.projected_inflows ?? null,
+      projected_outflows: cashflow?.projected_outflows ?? null,
+      projected_balance: cashflow?.projected_balance ?? null,
     },
   }
 }

@@ -6,13 +6,18 @@ import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, T
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CashflowRealizedRow } from '@/types/database'
+import { toFiniteMoney } from '../api/finance-api'
 import { useCashflowRealized, useExpenseComposition, useFinancialDashboard, usePayables, useReceivables, useTransactions } from '../queries/finance-queries'
 import { ExpenseCompositionChart } from '../components/expense-composition-chart'
 import { FinancialMovementsList } from '../components/financial-movements-list'
 import { DashboardCollectionPreview } from '../components/dashboard-collection-preview'
 
-const fmt = (v: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
+const fmt = (v: unknown) => {
+  const value = toFiniteMoney(v)
+  return value === null
+    ? '—'
+    : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
 
 const pct = (v: number) => `${v.toFixed(1)}%`
 
@@ -65,8 +70,8 @@ function formatDate(date: string): string {
   return `${day}/${month}/${year}`
 }
 
-function comparisonLabel(current: number, previous: number): string {
-  if (previous === 0 || (current < 0 && previous > 0) || (current > 0 && previous < 0)) return '— vs mês anterior'
+function comparisonLabel(current: number | null, previous: number | null): string {
+  if (current === null || previous === null || previous === 0 || (current < 0 && previous > 0) || (current > 0 && previous < 0)) return '— vs mês anterior'
   return `${((current - previous) / Math.abs(previous) * 100).toFixed(1)}% vs mês anterior`
 }
 
@@ -82,10 +87,10 @@ type DailyCashflowPoint = {
   date: string
   inflows: number
   outflows: number
-  balance: number
+  balance: number | null
 }
 
-function buildDailyCashflow(rows: CashflowRealizedRow[], openingBalance: number): DailyCashflowPoint[] {
+function buildDailyCashflow(rows: CashflowRealizedRow[], openingBalance: number | null): DailyCashflowPoint[] {
   const grouped = new Map<string, { inflows: number; outflows: number }>()
 
   for (const row of rows) {
@@ -101,14 +106,14 @@ function buildDailyCashflow(rows: CashflowRealizedRow[], openingBalance: number)
   return Array.from(grouped.entries())
     .sort(([left], [right]) => new Date(left + 'T00:00:00').getTime() - new Date(right + 'T00:00:00').getTime())
     .map(([date, values]) => {
-      balance += values.inflows - values.outflows
+      if (balance !== null) balance += values.inflows - values.outflows
       return { date, ...values, balance }
     })
 }
 
 function CashflowChart({ rows, openingBalance, isLoading, isError }: {
   rows?: CashflowRealizedRow[]
-  openingBalance: number
+  openingBalance: number | null
   isLoading: boolean
   isError: boolean
 }) {
@@ -450,7 +455,7 @@ export default function FinanceDashboardPage() {
   const alerts: { level: 'critical' | 'warning'; text: string }[] = []
   if (ar.overdue > 0) alerts.push({ level: 'warning', text: `Recebíveis vencidos: ${fmt(ar.overdue)}` })
   if (ap.overdue > 0) alerts.push({ level: 'warning', text: `Pagáveis vencidos: ${fmt(ap.overdue)}` })
-  if (cf.projected_balance < 0) alerts.push({ level: 'critical', text: `Saldo projetado negativo: ${fmt(cf.projected_balance)}` })
+  if (cf.projected_balance !== null && cf.projected_balance < 0) alerts.push({ level: 'critical', text: `Saldo projetado negativo: ${fmt(cf.projected_balance)}` })
   if (bs.current_ratio > 0 && bs.current_ratio < 1) alerts.push({ level: 'warning', text: `Liquidez corrente abaixo de 1: ${bs.current_ratio.toFixed(2)}` })
   if (is.net_result < 0) alerts.push({ level: 'warning', text: `Resultado líquido negativo: ${fmt(is.net_result)}` })
 
@@ -572,7 +577,7 @@ export default function FinanceDashboardPage() {
           subtitle={`Posição em ${formatDate(periodReference)}`}
           comparison={previousCf ? comparisonLabel(currentCash, previousCf.closing_balance) : undefined}
           icon={<Wallet className="size-4" />}
-          description="Saldo da conta Cora no encerramento do período selecionado."
+          description={currentCash === null ? 'Saldo histórico não disponível para este período.' : 'Saldo da conta Cora no encerramento do período selecionado.'}
         />
         <KpiCard
           label="Receita Bruta"
@@ -661,7 +666,7 @@ export default function FinanceDashboardPage() {
             <div className="border-t border-blue-100 pt-2 font-medium"><span>Saldo realizado</span><span className="text-blue-700">{fmt(cf.closing_balance)}</span></div>
           <div className="flex justify-between text-emerald-600"><span>Entradas previstas</span><span>{fmt(cf.projected_inflows)}</span></div>
           <div className="flex justify-between text-red-600"><span>Saídas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
-            <div className="border-t border-slate-200 pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance < 0 ? 'text-red-700' : 'text-blue-700'}>{fmt(cf.projected_balance)}</span></div>
+            <div className="border-t border-slate-200 pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance !== null && cf.projected_balance < 0 ? 'text-red-700' : 'text-blue-700'}>{fmt(cf.projected_balance)}</span></div>
         </div>
       </Section>
 
