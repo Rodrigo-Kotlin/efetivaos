@@ -957,3 +957,11 @@ ot.toBeVisible no drawer apos a aprovacao e robusto contra toasts anteriores ain
 **Aplicado:** migration `20261014000100_add_atomic_financial_transaction_correction.sql`, suíte transacional `supabase/tests/fin_recon_3_atomic_correction.sql` e correção autorizada do `Caixa Inicial` no DEV. A RPC não usa descrição, ID ou data como critério de classificação; o ID é somente o alvo explícito da operação autorizada.
 
 **Impacto futuro:** qualquer correção de transação `settled` deve preferir uma RPC específica e transacional, preservar o journal original e validar o ledger antes de expor a operação na interface. A correção de duplicidades do Fluxo de Caixa e a amortização do empréstimo de R$ 10.000 permanecem gates separados.
+
+### LL-073 — Foundation Connect deve explicitar tenant antes do inbox
+
+**Data:** 2026-10-29 (CONNECT-1)
+
+**Aprendizado:** Mesmo em uma operação inicialmente single-organization, setores, membros, auditoria e futuros dados de interação precisam nascer com `organization_id`. Isso evita policies implícitas e reduz migração estrutural antes do suporte a múltiplas organizações.
+
+**Aplicação:** O Connect usa `connect_organizations`, memberships explícitos, RLS contextual e `connect_integration_links`; conversas e mensagens ficam postergadas para gates próprios.

@@ -1,5 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Building2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, Scale, Search, Settings, Tag, Tags, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart, Receipt, CreditCard, type LucideIcon } from 'lucide-react'
+import { Building2, ChevronDown, ChevronLeft, ChevronRight, CircleDollarSign, ClipboardList, ContactRound, House, LibraryBig, ListTree, LogOut, Menu, MessageSquare, Scale, Search, Settings, Tag, Tags, UsersRound, X, ArrowLeftRight, TrendingUp, BarChart3, FileText, Warehouse, PieChart, Receipt, CreditCard, type LucideIcon } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
@@ -8,6 +8,7 @@ import { OfflineBanner } from '@/components/shared/offline-banner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/auth-context'
+import { useConnectAccess } from '@/features/connect/hooks/use-connect-foundation'
 import { signOut } from '@/features/auth/auth.service'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/stores/ui-store'
@@ -56,6 +57,7 @@ const navigationGroups: NavigationGroup[] = [
       { to: '/pricing/catalog', label: 'Catálogo Efetiva', icon: LibraryBig },
       { to: '/crm', label: 'CRM', icon: ContactRound, end: true },
       { to: '/crm/clients', label: 'Clientes', icon: UsersRound },
+      { to: '/connect', label: 'EfetivaConnect', icon: MessageSquare, end: true },
     ],
   },
   {
@@ -131,6 +133,7 @@ function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: ()
   const collapsed = forceExpanded ? false : storedCollapsed
   const toggleSidebar = useUiStore((state) => state.toggleSidebar)
   const { profile } = useAuth()
+  const connectAccess = useConnectAccess()
   const location = useLocation()
 
   const activeGroupId = useMemo(() => findGroupForPath(location.pathname), [location.pathname])
@@ -173,10 +176,14 @@ function SidebarContent({ onNavigate, forceExpanded = false }: { onNavigate?: ()
 
   const filteredGroups = useMemo(
     () => navigationGroups.map((g) => ({
-      ...g,
-      items: g.items.filter((item) => !item.adminOnly || profile?.role === 'admin'),
-    })).filter((g) => g.items.length > 0),
-    [profile?.role],
+       ...g,
+       items: g.items.filter((item) => {
+         if (item.adminOnly && profile?.role !== 'admin') return false
+         if (item.to === '/connect' && !connectAccess.data?.canAccess) return false
+         return true
+       }),
+     })).filter((g) => g.items.length > 0),
+    [connectAccess.data?.canAccess, profile?.role],
   )
 
   return (

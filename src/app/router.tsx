@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { LoadingScreen } from '@/components/shared/loading-screen'
 import { AdminRoute, ProtectedRoute } from '@/features/auth/protected-route'
+import { ConnectRoute } from '@/features/connect/connect-route'
 
 const AppShell = lazy(() => import('@/app/app-shell'))
 const LoginPage = lazy(() => import('@/features/auth/login-page'))
@@ -42,6 +43,7 @@ const ReceivablesPage = lazy(() => import('@/features/finance/pages/receivables-
 const PayablesPage = lazy(() => import('@/features/finance/pages/payables-page'))
 const ImportHistoryPage = lazy(() => import('@/features/finance/pages/import-history-page'))
 const NotFoundPage = lazy(() => import('@/routes/not-found-page'))
+const ConnectFoundationPage = lazy(() => import('@/features/connect/pages/connect-foundation-page'))
 
 const pending = (node: React.ReactNode) => <Suspense fallback={<LoadingScreen />}>{node}</Suspense>
 
@@ -72,6 +74,10 @@ export const router = createBrowserRouter([
           { path: 'crm/clients/new', element: pending(<ClientFormPage />) },
           { path: 'crm/clients/:clientId', element: pending(<ClientDetailPage />) },
           { path: 'crm/clients/:clientId/edit', element: pending(<ClientFormPage />) },
+          {
+            element: <ConnectRoute />,
+            children: [{ path: 'connect', element: pending(<ConnectFoundationPage />) }],
+          },
           { path: 'finance', element: pending(<FinanceDashboardPage />) },
           { path: 'finance/launch', element: pending(<FinancePage />) },
           { path: 'finance/chart-accounts', element: pending(<ChartAccountsPage />) },

@@ -501,6 +501,94 @@ export type FinancialTransaction = FinanceAuditFields & {
 export type FinancialTransactionList = FinancialTransaction & {
   category_name: string | null; origin_account_name: string | null; destination_account_name: string | null; party_name: string | null; cost_center_name: string | null; service_line_name: string | null; payment_method_name: string | null; journal_entry_count: number; total_debit: string; total_credit: string
 }
+
+export type ConnectDataClassification = 'STANDARD' | 'SENSITIVE'
+
+export type ConnectOrganization = AuditFields & {
+  id: string
+  name: string
+  slug: string
+  active: boolean
+}
+
+export type ConnectOrganizationMember = {
+  organization_id: string
+  profile_id: string
+  active: boolean
+  created_at: string
+  created_by: string | null
+}
+
+export type ConnectSector = AuditFields & {
+  id: string
+  organization_id: string
+  name: string
+  slug: string
+  data_classification: ConnectDataClassification
+  active: boolean
+  sort_order: number
+}
+
+export type ConnectProfileSector = {
+  organization_id: string
+  profile_id: string
+  sector_id: string
+  can_view: boolean
+  can_assign: boolean
+  can_transfer: boolean
+  can_manage: boolean
+  created_at: string
+  created_by: string | null
+}
+
+export type ConnectAuditLog = {
+  id: string
+  organization_id: string
+  actor_profile_id: string | null
+  action: string
+  entity_type: string
+  entity_id: string | null
+  sector_id: string | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
+export type ConnectContact = {
+  id: string
+  organization_id: string
+  display_name: string | null
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  updated_by: string | null
+}
+
+export type ConnectContactChannel = {
+  id: string
+  organization_id: string
+  contact_id: string
+  channel_type: string
+  raw_value: string | null
+  normalized_e164: string | null
+  country_code: string | null
+  provider_contact_id: string | null
+  active: boolean
+  created_at: string
+  updated_at: string
+  created_by: string | null
+  updated_by: string | null
+}
+
+export type ConnectIntegrationLink = AuditFields & {
+  id: string
+  organization_id: string
+  local_entity_type: string
+  local_entity_id: string
+  external_system: string
+  external_entity_type: string
+  external_entity_id: string
+  metadata: Record<string, unknown> | null
+}
 export type FinancialPayableList = {
   transaction_id: string; description: string; movement_type: FinancialMovementType; status: FinancialTransactionStatus
   original_amount: string; settled_amount: string; open_amount: string
@@ -696,6 +784,162 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
+        Relationships: []
+      }
+      connect_organizations: {
+        Row: ConnectOrganization
+        Insert: {
+          id?: string
+          name: string
+          slug: string
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: Partial<{
+          name: string
+          slug: string
+          active: boolean
+          updated_at: string
+          updated_by: string | null
+        }>
+        Relationships: []
+      }
+      connect_organization_members: {
+        Row: ConnectOrganizationMember
+        Insert: {
+          organization_id: string
+          profile_id: string
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+        }
+        Update: Partial<{
+          active: boolean
+        }>
+        Relationships: []
+      }
+      connect_sectors: {
+        Row: ConnectSector
+        Insert: {
+          id?: string
+          organization_id: string
+          name: string
+          slug: string
+          data_classification?: ConnectDataClassification
+          active?: boolean
+          sort_order?: number
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: Partial<{
+          name: string
+          slug: string
+          data_classification: ConnectDataClassification
+          active: boolean
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+        }>
+        Relationships: []
+      }
+      connect_profile_sectors: {
+        Row: ConnectProfileSector
+        Insert: {
+          organization_id: string
+          profile_id: string
+          sector_id: string
+          can_view?: boolean
+          can_assign?: boolean
+          can_transfer?: boolean
+          can_manage?: boolean
+          created_at?: string
+          created_by?: string | null
+        }
+        Update: Partial<{
+          can_view: boolean
+          can_assign: boolean
+          can_transfer: boolean
+          can_manage: boolean
+        }>
+        Relationships: []
+      }
+      connect_audit_logs: {
+        Row: ConnectAuditLog
+        Insert: never
+        Update: never
+        Relationships: []
+      }
+      connect_contacts: {
+        Row: ConnectContact
+        Insert: {
+          id?: string
+          organization_id: string
+          display_name?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: Partial<{
+          display_name: string | null
+          updated_at: string
+          updated_by: string | null
+        }>
+        Relationships: []
+      }
+      connect_contact_channels: {
+        Row: ConnectContactChannel
+        Insert: {
+          id?: string
+          organization_id: string
+          contact_id: string
+          channel_type: string
+          raw_value?: string | null
+          normalized_e164?: string | null
+          country_code?: string | null
+          provider_contact_id?: string | null
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+          updated_by?: string | null
+        }
+        Update: Partial<{
+          channel_type: string
+          raw_value: string | null
+          normalized_e164: string | null
+          country_code: string | null
+          provider_contact_id: string | null
+          active: boolean
+          updated_at: string
+          updated_by: string | null
+        }>
+        Relationships: []
+      }
+      connect_integration_links: {
+        Row: ConnectIntegrationLink
+        Insert: {
+          id?: string
+          organization_id: string
+          local_entity_type: string
+          local_entity_id: string
+          external_system: string
+          external_entity_type: string
+          external_entity_id: string
+          metadata?: Record<string, unknown> | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Update: Partial<{
+          metadata: Record<string, unknown> | null
+          updated_at: string
+        }>
         Relationships: []
       }
       suppliers: {

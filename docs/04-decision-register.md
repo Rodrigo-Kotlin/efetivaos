@@ -1316,3 +1316,35 @@ da DRE nao altera o resultado liquido.
 **Impacto:** Marco/2026 fica formalmente encerrado no DEV. O ledger e os
 fatos persistidos permanecem imutaveis. O proximo periodo nao e iniciado
 automaticamente.
+
+---
+
+### ADR-001 — EfetivaConnect como domínio independente
+
+**Status:** FECHADA
+
+**Data:** 2026-10-29 (CONNECT-1)
+
+**Decisão:** EfetivaConnect é um domínio próprio dentro do ecossistema Efetiva. EfetivaOS permanece master de clientes, contatos, CRM, financeiro, documentos e serviços; Connect é master de canais, conversas, mensagens, setores, atribuições, notas, tags e auditoria de atendimento.
+
+**Impacto:** A integração futura ocorrerá por API versionada e `connect_integration_links`, sem FKs entre domínios.
+
+### ADR-002 — Organização e autorização contextual do Connect
+
+**Status:** FECHADA
+
+**Data:** 2026-10-29 (CONNECT-1)
+
+**Decisão:** Toda entidade Foundation do Connect possui `organization_id`. Autorização combina `profiles.role`, membership da organização e permissões em `connect_profile_sectors`. O setor Clínica usa classificação `SENSITIVE`.
+
+**Impacto:** RLS deve impedir leitura cross-organization e restringir equipe aos setores explicitamente autorizados.
+
+### ADR-003 — Supabase Edge Functions para integrações externas
+
+**Status:** FECHADA
+
+**Data:** 2026-10-29 (CONNECT-1)
+
+**Decisão:** Webhooks e futuras APIs de integração usarão Supabase Edge Functions, mantendo secrets backend-only. O frontend interno pode continuar acessando Supabase diretamente quando protegido por RLS.
+
+**Impacto:** `connect-health` estabelece o padrão inicial de CORS, correlation ID e envelopes HTTP.

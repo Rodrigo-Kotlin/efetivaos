@@ -969,3 +969,32 @@ ApÃ³s estabilizaÃ§Ã£o do Motor de PreÃ§os:
 - aplicativo mobile nativo;
 - offline-first transacional.
 
+---
+
+## EfetivaConnect
+
+### CONNECT-1 — Foundation
+
+**Status:** EM IMPLEMENTAÇÃO
+
+Escopo autorizado:
+
+- organização Connect explícita;
+- membership de organização;
+- setores e classificação de dados;
+- autorização contextual por setor;
+- auditoria append-only;
+- integration links;
+- contatos de interação mínimos;
+- Edge Function `connect-health`;
+- rota e página Foundation protegidas.
+
+WhatsApp, Meta, webhooks, mensagens, conversas, Realtime e Storage de anexos permanecem nos gates seguintes.
+
+Próximas fases planejadas:
+
+- CONNECT-2 — WhatsApp ingestion;
+- CONNECT-3 — Inbox;
+- CONNECT-4 — Integração EfetivaOS;
+- CONNECT-5 — Pilot / cutover.
+

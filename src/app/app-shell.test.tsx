@@ -20,6 +20,10 @@ vi.mock('@/stores/ui-store', () => ({
   useUiStore: vi.fn(),
 }))
 
+vi.mock('@/features/connect/hooks/use-connect-foundation', () => ({
+  useConnectAccess: () => ({ data: { canAccess: true }, isPending: false, isError: false }),
+}))
+
 vi.mock('@/components/shared/logo', () => ({
   Logo: ({ compact }: { compact?: boolean }) => <div data-testid="logo" data-compact={compact} />,
 }))
