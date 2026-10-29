@@ -527,12 +527,12 @@ export default function FinanceDashboardPage() {
       {/* KPIs Row 1: Receita e operação */}
       <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <KpiCard
-          label="Saldo de Caixa"
+          label="Saldo Cora"
           value={fmt(currentCash)}
           subtitle={`Posição em ${formatDate(periodReference)}`}
           comparison={previousCf ? comparisonLabel(currentCash, previousCf.closing_balance) : undefined}
           icon={<Wallet className="size-4" />}
-          description="Saldo das contas financeiras na data de referência selecionada."
+          description="Saldo da conta Cora no encerramento do período selecionado."
         />
         <KpiCard
           label="Receita Bruta"

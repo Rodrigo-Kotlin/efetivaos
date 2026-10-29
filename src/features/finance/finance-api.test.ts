@@ -38,6 +38,7 @@ import {
   fetchIncomeStatement,
   fetchExpenseComposition,
   updateTransaction,
+  fetchFinancialDashboard,
 } from './api/finance-api'
 
 const serviceMocks = vi.hoisted(() => ({
@@ -117,6 +118,62 @@ describe('Chart Accounts API', () => {
     await updateChartAccount('ca-1', { name: 'Caixa Atualizado' })
     expect(serviceMocks.operations.find(op => op.method === 'financial_chart_accounts.update')).toBeTruthy()
     expect(serviceMocks.operations.find(op => op.method === 'financial_chart_accounts.eq' && op.args[0] === 'id' && op.args[1] === 'ca-1')).toBeTruthy()
+  })
+})
+
+describe('Financial dashboard cash balance', () => {
+  beforeEach(() => {
+    serviceMocks.operations.length = 0
+    serviceMocks.tableResults.length = 0
+    serviceMocks.rpcResults.length = 0
+  })
+
+  it('uses Cora continuity and does not add NU without a reliable opening balance', async () => {
+    serviceMocks.rpcResults.push({
+      data: { cashflow: { opening_balance: 19021.13, closing_balance: 25657.76 } },
+      error: null,
+    })
+    serviceMocks.tableResults.push({
+      data: [
+        { id: 'nu-account', name: 'NU' },
+        { id: 'cora-account', name: 'Cora' },
+      ],
+      error: null,
+    })
+    serviceMocks.rpcResults.push({
+      data: {
+        opening_balance: '7021.13',
+        realized_inflows: '86264.61',
+        realized_outflows: '79627.98',
+        closing_balance: '13657.76',
+        projected_inflows: '0',
+        projected_outflows: '0',
+        projected_balance: '13657.76',
+      },
+      error: null,
+    })
+
+    const result = await fetchFinancialDashboard({ from: '2026-07-01', to: '2026-07-31', asOfDate: '2026-07-31' })
+
+    expect(result.cashflow).toEqual({
+      opening_balance: 7021.13,
+      closing_balance: 13657.76,
+      realized_inflows: 86264.61,
+      realized_outflows: 79627.98,
+      projected_inflows: 0,
+      projected_outflows: 0,
+      projected_balance: 13657.76,
+    })
+    expect(serviceMocks.operations).toContainEqual({
+      method: 'rpc:cashflow_summary',
+      args: [{
+        p_from: '2026-07-01',
+        p_to: '2026-07-31',
+        p_financial_account_id: 'cora-account',
+        p_cost_center_id: null,
+        p_service_line_id: null,
+      }],
+    })
   })
 })
 

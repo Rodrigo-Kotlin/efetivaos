@@ -307,7 +307,7 @@ describe('FinanceDashboardPage', () => {
 
   it('renders KPI cards with correct values', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
-    expect(screen.getByText('Saldo de Caixa')).toBeInTheDocument()
+    expect(screen.getByText('Saldo Cora')).toBeInTheDocument()
     expect(screen.getAllByText('R$ 52.000,00').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Resultado Líquido').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('R$ 21.500,00').length).toBeGreaterThanOrEqual(1)
@@ -316,16 +316,16 @@ describe('FinanceDashboardPage', () => {
   it('exposes KPI descriptions through a focusable accessible tooltip', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
 
-    const trigger = screen.getByRole('button', { name: 'Informação sobre Saldo de Caixa' })
+    const trigger = screen.getByRole('button', { name: 'Informação sobre Saldo Cora' })
     expect(trigger).toHaveAttribute('aria-expanded', 'false')
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
-    expect(screen.queryByTitle('Saldo das contas financeiras na data de referência selecionada.')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Saldo da conta Cora no encerramento do período selecionado.')).not.toBeInTheDocument()
 
     fireEvent.focus(trigger)
 
     expect(trigger).toHaveAttribute('aria-expanded', 'true')
     expect(trigger).toHaveAttribute('aria-describedby')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Saldo das contas financeiras na data de referência selecionada.')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Saldo da conta Cora no encerramento do período selecionado.')
 
     fireEvent.blur(trigger)
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
@@ -334,7 +334,7 @@ describe('FinanceDashboardPage', () => {
   it('renders only formally supported indicator cards', () => {
     render(<MemoryRouter><FinanceDashboardPage /></MemoryRouter>)
 
-    expect(screen.getByText('Saldo de Caixa')).toBeInTheDocument()
+    expect(screen.getByText('Saldo Cora')).toBeInTheDocument()
     expect(screen.getAllByText('Receita Bruta').length).toBeGreaterThanOrEqual(1)
     expect(screen.getAllByText('Receita Líquida').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Custos')).toBeInTheDocument()

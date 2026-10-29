@@ -1318,13 +1318,42 @@ export interface FinancialDashboardData {
 }
 
 export async function fetchFinancialDashboard(filters: DashboardFilters = {}): Promise<FinancialDashboardData> {
-  const { data, error } = await supabase.rpc('get_financial_dashboard', {
-    p_from: filters.from ?? null,
-    p_to: filters.to ?? null,
-    p_as_of_date: filters.asOfDate ?? null,
-    p_cost_center_id: filters.costCenterId ?? null,
-    p_service_line_id: filters.serviceLineId ?? null,
-  })
+  const [{ data, error }, accounts] = await Promise.all([
+    supabase.rpc('get_financial_dashboard', {
+      p_from: filters.from ?? null,
+      p_to: filters.to ?? null,
+      p_as_of_date: filters.asOfDate ?? null,
+      p_cost_center_id: filters.costCenterId ?? null,
+      p_service_line_id: filters.serviceLineId ?? null,
+    }),
+    fetchFinancialAccounts(),
+  ])
   if (error) throw error
-  return (data as unknown as FinancialDashboardData)
+
+  // The dashboard's cash KPI is the primary operating account, not a
+  // consolidated balance. NU has movements but no trustworthy historical
+  // opening balance, so it must not be added to the opening implicitly.
+  const primaryAccount = accounts.find(account => account.name.trim().toLocaleLowerCase() === 'cora')
+  if (!primaryAccount) throw new Error('Conta Cora não encontrada para calcular o saldo de caixa.')
+
+  const cashflow = await fetchCashflowSummary({
+    from: filters.from,
+    to: filters.to,
+    financialAccountId: primaryAccount.id,
+    costCenterId: filters.costCenterId,
+    serviceLineId: filters.serviceLineId,
+  })
+
+  return {
+    ...(data as unknown as FinancialDashboardData),
+    cashflow: {
+      opening_balance: Number(cashflow.opening_balance),
+      closing_balance: Number(cashflow.closing_balance),
+      realized_inflows: Number(cashflow.realized_inflows),
+      realized_outflows: Number(cashflow.realized_outflows),
+      projected_inflows: Number(cashflow.projected_inflows),
+      projected_outflows: Number(cashflow.projected_outflows),
+      projected_balance: Number(cashflow.projected_balance),
+    },
+  }
 }
