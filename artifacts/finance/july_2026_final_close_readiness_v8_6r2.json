@@ -1,0 +1,87 @@
+{
+  "gate": "FIN-IMPORT-8.6R2",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-29T10:40:03.909Z",
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "statuses": {
+    "METADATA_EXCEPTION_ONLY": "YES",
+    "FINANCIAL_MATERIALITY": "NONE",
+    "ACCOUNTING_MATERIALITY": "NONE",
+    "AUDIT_MATERIALITY": "DOCUMENTARY_ONLY",
+    "DOCUMENTED_METADATA_EXCEPTION_ACCEPTED": "YES",
+    "DOCUMENTATION_FOLLOWUP_BLOCKS_CLOSE": "NO",
+    "FINAL_LEDGER_INTEGRITY": "PASS",
+    "FINAL_CASH_RECONCILIATION": "PASS",
+    "FINAL_DRE_VALIDATION": "PASS",
+    "FINAL_DFC_VALIDATION": "PASS",
+    "BATCH_INTEGRITY": "PASS",
+    "PROVISIONAL_TRACEABILITY": "PASS",
+    "PRIOR_PERIOD_IMMUTABILITY": "PASS",
+    "JULY_UNLOCKED": "PASS",
+    "PROD_TOUCHED": "NO"
+  },
+  "batch": {
+    "id": "da6025fd-d747-4833-85c5-8ca9c6ef8670",
+    "key": "FIN-IMPORT-8.5-JULY-2026",
+    "manifest_hash": "843ca14b1a9bbe0eac27790ce25069823e3de58a89d43ef038d5d423a4f666e0",
+    "status": "completed"
+  },
+  "ledger": {
+    "facts": 115,
+    "journals": 115,
+    "lines": 230,
+    "debits": 165892.59,
+    "credits": 165892.59,
+    "imbalance": 0,
+    "orphan_facts": 0,
+    "orphan_journals": 0,
+    "orphan_lines": 0
+  },
+  "cash": {
+    "opening": 7021.13,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "closing": 13657.76,
+    "difference": 0
+  },
+  "dre": {
+    "revenue": 65264.61,
+    "costs": 22438.32,
+    "expenses": 41923.54,
+    "result": 902.75,
+    "basis": "account.dre_class",
+    "rpc_limitation": "documented authentication context limitation"
+  },
+  "dfc": {
+    "operating": 7389.28,
+    "investing": 0,
+    "financing": -752.65,
+    "total": 6636.63,
+    "difference_to_cash": 0,
+    "migration_audit_bucket": 8236.53
+  },
+  "technical_date_policy": {
+    "FLX-2026-0628": {
+      "persisted_technical_date": false,
+      "effective_governance_technical_date": true,
+      "transaction_date": "2026-07-31",
+      "original_source_date": "2026-09-17",
+      "confirmed_competence": "2026-07"
+    },
+    "FLX-2026-0659": {
+      "technical_date": true
+    },
+    "FLX-2026-0660": {
+      "technical_date": true
+    },
+    "FLX-2026-0661": {
+      "technical_date": true
+    }
+  },
+  "no_database_changes": true,
+  "july_locked": false,
+  "june_locked": true,
+  "final_status": "PASS",
+  "ready_for_july_close": "YES"
+}

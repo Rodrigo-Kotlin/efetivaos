@@ -1,0 +1,9 @@
+group_id,id_a,id_b,date,amount,description_a,description_b,review
+DUP-1,FLX-2026-0595,FLX-2026-0596,2026-07-06,1499.43,Salário Luciana,Salário Randrea,Confirmar comprovantes; não excluir automaticamente
+DUP-2,FLX-2026-0598,FLX-2026-0599,2026-07-06,3000,Pagamento BC Danillo,Pagamento BC Allan,Confirmar comprovantes; não excluir automaticamente
+DUP-3,FLX-2026-0598,FLX-2026-0600,2026-07-06,3000,Pagamento BC Danillo,Pagamento BC Souza,Confirmar comprovantes; não excluir automaticamente
+DUP-4,FLX-2026-0598,FLX-2026-0601,2026-07-06,3000,Pagamento BC Danillo,Pagamento David,Confirmar comprovantes; não excluir automaticamente
+DUP-5,FLX-2026-0599,FLX-2026-0600,2026-07-06,3000,Pagamento BC Allan,Pagamento BC Souza,Confirmar comprovantes; não excluir automaticamente
+DUP-6,FLX-2026-0599,FLX-2026-0601,2026-07-06,3000,Pagamento BC Allan,Pagamento David,Confirmar comprovantes; não excluir automaticamente
+DUP-7,FLX-2026-0600,FLX-2026-0601,2026-07-06,3000,Pagamento BC Souza,Pagamento David,Confirmar comprovantes; não excluir automaticamente
+DUP-8,FLX-2026-0603,FLX-2026-0610,2026-07-07,500,Ajuda de combustível Janderson,Vale Rodrigo,Confirmar comprovantes; não excluir automaticamente

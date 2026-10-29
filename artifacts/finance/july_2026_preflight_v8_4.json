@@ -1,0 +1,284 @@
+{
+  "gate": "FIN-IMPORT-8.4",
+  "status": "PASS",
+  "read_only": true,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false,
+    "branch": "main",
+    "head": "c6f48e4f64ac228bf9dcc76537a297083ef89dfd",
+    "origin_main": "c6f48e4f64ac228bf9dcc76537a297083ef89dfd",
+    "environment_precheck": "PASS"
+  },
+  "dev_state": {
+    "july_batches": 0,
+    "july_journals": 0,
+    "july_locks": 0,
+    "july_transactions": 0,
+    "locks": [
+      {
+        "id": "1c7a5ea8-db31-47db-9a41-c1070205ef00",
+        "period_end": "2026-04-30",
+        "period_start": "2026-04-01"
+      },
+      {
+        "id": "3f3e1760-264f-441e-b6f8-f0fe2db97b9f",
+        "period_end": "2026-05-31",
+        "period_start": "2026-05-01"
+      },
+      {
+        "id": "c0ad6dad-5289-4564-bd76-6cf99b204051",
+        "period_end": "2026-06-30",
+        "period_start": "2026-06-01"
+      }
+    ]
+  },
+  "checks": {
+    "ENVIRONMENT_PRECHECK": true,
+    "OPENING_CONTINUITY": true,
+    "FACT_MATRIX_INTEGRITY": true,
+    "LOAN_LEGACY_POLICY": true,
+    "NU_PENDING_CLASSIFICATION": true,
+    "CARD_PENDING_CLASSIFICATION": true,
+    "VALDILENE_2025_PENDING_CLASSIFICATION": true,
+    "TELECOM_PROVISIONAL_ALLOCATION": true,
+    "TECHNICAL_DATE_POLICY": true,
+    "PROVISIONAL_ACCOUNT_INTEGRITY": true,
+    "PROJECTED_LEDGER_INTEGRITY": true,
+    "DFC_RECONCILIATION": true,
+    "CASH_RECONCILIATION": true
+  },
+  "readiness_counts": {
+    "READY": 105,
+    "READY_LEGACY_POLICY": 1,
+    "READY_PROVISIONAL_CLASSIFICATION": 5,
+    "READY_PROVISIONAL_ALLOCATION": 4,
+    "DECISION_REQUIRED": 0
+  },
+  "total_facts": 115,
+  "provisional_audit": {
+    "nine_facts": [
+      {
+        "external_id": "FLX-2026-0616",
+        "description": "Internet Vivo",
+        "amount": 101.22,
+        "date": "2026-07-13",
+        "source_account": "Cora",
+        "account_code": "5.2.01.003",
+        "account_name": "Telefonia e Internet",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "DESPESA",
+        "dfc": "OPERATING",
+        "metadata": "cost_center_provisional = true; Administrativo/Corporativo"
+      },
+      {
+        "external_id": "FLX-2026-0617",
+        "description": "Conta vivo",
+        "amount": 64,
+        "date": "2026-07-13",
+        "source_account": "Cora",
+        "account_code": "5.2.01.003",
+        "account_name": "Telefonia e Internet",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "DESPESA",
+        "dfc": "OPERATING",
+        "metadata": "cost_center_provisional = true; Administrativo/Corporativo"
+      },
+      {
+        "external_id": "FLX-2026-0621",
+        "description": "Fatura Cartao Cora",
+        "amount": 173.34,
+        "date": "2026-07-15",
+        "source_account": "Cora",
+        "account_code": "2.1.05.001",
+        "account_name": "Cartoes de Credito a Pagar",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "NONE",
+        "dfc": "CLASSIFICATION_PENDING",
+        "metadata": "card_composition_unknown = true"
+      },
+      {
+        "external_id": "FLX-2026-0628",
+        "description": "Material de cozinha",
+        "amount": 503.41,
+        "date": "2026-07-31",
+        "source_account": "Cora",
+        "account_code": "5.6.01.001",
+        "account_name": "Material de Escritorio, Limpeza e Copa",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "DESPESA",
+        "dfc": "OPERATING",
+        "metadata": "technical_date = 2026-07-31; original_source_date = 2026-09-17"
+      },
+      {
+        "external_id": "FLX-2026-0634",
+        "description": "Internet Vivo",
+        "amount": 102.24,
+        "date": "2026-07-27",
+        "source_account": "Cora",
+        "account_code": "5.2.01.003",
+        "account_name": "Telefonia e Internet",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "DESPESA",
+        "dfc": "OPERATING",
+        "metadata": "cost_center_provisional = true; Administrativo/Corporativo"
+      },
+      {
+        "external_id": "FLX-2026-0651",
+        "description": "Fatura Vivo",
+        "amount": 87.36,
+        "date": "2026-07-31",
+        "source_account": "Cora",
+        "account_code": "5.2.01.003",
+        "account_name": "Telefonia e Internet",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "DESPESA",
+        "dfc": "OPERATING",
+        "metadata": "cost_center_provisional = true; Administrativo/Corporativo"
+      },
+      {
+        "external_id": "FLX-2026-0652",
+        "description": "Fatura Cartão Caixa",
+        "amount": 490.13,
+        "date": "2026-07-31",
+        "source_account": "Cora",
+        "account_code": "2.1.05.001",
+        "account_name": "Cartoes de Credito a Pagar",
+        "cost_center": "Administrativo/Corporativo",
+        "dre_effect": "NONE",
+        "dfc": "CLASSIFICATION_PENDING",
+        "metadata": "card_composition_unknown = true"
+      },
+      {
+        "external_id": "FLX-2026-0653",
+        "description": "Pagamento prestação de serviços Valdilene 2025",
+        "amount": 3100,
+        "date": "2026-07-31",
+        "source_account": "Cora",
+        "account_code": "1.1.02.005",
+        "account_name": "Outros Creditos",
+        "cost_center": "Pessoal / a ratear",
+        "dre_effect": "NONE",
+        "dfc": "CLASSIFICATION_PENDING",
+        "metadata": "historical_reference = 2025"
+      },
+      {
+        "external_id": "FLX-2026-0659",
+        "description": "Entrada NU",
+        "amount": 12000,
+        "date": "",
+        "source_account": "Cora",
+        "account_code": "2.1.09.001",
+        "account_name": "Outras Obrigacoes a Pagar",
+        "cost_center": "Financeiro/Corporativo",
+        "dre_effect": "NONE",
+        "dfc": "CLASSIFICATION_PENDING",
+        "metadata": "classification_pending = true"
+      }
+    ],
+    "account_totals": [
+      {
+        "account_code": "5.2.01.003",
+        "account_name": "Telefonia e Internet",
+        "fact_ids": [
+          "FLX-2026-0616",
+          "FLX-2026-0617",
+          "FLX-2026-0634",
+          "FLX-2026-0651"
+        ],
+        "total": 354.82
+      },
+      {
+        "account_code": "2.1.05.001",
+        "account_name": "Cartoes de Credito a Pagar",
+        "fact_ids": [
+          "FLX-2026-0621",
+          "FLX-2026-0652"
+        ],
+        "total": 663.47
+      },
+      {
+        "account_code": "5.6.01.001",
+        "account_name": "Material de Escritorio, Limpeza e Copa",
+        "fact_ids": [
+          "FLX-2026-0628"
+        ],
+        "total": 503.41
+      },
+      {
+        "account_code": "1.1.02.005",
+        "account_name": "Outros Creditos",
+        "fact_ids": [
+          "FLX-2026-0653"
+        ],
+        "total": 3100
+      },
+      {
+        "account_code": "2.1.09.001",
+        "account_name": "Outras Obrigacoes a Pagar",
+        "fact_ids": [
+          "FLX-2026-0659"
+        ],
+        "total": 12000
+      },
+      {
+        "account_code": "2.1.06.001",
+        "account_name": "Emprestimos e Financiamentos - Curto Prazo",
+        "fact_ids": [
+          "FLX-2026-0660",
+          "FLX-2026-0661"
+        ],
+        "total": 18752.65
+      }
+    ]
+  },
+  "cash_reconciliation": {
+    "june_closing": 7021.13,
+    "july_opening": 7021.13,
+    "opening_difference": 0,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "net_change": 6636.63,
+    "calculated_closing": 13657.76,
+    "source_closing": 13657.76,
+    "closing_difference": 0
+  },
+  "official_dre_basis": "account.dre_class",
+  "official_dre": {
+    "RECEITA_BRUTA": 65264.61,
+    "CUSTO_SERVICO": 22438.32,
+    "DESPESA_OPERACIONAL": 41923.54,
+    "OTHER_DRE": 0,
+    "NONE": 36266.12,
+    "RESULT": 902.75
+  },
+  "dfc_reconciliation": {
+    "OPERATING": -847.25,
+    "INVESTING": 0,
+    "FINANCING": -752.65,
+    "CLASSIFICATION_PENDING": 8236.53,
+    "TOTAL": 6636.63
+  },
+  "ledger_projection": {
+    "journals": 115,
+    "lines": 230,
+    "debits": 165892.59,
+    "credits": 165892.59,
+    "imbalance": 0,
+    "unbalanced_journals": 0,
+    "each_fact_exactly_one_journal": true
+  },
+  "followup_count": 11,
+  "proposed_batch_key": "FIN-IMPORT-8.5-JULY-2026",
+  "manifest_sha256": "1cb56b8942a54bde2a6c17aa35a569bcf876d09bc6c7e1b4abc474d975013862",
+  "append_only_simulation": {
+    "original_fact_preserved": true,
+    "reversal_or_replacement_required": true,
+    "destructive_update": false
+  },
+  "final_status": {
+    "READY_FOR_FIN_IMPORT_8_5": "YES",
+    "READY_FOR_IMPORT": "NO"
+  }
+}

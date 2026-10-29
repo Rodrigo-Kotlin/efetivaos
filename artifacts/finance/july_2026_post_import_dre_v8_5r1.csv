@@ -1,0 +1,6 @@
+metric,expected,actual,status
+RECEITA,65264.61,65264.61,PASS
+CUSTO,22438.32,22438.32,PASS
+DESPESA,41923.54,41923.54,PASS
+RESULTADO,902.75,902.75,PASS
+official_function,executed,rejected_unauthenticated,FAIL

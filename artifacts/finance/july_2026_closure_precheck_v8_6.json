@@ -1,0 +1,31 @@
+{
+  "gate": "FIN-IMPORT-8.6",
+  "environment": "DEV",
+  "read_only": true,
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "precheck": {
+    "FINAL_AUDIT_PRECHECK": "PASS",
+    "BATCH_INTEGRITY": "PASS",
+    "FINAL_LEDGER_INTEGRITY": "PASS",
+    "FINAL_CASH_RECONCILIATION": "PASS",
+    "FINAL_DRE_VALIDATION": "PASS",
+    "FINAL_DFC_VALIDATION": "PASS",
+    "PROVISIONAL_TRACEABILITY": "PASS",
+    "TECHNICAL_DATE_POLICY_INTEGRITY": "FAIL",
+    "FINAL_IDEMPOTENCY_VALIDATION": "PASS",
+    "PRIOR_PERIOD_IMMUTABILITY": "PASS",
+    "DOCUMENTATION_FOLLOWUP_BLOCKS_CLOSE": "YES"
+  },
+  "lock_created": false,
+  "ready_for_july_close": false,
+  "documentation_followup_blocks_close": true,
+  "blockers": [
+    {
+      "external_id": "FLX-2026-0628",
+      "description": "Material de cozinha",
+      "reason": "approved technical-date policy not fully persisted: technical_date=false; transaction_date=2026-07-31 and original_source_date=2026-09-17 are present",
+      "required_next_gate": "append-only metadata correction/audit remediation"
+    }
+  ],
+  "no_prod_touch": true
+}

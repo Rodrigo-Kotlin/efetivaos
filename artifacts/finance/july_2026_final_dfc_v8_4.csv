@@ -1,0 +1,6 @@
+dfc_class,amount,official_basis,note
+OPERATING,-847.25,account.dfc_default plus approved treatment,Fluxo operacional
+INVESTING,0,account.dfc_default,Fluxo de investimento
+FINANCING,-752.65,approved treatment,Financiamento
+CLASSIFICATION_PENDING,8236.53,provisional metadata,Não alocar artificialmente
+TOTAL,6636.63,cash reconciliation,Variação total

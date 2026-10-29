@@ -1,0 +1,98 @@
+{
+  "gate": "FIN-IMPORT-8.5R2",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-28T20:58:25.847Z",
+  "classification_pending_supported_by_official_dfc": "NO",
+  "official_dfc_enum": [
+    "OPERACIONAL",
+    "INVESTIMENTO",
+    "FINANCIAMENTO",
+    "NAO_CAIXA",
+    "TRANSFERENCIA"
+  ],
+  "official_view": "financial_cashflow_realized_v",
+  "official_rpc": "get_cash_flow_statement(date,date,uuid,uuid)",
+  "fallback": "OPERACIONAL when category_dfc_class is NULL after movement_type special cases",
+  "pending_bucket": "MIGRATION_AUDIT_BUCKET",
+  "pending_net": 8236.529999999999,
+  "pending_facts": [
+    {
+      "external_id": "FLX-2026-0621",
+      "description": "Fatura Cartao Cora",
+      "amount": 173.34,
+      "transaction_date": "2026-07-15",
+      "account": "2.1.05.001 — Cartoes de Credito a Pagar",
+      "financial_nature": "CREDITO",
+      "dre_effect": 0,
+      "stored_dfc": "CLASSIFICATION_PENDING (manifest); notes.classification_pending=true",
+      "calculated_dfc": "OPERACIONAL",
+      "direction": "OUTFLOW",
+      "signed_cash": -173.34,
+      "provisional_metadata": "provisional_account_used=true; correction_method=APPEND_ONLY",
+      "source": "manifest dfc_class + persisted notes; official view category_id=NULL fallback"
+    },
+    {
+      "external_id": "FLX-2026-0652",
+      "description": "Fatura Cartão Caixa",
+      "amount": 490.13,
+      "transaction_date": "2026-07-31",
+      "account": "2.1.05.001 — Cartoes de Credito a Pagar",
+      "financial_nature": "CREDITO",
+      "dre_effect": 0,
+      "stored_dfc": "CLASSIFICATION_PENDING (manifest); notes.classification_pending=true",
+      "calculated_dfc": "OPERACIONAL",
+      "direction": "OUTFLOW",
+      "signed_cash": -490.13,
+      "provisional_metadata": "provisional_account_used=true; correction_method=APPEND_ONLY",
+      "source": "manifest dfc_class + persisted notes; official view category_id=NULL fallback"
+    },
+    {
+      "external_id": "FLX-2026-0653",
+      "description": "Pagamento prestação de serviços Valdilene 2025",
+      "amount": 3100,
+      "transaction_date": "2026-07-31",
+      "account": "1.1.02.005 — Outros Creditos",
+      "financial_nature": "DEBITO",
+      "dre_effect": 0,
+      "stored_dfc": "CLASSIFICATION_PENDING (manifest); notes.classification_pending=true",
+      "calculated_dfc": "OPERACIONAL",
+      "direction": "OUTFLOW",
+      "signed_cash": -3100,
+      "provisional_metadata": "provisional_account_used=true; correction_method=APPEND_ONLY",
+      "source": "manifest dfc_class + persisted notes; official view category_id=NULL fallback"
+    },
+    {
+      "external_id": "FLX-2026-0659",
+      "description": "Entrada NU",
+      "amount": 12000,
+      "transaction_date": "2026-07-31",
+      "account": "2.1.09.001 — Outras Obrigacoes a Pagar",
+      "financial_nature": "CREDITO",
+      "dre_effect": 0,
+      "stored_dfc": "CLASSIFICATION_PENDING (manifest); notes.classification_pending=true; technical_date=true",
+      "calculated_dfc": "OPERACIONAL",
+      "direction": "INFLOW",
+      "signed_cash": 12000,
+      "provisional_metadata": "provisional_account_used=true; technical_date=true; correction_method=APPEND_ONLY",
+      "source": "manifest dfc_class + persisted notes; official view category_id=NULL fallback"
+    }
+  ],
+  "official_reconciliation": {
+    "operating": 7389.28,
+    "investing": 0,
+    "financing": -752.65,
+    "total": 6636.63,
+    "difference_to_cash": 0
+  },
+  "projection_reconciliation": {
+    "operating": -847.25,
+    "investing": 0,
+    "financing": -752.65,
+    "classification_pending": 8236.53,
+    "total": 6636.63
+  },
+  "presentation_decision": "ACCEPT_OFFICIAL_DFC_WITH_AUXILIARY_PENDING_DISCLOSURE",
+  "corrective_action_required": "NO",
+  "scenario": "SCENARIO_B"
+}

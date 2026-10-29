@@ -1,0 +1,12 @@
+metric,expected,actual,status
+batch_count,1,1,PASS
+facts,115,115,PASS
+journals,115,115,PASS
+lines,230,230,PASS
+debits,165892.59,165892.59,PASS
+credits,165892.59,165892.59,PASS
+difference,0.00,0.00,PASS
+unbalanced,0,0,PASS
+cora_opening,7021.13,7021.13,PASS
+cora_closing,13657.76,13657.76,PASS
+july_lock,false,false,PASS

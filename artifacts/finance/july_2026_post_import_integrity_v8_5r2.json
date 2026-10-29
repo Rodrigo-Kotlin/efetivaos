@@ -1,0 +1,26 @@
+{
+  "gate": "FIN-IMPORT-8.5R2",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-28T20:58:25.847Z",
+  "batch": 1,
+  "facts": 115,
+  "journals": 115,
+  "lines": 230,
+  "debits": 165892.59,
+  "credits": 165892.59,
+  "imbalance": 0,
+  "cora": {
+    "opening": 7021.13,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "closing": 13657.76,
+    "difference": 0
+  },
+  "july_locked": false,
+  "june_locked": true,
+  "prod_touched": false,
+  "technical_dates_traceability": "PASS",
+  "no_persisted_financial_changes": true,
+  "status": "PASS"
+}

@@ -1,0 +1,62 @@
+{
+  "gate": "FIN-IMPORT-8.7",
+  "environment": "DEV",
+  "captured_at": "2026-10-29T10:46:06.294Z",
+  "lock": {
+    "id": "d4cd2a1d-df5a-4c1d-ae36-5d9f4f6b2165",
+    "period_start": "2026-07-01",
+    "period_end": "2026-07-31",
+    "locked_at": "2026-10-29T10:45:23.296473+00:00",
+    "locked_by": "3014c86d-d84e-416d-ac3a-bb7dabb098c5",
+    "reason": "Fechamento financeiro Julho/2026 — FIN-IMPORT-8.7; batch da6025fd-d747-4833-85c5-8ca9c6ef8670; manifest 843ca14b1a9bbe0eac27790ce25069823e3de58a89d43ef038d5d423a4f666e0; 115 fatos/115 journals/230 linhas; Cora 13657.76; DRE 902.75; DFC 6636.63; exceção documental FLX-2026-0628 aceita"
+  },
+  "manifest_hash": "843ca14b1a9bbe0eac27790ce25069823e3de58a89d43ef038d5d423a4f666e0",
+  "ledger": {
+    "facts": 115,
+    "journals": 115,
+    "lines": 230,
+    "debits": 165892.59,
+    "credits": 165892.59,
+    "difference": 0,
+    "unbalanced": 0,
+    "orphans": 0
+  },
+  "cash": {
+    "opening": 7021.13,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "net_change": 6636.63,
+    "closing": 13657.76,
+    "difference": 0
+  },
+  "dre": {
+    "revenue": 65264.61,
+    "costs": 22438.32,
+    "expenses": 41923.54,
+    "result": 902.75,
+    "basis": "account.dre_class",
+    "rpc_validation": "PASS_WITH_AUTH_CONTEXT_LIMITATION"
+  },
+  "dfc": {
+    "operating": 7389.28,
+    "investing": 0,
+    "financing": -752.65,
+    "total": 6636.63,
+    "difference_to_cash": 0,
+    "migration_audit_bucket": 8236.53
+  },
+  "periods": {
+    "april": "LOCKED",
+    "may": "LOCKED",
+    "june": "LOCKED",
+    "july": "LOCKED",
+    "august": "UNLOCKED"
+  },
+  "documented_exception": {
+    "external_id": "FLX-2026-0628",
+    "classification": "DOCUMENTED_METADATA_EXCEPTION",
+    "persisted_technical_date": false,
+    "governance_accepted": true
+  },
+  "prod_touched": false
+}

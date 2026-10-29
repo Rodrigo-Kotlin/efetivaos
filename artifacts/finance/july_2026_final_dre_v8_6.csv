@@ -1,0 +1,7 @@
+metric,expected,actual,status
+basis,account.dre_class,account.dre_class,PASS
+REVENUE,65264.61,65264.61,PASS
+COSTS,22438.32,22438.32,PASS
+EXPENSES,41923.54,41923.54,PASS
+RESULT,902.75,902.75,PASS
+rpc_context,authenticated internal user,CLI unauthenticated,DOCUMENTED_LIMITATION

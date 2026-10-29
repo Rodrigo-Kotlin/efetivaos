@@ -1,0 +1,103 @@
+{
+  "gate": "FIN-IMPORT-8.6",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-28T21:01:23.764Z",
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "prod_touched": false,
+  "batch": {
+    "batch_id": "da6025fd-d747-4833-85c5-8ca9c6ef8670",
+    "batch_key": "FIN-IMPORT-8.5-JULY-2026",
+    "manifest_hash": "843ca14b1a9bbe0eac27790ce25069823e3de58a89d43ef038d5d423a4f666e0",
+    "competence": "2026-07",
+    "gate": "FIN-IMPORT-8.5R1",
+    "status": "completed",
+    "created_at": "2026-10-28T20:45:54.217355+00:00",
+    "metadata": {
+      "provisional_classification_enabled": true,
+      "total_rows": 115,
+      "valid_rows": 115,
+      "imported_rows": 115
+    }
+  },
+  "statuses": {
+    "FINAL_AUDIT_PRECHECK": "PASS",
+    "BATCH_INTEGRITY": "PASS",
+    "FINAL_LEDGER_INTEGRITY": "PASS",
+    "FINAL_CASH_RECONCILIATION": "PASS",
+    "FINAL_DRE_VALIDATION": "PASS",
+    "FINAL_DFC_VALIDATION": "PASS",
+    "PROVISIONAL_TRACEABILITY": "PASS",
+    "TECHNICAL_DATE_POLICY_INTEGRITY": "FAIL",
+    "FINAL_IDEMPOTENCY_VALIDATION": "PASS",
+    "PRIOR_PERIOD_IMMUTABILITY": "PASS",
+    "DOCUMENTATION_FOLLOWUP_BLOCKS_CLOSE": "YES"
+  },
+  "ledger": {
+    "facts": 115,
+    "unique_external_ids": 115,
+    "journals": 115,
+    "lines": 230,
+    "debits": 165892.59,
+    "credits": 165892.59,
+    "difference": 0,
+    "unbalanced": 0,
+    "orphan_facts": 0,
+    "orphan_journals": 0,
+    "orphan_lines": 0,
+    "wrong_batch_rows": 0
+  },
+  "cash": {
+    "opening": 7021.13,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "net_change": 6636.63,
+    "closing": 13657.76,
+    "difference": 0,
+    "account": "Cora"
+  },
+  "dre": {
+    "basis": "account.dre_class",
+    "revenue": 65264.61,
+    "costs": 22438.32,
+    "expenses": 41923.54,
+    "result": 902.75,
+    "rpc_auth_context_limitation": true,
+    "validation": "PASS_WITH_AUTH_CONTEXT_LIMITATION"
+  },
+  "dfc": {
+    "official_operating": 7389.28,
+    "official_investing": 0,
+    "official_financing": -752.65,
+    "official_total": 6636.63,
+    "difference_to_cash": 0,
+    "migration_audit_bucket": 8236.53,
+    "presentation_decision": "ACCEPT_OFFICIAL_DFC_WITH_AUXILIARY_PENDING_DISCLOSURE"
+  },
+  "technical_dates": {
+    "FLX-2026-0659": {
+      "transaction_date": "2026-07-31",
+      "technical_date": true
+    },
+    "FLX-2026-0660": {
+      "transaction_date": "2026-07-31",
+      "technical_date": true
+    },
+    "FLX-2026-0661": {
+      "transaction_date": "2026-07-31",
+      "technical_date": true
+    },
+    "FLX-2026-0628": {
+      "transaction_date": "2026-07-31",
+      "original_source_date": "2026-09-17",
+      "persisted_technical_date": false,
+      "expected_technical_date": true,
+      "status": "FAIL"
+    }
+  },
+  "final_status": "FAIL",
+  "ready_for_july_close": "NO",
+  "blocker": "FLX-2026-0628 persisted technical_date=false; approved technical-date traceability is incomplete.",
+  "no_lock_created": true,
+  "no_financial_writes": true
+}

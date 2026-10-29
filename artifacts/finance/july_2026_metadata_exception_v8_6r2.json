@@ -1,0 +1,41 @@
+{
+  "gate": "FIN-IMPORT-8.6R2",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-29T10:40:03.909Z",
+  "project_ref": "bxviuzluxcijbqqbpyzb",
+  "external_id": "FLX-2026-0628",
+  "description": "Material de cozinha",
+  "persisted": {
+    "technical_date": false,
+    "transaction_date": "2026-07-31",
+    "original_source_date": "2026-09-17",
+    "confirmed_competence": "2026-07",
+    "correction_method": "APPEND_ONLY"
+  },
+  "effective_governance_interpretation": {
+    "technical_date": true,
+    "reason": "Data 17/09/2026 foi identificada como erro da fonte. A competência foi confirmada como Julho/2026 e a data técnica 31/07/2026 foi aprovada para fins de migração."
+  },
+  "classification": "DOCUMENTED_METADATA_EXCEPTION",
+  "materiality": {
+    "financial": "NONE",
+    "accounting": "NONE",
+    "audit": "DOCUMENTARY_ONLY"
+  },
+  "database_correction": "NOT_PERFORMED",
+  "database_correction_reason": "NO_APPROPRIATE_APPEND_ONLY_METADATA_MECHANISM",
+  "historical_gap_artifact": "july_2026_metadata_correction_gap_v8_6r1.md",
+  "financial_effect": {
+    "amount": 503.41,
+    "account_code": "5.6.01.001",
+    "dre_class": "DESPESA_OPERACIONAL",
+    "transaction_date": "2026-07-31",
+    "competence_date": "2026-07-01",
+    "journal_debit": 503.41,
+    "journal_credit": 503.41
+  },
+  "governance_decision": "Accept as non-material documented metadata exception; do not create architectural mechanism solely for this boolean.",
+  "documentation_followup_blocks_close": "NO",
+  "prod_touched": false
+}

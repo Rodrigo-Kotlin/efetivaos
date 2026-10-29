@@ -1,0 +1,7 @@
+decision_id,status,response,fact_ids,total_amount,descriptions,blocking_reason,required_information
+JUL-DEC-002,DECISION_REQUIRED,E,FLX-2026-0660,9752.65,Empréstimo (S),Composição desconhecida; não aprovado split de principal/juros/encargos. Política legado agregada não aprovada para Julho.,"Contraparte, data e composição; decisão sobre política agregada"
+JUL-DEC-003,DECISION_REQUIRED,C,FLX-2026-0659,12000,Entrada NU,Confirmado que não é transferência própria; natureza econômica ainda não identificada.,Natureza econômica e data
+JUL-DEC-004,DECISION_REQUIRED,E,FLX-2026-0621; FLX-2026-0652,663.47,Fatura Cartao Cora; Fatura Cartão Caixa,Composição das faturas desconhecida; não assumir compras lançadas ou não lançadas.,Composição das faturas e compras componentes
+JUL-DEC-010,PRIOR_PERIOD_REVIEW,E,FLX-2026-0653,3100,Pagamento prestação de serviços Valdilene 2025,"Origem, natureza e competência de 2025 desconhecidas; não inventar passivo ou despesa de Julho.","Origem, natureza, competência e evidência de 2025"
+JUL-DEC-013,DECISION_REQUIRED,PENDING,FLX-2026-0616; FLX-2026-0617; FLX-2026-0634; FLX-2026-0651,354.82,Internet Vivo; Conta vivo; Internet Vivo; Fatura Vivo,Centro de custo/linha não informado.,Centro de custo e linha/unidade da telefonia
+JUL-DEC-019,DECISION_REQUIRED,A,FLX-2026-0628,503.41,Material de cozinha,"Competência Julho confirmada, mas data exata não informada. Não usar 17/09/2026 nem inventar data de Julho.",Centro/linha e data exata de Julho

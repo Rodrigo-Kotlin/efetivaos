@@ -1,0 +1,15 @@
+metric,expected,actual,status
+july_locks,1,1,PASS
+august_locks,0,0,PASS
+facts,115,115,PASS
+journals,115,115,PASS
+lines,230,230,PASS
+debits,165892.59,165892.59,PASS
+credits,165892.59,165892.59,PASS
+difference,0.00,0.00,PASS
+unbalanced,0,0,PASS
+orphan_records,0,0,PASS
+cora_closing,13657.76,13657.76,PASS
+dre_result,902.75,902.75,PASS
+dfc_total,6636.63,6636.63,PASS
+documented_exception,preserved,preserved,PASS

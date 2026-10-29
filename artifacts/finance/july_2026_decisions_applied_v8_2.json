@@ -1,0 +1,345 @@
+{
+  "gate": "FIN-IMPORT-8.2",
+  "status": "COMPLETE_WITH_PENDING_DECISIONS",
+  "read_only": true,
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "source_artifacts": [
+    "july_2026_source_inventory.csv",
+    "july_2026_human_decisions_v8_1.json"
+  ],
+  "responses_applied": {
+    "JUL-DEC-001": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_movement_type": "Financiamento",
+      "final_nature": "Empréstimo recebido",
+      "final_cost_center": "Financeiro/Corporativo",
+      "dre_effect": "NONE",
+      "dfc_class": "FINANCING",
+      "patrimonial": "Passivo de empréstimos",
+      "notes": "Data permanece não informada; não inventada."
+    },
+    "JUL-DEC-002": {
+      "response": "E",
+      "resolved": false,
+      "final_status": "DECISION_REQUIRED",
+      "notes": "Composição desconhecida; não aprovado split de principal/juros/encargos. Política legado agregada não aprovada para Julho."
+    },
+    "JUL-DEC-003": {
+      "response": "C",
+      "resolved": false,
+      "final_status": "DECISION_REQUIRED",
+      "notes": "Confirmado que não é transferência própria; natureza econômica ainda não identificada."
+    },
+    "JUL-DEC-004": {
+      "response": "E",
+      "resolved": false,
+      "final_status": "DECISION_REQUIRED",
+      "notes": "Composição das faturas desconhecida; não assumir compras lançadas ou não lançadas."
+    },
+    "JUL-DEC-005": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "duplicate_review": "DISTINCT_CONFIRMED",
+      "final_nature": "Salários",
+      "final_cost_center": "Pessoal / a ratear",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Luciana e Randrea são fatos distintos; alerta eliminado."
+    },
+    "JUL-DEC-006": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "duplicate_review": "DISTINCT_CONFIRMED",
+      "final_nature": "Custos Bombeiro Civil",
+      "final_cost_center": "Bombeiros",
+      "dre_effect": "CUSTO",
+      "dfc_class": "OPERATING",
+      "notes": "Quatro pagamentos distintos; alerta eliminado."
+    },
+    "JUL-DEC-007": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Salário/remuneração",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Grupo consolidado tratado como remuneração; não separar vales como natureza distinta."
+    },
+    "JUL-DEC-008": {
+      "response": "B",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Adiantamento a empregados",
+      "final_account": "1.1.02.003",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "NONE",
+      "dfc_class": "OPERATING",
+      "patrimonial": "Adiantamentos a Empregados",
+      "notes": "Não reconhecer salário novamente no adiantamento."
+    },
+    "JUL-DEC-009": {
+      "response": "B",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Pró-labore/remuneração",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Não usar conta patrimonial de adiantamento."
+    },
+    "JUL-DEC-010": {
+      "response": "E",
+      "resolved": false,
+      "final_status": "PRIOR_PERIOD_REVIEW",
+      "notes": "Origem, natureza e competência de 2025 desconhecidas; não inventar passivo ou despesa de Julho."
+    },
+    "JUL-DEC-011": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Alimentação/refeição",
+      "final_cost_center": "Clínica Efetiva",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Natureza compatível com alimentação/refeição; conta oficial ainda depende do plano."
+    },
+    "JUL-DEC-012": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Materiais de consumo",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Não estoque."
+    },
+    "JUL-DEC-013": {
+      "response": "PENDING",
+      "resolved": false,
+      "final_status": "DECISION_REQUIRED",
+      "notes": "Centro de custo/linha não informado."
+    },
+    "JUL-DEC-014": {
+      "response": "C",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Cursos/capacitação",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Despesa administrativa."
+    },
+    "JUL-DEC-015": {
+      "response": "B",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Despesa administrativa",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Não custo clínico nem adiantamento."
+    },
+    "JUL-DEC-016": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Energia elétrica — fatura corrente",
+      "final_cost_center": "Clínica Efetiva",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Competência Julho; não dívida antiga/parcelamento. Centro preservado conforme fonte."
+    },
+    "JUL-DEC-017": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Materiais de consumo",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Não estoque/ativo."
+    },
+    "JUL-DEC-018": {
+      "response": "A",
+      "resolved": true,
+      "final_status": "READY",
+      "final_nature": "Despesa administrativa — consumo imediato",
+      "final_cost_center": "Administrativo/Corporativo",
+      "dre_effect": "DESPESA",
+      "dfc_class": "OPERATING",
+      "notes": "Não ativo imobilizado."
+    },
+    "JUL-DEC-019": {
+      "response": "A",
+      "resolved": false,
+      "final_status": "DECISION_REQUIRED",
+      "source_date_error": "2026-09-17",
+      "confirmed_competence": "2026-07",
+      "notes": "Competência Julho confirmada, mas data exata não informada. Não usar 17/09/2026 nem inventar data de Julho."
+    }
+  },
+  "readiness": {
+    "before": {
+      "READY": 78,
+      "DECISION_REQUIRED": 27,
+      "POTENTIAL_DUPLICATE": 8,
+      "PRIOR_PERIOD_REVIEW": 1,
+      "UNRESOLVED_ALLOCATION": 1
+    },
+    "after": {
+      "READY": 105,
+      "READY_LEGACY_POLICY": 0,
+      "DECISION_REQUIRED": 9,
+      "POTENTIAL_DUPLICATE": 0,
+      "PRIOR_PERIOD_REVIEW": 1,
+      "UNRESOLVED_ALLOCATION": 0,
+      "INVALID": 0
+    },
+    "total_facts": 115,
+    "pending_decisions": [
+      "JUL-DEC-013",
+      "JUL-DEC-004",
+      "JUL-DEC-019",
+      "JUL-DEC-010",
+      "JUL-DEC-003",
+      "JUL-DEC-002"
+    ]
+  },
+  "duplicate_reviews": {
+    "resolved_distinct": [
+      "FLX-2026-0595",
+      "FLX-2026-0596",
+      "FLX-2026-0598",
+      "FLX-2026-0599",
+      "FLX-2026-0600",
+      "FLX-2026-0601"
+    ],
+    "remaining": 0
+  },
+  "cash": {
+    "opening": 7021.13,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "net_change": 6636.63,
+    "closing": 13657.76,
+    "difference": 0
+  },
+  "projection": {
+    "resolved_facts": 105,
+    "fully_projectable_facts": 104,
+    "date_pending_resolved_facts": 1,
+    "pending_facts": 10,
+    "projected_amount_all_resolved": 139518.24,
+    "projected_amount_with_dates": 130518.24,
+    "journals_projected_conceptual": 105,
+    "journals_fully_projectable": 104,
+    "journals_blocked": 11,
+    "lines_projected_conceptual": 210,
+    "lines_fully_projectable": 208,
+    "balanced_debits": 130518.24,
+    "balanced_credits": 130518.24
+  },
+  "pending_decisions": [
+    {
+      "decision_id": "JUL-DEC-002",
+      "status": "DECISION_REQUIRED",
+      "response": "E",
+      "fact_ids": [
+        "FLX-2026-0660"
+      ],
+      "total_amount": 9752.65,
+      "descriptions": "Empréstimo (S)",
+      "blocking_reason": "Composição desconhecida; não aprovado split de principal/juros/encargos. Política legado agregada não aprovada para Julho.",
+      "required_information": "Contraparte, data e composição; decisão sobre política agregada"
+    },
+    {
+      "decision_id": "JUL-DEC-003",
+      "status": "DECISION_REQUIRED",
+      "response": "C",
+      "fact_ids": [
+        "FLX-2026-0659"
+      ],
+      "total_amount": 12000,
+      "descriptions": "Entrada NU",
+      "blocking_reason": "Confirmado que não é transferência própria; natureza econômica ainda não identificada.",
+      "required_information": "Natureza econômica e data"
+    },
+    {
+      "decision_id": "JUL-DEC-004",
+      "status": "DECISION_REQUIRED",
+      "response": "E",
+      "fact_ids": [
+        "FLX-2026-0621",
+        "FLX-2026-0652"
+      ],
+      "total_amount": 663.47,
+      "descriptions": "Fatura Cartao Cora; Fatura Cartão Caixa",
+      "blocking_reason": "Composição das faturas desconhecida; não assumir compras lançadas ou não lançadas.",
+      "required_information": "Composição das faturas e compras componentes"
+    },
+    {
+      "decision_id": "JUL-DEC-010",
+      "status": "PRIOR_PERIOD_REVIEW",
+      "response": "E",
+      "fact_ids": [
+        "FLX-2026-0653"
+      ],
+      "total_amount": 3100,
+      "descriptions": "Pagamento prestação de serviços Valdilene 2025",
+      "blocking_reason": "Origem, natureza e competência de 2025 desconhecidas; não inventar passivo ou despesa de Julho.",
+      "required_information": "Origem, natureza, competência e evidência de 2025"
+    },
+    {
+      "decision_id": "JUL-DEC-013",
+      "status": "DECISION_REQUIRED",
+      "response": "PENDING",
+      "fact_ids": [
+        "FLX-2026-0616",
+        "FLX-2026-0617",
+        "FLX-2026-0634",
+        "FLX-2026-0651"
+      ],
+      "total_amount": 354.82,
+      "descriptions": "Internet Vivo; Conta vivo; Internet Vivo; Fatura Vivo",
+      "blocking_reason": "Centro de custo/linha não informado.",
+      "required_information": "Centro de custo e linha/unidade da telefonia"
+    },
+    {
+      "decision_id": "JUL-DEC-019",
+      "status": "DECISION_REQUIRED",
+      "response": "A",
+      "fact_ids": [
+        "FLX-2026-0628"
+      ],
+      "total_amount": 503.41,
+      "descriptions": "Material de cozinha",
+      "blocking_reason": "Competência Julho confirmada, mas data exata não informada. Não usar 17/09/2026 nem inventar data de Julho.",
+      "required_information": "Centro/linha e data exata de Julho"
+    }
+  ],
+  "prohibitions": {
+    "financial_writes": false,
+    "import": false,
+    "batch": false,
+    "journal_real": false,
+    "lock": false,
+    "migration": false,
+    "commit": false,
+    "push": false,
+    "prod": false
+  },
+  "final_status": {
+    "FIN_IMPORT_8_2": "COMPLETE_WITH_PENDING_DECISIONS",
+    "READY_FOR_FIN_IMPORT_8_3": "NO",
+    "READY_FOR_IMPORT": "NO"
+  }
+}

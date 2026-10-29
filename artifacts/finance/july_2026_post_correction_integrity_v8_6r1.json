@@ -1,0 +1,40 @@
+{
+  "gate": "FIN-IMPORT-8.6R1",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-28T21:03:56.729Z",
+  "correction_executed": false,
+  "financial_state_unchanged": true,
+  "batch": {
+    "id": "da6025fd-d747-4833-85c5-8ca9c6ef8670",
+    "status": "completed",
+    "manifest_hash": "843ca14b1a9bbe0eac27790ce25069823e3de58a89d43ef038d5d423a4f666e0"
+  },
+  "ledger": {
+    "facts": 115,
+    "journals": 115,
+    "lines": 230,
+    "debits": 165892.59,
+    "credits": 165892.59,
+    "imbalance": 0,
+    "unique_external_ids": 115
+  },
+  "cash": {
+    "opening": 7021.13,
+    "inflows": 86264.61,
+    "outflows": 79627.98,
+    "closing": 13657.76,
+    "difference": 0
+  },
+  "dre_result": 902.75,
+  "dfc_total": 6636.63,
+  "technical_metadata_target": {
+    "transaction_date": "2026-07-31",
+    "original_source_date": "2026-09-17",
+    "technical_date": false
+  },
+  "july_locked": false,
+  "june_locked": true,
+  "prod_touched": false,
+  "status": "PASS_WITH_UNCORRECTED_METADATA_GAP"
+}

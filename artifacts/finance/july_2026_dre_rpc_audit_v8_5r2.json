@@ -1,0 +1,30 @@
+{
+  "gate": "FIN-IMPORT-8.5R2",
+  "environment": "DEV",
+  "read_only": true,
+  "rpc_name": "get_income_statement(date,date,uuid,uuid)",
+  "rpc_security": "SECURITY DEFINER",
+  "rpc_requires": [
+    "auth.uid() IS NOT NULL",
+    "public.is_internal_user()"
+  ],
+  "rpc_grants": [
+    "authenticated",
+    "service_role",
+    "postgres"
+  ],
+  "rpc_cli_result": "RPC_NOT_EXECUTABLE_FROM_CURRENT_CLI_CONTEXT",
+  "failure_class": "C",
+  "failure_class_label": "erro de autenticação da sessão CLI",
+  "direct_rule": "financial_chart_accounts.dre_class with account nature and settled journal lines filtered by competence_date",
+  "direct_values": {
+    "revenue": 65264.61,
+    "costs": 22438.32,
+    "expenses": 41923.54,
+    "result": 902.75
+  },
+  "formula": "65264.61 - 22438.32 - 41923.54 = 902.75",
+  "direct_dre_reconciliation": "PASS",
+  "validation": "PASS_WITH_AUTH_CONTEXT_LIMITATION",
+  "no_security_change": true
+}

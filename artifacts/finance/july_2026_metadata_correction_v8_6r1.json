@@ -1,0 +1,53 @@
+{
+  "gate": "FIN-IMPORT-8.6R1",
+  "environment": "DEV",
+  "read_only": true,
+  "generated_at": "2026-10-28T21:03:56.729Z",
+  "target_external_id": "FLX-2026-0628",
+  "transaction_id": "944151b6-9e99-456c-a76d-385d8714b06a",
+  "field": "technical_date",
+  "old_value": false,
+  "requested_new_value": true,
+  "reason": "Correção de metadata da política de data técnica aprovada para migração de Julho/2026.",
+  "preserved_values": {
+    "transaction_date": "2026-07-31",
+    "original_source_date": "2026-09-17",
+    "confirmed_competence": null,
+    "correction_method": "APPEND_ONLY"
+  },
+  "append_only_metadata_correction_supported": "NO",
+  "mechanisms_audited": {
+    "financial_notes": {
+      "exists": true,
+      "append_insert_possible": true,
+      "effective_metadata_override": false,
+      "reason": "notes are annotations and do not change transaction effective metadata"
+    },
+    "update_financial_transaction": {
+      "exists": true,
+      "append_only_ledger_behavior": true,
+      "usable": false,
+      "reason": "requires pending transaction and reverses/recreates journals; target is settled and financial effects must not change"
+    },
+    "reversal_replacement": {
+      "exists": true,
+      "usable": false,
+      "reason": "financial correction would create unnecessary economic/journal noise"
+    },
+    "metadata_override_event": {
+      "exists": false
+    },
+    "correction_log": {
+      "exists": false
+    },
+    "transaction_versioning": {
+      "exists": true,
+      "usable": false,
+      "reason": "version/CAS is mutable transaction update, not metadata-only append event"
+    }
+  },
+  "action": "NOT_EXECUTED",
+  "database_write": false,
+  "architectural_gap": true,
+  "metadata_correction_requires_architectural_support": true
+}

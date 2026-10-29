@@ -1,0 +1,20 @@
+{
+  "gate": "FIN-IMPORT-8.5R1",
+  "batch_key": "FIN-IMPORT-8.5-JULY-2026",
+  "second_run": "READ_ONLY_EQUIVALENT_CHECK",
+  "before": {
+    "batch": 1,
+    "facts": 115,
+    "journals": 115,
+    "lines": 230
+  },
+  "after": {
+    "batch": 1,
+    "facts": 115,
+    "journals": 115,
+    "lines": 230
+  },
+  "duplicates_created": 0,
+  "status": "PASS",
+  "generated_at": "2026-10-28T20:49:28.386Z"
+}

@@ -1,0 +1,16 @@
+{
+  "gate": "FIN-IMPORT-8.7",
+  "environment": "DEV",
+  "lock_id": "d4cd2a1d-df5a-4c1d-ae36-5d9f4f6b2165",
+  "first_run": {
+    "created": true,
+    "locks_after": 1
+  },
+  "second_run": {
+    "existing_july_locks": 1,
+    "action": "DETECTED_EXISTING_LOCK_NO_INSERT",
+    "new_locks": 0
+  },
+  "status": "PASS",
+  "generated_at": "2026-10-29T10:46:06.294Z"
+}

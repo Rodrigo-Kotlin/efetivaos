@@ -1,0 +1,14 @@
+metric,expected,actual,status
+batch,1,1,PASS
+facts,115,115,PASS
+unique_external_ids,115,115,PASS
+journals,115,115,PASS
+lines,230,230,PASS
+debits,165892.59,165892.59,PASS
+credits,165892.59,165892.59,PASS
+difference,0.00,0.00,PASS
+unbalanced,0,0,PASS
+orphan_facts,0,0,PASS
+orphan_journals,0,0,PASS
+orphan_lines,0,0,PASS
+wrong_batch_rows,0,0,PASS

@@ -1,0 +1,11 @@
+{
+  "gate": "FIN-IMPORT-8.5",
+  "status": "NOT_EXECUTED_DUE_PRECHECK_ABORT",
+  "batch_key": "FIN-IMPORT-8.5-JULY-2026",
+  "manifest_sha256": "1cb56b8942a54bde2a6c17aa35a569bcf876d09bc6c7e1b4abc474d975013862",
+  "existing_batches": 0,
+  "existing_transactions": 0,
+  "existing_journals": 0,
+  "second_run": "NOT_EXECUTED",
+  "reason": "Precheck aborted before write due to missing required transaction dates."
+}

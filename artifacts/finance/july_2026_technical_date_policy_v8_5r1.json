@@ -1,0 +1,43 @@
+{
+  "gate": "FIN-IMPORT-8.5R1",
+  "previous_manifest_hash": "1cb56b8942a54bde2a6c17aa35a569bcf876d09bc6c7e1b4abc474d975013862",
+  "new_manifest_hash": "843ca14b1a9bbe0eac27790ce25069823e3de58a89d43ef038d5d423a4f666e0",
+  "changed_facts": [
+    {
+      "external_id": "FLX-2026-0659",
+      "transaction_date": "2026-07-31",
+      "metadata": {
+        "technical_date": true,
+        "original_source_date": null,
+        "confirmed_competence": "2026-07",
+        "date_source": "monthly_summary",
+        "date_note": "Data técnica utilizada exclusivamente para migração; a data real não foi identificada na fonte."
+      }
+    },
+    {
+      "external_id": "FLX-2026-0660",
+      "transaction_date": "2026-07-31",
+      "metadata": {
+        "technical_date": true,
+        "original_source_date": null,
+        "confirmed_competence": "2026-07",
+        "date_source": "monthly_summary",
+        "date_note": "Data técnica utilizada exclusivamente para migração; a data real não foi identificada na fonte."
+      }
+    },
+    {
+      "external_id": "FLX-2026-0661",
+      "transaction_date": "2026-07-31",
+      "metadata": {
+        "technical_date": true,
+        "original_source_date": null,
+        "confirmed_competence": "2026-07",
+        "date_source": "monthly_summary",
+        "date_note": "Data técnica utilizada exclusivamente para migração; a data real não foi identificada na fonte."
+      }
+    }
+  ],
+  "changed_count": 3,
+  "unchanged_count": 112,
+  "policy": "31/07/2026 used exclusively as technical migration date; no assertion of actual event date."
+}

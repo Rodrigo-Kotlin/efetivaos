@@ -1,0 +1,7 @@
+dre_class,amount,official_basis,note
+RECEITA_BRUTA,65264.61,account.dre_class,Receitas operacionais
+CUSTO_SERVICO,22438.32,account.dre_class,Custos classificados pela conta
+DESPESA_OPERACIONAL,41923.54,account.dre_class,Despesas classificadas pela conta
+OTHER_DRE,0,account.dre_class,"Outras classes DRE, se houver"
+NONE,36266.12,account.dre_class,Itens patrimoniais/provisórios sem efeito DRE
+RESULT,902.75,account.dre_class,Resultado oficial projetado

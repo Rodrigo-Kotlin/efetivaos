@@ -1,0 +1,5 @@
+item,date,description,amount,status,source_competence,review
+FLX-2026-0553,2026-07-08,Mensalidade Arati Junho,2423.25,READY,2026-07,Verificar reconhecimento no período original e política legado; não reabrir período fechado
+FLX-2026-0628,2026-09-17,Material de cozinha,503.41,PRIOR_PERIOD_REVIEW,2026-07,Verificar reconhecimento no período original e política legado; não reabrir período fechado
+FLX-2026-0632,2026-07-22,Serviços Contábeis Junho,400,READY,2026-07,Verificar reconhecimento no período original e política legado; não reabrir período fechado
+FLX-2026-0653,2026-07-31,Pagamento prestação de serviços Valdilene 2025,3100,DECISION_REQUIRED,2026-07,Verificar reconhecimento no período original e política legado; não reabrir período fechado

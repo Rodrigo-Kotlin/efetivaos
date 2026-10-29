@@ -1,0 +1,77 @@
+{
+  "gate": "FIN-IMPORT-8.5",
+  "status": "ABORTED_PREWRITE",
+  "environment": {
+    "target": "DEV",
+    "project_ref": "bxviuzluxcijbqqbpyzb",
+    "prod_touched": false
+  },
+  "precheck": {
+    "IMPORT_PRECHECK": "FAIL",
+    "IDEMPOTENCY_PRECHECK": "PASS",
+    "manifest_hash_matches": true,
+    "manifest_hash": "1cb56b8942a54bde2a6c17aa35a569bcf876d09bc6c7e1b4abc474d975013862",
+    "expected_manifest_hash": "1cb56b8942a54bde2a6c17aa35a569bcf876d09bc6c7e1b4abc474d975013862",
+    "missing_required_transaction_dates": [
+      {
+        "external_id": "FLX-2026-0659",
+        "description": "Entrada NU",
+        "source_row": 184
+      },
+      {
+        "external_id": "FLX-2026-0660",
+        "description": "Empréstimo (S)",
+        "source_row": 185
+      },
+      {
+        "external_id": "FLX-2026-0661",
+        "description": "Empréstimo (E)",
+        "source_row": 186
+      }
+    ],
+    "transaction_date_schema_required": true
+  },
+  "atomic_import": "NOT_STARTED",
+  "batch_id": null,
+  "rows_written": 0,
+  "transactions_written": 0,
+  "journals_written": 0,
+  "lines_written": 0,
+  "reason": "Manifest contains three summary facts without transaction dates; the schema requires transaction_date NOT NULL and no approved technical date exists in the manifest. Import must not invent dates.",
+  "blocked_facts": [
+    {
+      "external_id": "FLX-2026-0659",
+      "description": "Entrada NU",
+      "source_row": 184
+    },
+    {
+      "external_id": "FLX-2026-0660",
+      "description": "Empréstimo (S)",
+      "source_row": 185
+    },
+    {
+      "external_id": "FLX-2026-0661",
+      "description": "Empréstimo (E)",
+      "source_row": 186
+    }
+  ],
+  "expected": {
+    "facts": 115,
+    "journals": 115,
+    "lines": 230
+  },
+  "post_write_validation": "NOT_EXECUTED",
+  "prohibitions": {
+    "financial_writes": false,
+    "prod": false,
+    "batch_created": false,
+    "journal_created": false,
+    "lock_created": false
+  },
+  "final_status": {
+    "FIN-IMPORT-8.5": "FAIL",
+    "READY_FOR_FIN_IMPORT_8_6": "NO",
+    "READY_FOR_IMPORT": "NO"
+  },
+  "recommended_action": "Obtain the three real dates or approve a technical-date policy, regenerate the manifest and hash, then rerun FIN-IMPORT-8.5."
+}

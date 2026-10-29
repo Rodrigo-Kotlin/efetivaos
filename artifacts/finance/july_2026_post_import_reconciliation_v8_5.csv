@@ -1,0 +1,9 @@
+check,expected,found,status
+batch,1,0,NOT_EXECUTED
+facts,115,0,NOT_EXECUTED
+journals,115,0,NOT_EXECUTED
+lines,230,0,NOT_EXECUTED
+debits,165892.59,0,NOT_EXECUTED
+credits,165892.59,0,NOT_EXECUTED
+imbalance,0,0,NOT_EXECUTED
+cora_closing,13657.76,NOT_EXECUTED,NOT_EXECUTED
