@@ -3,7 +3,12 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { ExpenseCompositionRow } from '../api/finance-api'
 import { sortExpenseComposition } from './expense-composition-chart-helpers'
 
-const COLORS = ['#0B6B3A', '#2E7D5B', '#4D9A73', '#76B88F', '#A2D0B4', '#D0E6D9', '#557A68', '#879F93']
+const COLORS = ['#16A34A', '#2563EB', '#D97706', '#7C3AED', '#0F766E', '#DC2626', '#4F46E5', '#0891B2', '#475569', '#DB2777']
+
+function colorForAccount(accountCode: string): string {
+  const hash = Array.from(accountCode).reduce((total, character) => total + character.charCodeAt(0), 0)
+  return COLORS[hash % COLORS.length]
+}
 
 const fmt = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
@@ -52,8 +57,8 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
                 stroke="#FFFFFF"
                 strokeWidth={2}
               >
-                {sortedRows.map((row, index) => (
-                  <Cell key={row.account_code} fill={COLORS[index % COLORS.length]} />
+                {sortedRows.map(row => (
+                  <Cell key={row.account_code} fill={colorForAccount(row.account_code)} />
                 ))}
               </Pie>
               <Tooltip
@@ -61,11 +66,11 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
                   const row = payload?.[0]?.payload as ExpenseCompositionRow | undefined
                   if (!active || !row) return null
                   return (
-                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
-                      <p className="font-semibold text-slate-800">{row.account_name}</p>
-                      <p className="text-slate-500">{row.account_code}</p>
-                      <p className="mt-1 font-medium text-slate-800">{fmt(row.amount)}</p>
-                      <p className="text-slate-500">{fmtPct(row.percentage)}</p>
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
+                       <p className="flex items-center gap-1.5 font-semibold text-slate-800"><span className="size-2 rounded-full" style={{ backgroundColor: colorForAccount(row.account_code) }} aria-hidden="true" />{row.account_name}</p>
+                       <p className="mt-1 text-slate-500">Código: {row.account_code}</p>
+                       <div className="mt-1 flex justify-between gap-5"><span className="text-slate-500">Valor</span><strong className="tabular-nums text-slate-900">{fmt(row.amount)}</strong></div>
+                       <div className="flex justify-between gap-5"><span className="text-slate-500">Participação</span><strong className="tabular-nums text-slate-900">{fmtPct(row.percentage)}</strong></div>
                     </div>
                   )
                 }}
@@ -75,9 +80,9 @@ export function ExpenseCompositionChart({ rows, isLoading, isError }: ExpenseCom
         </div>
 
         <div className="space-y-2" aria-label="Detalhamento da composição das despesas">
-          {sortedRows.map((row, index) => (
+          {sortedRows.map(row => (
             <div key={row.account_code} className="flex min-w-0 items-start gap-2 text-sm">
-              <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} aria-hidden="true" />
+                   <span className="mt-1.5 size-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorForAccount(row.account_code) }} aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-slate-700" title={`${row.account_name} (${row.account_code})`}>{row.account_name}</p>
                 <p className="text-xs text-slate-500">{row.account_code}</p>

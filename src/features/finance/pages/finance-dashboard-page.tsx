@@ -70,6 +70,14 @@ function comparisonLabel(current: number, previous: number): string {
   return `${((current - previous) / Math.abs(previous) * 100).toFixed(1)}% vs mês anterior`
 }
 
+type KpiVariant = 'cash' | 'revenue' | 'net-revenue' | 'cost' | 'expense' | 'profit-positive' | 'profit-negative' | 'profit-neutral' | 'analytics' | 'margin' | 'margin-secondary' | 'liquidity'
+
+function resultVariant(value: number): KpiVariant {
+  if (value > 0) return 'profit-positive'
+  if (value < 0) return 'profit-negative'
+  return 'profit-neutral'
+}
+
 type DailyCashflowPoint = {
   date: string
   inflows: number
@@ -135,13 +143,35 @@ function CashflowChart({ rows, openingBalance, isLoading, isError }: {
             <XAxis dataKey="date" tickFormatter={formatDate} minTickGap={24} tick={{ fontSize: 11, fill: '#64748B' }} />
             <YAxis tickFormatter={value => fmt(Number(value))} width={88} tick={{ fontSize: 11, fill: '#64748B' }} />
             <Tooltip
-              labelFormatter={label => `Data: ${formatDate(String(label))}`}
-              formatter={(value, name) => [fmt(Number(value ?? 0)), name === 'inflows' ? 'Entradas' : name === 'outflows' ? 'Saídas' : 'Saldo']}
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null
+                const labels: Record<string, { label: string; color: string }> = {
+                  inflows: { label: 'Entradas', color: '#16A34A' },
+                  outflows: { label: 'Saídas', color: '#DC2626' },
+                  balance: { label: 'Saldo', color: '#2563EB' },
+                }
+                return (
+                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-lg">
+                    <p className="mb-1 font-semibold text-slate-800">Data: {formatDate(String(label))}</p>
+                    <div className="space-y-1">
+                      {payload.map(item => {
+                        const tone = labels[String(item.dataKey)] ?? { label: String(item.dataKey), color: '#475569' }
+                        return (
+                          <div key={String(item.dataKey)} className="flex items-center justify-between gap-5">
+                            <span className="flex items-center gap-1.5 text-slate-600"><span className="size-2 rounded-full" style={{ backgroundColor: tone.color }} aria-hidden="true" />{tone.label}</span>
+                            <strong className="tabular-nums text-slate-900">{fmt(Number(item.value ?? 0))}</strong>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              }}
             />
             <Legend formatter={value => value === 'inflows' ? 'Entradas' : value === 'outflows' ? 'Saídas' : 'Saldo'} />
-            <Bar dataKey="inflows" name="inflows" fill="#2E7D5B" radius={[3, 3, 0, 0]} maxBarSize={28} />
-            <Bar dataKey="outflows" name="outflows" fill="#C62828" radius={[3, 3, 0, 0]} maxBarSize={28} />
-            <Line type="monotone" dataKey="balance" name="balance" stroke="#334155" strokeWidth={2} dot={false} />
+            <Bar dataKey="inflows" name="inflows" fill="#16A34A" radius={[3, 3, 0, 0]} maxBarSize={28} />
+            <Bar dataKey="outflows" name="outflows" fill="#DC2626" radius={[3, 3, 0, 0]} maxBarSize={28} />
+            <Line type="monotone" dataKey="balance" name="balance" stroke="#2563EB" strokeWidth={2.5} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -221,31 +251,40 @@ function KpiTooltip({ label, description }: { label: string; description: string
   )
 }
 
-function KpiCard({ label, value, variant = 'default', subtitle, comparison, icon, description }: {
+function KpiCard({ label, value, variant = 'cash', subtitle, comparison, icon, description }: {
   label: string
   value: string
-  variant?: 'default' | 'warning' | 'danger' | 'success'
+  variant?: KpiVariant
   subtitle?: string
   comparison?: string
   icon?: React.ReactNode
   description: string
 }) {
-  const colors = {
-    default: 'border-[#E3EAE6] bg-white',
-    warning: 'border-[#E3EAE6] bg-white',
-    danger: 'border-[#E3EAE6] bg-white',
-    success: 'border-[#E3EAE6] bg-white',
+  const colors: Record<KpiVariant, { card: string; icon: string; value: string }> = {
+    cash: { card: 'border border-blue-200 border-t-2 border-t-blue-600', icon: 'bg-blue-50 text-blue-700', value: 'text-slate-900' },
+    revenue: { card: 'border border-emerald-200 border-t-2 border-t-emerald-600', icon: 'bg-emerald-50 text-emerald-700', value: 'text-slate-900' },
+    'net-revenue': { card: 'border border-teal-200 border-t-2 border-t-teal-600', icon: 'bg-teal-50 text-teal-700', value: 'text-slate-900' },
+    cost: { card: 'border border-amber-200 border-t-2 border-t-amber-600', icon: 'bg-amber-50 text-amber-700', value: 'text-slate-900' },
+    expense: { card: 'border border-red-200 border-t-2 border-t-red-600', icon: 'bg-red-50 text-red-700', value: 'text-slate-900' },
+    'profit-positive': { card: 'border border-emerald-200 border-t-2 border-t-emerald-600', icon: 'bg-emerald-50 text-emerald-700', value: 'text-emerald-700' },
+    'profit-negative': { card: 'border border-red-200 border-t-2 border-t-red-600', icon: 'bg-red-50 text-red-700', value: 'text-red-700' },
+    'profit-neutral': { card: 'border border-slate-200 border-t-2 border-t-slate-500', icon: 'bg-slate-100 text-slate-600', value: 'text-slate-700' },
+    analytics: { card: 'border border-indigo-200 border-t-2 border-t-indigo-600', icon: 'bg-indigo-50 text-indigo-700', value: 'text-slate-900' },
+    margin: { card: 'border border-violet-200 border-t-2 border-t-violet-600', icon: 'bg-violet-50 text-violet-700', value: 'text-slate-900' },
+    'margin-secondary': { card: 'border border-purple-200 border-t-2 border-t-purple-600', icon: 'bg-purple-50 text-purple-700', value: 'text-slate-900' },
+    liquidity: { card: 'border border-cyan-200 border-t-2 border-t-cyan-600', icon: 'bg-cyan-50 text-cyan-700', value: 'text-slate-900' },
   }
+  const color = colors[variant]
   return (
-    <div className={`min-w-0 rounded-xl border p-4 shadow-sm ${colors[variant]}`}>
+    <div className={`min-w-0 rounded-xl bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${color.card}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-1.5">
           <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</p>
           <KpiTooltip label={label} description={description} />
         </div>
-        {icon && <span className="rounded-lg bg-emerald-50 p-2 text-emerald-700" aria-hidden="true">{icon}</span>}
+        {icon && <span className={`rounded-lg p-2 ${color.icon}`} aria-hidden="true">{icon}</span>}
       </div>
-      <p className={`mt-3 min-w-0 whitespace-nowrap font-serif text-xl font-semibold tabular-nums sm:text-2xl ${variant === 'danger' ? 'text-[#C62828]' : 'text-slate-900'}`}>{value}</p>
+      <p className={`mt-3 min-w-0 whitespace-nowrap font-serif text-xl font-semibold tabular-nums sm:text-2xl ${color.value}`}>{value}</p>
       {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
       {comparison && <p className="mt-2 text-xs font-medium text-slate-500">{comparison}</p>}
     </div>
@@ -254,7 +293,7 @@ function KpiCard({ label, value, variant = 'default', subtitle, comparison, icon
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-slate-300 hover:shadow-md">
       <h3 className="font-serif text-lg font-semibold text-slate-800">{title}</h3>
       <div className="mt-3">{children}</div>
     </div>
@@ -263,12 +302,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function StatementLinks() {
   const links = [
-    { to: '/finance/dre', label: 'DRE', desc: 'Demonstração do Resultado' },
-    { to: '/finance/cash-flow-statement', label: 'DFC', desc: 'Demonstração dos Fluxos de Caixa' },
-    { to: '/finance/balance-sheet', label: 'Balanço Patrimonial', desc: 'Posição patrimonial' },
-    { to: '/finance/dmpl', label: 'DMPL', desc: 'Mutacoes do PL' },
-    { to: '/finance/dlpa', label: 'DLPA', desc: 'Lucros/Prejuizos Acumulados' },
-    { to: '/finance/dva', label: 'DVA', desc: 'Demonstração do Valor Adicionado' },
+    { to: '/finance/dre', label: 'DRE', desc: 'Demonstração do Resultado', tone: 'border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 group-hover:text-emerald-700' },
+    { to: '/finance/cash-flow-statement', label: 'DFC', desc: 'Demonstração dos Fluxos de Caixa', tone: 'border-blue-200 hover:border-blue-400 hover:bg-blue-50 group-hover:text-blue-700' },
+    { to: '/finance/balance-sheet', label: 'Balanço Patrimonial', desc: 'Posição patrimonial', tone: 'border-violet-200 hover:border-violet-400 hover:bg-violet-50 group-hover:text-violet-700' },
+    { to: '/finance/dmpl', label: 'DMPL', desc: 'Mutacoes do PL', tone: 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 group-hover:text-indigo-700' },
+    { to: '/finance/dlpa', label: 'DLPA', desc: 'Lucros/Prejuizos Acumulados', tone: 'border-amber-200 hover:border-amber-400 hover:bg-amber-50 group-hover:text-amber-700' },
+    { to: '/finance/dva', label: 'DVA', desc: 'Demonstração do Valor Adicionado', tone: 'border-cyan-200 hover:border-cyan-400 hover:bg-cyan-50 group-hover:text-cyan-700' },
   ]
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -276,9 +315,9 @@ function StatementLinks() {
         <Link
           key={l.to}
           to={l.to}
-          className="group rounded-lg border border-slate-200 p-3 transition hover:border-emerald-300 hover:bg-emerald-50"
+          className={`group rounded-lg border p-3 transition hover:-translate-y-0.5 ${l.tone}`}
         >
-          <span className="text-sm font-medium text-slate-700 group-hover:text-emerald-700">{l.label}</span>
+          <span className="text-sm font-medium text-slate-700">{l.label}</span>
           <span className="mt-0.5 block text-xs text-slate-500">{l.desc}</span>
         </Link>
       ))}
@@ -529,6 +568,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Saldo Cora"
           value={fmt(currentCash)}
+          variant="cash"
           subtitle={`Posição em ${formatDate(periodReference)}`}
           comparison={previousCf ? comparisonLabel(currentCash, previousCf.closing_balance) : undefined}
           icon={<Wallet className="size-4" />}
@@ -537,6 +577,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Receita Bruta"
           value={fmt(is.revenue)}
+          variant="revenue"
           comparison={previousIs ? comparisonLabel(is.revenue, previousIs.revenue) : undefined}
           icon={<TrendingUp className="size-4" />}
           description="Receita Bruta da DRE oficial no período selecionado."
@@ -544,6 +585,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Receita Líquida"
           value={fmt(currentNetRevenue)}
+          variant="net-revenue"
           comparison={previousIs ? comparisonLabel(currentNetRevenue, previousIs.net_revenue) : undefined}
           icon={<Activity className="size-4" />}
           description="Receita Bruta menos deduções da receita na DRE oficial."
@@ -551,6 +593,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Custos"
           value={fmt(currentCosts)}
+          variant="cost"
           comparison={previousIs ? comparisonLabel(currentCosts, Math.abs(previousIs.cogs)) : undefined}
           icon={<TrendingDown className="size-4" />}
           description="Custos dos Serviços Prestados na apresentação oficial da DRE."
@@ -558,6 +601,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Despesas"
           value={fmt(currentExpenses)}
+          variant="expense"
           comparison={previousIs ? comparisonLabel(currentExpenses, Math.abs(previousIs.opex)) : undefined}
           icon={<TrendingDown className="size-4" />}
           description="Despesas Operacionais na apresentação oficial da DRE."
@@ -569,7 +613,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Resultado Líquido"
           value={fmt(currentNetResult)}
-          variant={currentNetResult < 0 ? 'danger' : 'default'}
+          variant={resultVariant(currentNetResult)}
           comparison={previousIs ? comparisonLabel(currentNetResult, previousIs.net_result) : undefined}
           icon={<CircleDollarSign className="size-4" />}
           description="Resultado da DRE oficial no período selecionado."
@@ -577,8 +621,8 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="EBITDA"
           value={fmt(is.ebitda)}
+          variant="analytics"
           subtitle={`Margem: ${pct(is.margin_ebitda)}`}
-          variant={is.ebitda < 0 ? 'danger' : 'default'}
           comparison={previousIs ? comparisonLabel(is.ebitda, previousIs.ebitda) : undefined}
           icon={<Activity className="size-4" />}
           description="EBITDA Gerencial da DRE oficial no período selecionado."
@@ -586,7 +630,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Margem EBITDA"
           value={pct(is.margin_ebitda)}
-          variant={is.margin_ebitda < 0 ? 'danger' : 'default'}
+          variant="margin"
           comparison={previousIs ? comparisonLabel(is.margin_ebitda, previousIs.margin_ebitda) : undefined}
           icon={<TrendingUp className="size-4" />}
           description="EBITDA dividido pela Receita Líquida, conforme a DRE oficial."
@@ -594,7 +638,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Margem Líquida"
           value={pct(is.margin_net)}
-          variant={is.margin_net < 0 ? 'danger' : 'default'}
+          variant="margin-secondary"
           comparison={previousIs ? comparisonLabel(is.margin_net, previousIs.margin_net) : undefined}
           icon={<TrendingUp className="size-4" />}
           description="Resultado Líquido dividido pela Receita Líquida, conforme a DRE oficial."
@@ -602,7 +646,7 @@ export default function FinanceDashboardPage() {
         <KpiCard
           label="Liquidez Corrente"
           value={bs.current_ratio.toFixed(2)}
-          variant={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'warning' : 'default'}
+          variant="liquidity"
           comparison={previousBs ? comparisonLabel(bs.current_ratio, previousBs.current_ratio) : undefined}
           icon={<Scale className="size-4" />}
           description="Ativo Circulante dividido pelo Passivo Circulante no BP até a data de referência."
@@ -611,13 +655,13 @@ export default function FinanceDashboardPage() {
 
       <Section title="Resumo do Fluxo de Caixa">
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium">{fmt(cf.opening_balance)}</span></div>
+            <div className="flex justify-between"><span className="text-slate-600">Saldo inicial</span><span className="font-medium text-blue-700">{fmt(cf.opening_balance)}</span></div>
           <div className="flex justify-between text-emerald-700"><span>Entradas realizadas</span><span className="font-medium">{fmt(cf.realized_inflows)}</span></div>
           <div className="flex justify-between text-red-700"><span>Saídas realizadas</span><span className="font-medium">{fmt(cf.realized_outflows)}</span></div>
-          <div className="border-t pt-2 font-medium"><span>Saldo realizado</span><span>{fmt(cf.closing_balance)}</span></div>
+            <div className="border-t border-blue-100 pt-2 font-medium"><span>Saldo realizado</span><span className="text-blue-700">{fmt(cf.closing_balance)}</span></div>
           <div className="flex justify-between text-emerald-600"><span>Entradas previstas</span><span>{fmt(cf.projected_inflows)}</span></div>
           <div className="flex justify-between text-red-600"><span>Saídas previstas</span><span>{fmt(cf.projected_outflows)}</span></div>
-          <div className="border-t pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance < 0 ? 'text-red-700' : ''}>{fmt(cf.projected_balance)}</span></div>
+            <div className="border-t border-slate-200 pt-2 font-semibold"><span>Saldo projetado</span><span className={cf.projected_balance < 0 ? 'text-red-700' : 'text-blue-700'}>{fmt(cf.projected_balance)}</span></div>
         </div>
       </Section>
 
@@ -653,7 +697,7 @@ export default function FinanceDashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Section title="Contas a Receber">
           <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ar.open)}</p></div>
+             <div><p className="text-xs text-blue-600">Em aberto</p><p className="font-semibold text-blue-700">{fmt(ar.open)}</p></div>
             <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ar.overdue)}</p></div>
           </div>
           <DashboardCollectionPreview rows={receivables?.rows} isLoading={isReceivablesLoading || isReceivablesFetching} isError={isReceivablesError} emptyMessage="Nenhuma conta a receber neste período." errorMessage="Erro ao carregar as contas a receber." viewHref="/finance/receivables" viewLabel="Ver contas a receber" />
@@ -661,7 +705,7 @@ export default function FinanceDashboardPage() {
 
         <Section title="Contas a Pagar">
           <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
-            <div><p className="text-xs text-slate-500">Em aberto</p><p className="font-semibold text-slate-900">{fmt(ap.open)}</p></div>
+             <div><p className="text-xs text-blue-600">Em aberto</p><p className="font-semibold text-blue-700">{fmt(ap.open)}</p></div>
             <div><p className="text-xs text-red-600">Vencidos</p><p className="font-semibold text-red-700">{fmt(ap.overdue)}</p></div>
           </div>
           <DashboardCollectionPreview rows={payables?.rows} isLoading={isPayablesLoading || isPayablesFetching} isError={isPayablesError} emptyMessage="Nenhuma conta a pagar neste período." errorMessage="Erro ao carregar as contas a pagar." viewHref="/finance/payables" viewLabel="Ver contas a pagar" />
@@ -672,29 +716,29 @@ export default function FinanceDashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Section title="Resultado do Período">
           <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between"><span className="text-slate-600">Receita Bruta</span><span>{fmt(is.revenue)}</span></div>
+            <div className="flex justify-between"><span className="text-emerald-700">Receita Bruta</span><span className="text-emerald-700">{fmt(is.revenue)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Deduções</span><span>{fmt(is.revenue_deductions)}</span></div>
-            <div className="flex justify-between font-medium"><span>Receita Líquida</span><span>{fmt(is.net_revenue)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">(-) Custos dos Serviços</span><span>{fmt(is.cogs)}</span></div>
+            <div className="flex justify-between font-medium"><span className="text-teal-700">Receita Líquida</span><span className="text-teal-700">{fmt(is.net_revenue)}</span></div>
+            <div className="flex justify-between"><span className="text-amber-700">(-) Custos dos Serviços</span><span className="text-amber-700">{fmt(is.cogs)}</span></div>
             <div className="flex justify-between font-medium"><span>Lucro Bruto</span><span>{fmt(is.gross_profit)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">(-) Despesas Operacionais</span><span>{fmt(is.opex)}</span></div>
+            <div className="flex justify-between"><span className="text-red-700">(-) Despesas Operacionais</span><span className="text-red-700">{fmt(is.opex)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Depreciacao</span><span>{fmt(is.depreciation)}</span></div>
-            <div className="flex justify-between font-medium border-t pt-1"><span>EBITDA</span><span>{fmt(is.ebitda)}</span></div>
+            <div className="flex justify-between font-medium border-t border-indigo-100 pt-1"><span className="text-indigo-700">EBITDA</span><span className="text-indigo-700">{fmt(is.ebitda)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Resultado Financeiro</span><span>{fmt(is.financial_result)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">(-) Impostos</span><span>{fmt(is.tax)}</span></div>
-            <div className="flex justify-between border-t pt-1 font-semibold text-lg"><span>Resultado Líquido</span><span className={is.net_result < 0 ? 'text-red-700' : 'text-emerald-700'}>{fmt(is.net_result)}</span></div>
+            <div className="flex justify-between border-t border-slate-200 pt-1 text-lg font-semibold"><span>Resultado Líquido</span><span className={is.net_result > 0 ? 'text-emerald-700' : is.net_result < 0 ? 'text-red-700' : 'text-slate-600'}>{fmt(is.net_result)}</span></div>
           </div>
         </Section>
 
         <Section title="Posição Patrimonial">
           <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between"><span className="text-slate-600">Ativo Total</span><span className="font-medium">{fmt(bs.total_assets)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Passivo Circulante</span><span>{fmt(bs.current_liabilities)}</span></div>
-            <div className="flex justify-between"><span className="text-slate-600">Passivo Não Circulante</span><span>{fmt(bs.non_current_liabilities)}</span></div>
+            <div className="flex justify-between"><span className="text-cyan-700">Ativo Total</span><span className="font-medium text-cyan-700">{fmt(bs.total_assets)}</span></div>
+            <div className="flex justify-between"><span className="text-amber-700">Passivo Circulante</span><span>{fmt(bs.current_liabilities)}</span></div>
+            <div className="flex justify-between"><span className="text-amber-700">Passivo Não Circulante</span><span>{fmt(bs.non_current_liabilities)}</span></div>
             <div className="flex justify-between font-medium"><span>Passivo Total</span><span>{fmt(bs.total_liabilities)}</span></div>
-            <div className="flex justify-between font-medium border-t pt-1"><span>Patrimônio Líquido</span><span>{fmt(bs.equity)}</span></div>
+            <div className="flex justify-between font-medium border-t border-violet-100 pt-1"><span className="text-violet-700">Patrimônio Líquido</span><span className="text-violet-700">{fmt(bs.equity)}</span></div>
             <div className="flex justify-between border-t pt-1"><span>Capital Circulante Líquido</span><span className={bs.working_capital < 0 ? 'text-red-700 font-medium' : 'font-medium'}>{fmt(bs.working_capital)}</span></div>
-            <div className="flex justify-between"><span>Liquidez Corrente</span><span className={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'text-amber-700 font-medium' : 'font-medium'}>{bs.current_ratio.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span className="text-cyan-700">Liquidez Corrente</span><span className={bs.current_ratio > 0 && bs.current_ratio < 1 ? 'text-amber-700 font-medium' : 'font-medium text-cyan-700'}>{bs.current_ratio.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Endividamento Geral</span><span>{bs.leverage.toFixed(2)}</span></div>
           </div>
         </Section>

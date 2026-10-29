@@ -9,7 +9,7 @@ import { getStatusLabel, MOVEMENT_TYPE_LABELS } from '../schemas/finance-schemas
 const STATUS_ICONS = { pending: Clock, settled: CheckCircle, cancelled: XCircle } as const
 const STATUS_COLORS = {
   pending: 'bg-amber-100 text-amber-800',
-  settled: 'bg-emerald-100 text-emerald-800',
+  settled: 'bg-slate-100 text-slate-700',
   cancelled: 'bg-slate-100 text-slate-600',
 } as const
 
@@ -38,6 +38,23 @@ function amountTone(type: FinancialMovementType) {
   return 'text-slate-800'
 }
 
+function movementTone(type: FinancialMovementType) {
+  if (type === 'RECEITA' || type === 'APORTE') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (type === 'DESPESA') return 'border-red-200 bg-red-50 text-red-700'
+  if (type === 'TRANSFERENCIA') return 'border-blue-200 bg-blue-50 text-blue-700'
+  if (type === 'EMPRESTIMO_RECEBIDO') return 'border-indigo-200 bg-indigo-50 text-indigo-700'
+  if (type === 'EMPRESTIMO_PAGO' || type === 'RETIRADA') return 'border-amber-200 bg-amber-50 text-amber-800'
+  return 'border-slate-200 bg-slate-50 text-slate-700'
+}
+
+function statusTone(row: FinancialTransactionList) {
+  if (row.status !== 'settled') return STATUS_COLORS[row.status] || 'bg-slate-100 text-slate-600'
+  if (INCOMING_TYPES.includes(row.movement_type)) return 'bg-emerald-100 text-emerald-800'
+  if (OUTGOING_TYPES.includes(row.movement_type)) return 'bg-red-100 text-red-800'
+  if (row.movement_type === 'TRANSFERENCIA') return 'bg-blue-100 text-blue-800'
+  return STATUS_COLORS.settled
+}
+
 function Amount({ row }: { row: FinancialTransactionList }) {
   const isIncoming = INCOMING_TYPES.includes(row.movement_type)
   const isOutgoing = OUTGOING_TYPES.includes(row.movement_type)
@@ -54,7 +71,7 @@ function Amount({ row }: { row: FinancialTransactionList }) {
 function StatusBadge({ row }: { row: FinancialTransactionList }) {
   const StatusIcon = STATUS_ICONS[row.status] || Clock
   return (
-    <Badge className={STATUS_COLORS[row.status] || 'bg-slate-100 text-slate-600'}>
+    <Badge className={statusTone(row)}>
       <StatusIcon className="mr-1 size-3" aria-hidden="true" />
       {getStatusLabel(row.status, row.movement_type)}
     </Badge>
@@ -105,7 +122,7 @@ export function FinancialMovementsList({ rows, isLoading, isError, viewHref }: F
               <tr key={row.id} className="border-t border-slate-100 align-middle">
                 <td className="whitespace-nowrap px-4 py-3 text-slate-600">{formatDate(row.transaction_date)}</td>
                 <td className="max-w-[240px] px-4 py-3 font-medium text-slate-800" title={row.description}><span className="block truncate">{row.description}</span></td>
-                <td className="px-4 py-3"><Badge variant="outline">{MOVEMENT_TYPE_LABELS[row.movement_type]}</Badge></td>
+                <td className="px-4 py-3"><Badge variant="outline" className={movementTone(row.movement_type)}>{MOVEMENT_TYPE_LABELS[row.movement_type]}</Badge></td>
                 <td className="max-w-[190px] px-4 py-3 text-slate-600" title={sourceLabel(row)}><span className="block truncate">{sourceLabel(row)}</span></td>
                 <td className="px-4 py-3"><StatusBadge row={row} /></td>
                 <td className="px-4 py-3 text-right"><Amount row={row} /></td>
@@ -125,7 +142,7 @@ export function FinancialMovementsList({ rows, isLoading, isError, viewHref }: F
                 <Amount row={row} />
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant="outline">{MOVEMENT_TYPE_LABELS[row.movement_type]}</Badge>
+                <Badge variant="outline" className={movementTone(row.movement_type)}>{MOVEMENT_TYPE_LABELS[row.movement_type]}</Badge>
                 <StatusBadge row={row} />
               </div>
             </li>
