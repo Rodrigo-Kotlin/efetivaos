@@ -14,6 +14,10 @@ export function isExpired(validUntil: string | null, today = new Date()): boolea
   return validUntil < localToday
 }
 
+export function effectiveValidUntil(validUntil: string | null, extensions: Array<{ extended_until: string }> = []) {
+  return extensions.reduce<string | null>((current, extension) => !current || extension.extended_until > current ? extension.extended_until : current, validUntil)
+}
+
 export function matchesValidity(validUntil: string | null, filter: ValidityFilter, today = new Date()) {
   if (filter === 'all') return true
   if (filter === 'no-validity') return validUntil === null

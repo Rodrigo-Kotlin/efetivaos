@@ -838,6 +838,14 @@ Métodos afetados:
 
 **Aplicado:** Migration `20260923000400_harden_supplier_code_trigger_execute_and_default_acl.sql` (REVOKE do helper + `ALTER DEFAULT PRIVILEGES ... REVOKE ... FROM anon`); suíte `2h2_execute_and_default_acl_security` 27/27; regressão mandatória (2h1 26, sprint_02 156, sprint_03 33, sprint_04 28, sprint_05 48, 2a 53, 2b 31, 2e 21, 2e_out 14, catalog_auto_code 11) sem regressão; pricing_schema mantém falha pré-existente (test 40); 09a PART B verde em comportamento.
 
+### LL-064 — Prorrogação é evento, não alteração do documento
+
+**Data:** 2026-11-03
+
+**Aprendizado:** Quando uma cotação vencida recebe autorização posterior, alterar `valid_until` destrói a evidência original. Uma tabela de eventos com validade efetiva derivada permite reativar a comparação sem redigitar itens e mantém auditoria completa.
+
+**Aplicado:** RPC transacional com CAS, RLS para usuários internos e views de elegibilidade usando a última prorrogação.
+
 **Impacto futuro:** para remover EXECUTE de PUBLIC em funções, default privileges NÃO resolve — usar REVOKE explícito por função e manter a invariante de catálogo; medir A6 pela ACL literal (`aclexplode`), não por `has_function_privilege` (anon herda de PUBLIC); em assertivas de exceção, passar `ERRCODE` no `throws_ok` (não a mensagem); converter suítes `finish()`-style para o harness de temp table ao rodar via CLI.
 
 ### LL-064 - Fase 2H.3: search_path 'public, pg_temp' em security definer e vetor de hijack; resolve unqualified para pg_catalog; normalizacao por ALTER vs CREATE OR REPLACE

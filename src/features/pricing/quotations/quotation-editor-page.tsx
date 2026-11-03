@@ -17,7 +17,7 @@ import type { Supplier } from '@/types/database'
 import { QuotationDetail } from './quotation-detail'
 import { QuotationHeaderForm } from './quotation-header-form'
 import { QuotationItemsGrid } from './quotation-items-grid'
-import { useActivateQuotation, useArchiveQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useQuotation, useSaveQuotationDraft, useUnarchiveQuotation } from './quotation.queries'
+import { useActivateQuotation, useArchiveQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useExtendQuotationValidity, useQuotation, useSaveQuotationDraft, useUnarchiveQuotation } from './quotation.queries'
 import { getQuotationAttachmentUrl } from './quotation.service'
 import { normalizeQuotationValues, parseBrlDecimal, quotationDefaults, quotationSchema, type QuotationFormValues } from './quotation.schemas'
 import { QuotationStatusBadge } from './quotation-badges'
@@ -69,6 +69,7 @@ export default function QuotationEditorPage() {
   const saveMutation = useSaveQuotationDraft()
   const activateMutation = useActivateQuotation()
   const cancelMutation = useCancelQuotation()
+  const extendMutation = useExtendQuotationValidity()
   const archiveMutation = useArchiveQuotation()
   const unarchiveMutation = useUnarchiveQuotation()
   const discardPendingAttachmentMutation = useDiscardPendingQuotationAttachment()
@@ -264,11 +265,11 @@ export default function QuotationEditorPage() {
   if (editing && query.isError) return <ErrorState onRetry={() => void query.refetch()} />
   if (editing && !quotation) return null
 
-  const pending = saveMutation.isPending || activateMutation.isPending || cancelMutation.isPending || archiveMutation.isPending || unarchiveMutation.isPending || discardPendingAttachmentMutation.isPending
+  const pending = saveMutation.isPending || activateMutation.isPending || cancelMutation.isPending || extendMutation.isPending || archiveMutation.isPending || unarchiveMutation.isPending || discardPendingAttachmentMutation.isPending
   const title = !quotation ? 'Nova cotação' : quotation.reference_number || 'Cotação sem referência'
   const actions = <><Button asChild variant="outline"><Link to="/pricing/quotations"><ArrowLeft className="size-4" /> Voltar</Link></Button>{!readonly && <Button type="button" variant="outline" disabled={pending || !online || persistedAttachmentPending} onClick={() => void form.handleSubmit(saveDraft)()}><Save className="size-4" /> Salvar rascunho</Button>}{!readonly && <Button type="button" disabled={pending || !online || persistedAttachmentPending || !activationReady} aria-describedby="activation-button-help" onClick={() => void form.handleSubmit(activate)()}><Power className="size-4" /> Ativar</Button>}{quotation && quotation.status !== 'cancelled' && !isArchived && <Button type="button" variant="destructive" disabled={pending || !online || persistedAttachmentPending} onClick={() => void cancel()}><Ban className="size-4" /> Cancelar cotação</Button>}{quotation && !isArchived && <Button type="button" variant="outline" disabled={pending || !online} onClick={() => void archiveMutation.mutateAsync(quotation.id).then(() => { toast.success('Cotação arquivada.') }).catch((error) => { toast.error(message(error)) })}><Archive className="size-4" /> Arquivar cotação</Button>}{quotation && isArchived && <Button type="button" variant="outline" disabled={pending || !online} onClick={() => void unarchiveMutation.mutateAsync(quotation.id).then(() => { toast.success('Cotação desarquivada.') }).catch((error) => { toast.error(message(error)) })}><ArchiveRestore className="size-4" /> Desarquivar cotação</Button>}</>
 
-  if (readonly && quotation) return <div className="mx-auto max-w-[1480px]"><PageHeader eyebrow="Cotações" title={title} description={isArchived ? "Cotação arquivada. Desarquive para editar, ativar ou cancelar." : "Registro histórico somente para leitura."} actions={actions} /><QuotationDetail quotation={quotation} onOpenAttachment={() => void openAttachment()} /></div>
+  if (readonly && quotation) return <div className="mx-auto max-w-[1480px]"><PageHeader eyebrow="Cotações" title={title} description={isArchived ? "Cotação arquivada. Desarquive para editar, ativar ou cancelar." : "Registro histórico somente para leitura."} actions={actions} /><QuotationDetail quotation={quotation} onOpenAttachment={() => void openAttachment()} onExtend={isArchived ? undefined : () => { if (!window.confirm('Prorrogar esta cotação por mais 30 dias?')) return; void extendMutation.mutateAsync({ id: quotation.id, expectedRevision: quotation.revision }).then(() => toast.success('Validade prorrogada por 30 dias.')).catch((error) => toast.error(message(error))) }} /></div>
 
   const mastersLoading = suppliersQuery.isLoading || catalogQuery.isLoading
   const mastersError = suppliersQuery.isError || catalogQuery.isError

@@ -483,6 +483,21 @@ Não registrar tarefas triviais ou detalhes sem impacto futuro.
 
 ---
 
+## DEC-043 — Prorrogação de validade sem reescrita da cotação
+
+**Data:** 2026-11-03
+**Status:** FECHADA
+
+**Contexto:** Fornecedores podem autorizar mais 30 dias depois de uma cotação ativa vencer, mas editar a cotação original apagaria a validade que constava no documento recebido.
+
+**Decisão:** A validade original permanece em `quotations.valid_until`. A ação “Prorrogar 30 dias” grava um evento em `quotation_validity_extensions`, com validade anterior, nova validade, usuário, data e justificativa. A comparação usa a última validade efetiva; itens, preços e documento original não são duplicados nem redigitados.
+
+**Motivo:** Resolver a operação recorrente sem perder rastreabilidade ou permitir edição silenciosa de um registro histórico.
+
+**Impacto:** A prorrogação é atômica, exige cotação ativa e revisão CAS atualizada. A nova migration precisa ser aplicada ao ambiente antes do botão funcionar.
+
+---
+
 ## DEC-034 — CRM Light: Equipe possui CRUD idêntico ao Admin
 
 **Data:** 2026-08-25

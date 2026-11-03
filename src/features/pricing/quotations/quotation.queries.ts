@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { comparisonKeys } from '@/features/pricing/comparison/comparison-queries'
 
-import { activateQuotation, archiveQuotation, cancelQuotation, discardPendingQuotationAttachment, getQuotation, listQuotations, saveQuotationDraft, unarchiveQuotation } from './quotation.service'
+import { activateQuotation, archiveQuotation, cancelQuotation, discardPendingQuotationAttachment, extendQuotationValidity, getQuotation, listQuotations, saveQuotationDraft, unarchiveQuotation } from './quotation.service'
 
 export const quotationKeys = {
   all: ['quotations'] as const,
@@ -40,6 +40,11 @@ export function useActivateQuotation() {
 export function useCancelQuotation() {
   const invalidate = useInvalidateQuotations()
   return useMutation({ mutationFn: cancelQuotation, onSuccess: (quotation) => invalidate(quotation.id, true) })
+}
+
+export function useExtendQuotationValidity() {
+  const invalidate = useInvalidateQuotations()
+  return useMutation({ mutationFn: extendQuotationValidity, onSuccess: (quotation) => invalidate(quotation.id, true) })
 }
 
 export function useDiscardPendingQuotationAttachment() {

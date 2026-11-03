@@ -5,8 +5,8 @@ import type { QuotationAttachmentRecoveryInput, QuotationDetail, QuotationDraftI
 
 type ServiceError = { code?: string; message?: string; details?: string; constraint?: string }
 
-const listSelect = 'id, reference_number, received_at, valid_until, status, updated_at, archived_at, supplier:suppliers!quotations_supplier_id_fkey(id, name), quotation_items(id)'
-const detailSelect = 'id, supplier_id, reference_number, received_at, valid_until, status, source_file_path, source_file_pending, revision, notes, archived_at, archived_by, created_at, created_by, updated_at, updated_by, supplier:suppliers!quotations_supplier_id_fkey(id, name, active), quotation_items(id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price, notes, created_at, created_by, updated_at, updated_by, catalog_item:catalog_items(id, code, name, unit, category_id, active, sourcing_type, category:catalog_categories(id, name)))'
+const listSelect = 'id, reference_number, received_at, valid_until, status, updated_at, archived_at, supplier:suppliers!quotations_supplier_id_fkey(id, name), quotation_items(id), validity_extensions:quotation_validity_extensions(extended_until)'
+const detailSelect = 'id, supplier_id, reference_number, received_at, valid_until, status, source_file_path, source_file_pending, revision, notes, archived_at, archived_by, created_at, created_by, updated_at, updated_by, supplier:suppliers!quotations_supplier_id_fkey(id, name, active), quotation_items(id, quotation_id, catalog_item_id, supplier_description, supplier_item_code, unit_price, notes, created_at, created_by, updated_at, updated_by, catalog_item:catalog_items(id, code, name, unit, category_id, active, sourcing_type, category:catalog_categories(id, name))), validity_extensions:quotation_validity_extensions(id, quotation_id, previous_valid_until, extended_until, reason, created_at, created_by)'
 
 export function translateQuotationError(error: ServiceError): Error {
   const text = `${error.message ?? ''} ${error.details ?? ''} ${error.constraint ?? ''}`.toLowerCase()
@@ -119,6 +119,11 @@ export async function activateQuotation({ id, expectedRevision }: QuotationLifec
 
 export async function cancelQuotation({ id, expectedRevision }: QuotationLifecycleInput) {
   const { data, error } = await supabase.from('quotations').update({ status: 'cancelled' }).eq('id', id).eq('revision', expectedRevision).in('status', ['draft', 'active']).select().single()
+  return mutationRow(data, error)
+}
+
+export async function extendQuotationValidity({ id, expectedRevision }: QuotationLifecycleInput): Promise<Quotation> {
+  const { data, error } = await supabase.rpc('extend_quotation_validity' as never, { p_quotation_id: id, p_expected_revision: expectedRevision, p_reason: 'Prorrogação autorizada pelo fornecedor por mais 30 dias' } as never) as unknown as { data: Quotation | null; error: ServiceError | null }
   return mutationRow(data, error)
 }
 

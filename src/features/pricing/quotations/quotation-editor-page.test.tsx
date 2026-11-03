@@ -5,7 +5,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import type { Supplier } from '@/types/database'
 
 import QuotationEditorPage from './quotation-editor-page'
-import { useActivateQuotation, useArchiveQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useQuotation, useSaveQuotationDraft, useUnarchiveQuotation } from './quotation.queries'
+import { useActivateQuotation, useArchiveQuotation, useCancelQuotation, useDiscardPendingQuotationAttachment, useExtendQuotationValidity, useQuotation, useSaveQuotationDraft, useUnarchiveQuotation } from './quotation.queries'
 import type { QuotationDetail } from './quotation.types'
 import { useCatalogItems } from '../catalog/catalog.queries'
 import { useSuppliers } from '../suppliers/supplier-queries'
@@ -18,7 +18,7 @@ vi.mock('react-router-dom', async (importOriginal) => ({
   ...await importOriginal<typeof import('react-router-dom')>(),
   useNavigate: () => routerMocks.navigate,
 }))
-vi.mock('./quotation.queries', () => ({ useQuotation: vi.fn(), useSaveQuotationDraft: vi.fn(), useActivateQuotation: vi.fn(), useCancelQuotation: vi.fn(), useDiscardPendingQuotationAttachment: vi.fn(), useArchiveQuotation: vi.fn(), useUnarchiveQuotation: vi.fn() }))
+vi.mock('./quotation.queries', () => ({ useQuotation: vi.fn(), useSaveQuotationDraft: vi.fn(), useActivateQuotation: vi.fn(), useCancelQuotation: vi.fn(), useDiscardPendingQuotationAttachment: vi.fn(), useExtendQuotationValidity: vi.fn(), useArchiveQuotation: vi.fn(), useUnarchiveQuotation: vi.fn() }))
 vi.mock('../catalog/catalog.queries', () => ({ useCatalogItems: vi.fn() }))
 vi.mock('../suppliers/supplier-queries', () => ({ useSuppliers: vi.fn() }))
 vi.mock('@/hooks/use-online-status', () => ({ useOnlineStatus: vi.fn() }))
@@ -50,6 +50,7 @@ describe('QuotationEditorPage', () => {
     vi.mocked(useSaveQuotationDraft).mockReturnValue({ mutateAsync: save, isPending: false } as unknown as ReturnType<typeof useSaveQuotationDraft>)
     vi.mocked(useActivateQuotation).mockReturnValue({ mutateAsync: activate, isPending: false } as unknown as ReturnType<typeof useActivateQuotation>)
     vi.mocked(useCancelQuotation).mockReturnValue({ mutateAsync: cancel, isPending: false } as unknown as ReturnType<typeof useCancelQuotation>)
+    vi.mocked(useExtendQuotationValidity).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useExtendQuotationValidity>)
     vi.mocked(useDiscardPendingQuotationAttachment).mockReturnValue({ mutateAsync: discardPendingAttachment, isPending: false } as unknown as ReturnType<typeof useDiscardPendingQuotationAttachment>)
     vi.mocked(useArchiveQuotation).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useArchiveQuotation>)
     vi.mocked(useUnarchiveQuotation).mockReturnValue({ mutateAsync: vi.fn(), isPending: false } as unknown as ReturnType<typeof useUnarchiveQuotation>)

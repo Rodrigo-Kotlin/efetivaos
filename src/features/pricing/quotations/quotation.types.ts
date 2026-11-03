@@ -1,8 +1,19 @@
 import type { CatalogItem, Quotation, QuotationItem, Supplier } from '@/types/database'
 
+export type QuotationValidityExtension = {
+  id: string
+  quotation_id: string
+  previous_valid_until: string
+  extended_until: string
+  reason: string
+  created_at: string
+  created_by: string | null
+}
+
 export type QuotationListRow = Pick<Quotation, 'id' | 'reference_number' | 'received_at' | 'valid_until' | 'status' | 'updated_at' | 'archived_at'> & {
   supplier: Pick<Supplier, 'id' | 'name'>
   quotation_items: Array<Pick<QuotationItem, 'id'>>
+  validity_extensions?: Pick<QuotationValidityExtension, 'extended_until'>[]
 }
 
 export type QuotationItemRow = QuotationItem & {
@@ -14,6 +25,7 @@ export type QuotationItemRow = QuotationItem & {
 export type QuotationDetail = Quotation & {
   supplier: Pick<Supplier, 'id' | 'name' | 'active'>
   quotation_items: QuotationItemRow[]
+  validity_extensions?: QuotationValidityExtension[]
 }
 
 export type QuotationDraftItem = {

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { EmptyState, ErrorState, PageHeader, selectClassName, TableShell, TableSkeleton } from '@/components/shared/operational-ui'
 import { useOnlineStatus } from '@/hooks/use-online-status'
 
-import { formatDate, formatDateTime, matchesValidity, type ValidityFilter } from './quotation.helpers'
+import { effectiveValidUntil, formatDate, formatDateTime, matchesValidity, type ValidityFilter } from './quotation.helpers'
 import { useArchiveQuotation, useQuotations, useUnarchiveQuotation } from './quotation.queries'
 import { QuotationStatusBadge, QuotationValidityBadge } from './quotation-badges'
 import type { QuotationListRow } from './quotation.types'
@@ -30,10 +30,11 @@ function responsiveColumnClass(id: string) {
 
 function QuotationCard({ quotation, onArchive, onUnarchive, archivePending }: { quotation: QuotationListRow; onArchive: () => void; onUnarchive: () => void; archivePending: boolean }) {
   const isArchived = Boolean(quotation.archived_at)
+  const currentValidity = effectiveValidUntil(quotation.valid_until, quotation.validity_extensions ?? [])
   return <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
     <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-slate-500">Referência</p><h2 className="mt-1 font-serif text-xl font-semibold">{quotation.reference_number || 'Sem referência'}</h2><p className="mt-1 text-sm font-medium text-slate-700">{quotation.supplier.name}</p></div><QuotationStatusBadge status={quotation.status} archived={isArchived} /></div>
-    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt className="text-xs font-semibold text-slate-500">Recebida</dt><dd>{formatDate(quotation.received_at)}</dd></div><div><dt className="text-xs font-semibold text-slate-500">Validade</dt><dd>{formatDate(quotation.valid_until)}</dd></div><div><dt className="text-xs font-semibold text-slate-500">Itens</dt><dd>{quotation.quotation_items.length}</dd></div><div><dt className="text-xs font-semibold text-slate-500">Atualizada</dt><dd>{formatDateTime(quotation.updated_at)}</dd></div></dl>
-    <div className="mt-3"><QuotationValidityBadge validUntil={quotation.valid_until} /></div>
+    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm"><div><dt className="text-xs font-semibold text-slate-500">Recebida</dt><dd>{formatDate(quotation.received_at)}</dd></div><div><dt className="text-xs font-semibold text-slate-500">Validade</dt><dd>{formatDate(currentValidity)}</dd></div><div><dt className="text-xs font-semibold text-slate-500">Itens</dt><dd>{quotation.quotation_items.length}</dd></div><div><dt className="text-xs font-semibold text-slate-500">Atualizada</dt><dd>{formatDateTime(quotation.updated_at)}</dd></div></dl>
+    <div className="mt-3"><QuotationValidityBadge validUntil={currentValidity} /></div>
     <div className="mt-3 flex flex-col gap-2 sm:flex-row">
       <Button className="flex-1" asChild variant="outline"><Link to={`/pricing/quotations/${quotation.id}`}>{quotation.status === 'draft' && !isArchived ? <Pencil className="size-4" /> : <Eye className="size-4" />}{quotation.status === 'draft' && !isArchived ? 'Editar cotação' : 'Ver detalhes'}</Link></Button>
       {isArchived
@@ -63,8 +64,8 @@ export default function QuotationsPage() {
     { accessorKey: 'received_at', header: 'Recebida', cell: ({ getValue }) => formatDate(getValue<string>()) },
     {
       accessorKey: 'valid_until', header: 'Validade',
-      cell: ({ row }) => <div className="space-y-1"><span className="block">{formatDate(row.original.valid_until)}</span><QuotationValidityBadge validUntil={row.original.valid_until} /></div>,
-      filterFn: (row, _id, value: ValidityFilter) => matchesValidity(row.original.valid_until, value),
+      cell: ({ row }) => { const currentValidity = effectiveValidUntil(row.original.valid_until, row.original.validity_extensions ?? []); return <div className="space-y-1"><span className="block">{formatDate(currentValidity)}</span><QuotationValidityBadge validUntil={currentValidity} /></div> },
+      filterFn: (row, _id, value: ValidityFilter) => matchesValidity(effectiveValidUntil(row.original.valid_until, row.original.validity_extensions ?? []), value),
     },
     { id: 'item_count', accessorFn: (row) => row.quotation_items.length, header: 'Itens' },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <QuotationStatusBadge status={row.original.status} archived={Boolean(row.original.archived_at)} />, filterFn: (row, _id, value: StatusFilter) => value === 'all' || (value === 'operational' ? row.original.status === 'draft' || row.original.status === 'active' : row.original.status === value) },
