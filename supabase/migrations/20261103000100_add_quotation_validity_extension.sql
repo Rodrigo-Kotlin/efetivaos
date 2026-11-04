@@ -63,18 +63,14 @@ begin
     into v_previous
   from public.quotation_validity_extensions e
   where e.quotation_id = v_quotation.id;
+  if v_previous >= current_date then
+    raise exception 'A cotacao ainda esta vigente e nao precisa de nova prorrogacao.';
+  end if;
   v_extended := v_previous + 30;
 
   insert into public.quotation_validity_extensions (quotation_id, previous_valid_until, extended_until, reason, created_by)
   values (v_quotation.id, v_previous, v_extended, coalesce(nullif(trim(p_reason), ''), 'Prorrogação autorizada pelo fornecedor'), (select auth.uid()));
 
-  update public.quotations
-  set revision = revision + 1,
-      updated_at = now(),
-      updated_by = (select auth.uid())
-  where id = v_quotation.id and revision = p_expected_revision;
-
-  select * into v_quotation from public.quotations where id = p_quotation_id;
   return v_quotation;
 end;
 $$;
