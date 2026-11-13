@@ -4,6 +4,36 @@ Registro de aprendizados técnicos e de produto obtidos durante a construção d
 
 Este arquivo não substitui o Decision Register. Use-o para registrar descobertas, limitações, padrões e lições que possam melhorar as etapas seguintes.
 
+## LL-CC22 — Parser legado exige teste do artefato compilado, não só Node
+
+**Data:** 2026-11-12
+
+**Aprendizado:** O SheetJS oficial fornece correções fora do registry npm. O ESM
+precisa de codepage explícito para BIFF5 não inglês; testes Node podem passar sem
+reproduzir o empacotamento do navegador. Uma folha BIFF sem células pode ter
+!ref=A1, portanto escolher a primeira folha exige verificar células efetivas.
+
+**Aplicação:** Tarball oficial fixado, corpus exclusivamente sintético gerado com
+0.18.5 e comparação do resultado; worker Vite compilado testado sem rede externa.
+Validar expansão ZIP real/CRC em fluxo além dos metadados; timeout sozinho não
+impõe quota de heap. Manter regras financeiras abaixo do parsing byte-a-byte.
+Somente preparar o pacote; publicação requer outro gate autorizado.
+
+## LL-CC21 — Auditoria npm não substitui análise de alcance
+
+**Data:** 2026-11-12
+
+**Aprendizado:** fast-uri aparece no audit produtivo por Ajv/peer opcional, embora
+a aplicação use apenas zodResolver. DOMPurify é opcional de jsPDF.html, não usado
+pelo código atual. Já xlsx lê arquivos efetivos do Financeiro; autenticação não
+torna confiável uma planilha. Comparar lockfiles, imports, configurações e modos de
+exploração antes de aceitar ou corrigir riscos. Versão corrigida do Zod reforça
+coleções com limites, mas não cria limites onde o schema não os define.
+
+**Aplicação:** Mudança mínima de três nós do lockfile, quatro regressões de
+segurança e 828 testes existentes. Manter risco SheetJS pendente sem trocar o
+parser financeiro nem aceitar risco silenciosamente. Evidências em docs/44.
+
 ---
 
 ## LL-001 — Separar server state de UI state

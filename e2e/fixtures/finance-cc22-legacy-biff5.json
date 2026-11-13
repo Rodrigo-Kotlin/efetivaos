@@ -1,0 +1,17 @@
+{
+  "generatorVersion": "0.18.5",
+  "headers": [
+    "Data",
+    "Descrição",
+    "Valor",
+    "Tipo"
+  ],
+  "rows": [
+    {
+      "Data": 46023,
+      "Descrição": "CC22 BIFF5 ação",
+      "Valor": 1234.56,
+      "Tipo": "AJUSTE"
+    }
+  ]
+}

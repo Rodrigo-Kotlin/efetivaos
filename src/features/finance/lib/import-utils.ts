@@ -1,6 +1,9 @@
 import Papa from 'papaparse'
 import * as XLSX from 'xlsx'
 
+export { decodeCsvBuffer, parseCSV, parseXLSX } from './import-file-parser'
+export { parseFile } from './import-file-reader'
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -25,7 +28,7 @@ export type ColumnMapping = {
   notes?: string
 }
 
-export type ParsedRow = Record<string, string | number | null>
+export type ParsedRow = Record<string, string | number | boolean | null>
 
 /**
  * Structured validation error used by the result UI to present each rejection
@@ -181,80 +184,6 @@ const REFERENCE_FIELDS: Array<{ field: string; list: ReferenceListName; label: s
 // ---------------------------------------------------------------------------
 // Parse file
 // ---------------------------------------------------------------------------
-
-function stripBom(text: string): string {
-  return text.replace(/^\uFEFF/, '')
-}
-
-/**
- * Decodes a CSV file honouring the BOM and falling back to Windows-1252 when
- * the bytes are not valid UTF-8. pt-BR spreadsheets are commonly exported in
- * Windows-1252, which would otherwise garble accented headers ("Descrição").
- */
-export function decodeCsvBuffer(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer)
-  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
-    return stripBom(new TextDecoder('utf-8').decode(bytes.subarray(3)))
-  }
-  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xfe) {
-    return stripBom(new TextDecoder('utf-16le').decode(bytes.subarray(2)))
-  }
-  if (bytes.length >= 2 && bytes[0] === 0xfe && bytes[1] === 0xff) {
-    return stripBom(new TextDecoder('utf-16be').decode(bytes.subarray(2)))
-  }
-  try {
-    return stripBom(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
-  } catch {
-    return stripBom(new TextDecoder('windows-1252').decode(bytes))
-  }
-}
-
-export function parseCSV(rawText: string): { headers: string[]; rows: ParsedRow[] } {
-  const text = stripBom(rawText)
-  const result = Papa.parse(text, { header: true, skipEmptyLines: true, dynamicTyping: false })
-  const headers = (result.meta.fields || []).map(h => stripBom(h))
-  return { headers, rows: result.data as ParsedRow[] }
-}
-
-export function parseXLSX(buffer: ArrayBuffer): { headers: string[]; rows: ParsedRow[] } {
-  const wb = XLSX.read(buffer, { type: 'array' })
-  const sheetName =
-    wb.SheetNames.find(name => Boolean((wb.Sheets[name] as { '!ref'?: string } | undefined)?.['!ref'])) ??
-    wb.SheetNames[0]
-  const sheet = wb.Sheets[sheetName]
-  // raw:true keeps date cells as Excel serial numbers and numbers as numbers,
-  // which the normalisation helpers can handle deterministically.
-  const data = XLSX.utils.sheet_to_json<ParsedRow>(sheet, { defval: null, raw: true })
-  const headers = data.length > 0 ? Object.keys(data[0]) : []
-  return { headers, rows: data }
-}
-
-export function parseFile(file: File): Promise<{ headers: string[]; rows: ParsedRow[]; fileType: ImportFileType }> {
-  return new Promise((resolve, reject) => {
-    const ext = file.name.split('.').pop()?.toLowerCase()
-    if (ext === 'csv') {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const buffer = e.target?.result as ArrayBuffer
-        const { headers, rows } = parseCSV(decodeCsvBuffer(buffer))
-        resolve({ headers, rows, fileType: 'csv' })
-      }
-      reader.onerror = () => reject(new Error('Failed to read CSV file'))
-      reader.readAsArrayBuffer(file)
-    } else if (ext === 'xlsx' || ext === 'xls') {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const buffer = e.target?.result as ArrayBuffer
-        const { headers, rows } = parseXLSX(buffer)
-        resolve({ headers, rows, fileType: 'xlsx' })
-      }
-      reader.onerror = () => reject(new Error('Failed to read XLSX file'))
-      reader.readAsArrayBuffer(file)
-    } else {
-      reject(new Error('Unsupported file type. Use CSV, XLS or XLSX.'))
-    }
-  })
-}
 
 // ---------------------------------------------------------------------------
 // Column mapping

@@ -2,6 +2,26 @@
 
 ## Estado geral
 
+### Gate CLIENTES-CONTRATOS-22 — correção XLSX e revisão de release
+
+**Status:** COMPLETED_WITH_FINDINGS — pronto para revisão do frontend, sem publicar.
+
+SheetJS oficial 0.20.3 fixado, parser financeiro limitado em worker e suporte
+CSV/XLS/XLSX preservado. Auditoria produtiva sem alertas conhecidos, regressão
+local aprovada; alertas de desenvolvimento do CC21 permanecem separados.
+Não houve commit/push/deploy, acesso ao Supabase ou alteração de dados existentes.
+Relatório: `docs/45-clientes-contratos-22-xlsx-hardening.md`.
+
+### Gate CLIENTES-CONTRATOS-21 — auditoria direcionada
+
+**Status:** BLOCKED para publicação; correções locais e regressão concluídas.
+
+DOMPurify, fast-uri e Zod corrigidos no pacote isolado. Resta xlsx 0.18.5,
+efetivamente usado pelo importador financeiro; migração de distribuição depende
+de avaliação específica ou aceitação expressa do risco residual. Lint global
+preexistente não é bloqueador isolado. Sem commit/push/deploy ou acesso ao Supabase.
+Detalhes: `docs/44-clientes-contratos-21-dependency-review.md`.
+
 **Baseline funcional:** v0.2  
 **Baseline tÃ©cnico:** v0.3  
 **Status atual:** FASE 3C.5 - Registro da homologacao responsiva da Fase 3C.4 - COMPLETED.

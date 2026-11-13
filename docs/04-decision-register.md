@@ -1429,3 +1429,25 @@ automaticamente.
 **Decisão:** Publicar somente discard-client-contract-document em xktbqykxmfuuzepfnjns, mantendo verify_jwt=true e Auth.getUser/guards SQL. CORS HML limitado a http://127.0.0.1:4185, sem wildcard ou origem produtiva. Validar endpoint HTTPS real e navegador sem backend local/proxy, sem migração ou operação no projeto atual.
 
 **Impacto:** Origem produtiva será configurada separadamente como https://efetivaos.pages.dev apenas depois de autorização para o projeto atual. Inputs de deploy correspondem ao handler/entrypoint CC18, sem mudança de regra funcional. Vary pode conter Accept-Encoding acrescentado pelo gateway: exigir o token Origin, sem alargar métodos/headers/origens. Dispensa de backup da ADR-CC18 preservada; nenhum deploy produtivo ou push foi autorizado por este gate.
+
+### ADR-CC21 — Correção proporcional de dependências e risco residual SheetJS
+
+**Data:** 2026-11-12 (CLIENTES-CONTRATOS-21)
+**Status:** Correções locais validadas; publicação e aceitação de risco pendentes.
+
+**Decisão:** No pacote isolado CC19, atualizar somente DOMPurify 3.4.14 → 3.4.17, fast-uri 3.1.6 → 3.1.9 e Zod 4.4.3 → 4.6.6, sem alteração de major, código funcional de Connect/Financeiro ou dependências da Edge. Elevar o piso Zod para ^4.6.6 e preservar lockfile consistente. Não confundir dependências presentes em npm audit --omit=dev com execução efetiva no navegador; não atualizar a toolchain inteira por contagem de alertas.
+
+**Limite:** xlsx 0.18.5 tem duas falhas conhecidas e é efetivamente usado para ler arquivos no Financeiro. Não há versão corrigida no registry npm; migrar distribuição/parser exige avaliação específica desse módulo. Essa mudança não foi executada e o risco não foi aceito pelo agente. Publicação permanece suspensa até correção autorizada ou aceitação expressa e delimitada do risco pelo proprietário.
+
+**Lint:** Diagnósticos globais do candidato são idênticos aos do main com a mesma toolchain; Contratos não introduz erros. Conforme autorização CC21, lint global preexistente e não exigido pelo build/CI observado não é bloqueador isolado. Nenhum commit, push, deploy, acesso ao Supabase ou escrita de dados integra CC21. Ver docs/44 para evidências e condições de exploração.
+
+### ADR-CC22 — SheetJS oficial fixado e leitura financeira limitada em worker
+
+**Data:** 2026-11-12 (CLIENTES-CONTRATOS-22)
+**Status:** Implementado e validado localmente; somente preparação para revisão, sem publicação.
+
+**Decisão:** Substituir o xlsx npm 0.18.5 pelo tarball oficial SheetJS CE 0.20.3, Apache-2.0, vendorizado com hashes/SRI e lockfile. Preservar as APIs financeiras e os formatos CSV/XLS/XLSX. ExcelJS não atende ao XLS legado sem outro parser. Preservar DOMPurify 3.4.17, fast-uri 3.1.9 e Zod 4.6.6 do CC21. Fflate 0.8.3 já instalado passa a dependência direta para validar expansão real/CRC ZIP em fluxo, sem mudar sua versão.
+
+**Segurança:** Arquivo até 10 MiB (igual ao limite documentado em finance-imports), 10000 linhas de dados, 100 colunas, 250000 células na área selecionada e 32767 caracteres/célula. ZIP até 2048 entradas, 16 MiB por entrada e 64 MiB expandidos; conferir tamanhos reais, CRC, nomes e estrutura antes do SheetJS. Uma leitura por vez, em worker descartável com prazo de 15 s, sem fallback bloqueante. Cabeçalhos __proto__/prototype/constructor e macros/vínculos externos identificados são recusados. Não executar fórmulas, scripts ou buscas de links. Bloqueio de conteúdo HTML/texto renomeado como XLS não remove suporte a XLS/BIFF real.
+
+**Compatibilidade:** Codepage legado é configurado explicitamente no worker ESM; BIFF5 CP1252, BIFF8, XLSX e CSV foram testados em navegador com worker compilado. Regras de datas/BRL, mapeamento, referências, idempotência, preview e persistência permanecem inalteradas. Limites são controles de recursos, não certificação universal de memória do browser. Não acessar Supabase nem alterar cadastros, saldos, contratos ou Connect. Detalhes e limites de evidência em docs/45.

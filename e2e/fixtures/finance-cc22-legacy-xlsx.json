@@ -1,0 +1,26 @@
+{
+  "generatorVersion": "0.18.5",
+  "headers": [
+    "Data",
+    "Descrição",
+    "Valor",
+    "Tipo",
+    "Observação"
+  ],
+  "rows": [
+    {
+      "Data": 46023,
+      "Descrição": "CC22 FICTÍCIO",
+      "Valor": 1234.56,
+      "Tipo": "AJUSTE",
+      "Observação": null
+    },
+    {
+      "Data": "31/02/2026",
+      "Descrição": "Inválido",
+      "Valor": "dinheiro",
+      "Tipo": "AJUSTE",
+      "Observação": null
+    }
+  ]
+}

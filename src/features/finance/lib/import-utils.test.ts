@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { ImportTestWorker } from './import-worker.test-helper'
 import { parseFile, guessColumnMapping, generatePreview, buildPendingReview, TEMPLATE_COLUMNS, TEMPLATE_MAPPING, type ColumnMapping, type ReferenceLists } from './import-utils'
 
 describe('import-utils', () => {
@@ -59,6 +60,8 @@ describe('import-utils', () => {
   })
 
   describe('parseFile (CSV)', () => {
+    beforeEach(() => vi.stubGlobal('Worker', ImportTestWorker))
+    afterEach(() => vi.unstubAllGlobals())
     it('parses valid CSV file', async () => {
       const csv = 'transaction_date,description,amount,movement_type\n2026-01-15,Receita Teste,1500.00,RECEITA'
       const file = new File([csv], 'test.csv', { type: 'text/csv' })
