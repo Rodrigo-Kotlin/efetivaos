@@ -1,6 +1,6 @@
 import { Drawer } from '@/components/ui/drawer'
 import { useCrmPipelineAnalytics } from '../queries/pipeline-queries'
-import type { CrmPipelineAnalytics, CrmStageMetric, CrmLossAnalysis, CrmForecastMonth } from '@/types/database'
+import type { CrmStageMetric, CrmLossAnalysis, CrmForecastMonth } from '@/types/database'
 
 const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)

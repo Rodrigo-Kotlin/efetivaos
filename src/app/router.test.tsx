@@ -208,3 +208,18 @@ describe('preserved application navigation', () => {
     expect(mocks.discardDocument).not.toHaveBeenCalled()
   })
 })
+
+describe('DFC navigation', () => {
+  it('serves the canonical /finance/dfc route', async () => {
+    const { router } = renderApplication('/finance/dfc')
+    expect(await screen.findByRole('heading', { name: 'DFC - Demonstração dos Fluxos de Caixa' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/finance/dfc')
+  })
+
+  it('redirects the legacy /finance/cash-flow-statement URL to the canonical route', async () => {
+    const { router } = renderApplication('/finance/cash-flow-statement')
+    expect(await screen.findByRole('heading', { name: 'DFC - Demonstração dos Fluxos de Caixa' })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/finance/dfc')
+    expect(router.state.historyAction).toBe('REPLACE')
+  })
+})

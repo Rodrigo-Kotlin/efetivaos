@@ -308,7 +308,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function StatementLinks() {
   const links = [
     { to: '/finance/dre', label: 'DRE', desc: 'Demonstração do Resultado', tone: 'border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50 group-hover:text-emerald-700' },
-    { to: '/finance/cash-flow-statement', label: 'DFC', desc: 'Demonstração dos Fluxos de Caixa', tone: 'border-blue-200 hover:border-blue-400 hover:bg-blue-50 group-hover:text-blue-700' },
+    { to: '/finance/dfc', label: 'DFC', desc: 'Demonstração dos Fluxos de Caixa', tone: 'border-blue-200 hover:border-blue-400 hover:bg-blue-50 group-hover:text-blue-700' },
     { to: '/finance/balance-sheet', label: 'Balanço Patrimonial', desc: 'Posição patrimonial', tone: 'border-violet-200 hover:border-violet-400 hover:bg-violet-50 group-hover:text-violet-700' },
     { to: '/finance/dmpl', label: 'DMPL', desc: 'Mutacoes do PL', tone: 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50 group-hover:text-indigo-700' },
     { to: '/finance/dlpa', label: 'DLPA', desc: 'Lucros/Prejuizos Acumulados', tone: 'border-amber-200 hover:border-amber-400 hover:bg-amber-50 group-hover:text-amber-700' },

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/types/database'
-import type { OwnPriceProposal, OwnPriceProposalInsert, OwnPriceProposalItem, OwnPriceStatus, PriceList } from '@/types/database'
+import type { OwnPriceProposal, OwnPriceProposalInsert, OwnPriceProposalItem, OwnPriceStatus } from '@/types/database'
 
 import type { OwnCatalogItem } from './own-prices.types'
 

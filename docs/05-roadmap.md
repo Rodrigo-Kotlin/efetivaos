@@ -993,6 +993,10 @@ ApÃ³s estabilizaÃ§Ã£o do Motor de PreÃ§os:
 
 ## EfetivaConnect
 
+> Registro histórico de CONNECT-1. A continuidade do Connect no frontend EfetivaOS
+> foi descontinuada pelo proprietário no CLEANUP-03 (ADR-CLEANUP-03). O plano abaixo
+> não autoriza novas implementações, execuções ou remoções no backend/Edge.
+
 ### CONNECT-1 — Foundation
 
 **Status:** EM IMPLEMENTAÇÃO
@@ -1017,4 +1021,46 @@ Próximas fases planejadas:
 - CONNECT-3 — Inbox;
 - CONNECT-4 — Integração EfetivaOS;
 - CONNECT-5 — Pilot / cutover.
+
+## EFETIVAOS-CLEANUP-02 — base produtiva isolada e proteções offline
+
+**Escopo autorizado em 2026-11-13:** worktree `chore/efetivaos-cleanup` na base
+produtiva `9761f7419a201dfe1def1d209d7d27272b5038e8`, sem alterar o workspace
+original. Pontos de entrada de reset e runtime de março aposentados com negação;
+SQL original comentado, migrations históricas intactas e preflight offline de
+replay separado. Testes de segurança não executam os scripts operacionais.
+
+Não libera reprovisionamento, remoção de dados, migrations, Connect, commit/push
+ou deploy. A cópia original e CLI/painel SQL manual não são interceptados pelo
+preflight; a revisão desses limites permanece explícita. Resultado de regressão
+e próximo gate em `docs/49-efetivaos-cleanup-02-base-segura.md`; decisão
+ADR-CLEANUP-02. Não iniciar automaticamente CLEANUP-03.
+
+## EFETIVAOS-CLEANUP-03 — descontinuação local do frontend Connect
+
+**Gate autorizado em 2026-11-13:** somente frontend e testes no worktree de limpeza,
+preservando a base produtiva e todo o trabalho CLEANUP-02. Menu e consultas Connect
+retirados do shell; fontes exclusivas retiradas após desacoplamento. URLs antigas
+passam pelo Auth e redirecionam explicitamente ao início, sem módulo Connect.
+
+Tipos de banco, migrations, Edge Functions, RLS, dados e usuários preservados.
+Nenhum acesso ao projeto independente EfetivaConnect; nenhuma alteração funcional
+de Contratos, Financeiro, CRM ou Motor de Preços. Regressão e medidas de bundle em
+`docs/50-efetivaos-cleanup-03-connect-frontend.md`. Não autoriza commit/push,
+publicação, limpeza geral ou remoção de backend.
+
+## EFETIVAOS-CLEANUP-04 — limpeza pontual e revisão final do pacote
+
+**Gate autorizado em 2026-11-13:** limpeza comprovada e preparação do pacote
+consolidado CLEANUP-02 + 03 + 04. Remoção de duas devDependencies sem consumidor,
+das cinco declarações não utilizadas confirmadas pelo compilador, consolidação
+da rota canônica do DFC com redirecionamento compatível, verificador offline de
+fronteira de imports e regras de ignore específicas para artefatos do Playwright.
+
+Não altera migrations, Edge Functions, tipos de banco, regras financeiras, dados,
+Financeiro, CRM ou Motor de Preços; não toca o projeto independente EfetivaConnect.
+Os quinze exports suspeitos da auditoria 48 seguem preservados por decisão
+explícita. Manifesto, comparação de bundle, riscos residuais e plano de
+publicação/reversão em `docs/51-efetivaos-cleanup-04-final-review.md`; decisão
+ADR-CLEANUP-04. Não publicar automaticamente.
 

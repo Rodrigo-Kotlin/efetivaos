@@ -98,6 +98,8 @@ describe('AppShell sidebar', () => {
 
     expect(screen.getByRole('link', { name: 'Financeiro 360' })).toHaveAttribute('href', '/finance')
     expect(screen.getByRole('link', { name: 'Lançamentos' })).toHaveAttribute('href', '/finance/transactions')
+    await user.click(screen.getByRole('button', { name: 'Demonstrações' }))
+    expect(screen.getByRole('link', { name: 'DFC' })).toHaveAttribute('href', '/finance/dfc')
     await user.click(screen.getByRole('button', { name: 'Principal' }))
     expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('href', '/')
     await user.click(screen.getByRole('link', { name: 'Lançamentos' }))

@@ -76,7 +76,7 @@ export function generatePdf(options: PdfOptions): jsPDF {
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
 
-  let startY = addHeader(doc, options, pageWidth)
+  const startY = addHeader(doc, options, pageWidth)
 
   // Table data
   const head = [options.columns.map(c => c.header)]
@@ -107,14 +107,15 @@ export function generatePdf(options: PdfOptions): jsPDF {
     alternateRowStyles: { fillColor: [248, 250, 252] },
     columnStyles,
     margin: { left: 14, right: 14 },
-    didDrawPage: (data) => {
+    didDrawPage: () => {
       addFooter(doc, pageHeight, doc.getNumberOfPages())
     },
   })
 
   // Totals
   if (options.totals && options.totals.length > 0) {
-    let y = (doc as any).lastAutoTable?.finalY || startY + 10
+    const lastAutoTable = (doc as jsPDF & { lastAutoTable?: { finalY?: number } }).lastAutoTable
+    let y = lastAutoTable?.finalY ?? startY + 10
     y += 6
     doc.setFontSize(9)
     doc.setFont('helvetica', 'bold')

@@ -1003,3 +1003,62 @@ ot.toBeVisible no drawer apos a aprovacao e robusto contra toasts anteriores ain
 **Aprendizado:** Mesmo em uma operação inicialmente single-organization, setores, membros, auditoria e futuros dados de interação precisam nascer com `organization_id`. Isso evita policies implícitas e reduz migração estrutural antes do suporte a múltiplas organizações.
 
 **Aplicação:** O Connect usa `connect_organizations`, memberships explícitos, RLS contextual e `connect_integration_links`; conversas e mensagens ficam postergadas para gates próprios.
+
+### LL-CLEANUP-02 — Guard antes de um payload não basta quando o cliente continua após erro
+
+**Data:** 2026-11-13.
+
+**Aprendizado:** Colocar apenas um RAISE no início de um arquivo SQL não protege
+o restante se o cliente continuar após o erro. A rotina aposentada precisa não
+conter DML executável depois da negação; manter seu corpo em comentário integral
+preserva proveniência sem criar um segundo payload ativo. Testes offline devem
+conferir os limites do comentário, ausência de sufixo executável e hash original.
+
+Um bloco PL/pgSQL com EXCEPTION cria subtransação: a exceção reverte o bloco,
+mas não necessariamente outros blocos que terminaram normalmente. NOTICE de
+FAIL não causa rollback. Não afirmar que toda fixture do 08B2 persiste, nem que
+seus deletes manuais garantem limpeza. Já o 08H não tem cleanup/rollback próprio.
+
+**Aplicação:** Migrations preservadas e bloqueadas no preflight de plano; nenhum
+SQL executado. A negação local não revoga acesso manual ao banco nem modifica
+scripts no workspace original. Isolamento de worktree não é sandbox de rede.
+
+### LL-CLEANUP-03 — Retirar o menu não basta para aposentar uma feature
+
+**Data:** 2026-11-13.
+
+**Aprendizado:** Uma query de permissões dentro do App Shell continua sendo chamada
+mesmo quando a página da feature não está aberta. Aposentadoria exige remover o
+hook/consumidor global, guard, imports estáticos/dinâmicos e fontes exclusivas.
+Tipos do schema histórico podem permanecer sem representar código runtime.
+
+URLs antigas devem ser compatibilidade explícita dentro do guard Auth, não uma
+rota pública que contorne loading/perfil ativo. `replace` evita prender o botão
+Voltar no endereço aposentado. Testar a árvore de rotas de produção com transporte
+offline permite verificar esse fluxo sem tocar usuários ou dados reais.
+
+**Aplicação:** CLEANUP-03 preserva backend e contrato de dados. O chunk e o grafo
+frontend são medidos separadamente do número de arquivos apagados; não se promete
+economia de bundle sem comparação com a mesma configuração de build.
+
+### LL-CLEANUP-04 — Chunk maior não é regressão; fecho estático é a métrica honesta
+
+**Data:** 2026-11-13.
+
+**Aprendizado:** (1) O tamanho de um chunk isolado não mede o custo de download
+inicial. Ao remover o Connect, o chunk compartilhado de TanStack Query deixou de
+ter um segundo consumidor e seus módulos foram reabsorvidos pelo chunk principal,
+que cresceu 17.630 bytes, enquanto o fecho estático inicial (entrada + imports
+estáticos recursivos) encolheu 5.264 bytes. O total do bundle caiu. Sem análise
+de módulos por chunk, a conclusão "regressão" seria falsa.
+(2) Regenerar um lockfile pode reescrever metadados de pacotes não relacionados:
+a primeira tentativa do npm moveu dependências de bundle de um pacote opcional
+dev. Comparar versão, `resolved` e `integrity` de cada nó retido antes de aceitar
+a regeneração; o resultado foi aceito apenas após provar que nenhuma versão
+retida mudou e que o pacote afetado preservou `cpu`/`optional`/`bundleDependencies`.
+(3) Uma variável de teste ociosa costuma esconder uma asserção ausente: o teste de
+`downloadPdf` criava um PDF e não verificava nada; virar asserção sobre `doc.save`
+aumenta a cobertura em vez de removê-la.
+
+**Aplicação:** Relatório 51 mede fecho estático, fecho transitivo e total, e
+justifica o crescimento do chunk principal sem alterar estratégia de chunking.

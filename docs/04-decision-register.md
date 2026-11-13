@@ -1451,3 +1451,103 @@ automaticamente.
 **Segurança:** Arquivo até 10 MiB (igual ao limite documentado em finance-imports), 10000 linhas de dados, 100 colunas, 250000 células na área selecionada e 32767 caracteres/célula. ZIP até 2048 entradas, 16 MiB por entrada e 64 MiB expandidos; conferir tamanhos reais, CRC, nomes e estrutura antes do SheetJS. Uma leitura por vez, em worker descartável com prazo de 15 s, sem fallback bloqueante. Cabeçalhos __proto__/prototype/constructor e macros/vínculos externos identificados são recusados. Não executar fórmulas, scripts ou buscas de links. Bloqueio de conteúdo HTML/texto renomeado como XLS não remove suporte a XLS/BIFF real.
 
 **Compatibilidade:** Codepage legado é configurado explicitamente no worker ESM; BIFF5 CP1252, BIFF8, XLSX e CSV foram testados em navegador com worker compilado. Regras de datas/BRL, mapeamento, referências, idempotência, preview e persistência permanecem inalteradas. Limites são controles de recursos, não certificação universal de memória do browser. Não acessar Supabase nem alterar cadastros, saldos, contratos ou Connect. Detalhes e limites de evidência em docs/45.
+
+### ADR-CLEANUP-02 — Base produtiva isolada e aposentadoria de operações perigosas
+
+**Data:** 2026-11-13.
+**Status:** Implementação local autorizada; sem commit/push, publicação ou escrita de banco.
+
+**Contexto:** CLEANUP-01 identificou workspace misto anterior ao release CC24,
+reset sem filtro, runtime financeiro com `--linked` e testes financeiros antigos
+na cadeia de migrations. CLEANUP-02 autoriza isolamento e proteções preventivas,
+não remoção Connect nem execução de SQL.
+
+**Decisão:** Usar worktree `chore/efetivaos-cleanup` no SHA
+`9761f7419a201dfe1def1d209d7d27272b5038e8`, preservando integralmente o workspace
+original. Aposentar os pontos de entrada reset/março por negação incondicional e
+quarentena comentada do conteúdo original. Nenhum bypass produtivo ou reativação
+por confirmação descartável. Manter todas as migrations históricas sem edição;
+preflight separado offline recusa replay das duas migrations de testes por nome
+ou fingerprint. Não omitir arquivos silenciosamente nem reparar ledger.
+
+**Motivo:** Confirmação humana, comentário “ROLLBACK” e nome “DEV” não comprovam
+destino descartável nem isolamento de dados. Fonte histórica deve ser preservada
+sem continuar disponível como rotina operacional ativa.
+
+**Limite:** Preflight não intercepta CLI/painel SQL manual nem altera a cópia
+original preservada. Portanto não comprova fechamento global de todos os caminhos
+destrutivos. Novo provisionamento/mutação exige gate próprio. Segurança de
+Contratos/SheetJS e código funcional Connect permanecem como publicados.
+
+**Impacto:** Apenas ferramentas de segurança, dois pontos de entrada legados,
+metadados de quarentena, comandos npm de verificação, lint Node escopado e
+documentação neste worktree. Ver `supabase/quarantine/README.md` e relatório 49.
+
+### ADR-CLEANUP-03 — Descontinuação do Connect somente no frontend EfetivaOS
+
+**Data:** 2026-11-13.
+**Status:** Remoção local autorizada; publicação não autorizada.
+
+**Contexto:** O proprietário descontinuou o Connect no EfetivaOS e autorizou
+expressamente um gate de frontend na base isolada do CLEANUP-02, sem SQL nem
+provisionamento. Isso libera o escopo de código antes pendente de revisão no
+relatório 49; não resolve nem ignora os limites operacionais lá registrados.
+
+**Decisão:** Retirar menu, query de acesso do App Shell, guard e lazy import da
+página Connect. Manter `/connect` e `/connect/:organizationId` como compatibilidade
+explícita com `Navigate` para `/`, usando replace e dentro de ProtectedRoute.
+Visitantes continuam passando pelo login, loading e perfil ativo permanecem
+obrigatórios. Excluir apenas as cinco fontes exclusivas após retirar consumidores.
+
+**Preservação:** `src/types/database.ts`, schema, migrations, RLS, RPCs, dados,
+usuários, `connect-health` e `_shared/http.ts` não mudam. Remoção futura de Edge ou
+banco requer verificar consumidores externos e autorização separada. O projeto
+independente EfetivaConnect não integra esta etapa.
+
+**Histórico:** ADR-001/002/003 e o plano CONNECT-1 permanecem como registro da
+integração anteriormente existente. Esta decisão substitui somente a continuidade
+do Connect no frontend EfetivaOS, não reescreve os releases anteriores.
+
+**Validação:** Testes offline do shell, rotas reais, Auth e acesso à UI de
+Contratos; regressão unitária, grafo e build sem chunk/consultas Connect. Sem
+alterações de Financeiro/CRM/Preços, dependências, commit/push ou deploy. Relatório 50.
+
+### ADR-CLEANUP-04 — Limpeza pontual, fronteira de imports e rota canônica do DFC
+
+**Data:** 2026-11-13.
+**Status:** Alterações locais; publicação não autorizada.
+
+**Contexto:** A auditoria 48 pointed eixos comprovados de limpeza: duas
+devDependencies sem consumidor configurado, cinco declarações locais não
+utilizadas, links do DFC divergentes da rota registrada, ausência de fronteira
+automatizada entre produção e artefatos de teste e artefatos do Playwright sem
+regra de ignore. O CLEANUP-03 havia deixado o chunk principal 17.630 bytes maior,
+exigindo explicação antes de qualquer otimização.
+
+**Decisão:** (1) Remover `eslint-plugin-import` e `eslint-import-resolver-typescript`
+após confirmar ausência de registro de plugin, de regras `import/*` e de
+`settings['import/resolver']`; lockfile regenerado pelo npm com verificação de que
+nenhuma versão retida mudou e nenhuma linha de produção foi alterada.
+(2) Remover somente as cinco declarações comprovadas; no teste de `downloadPdf`,
+substituir a variável ociosa por asserção real sobre `doc.save`.
+(3) Adotar `/finance/dfc` como rota canônica do DFC, mantendo
+`/finance/cash-flow-statement` como redirecionamento compatível dentro do
+ProtectedRoute. (4) Criar verificador offline de fronteira de imports que proíbe,
+em código produtivo, importações de `__mocks__/`, `__test-utils__/`, `src/test/`,
+`e2e/` e módulos `.test.ts`/`.test.tsx`, sem bloquear imports entre módulos de
+teste. (5) Ignorar apenas `artifacts/playwright-report/` e
+`artifacts/playwright-results/`, nunca `artifacts/` inteiro.
+
+**Motivo:** Reduzir código comprovadamente inútil sem alterar comportamento,
+cobertura ou estrutura de regras contábeis. A fronteira automatizada é preferível
+a uma convenção informal, e a rota canônica única evita duplicidade de URLs.
+
+**Preservação:** Nenhuma alteração em migrations, Edge Functions, tipos de banco,
+regras financeiras, dados de clientes, Financeiro, CRM, Motor de Preços ou no
+projeto independente EfetivaConnect. Os quinze exports suspeitos da auditoria 48
+permanecem intactos por decisão explícita do proprietário.
+
+**Impacto:** Duas devDependencies, cinco declarações, uma rota canônica, um
+verificador de fronteira com sete testes e duas regras de ignore. Explicação do
+chunk principal: não é regressão; é reagrupamento de módulos TanStack Query que
+deixaram de ter chunk compartilhado, com fecho estático inicial menor. Relatório 51.

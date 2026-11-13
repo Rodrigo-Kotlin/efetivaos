@@ -74,7 +74,7 @@ const navigationGroups: NavigationGroup[] = [
     label: 'Demonstrações',
     items: [
       { to: '/finance/dre', label: 'DRE', icon: FileText },
-      { to: '/finance/cash-flow-statement', label: 'DFC', icon: BarChart3 },
+      { to: '/finance/dfc', label: 'DFC', icon: BarChart3 },
       { to: '/finance/balance-sheet', label: 'Balanço Patrimonial', icon: PieChart },
       { to: '/finance/dmpl', label: 'DMPL', icon: FileText },
       { to: '/finance/dlpa', label: 'DLPA', icon: FileText },

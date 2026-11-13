@@ -11,6 +11,8 @@ coverage/
 /playwright/.auth/
 /playwright-report/
 /test-results/
+/artifacts/playwright-report/
+/artifacts/playwright-results/
 *.local
 *.log
 ctx-*.txt

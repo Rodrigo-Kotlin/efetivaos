@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { generatePdf, generateStatementPdf, downloadPdf } from './pdf-utils'
 
 describe('pdf-utils', () => {
@@ -75,15 +75,17 @@ describe('pdf-utils', () => {
   })
 
   describe('downloadPdf', () => {
-    it('does not throw', () => {
+    it('delegates the download to the document with the file name', () => {
       const doc = generatePdf({
         title: 'Test',
         columns: [{ key: 'x', header: 'X' }],
         data: [{ x: '1' }],
       })
-      // downloadPdf calls doc.save which requires a browser environment
-      // In test env it may throw, so we just verify the function exists
-      expect(typeof downloadPdf).toBe('function')
+      const save = vi.spyOn(doc, 'save').mockImplementation(() => doc)
+
+      downloadPdf(doc, 'relatorio')
+
+      expect(save).toHaveBeenCalledWith('relatorio.pdf')
     })
   })
 })
