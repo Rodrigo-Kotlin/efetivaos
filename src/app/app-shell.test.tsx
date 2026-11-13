@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth/auth-context'
 import { signOut } from '@/features/auth/auth.service'
@@ -20,8 +20,13 @@ vi.mock('@/stores/ui-store', () => ({
   useUiStore: vi.fn(),
 }))
 
-vi.mock('@/features/connect/hooks/use-connect-foundation', () => ({
-  useConnectAccess: () => ({ data: { canAccess: true }, isPending: false, isError: false }),
+const databaseCalls = vi.hoisted(() => ({
+  from: vi.fn(() => { throw new Error('App Shell must not query Supabase tables') }),
+  rpc: vi.fn(() => { throw new Error('App Shell must not call Supabase RPCs') }),
+}))
+
+vi.mock('@/lib/supabase', () => ({
+  supabase: databaseCalls,
 }))
 
 vi.mock('@/components/shared/logo', () => ({
@@ -54,13 +59,66 @@ function renderShell(pathname = '/') {
   return render(
     <MemoryRouter initialEntries={[pathname]}>
       <AppShell />
+      <CurrentPath />
     </MemoryRouter>,
   )
+}
+
+function CurrentPath() {
+  const location = useLocation()
+  return <output aria-label="Rota atual">{location.pathname}</output>
 }
 
 describe('AppShell sidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    expect(databaseCalls.from).not.toHaveBeenCalled()
+    expect(databaseCalls.rpc).not.toHaveBeenCalled()
+  })
+
+  it.each(['admin', 'equipe'] as const)('preserves commercial menus without Connect or database queries for %s', (role) => {
+    setupAuth(role)
+    renderShell('/crm/clients')
+
+    expect(screen.getByRole('link', { name: 'CRM' })).toHaveAttribute('href', '/crm')
+    expect(screen.getByRole('link', { name: 'Clientes' })).toHaveAttribute('href', '/crm/clients')
+    expect(screen.getByRole('link', { name: 'Motor de Preços' })).toHaveAttribute('href', '/pricing')
+    expect(screen.queryByRole('link', { name: /connect/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('EfetivaConnect')).not.toBeInTheDocument()
+    expect(document.querySelector('a[href^="/connect"]')).toBeNull()
+  })
+
+  it('keeps finance and dashboard navigation without Connect queries', async () => {
+    setupAuth()
+    renderShell('/finance')
+    const user = userEvent.setup()
+
+    expect(screen.getByRole('link', { name: 'Financeiro 360' })).toHaveAttribute('href', '/finance')
+    expect(screen.getByRole('link', { name: 'Lançamentos' })).toHaveAttribute('href', '/finance/transactions')
+    await user.click(screen.getByRole('button', { name: 'Principal' }))
+    expect(screen.getByRole('link', { name: 'Início' })).toHaveAttribute('href', '/')
+    await user.click(screen.getByRole('link', { name: 'Lançamentos' }))
+    expect(screen.getByLabelText('Rota atual')).toHaveTextContent('/finance/transactions')
+  })
+
+  it.each(['admin', 'equipe'] as const)('preserves the mobile drawer and closes it after navigation for %s', async (role) => {
+    setupAuth(role)
+    renderShell('/crm/clients')
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Abrir menu' }))
+    const drawer = screen.getByRole('dialog', { name: 'Navegação principal' })
+
+    expect(within(drawer).getByRole('link', { name: 'Clientes' })).toBeVisible()
+    expect(within(drawer).getByRole('link', { name: 'Motor de Preços' })).toBeVisible()
+    expect(within(drawer).queryByRole('link', { name: /connect/i })).not.toBeInTheDocument()
+    await user.click(within(drawer).getByRole('button', { name: 'Financeiro' }))
+    await user.click(within(drawer).getByRole('link', { name: 'Financeiro 360' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.getByLabelText('Rota atual')).toHaveTextContent('/finance')
   })
 
   it('renders navigation groups', () => {
