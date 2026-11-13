@@ -1,3 +1,9 @@
+// CLEANUP-02: retired. No SQL generation, filesystem write or connection is active.
+import { denyLegacyOperation } from '../safety/operational-policy.mjs'
+
+denyLegacyOperation('march-2026-runtime-test', process.env)
+
+/* EFETIVAOS_LEGACY_ARCHIVE_BEGIN
 import { createHash } from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 import { readFileSync, unlinkSync, writeFileSync } from 'node:fs'
@@ -162,3 +168,4 @@ try {
 } finally {
   unlinkSync(sqlPath)
 }
+EFETIVAOS_LEGACY_ARCHIVE_END */

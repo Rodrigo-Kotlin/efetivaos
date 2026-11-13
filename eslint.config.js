@@ -7,6 +7,10 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   { ignores: ['dist', 'coverage'] },
   {
+    files: ['scripts/safety/**/*.mjs', 'scripts/finance/run-march-2026-runtime-test.mjs'],
+    languageOptions: { globals: globals.node },
+  },
+  {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {

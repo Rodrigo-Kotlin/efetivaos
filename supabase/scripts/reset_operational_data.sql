@@ -1,3 +1,15 @@
+-- CLEANUP-02: QUARANTINED. This entrypoint never resets any environment.
+-- The historical body below is entirely a comment, NOT an executable payload.
+-- No wrapper can authorize production or prove a remote database disposable.
+DO $cleanup02_block$
+BEGIN
+  RAISE EXCEPTION USING
+    ERRCODE = '42501',
+    MESSAGE = 'LEGACY_RESET_DISABLED: reset proibido, inclusive em bxviuzluxcijbqqbpyzb; exige novo gate e implementacao revisada.';
+END;
+$cleanup02_block$;
+
+/* EFETIVAOS_LEGACY_ARCHIVE_BEGIN
 -- ============================================================================
 -- EFETIVA OS — OPERAÇÃO B: RESET OPERACIONAL CONTROLADO
 -- ============================================================================
@@ -834,3 +846,4 @@ COMMIT;
 -- 4. Testar frontend: /crm, /finance, pricing → empty states
 -- 5. Após validação: DROP SCHEMA _reset_backup_YYYYMMDD_HHMM CASCADE;
 -- ============================================================================
+EFETIVAOS_LEGACY_ARCHIVE_END */

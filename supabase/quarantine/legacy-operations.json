@@ -1,0 +1,28 @@
+{
+  "baseCommit": "9761f7419a201dfe1def1d209d7d27272b5038e8",
+  "fingerprintNormalization": "sha256 over UTF-8 content with a leading BOM removed and CRLF/lone-CR line endings normalized to LF, so detection is independent of the checkout's line endings",
+  "legacyEntrypoints": [
+    {
+      "path": "supabase/scripts/reset_operational_data.sql",
+      "originalNormalizedSha256": "06bc7d418060a5bf3e6490efea07879c185daa8a46e604849e23f688f57e8828",
+      "handling": "error-only SQL tombstone; original source inside a block comment"
+    },
+    {
+      "path": "scripts/finance/run-march-2026-runtime-test.mjs",
+      "originalNormalizedSha256": "9b70376a092ad2dd50e025549913e5e751ec78b5ac643814b175188851317dab",
+      "handling": "deny-only JavaScript entrypoint; original source inside a block comment"
+    }
+  ],
+  "historicalMigrations": [
+    {
+      "path": "supabase/migrations/20260828000110_financial_dashboard_tests.sql",
+      "normalizedSha256": "e4d2c6dc0d84fe1e6d737af4d01ba9ed8c5f609b40cf48b076ab96e03fedc678",
+      "reason": "Synthetic accounts, transactions and journal entries/lines without rollback or cleanup; never replay."
+    },
+    {
+      "path": "supabase/migrations/20260828000300_08b2_lancamentos_tests.sql",
+      "normalizedSha256": "5ac99a8f1eb9e0a1de01eef2a1f3625436d165f45c9d32ab57520aab343e9ad7",
+      "reason": "Legacy financial RPC tests, manual deletes and caught exceptions; not a provisioning migration; never replay."
+    }
+  ]
+}
