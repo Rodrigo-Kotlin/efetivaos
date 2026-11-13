@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/shared/operational-ui'
 import type { ClientListRow } from '@/types/database'
+import ClientContracts from '@/features/crm/pages/client-contracts'
 
 type ClientDetailsProps = {
   client: ClientListRow
@@ -41,6 +42,8 @@ export default function ClientDetails({ client, onEdit }: ClientDetailsProps) {
           </div>
         ))}
       </dl>
+      <a href="#contratos" className="mt-4 inline-flex text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline">Ir para Contratos</a>
+      <ClientContracts clientId={client.id} clientName={client.legal_name} />
     </div>
   )
 }

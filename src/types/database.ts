@@ -502,6 +502,64 @@ export type FinancialTransactionList = FinancialTransaction & {
   category_name: string | null; origin_account_name: string | null; destination_account_name: string | null; party_name: string | null; cost_center_name: string | null; service_line_name: string | null; payment_method_name: string | null; journal_entry_count: number; total_debit: string; total_credit: string
 }
 
+export type ContractStatus = 'draft' | 'active' | 'suspended' | 'closed' | 'terminated'
+export type ContractModality = 'recurring' | 'one_off'
+export type ContractDocumentType = 'main' | 'addendum' | 'other'
+export type ContractDocumentUploadStatus = 'pending' | 'ready' | 'failed'
+export type ContractEventType = 'created' | 'updated' | 'renewal' | 'addendum' | 'status_change' | 'archived'
+
+export type ClientContract = AuditFields & {
+  id: string
+  client_id: string
+  contract_number: string
+  title: string
+  contract_type: string
+  description: string | null
+  contracted_services: string | null
+  commercial_owner: string | null
+  contracted_value: string | null
+  modality: ContractModality
+  billing_period: string | null
+  payment_terms: string | null
+  first_billing_date: string | null
+  signed_at: string | null
+  starts_at: string
+  ends_at: string | null
+  auto_renewal: boolean
+  notice_period_days: number | null
+  status: ContractStatus
+  internal_notes: string | null
+  archived_at: string | null
+  archived_by: string | null
+}
+
+export type ClientContractDocument = {
+  id: string
+  contract_id: string
+  document_type: ContractDocumentType
+  name: string
+  storage_bucket: string
+  storage_path: string
+  mime_type: string
+  size_bytes: number
+  created_at: string
+  created_by: string | null
+  upload_status: ContractDocumentUploadStatus
+  uploaded_at: string | null
+  upload_error: string | null
+  discard_started_at?: string | null
+}
+
+export type ClientContractEvent = {
+  id: string
+  contract_id: string
+  event_type: ContractEventType
+  summary: string
+  details: Record<string, unknown>
+  created_at: string
+  created_by: string | null
+}
+
 export type ConnectDataClassification = 'STANDARD' | 'SENSITIVE'
 
 export type ConnectOrganization = AuditFields & {
@@ -1265,6 +1323,24 @@ code?: string
           },
         ]
       }
+      client_contracts: {
+        Row: ClientContract
+        Insert: Omit<ClientContract, 'created_at' | 'created_by' | 'updated_at' | 'updated_by' | 'archived_at' | 'archived_by' | 'id'> & Partial<Pick<ClientContract, 'id' | 'created_at' | 'created_by' | 'updated_at' | 'updated_by' | 'archived_at' | 'archived_by'>>
+        Update: Partial<Omit<ClientContract, 'id' | 'created_at' | 'created_by' | 'updated_at' | 'updated_by'>>
+        Relationships: [{ foreignKeyName: 'client_contracts_client_id_fkey'; columns: ['client_id']; isOneToOne: false; referencedRelation: 'clients'; referencedColumns: ['id'] }]
+      }
+      client_contract_documents: {
+        Row: ClientContractDocument
+        Insert: Omit<ClientContractDocument, 'created_at' | 'id' | 'upload_status' | 'uploaded_at' | 'upload_error'> & Partial<Pick<ClientContractDocument, 'id' | 'created_at' | 'upload_status' | 'uploaded_at' | 'upload_error'>>
+        Update: Partial<ClientContractDocument>
+        Relationships: [{ foreignKeyName: 'client_contract_documents_contract_id_fkey'; columns: ['contract_id']; isOneToOne: false; referencedRelation: 'client_contracts'; referencedColumns: ['id'] }]
+      }
+      client_contract_events: {
+        Row: ClientContractEvent
+        Insert: Omit<ClientContractEvent, 'created_at' | 'created_by' | 'id'> & Partial<Pick<ClientContractEvent, 'id' | 'created_at' | 'created_by'>>
+        Update: Partial<ClientContractEvent>
+        Relationships: [{ foreignKeyName: 'client_contract_events_contract_id_fkey'; columns: ['contract_id']; isOneToOne: false; referencedRelation: 'client_contracts'; referencedColumns: ['id'] }]
+      }
       financial_chart_accounts: {
         Row: ChartAccount
         Insert: {
@@ -1645,6 +1721,22 @@ code?: string
           p_status: ClientStatus
         }
         Returns: ClientContact
+      }
+      record_client_contract_event: {
+        Args: { p_contract_id: string; p_event_type: ContractEventType; p_summary: string; p_details?: Record<string, unknown> }
+        Returns: ClientContractEvent
+      }
+      archive_client_contract: {
+        Args: { p_contract_id: string }
+        Returns: ClientContract
+      }
+      finalize_client_contract_document: {
+        Args: { p_document_id: string }
+        Returns: ClientContractDocument
+      }
+      mark_client_contract_document_failed: {
+        Args: { p_document_id: string; p_reason: string }
+        Returns: ClientContractDocument
       }
       discard_pending_quotation_attachment: {
         Args: {

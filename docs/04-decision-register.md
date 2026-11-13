@@ -1363,3 +1363,69 @@ automaticamente.
 **Decisão:** Webhooks e futuras APIs de integração usarão Supabase Edge Functions, mantendo secrets backend-only. O frontend interno pode continuar acessando Supabase diretamente quando protegido por RLS.
 
 **Impacto:** `connect-health` estabelece o padrão inicial de CORS, correlation ID e envelopes HTTP.
+
+### DEC-071 — Contratos comerciais vinculados ao CRM sem automação financeira
+
+**Status:** FECHADA
+**Data:** 2026-11-10
+
+**Contexto:** O CRM precisava preservar contratos comerciais, documentos privados e histórico sem criar contas a receber automaticamente.
+
+**Decisão:** Contratos vivem em `client_contracts`, com documentos privados em `client-contracts` e eventos append-oriented em `client_contract_events`. A ficha do cliente é a entrada da funcionalidade. Situação contratual é persistida; alerta de vencimento é derivado na leitura e não altera a situação. Usuários comuns arquivam, sem hard delete; arquivos são acessados por URL assinada curta.
+
+**Motivo:** Entregar o primeiro fluxo funcional sem duplicar clientes, sem acoplar o Financeiro e com rastreabilidade suficiente para renovações, aditivos e alterações.
+
+**Impacto:** A migration `20261110000100_create_client_contracts.sql` deve ser validada em DEV antes de qualquer rollout. A primeira versão não gera lançamentos financeiros nem considera anexo como prova de assinatura.
+
+### DEC-072 — Policies de Storage de contratos qualificam o nome do objeto
+
+**Status:** FECHADA
+**Data:** 2026-11-10
+
+**Contexto:** A homologação DEV identificou que `name` não qualificado dentro do `EXISTS` da policy era resolvido como `d.name`, bloqueando uploads legítimos.
+
+**Decisão:** As policies do bucket `client-contracts` devem comparar explicitamente `d.storage_path = storage.objects.name`. A correção foi versionada em `20261110000200_fix_client_contract_storage_policies.sql`.
+
+**Impacto:** Upload, consulta por URL assinada e isolamento anônimo foram revalidados no DEV. URLs já emitidas continuam sujeitas ao prazo de expiração; após remoção do objeto, a URL testada retornou HTTP 400.
+
+### ADR-CC16 — Descarte contratual reservado no banco e confirmado pela API Storage
+
+**Status:** FECHADA para implementação/homologação; rollout não autorizado.
+**Data:** 2026-11-12 (CLIENTES-CONTRATOS-16)
+
+**Contexto:** CC15 e diagnóstico real CC16 comprovaram DELETE Storage com retorno vazio sem erro e exclusão de metadado que gerava órfão.
+
+**Decisão:** Descarte de pending/failed próprios passa por backend autenticado, reserva durável com lock (`discard_started_at` + tombstone), remoção pelo Storage API, verificação de ausência e confirmação SQL service-only. DELETE direto é removido; finalize e upload real são coordenados pela mesma linha. Tentativas e erros ficam auditados e retries usam o mesmo destino congelado. Ready permanece protegido. A confirmação se chama `storage_api_absent`, nunca certificado de eliminação física interna.
+
+**Motivo:** PostgreSQL e Storage não têm transação distribuída automática; checar apenas HTTP/error não comprova remoção. Estado intermediário e reconciliação preservam segurança nas interrupções.
+
+**Impacto:** Migration corretiva nova somente em `xktbqykxmfuuzepfnjns`; anteriores intactas. O usuário escolheu backend local, sem deploy. Publicação futura e validação do runtime hospedado exigem autorização separada. Integração do trigger restrito com storage.objects deve ser revalidada em upgrades da plataforma. Não modifica Financeiro nem outros domínios.
+
+### ADR-CC17 — Pages estático e backend de descarte com implantação independente
+
+**Status:** Plano preparado; execução produtiva não autorizada.
+**Data:** 2026-11-12 (CLIENTES-CONTRATOS-17)
+
+**Decisão:** Preservar o handler CC16 e preparar seu adaptador em Supabase Edge Functions, com dependência isolada/pinada, gateway JWT ativo, Auth server-side e CORS explícito. Pages continua hospedando somente o React. Publicação da função é separada de push main/Pages, limitada ao nome da função e ao project-ref aprovado.
+
+**Impacto:** Não pressupor backend publicado por causa de integração GitHub → Pages. Antes de liberar main, exigir backup restaurado em terceiro ambiente seguro, cópias Storage independentes, validação do runtime hospedado e build do tree Git exato, excluindo alterações locais não relacionadas. Nenhum deploy, commit ou escrita produtiva integra a preparação.
+
+### ADR-CC18 — Dispensa de backup e restauração por decisão do proprietário
+
+**Status:** FECHADA para o plano de implantação de Contratos; execução ainda depende de autorização específica.
+**Data:** 2026-11-12 (CLIENTES-CONTRATOS-18)
+
+**Contexto:** O proprietário decidiu expressamente prosseguir sem backup e sem teste de restauração.
+
+**Decisão:** BACKUP_REQUIRED=WAIVED_BY_OWNER, BACKUP_EXECUTED=NO e RESTORE_TEST=NOT_REQUESTED. A dispensa substitui, para este release, as exigências operacionais de backup/restore/cópia de recuperação que constavam dos gates 16/17 e da ADR-CC17. Não criar projetos, realizar backup, exigir restauração ou reapresentá-los como bloqueadores.
+
+**Contingência:** Rollback transacional do lote SQL antes do commit; após commit, correção forward, suspensão da funcionalidade e reversão de código pelo Git/Pages, quando autorizadas. Não prometer recuperação de dados/bytes já excluídos nem reabrir permissões inseguras como compensação. A dispensa não autoriza migrations, secret set, commit/push ou deploy nesta etapa.
+
+### ADR-CC19 — CORS explícito e validação da função hospedada na HML
+
+**Status:** Configuração/publicação autorizada e executada somente na homologação.
+**Data:** 2026-11-12 (CLIENTES-CONTRATOS-19)
+
+**Decisão:** Publicar somente discard-client-contract-document em xktbqykxmfuuzepfnjns, mantendo verify_jwt=true e Auth.getUser/guards SQL. CORS HML limitado a http://127.0.0.1:4185, sem wildcard ou origem produtiva. Validar endpoint HTTPS real e navegador sem backend local/proxy, sem migração ou operação no projeto atual.
+
+**Impacto:** Origem produtiva será configurada separadamente como https://efetivaos.pages.dev apenas depois de autorização para o projeto atual. Inputs de deploy correspondem ao handler/entrypoint CC18, sem mudança de regra funcional. Vary pode conter Accept-Encoding acrescentado pelo gateway: exigir o token Origin, sem alargar métodos/headers/origens. Dispensa de backup da ADR-CC18 preservada; nenhum deploy produtivo ou push foi autorizado por este gate.
