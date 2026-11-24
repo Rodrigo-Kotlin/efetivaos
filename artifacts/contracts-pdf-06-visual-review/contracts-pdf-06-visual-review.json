@@ -1,65 +1,90 @@
 {
-  "generatedAt": "2026-11-24T19:41:07.314Z",
+  "generatedAt": "2026-11-24T20:17:55.833Z",
   "humanApproval": "PENDING",
   "reviews": [
     {
       "id": "native-text-tables",
       "label": "Native text and tables",
       "kind": "native",
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
       "originalBytes": 1312,
       "finalBytes": 1312,
       "status": "unchanged",
       "savedRatio": 0,
       "imagesAnalyzed": 0,
       "imagesRecompressed": 0,
+      "changedPixelRatio": 0,
+      "meanAbsoluteDelta": 0,
+      "maxDelta": 0,
       "reason": "Nenhuma imagem obteve economia segura; o original foi preservado."
     },
     {
       "id": "color-scan",
       "label": "Color scan",
       "kind": "color",
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
       "originalBytes": 1244997,
       "finalBytes": 577678,
       "status": "optimized",
       "savedRatio": 0.5360004883545904,
       "imagesAnalyzed": 1,
       "imagesRecompressed": 1,
+      "changedPixelRatio": 0.47603113509756095,
+      "meanAbsoluteDelta": 23.488585895932026,
+      "maxDelta": 215,
       "reason": null
     },
     {
       "id": "grayscale-scan",
       "label": "Grayscale scan",
       "kind": "gray",
-      "originalBytes": 1241094,
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
+      "originalBytes": 1241095,
       "finalBytes": 538229,
       "status": "optimized",
-      "savedRatio": 0.5663269663699929,
+      "savedRatio": 0.5663273157977431,
       "imagesAnalyzed": 1,
       "imagesRecompressed": 1,
+      "changedPixelRatio": 0.10263516982175963,
+      "meanAbsoluteDelta": 1.4994533891204487,
+      "maxDelta": 39,
       "reason": null
     },
     {
       "id": "simulated-signature-stamp",
       "label": "Simulated signature and stamp",
       "kind": "signed",
-      "originalBytes": 1248483,
-      "finalBytes": 1248483,
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
+      "originalBytes": 1248484,
+      "finalBytes": 1248484,
       "status": "unchanged",
       "savedRatio": 0,
       "imagesAnalyzed": 0,
       "imagesRecompressed": 0,
+      "changedPixelRatio": 0,
+      "meanAbsoluteDelta": 0,
+      "maxDelta": 0,
       "reason": "PDF assinado digitalmente; o original foi preservado."
     },
     {
       "id": "mixed-native-raster",
       "label": "Mixed native and raster content",
       "kind": "mixed",
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
       "originalBytes": 1247208,
       "finalBytes": 581967,
       "status": "optimized",
       "savedRatio": 0.5333841668751322,
       "imagesAnalyzed": 1,
       "imagesRecompressed": 1,
+      "changedPixelRatio": 0.47830180900272107,
+      "meanAbsoluteDelta": 23.51356419552444,
+      "maxDelta": 215,
       "reason": null
     }
   ],
@@ -67,127 +92,127 @@
     {
       "name": "contracts-pdf-06-native-text-tables-original.pdf",
       "bytes": 1312,
-      "sha256": "0a54b7717a52e6b6f0b8a2c677c6e354f1602519f9d9f0e83d378c8904c7e42b"
+      "sha256": "befa5d4ff3e2e339e7c48238486eb9b31887b8576204f92e8e68523be72197b8"
     },
     {
       "name": "contracts-pdf-06-native-text-tables-optimized.pdf",
       "bytes": 1312,
-      "sha256": "0a54b7717a52e6b6f0b8a2c677c6e354f1602519f9d9f0e83d378c8904c7e42b"
+      "sha256": "befa5d4ff3e2e339e7c48238486eb9b31887b8576204f92e8e68523be72197b8"
     },
     {
       "name": "contracts-pdf-06-native-text-tables-original.png",
-      "bytes": 127506,
-      "sha256": "a75e23d7043327720f4203cf1e4a150c23fd2ca5c8c8464a8d0adf6d1ab59ffa"
+      "bytes": 73725,
+      "sha256": "421efc4a63b09662543a38364c0cf733761e131c4e94508b9126c46f135084bd"
     },
     {
       "name": "contracts-pdf-06-native-text-tables-optimized.png",
-      "bytes": 127506,
-      "sha256": "a75e23d7043327720f4203cf1e4a150c23fd2ca5c8c8464a8d0adf6d1ab59ffa"
+      "bytes": 73725,
+      "sha256": "421efc4a63b09662543a38364c0cf733761e131c4e94508b9126c46f135084bd"
     },
     {
       "name": "contracts-pdf-06-native-text-tables-diff.png",
-      "bytes": 32838,
-      "sha256": "079d2b02a855819b1f290625b05c02db8ba708fb9cf488dda696247be01c0b91"
+      "bytes": 27048,
+      "sha256": "246e2855475ad3367fd08fca2a5f43afaeaad23cdd91349617834ed4ed3cc2c7"
     },
     {
       "name": "contracts-pdf-06-color-scan-original.pdf",
       "bytes": 1244997,
-      "sha256": "ef1f616a67b25a4e78f166e1c08def9880b0348f2e59b891e521204dd0f28b0b"
+      "sha256": "34a4cf53454ba64137fa69ec0c73938ce40f73266b543902af1e61c61582b773"
     },
     {
       "name": "contracts-pdf-06-color-scan-optimized.pdf",
       "bytes": 577678,
-      "sha256": "63bb9263c93220f595638b4139c800f45fae09ad928f416900ad676d2d859c20"
+      "sha256": "5c2e696d3f702ed63747043058e8ca5d447847ace7cc15c40ad9e9aded390877"
     },
     {
       "name": "contracts-pdf-06-color-scan-original.png",
-      "bytes": 1360050,
-      "sha256": "c085323ea0ecc1fe688df02f305df7a96e933a1e75fca951ba9774887eaed214"
+      "bytes": 1773011,
+      "sha256": "acef658fdeba87b13b711794d2e439f41a9a22929b9178e97e1ec6bb798298f4"
     },
     {
       "name": "contracts-pdf-06-color-scan-optimized.png",
-      "bytes": 1360050,
-      "sha256": "c085323ea0ecc1fe688df02f305df7a96e933a1e75fca951ba9774887eaed214"
+      "bytes": 1820247,
+      "sha256": "cbe50369b0daac20c9793886baa8f42bc3a72af110bc2c26c882cc62e5f1aec7"
     },
     {
       "name": "contracts-pdf-06-color-scan-diff.png",
-      "bytes": 32838,
-      "sha256": "079d2b02a855819b1f290625b05c02db8ba708fb9cf488dda696247be01c0b91"
+      "bytes": 875429,
+      "sha256": "c3afdb949b099e435d7f6aa126eb9399f62112b44ee5ecc03f126ac8ecfbf2cb"
     },
     {
       "name": "contracts-pdf-06-grayscale-scan-original.pdf",
-      "bytes": 1241094,
-      "sha256": "dc0b253643d3264ed573cb9ea601c348d0b84dd4e7b9a17c56a2d0b9f8e02437"
+      "bytes": 1241095,
+      "sha256": "f3632caf263748cc1489feaba9718e044f76b30b4ea2dca3dc020fda2840abbf"
     },
     {
       "name": "contracts-pdf-06-grayscale-scan-optimized.pdf",
       "bytes": 538229,
-      "sha256": "18370b00a75b379a920bb99aa3abb9a1f8a396a31cd87878a8945ca16a3e7b6d"
+      "sha256": "7403cc00ab50e948b54c4642f38e640693c82dccac3b4a40f85a35951368c368"
     },
     {
       "name": "contracts-pdf-06-grayscale-scan-original.png",
-      "bytes": 1353216,
-      "sha256": "239b7171f1718f407c30f4b45b4142e93e8262036ce2af4215954ad14a7c8290"
+      "bytes": 874718,
+      "sha256": "5a2d57d3876f6abbbbeb2bbc65527c1eb5f3cbcc28b6b62187d8f5652e2010cb"
     },
     {
       "name": "contracts-pdf-06-grayscale-scan-optimized.png",
-      "bytes": 1353216,
-      "sha256": "239b7171f1718f407c30f4b45b4142e93e8262036ce2af4215954ad14a7c8290"
+      "bytes": 923291,
+      "sha256": "ff5423ffdcc7e8d3b61fed067ff399d0079ce63966dfcf8bcaf86fa2b0e73834"
     },
     {
       "name": "contracts-pdf-06-grayscale-scan-diff.png",
-      "bytes": 32838,
-      "sha256": "079d2b02a855819b1f290625b05c02db8ba708fb9cf488dda696247be01c0b91"
+      "bytes": 683647,
+      "sha256": "6f72c00c3e94a2977dd326d615387b502c28e8472d3cfcb96e9f0110e22ea97c"
     },
     {
       "name": "contracts-pdf-06-simulated-signature-stamp-original.pdf",
-      "bytes": 1248483,
-      "sha256": "8a94b2d7de9a1a80b29cb5b10319826a5b2ddec5424a0856f1e9e2fc1f3f4f66"
+      "bytes": 1248484,
+      "sha256": "00791d960a88972e80b799ad8260669fd54b84ab0f3524b14fe58d8fd8607c2e"
     },
     {
       "name": "contracts-pdf-06-simulated-signature-stamp-optimized.pdf",
-      "bytes": 1248483,
-      "sha256": "8a94b2d7de9a1a80b29cb5b10319826a5b2ddec5424a0856f1e9e2fc1f3f4f66"
+      "bytes": 1248484,
+      "sha256": "00791d960a88972e80b799ad8260669fd54b84ab0f3524b14fe58d8fd8607c2e"
     },
     {
       "name": "contracts-pdf-06-simulated-signature-stamp-original.png",
-      "bytes": 1374368,
-      "sha256": "b76fb844cceaa154fde15d5900f243f637ae3bfa0bd5c0048402fd16bbacf29b"
+      "bytes": 1776202,
+      "sha256": "e153b892aabff4beb6b39a4b1a88118aab2579976b46046cd5cb62618773985d"
     },
     {
       "name": "contracts-pdf-06-simulated-signature-stamp-optimized.png",
-      "bytes": 1374368,
-      "sha256": "b76fb844cceaa154fde15d5900f243f637ae3bfa0bd5c0048402fd16bbacf29b"
+      "bytes": 1776202,
+      "sha256": "e153b892aabff4beb6b39a4b1a88118aab2579976b46046cd5cb62618773985d"
     },
     {
       "name": "contracts-pdf-06-simulated-signature-stamp-diff.png",
-      "bytes": 32838,
-      "sha256": "079d2b02a855819b1f290625b05c02db8ba708fb9cf488dda696247be01c0b91"
+      "bytes": 27048,
+      "sha256": "246e2855475ad3367fd08fca2a5f43afaeaad23cdd91349617834ed4ed3cc2c7"
     },
     {
       "name": "contracts-pdf-06-mixed-native-raster-original.pdf",
       "bytes": 1247208,
-      "sha256": "87cfcd65563d9c2808689b85f24e0d3263a939f0101ee34f770b6f18707b8786"
+      "sha256": "f9d03fec7234de8da05c21fdb4564116376e81d201129b0c46ac30b027cd82c4"
     },
     {
       "name": "contracts-pdf-06-mixed-native-raster-optimized.pdf",
       "bytes": 581967,
-      "sha256": "a86e09fc6902fd9630b01e908efb35885454cbb1803872ce6ca8f2aa2307f7aa"
+      "sha256": "38aa3a56d78532512729a09c5939be18effceac8d0e02953ad922208e87ae216"
     },
     {
       "name": "contracts-pdf-06-mixed-native-raster-original.png",
-      "bytes": 1363962,
-      "sha256": "f46db1e061a80e31991c2a775a7a0cbf1817ef67fd5ac9255a92fa0b8a88f8c0"
+      "bytes": 1782377,
+      "sha256": "ac5d95f4c71f2e1a9ed3d80ced0eaf08cd27742345bfabd351daed293e5ef534"
     },
     {
       "name": "contracts-pdf-06-mixed-native-raster-optimized.png",
-      "bytes": 1363962,
-      "sha256": "f46db1e061a80e31991c2a775a7a0cbf1817ef67fd5ac9255a92fa0b8a88f8c0"
+      "bytes": 1839555,
+      "sha256": "fea01aadb49257ec3946d9e3d384aa31ce04c5d3ef6473cebae6b46a592cf494"
     },
     {
       "name": "contracts-pdf-06-mixed-native-raster-diff.png",
-      "bytes": 32838,
-      "sha256": "079d2b02a855819b1f290625b05c02db8ba708fb9cf488dda696247be01c0b91"
+      "bytes": 883504,
+      "sha256": "7a3a983ac9c7b3d1e3ee1e28035fd54ce894534803a70dcc62897bbc181695be"
     }
   ]
 }
