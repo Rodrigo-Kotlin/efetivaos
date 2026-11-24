@@ -80,7 +80,7 @@ export function ContractDocumentUpload({ contractId, documentType, disabled = fa
       />
       {!prepared ? (
         <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
-          <Upload className="size-4" /> {processing ? stage : 'Anexar PDF'}
+          <Upload className="size-4" /> {processing ? stage : 'Anexar PDF do contrato'}
         </Button>
       ) : (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-sm">
