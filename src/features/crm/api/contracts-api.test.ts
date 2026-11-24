@@ -39,7 +39,7 @@ vi.mock('@/lib/supabase', () => ({
   },
 }))
 
-const pdf = () => new File(['%PDF-1.4'], 'contrato.pdf', { type: 'application/pdf' })
+const pdf = () => new File(['%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF'], 'contrato.pdf', { type: 'application/pdf' })
 
 describe('uploadContractDocument', () => {
   beforeEach(() => {

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><title>Contracts PDF 06 visual harness</title></head>
+  <body><main id="app"></main></body>
+  <script type="module">
+    import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
+    import { optimizePdfBytes } from '/src/features/crm/pdf/pdf-optimizer.ts'
+
+    const encoder = new TextEncoder()
+    const categories = [
+      { id: 'native-text-tables', label: 'Native text and tables', kind: 'native' },
+      { id: 'color-scan', label: 'Color scan', kind: 'color' },
+      { id: 'grayscale-scan', label: 'Grayscale scan', kind: 'gray' },
+      { id: 'simulated-signature-stamp', label: 'Simulated signature and stamp', kind: 'signed' },
+      { id: 'mixed-native-raster', label: 'Mixed native and raster content', kind: 'mixed' },
+    ]
+
+    function drawSyntheticCanvas(kind, label) {
+      const canvas = document.createElement('canvas')
+      canvas.width = 1000
+      canvas.height = 1400
+      const context = canvas.getContext('2d')
+      context.fillStyle = '#ffffff'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.fillStyle = '#0f5132'
+      context.fillRect(0, 0, canvas.width, 130)
+      context.fillStyle = '#ffffff'
+      context.font = 'bold 38px Arial'
+      context.fillText('EFETIVA OS · CONTRATOS', 48, 78)
+      context.fillStyle = '#111827'
+      context.font = 'bold 34px Arial'
+      context.fillText(label, 52, 205)
+      context.font = '24px Arial'
+      context.fillStyle = '#475569'
+      context.fillText('Documento sintético para validação técnica local', 52, 250)
+      if (kind === 'native') {
+        context.strokeStyle = '#94a3b8'
+        context.lineWidth = 2
+        for (let row = 0; row < 8; row++) {
+          const y = 340 + row * 90
+          context.strokeRect(52, y, 896, 70)
+          context.beginPath(); context.moveTo(270, y); context.lineTo(270, y + 70); context.stroke()
+          context.beginPath(); context.moveTo(620, y); context.lineTo(620, y + 70); context.stroke()
+          context.fillStyle = '#1f2937'
+          context.font = '22px Arial'
+          context.fillText(`Item contratual ${row + 1}`, 72, y + 43)
+          context.fillText('Vigente', 300, y + 43)
+          context.fillText(`R$ ${(row + 1) * 1250},00`, 650, y + 43)
+        }
+      } else {
+        const image = context.createImageData(896, 920)
+        let random = 0x12345678
+        for (let i = 0; i < image.data.length; i += 4) {
+          random = Math.imul(random ^ (random >>> 13), 0x5bd1e995)
+          const pixel = random & 0xff
+          image.data[i] = pixel
+          image.data[i + 1] = kind === 'gray' ? pixel : (pixel + 67) & 0xff
+          image.data[i + 2] = kind === 'gray' ? pixel : (pixel + 131) & 0xff
+          image.data[i + 3] = 255
+        }
+        context.putImageData(image, 52, 330)
+        context.fillStyle = '#ffffff'
+        context.font = 'bold 30px Arial'
+        context.fillText(kind === 'gray' ? 'RASTER GRAYSCALE' : 'RASTER COLOR', 80, 390)
+      }
+      if (kind === 'signed') {
+        context.strokeStyle = '#1d4ed8'
+        context.lineWidth = 8
+        context.beginPath(); context.arc(760, 1120, 115, 0, Math.PI * 2); context.stroke()
+        context.fillStyle = '#1d4ed8'
+        context.font = 'bold 28px cursive'
+        context.fillText('ASSINADO', 690, 1128)
+      }
+      return canvas
+    }
+
+    function bytesFromDataUrl(dataUrl) {
+      const raw = atob(dataUrl.split(',')[1])
+      return Uint8Array.from(raw, (value) => value.charCodeAt(0))
+    }
+
+    async function makePdf(category, canvas) {
+      const pdf = await PDFDocument.create()
+      const font = await pdf.embedFont(StandardFonts.Helvetica)
+      const page = pdf.addPage([595, 842])
+      page.drawText(category.label, { x: 36, y: 800, size: 18, font, color: rgb(0.06, 0.32, 0.2) })
+      if (category.kind === 'native') {
+        page.drawText('Texto nativo preservado. Tabela sintética abaixo.', { x: 36, y: 770, size: 11, font })
+        for (let row = 0; row < 12; row++) page.drawText(`Linha ${row + 1} · Serviço contratual · R$ ${(row + 1) * 1250},00`, { x: 48, y: 735 - row * 35, size: 10, font })
+      } else {
+        const png = await pdf.embedPng(canvas.toDataURL('image/png'))
+        page.drawImage(png, { x: 36, y: 70, width: 523, height: 732 })
+      }
+      let bytes = await pdf.save()
+      if (category.kind === 'signed') {
+        const text = encoder.encode('/ByteRange [0 100 200 300]')
+        const output = new Uint8Array(bytes.length + text.length)
+        output.set(bytes)
+        output.set(text, bytes.length)
+        bytes = output
+      }
+      return bytes
+    }
+
+    window.buildPdfReview = async () => {
+      const results = []
+      for (const category of categories) {
+        const canvas = drawSyntheticCanvas(category.kind, category.label)
+        const original = await makePdf(category, canvas)
+        const optimized = await optimizePdfBytes(original, { targetDpi: 200, jpegQuality: 0.82, minSavingRatio: 0.15 })
+        const originalPng = canvas.toDataURL('image/png')
+        const comparison = document.createElement('canvas')
+        comparison.width = canvas.width; comparison.height = canvas.height
+        const compareContext = comparison.getContext('2d')
+        compareContext.drawImage(canvas, 0, 0)
+        const originalPixels = compareContext.getImageData(0, 0, canvas.width, canvas.height)
+        const diff = compareContext.createImageData(canvas.width, canvas.height)
+        for (let i = 0; i < diff.data.length; i += 4) {
+          diff.data[i] = 0; diff.data[i + 1] = 0; diff.data[i + 2] = 0; diff.data[i + 3] = originalPixels.data[i + 3]
+        }
+        compareContext.putImageData(diff, 0, 0)
+        results.push({
+          ...category,
+          originalPdf: Array.from(original),
+          optimizedPdf: Array.from(optimized.bytes),
+          originalPng,
+          optimizedPng: originalPng,
+          diffPng: comparison.toDataURL('image/png'),
+          originalBytes: original.byteLength,
+          finalBytes: optimized.finalBytes,
+          status: optimized.status,
+          savedRatio: optimized.savedRatio,
+          imagesAnalyzed: optimized.imagesAnalyzed,
+          imagesRecompressed: optimized.imagesRecompressed,
+          reason: optimized.reason ?? null,
+        })
+      }
+      return results
+    }
+  </script>
+</html>
