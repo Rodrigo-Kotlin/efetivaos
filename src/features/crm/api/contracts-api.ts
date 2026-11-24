@@ -1,5 +1,19 @@
 import { supabase } from '@/lib/supabase'
 import type { ClientContract, ClientContractDocument, ClientContractEvent, ContractEventType } from '@/types/database'
+import { validatePdfBytes } from '@/features/crm/pdf/pdf-validation'
+
+async function readFileBytes(file: File): Promise<Uint8Array> {
+  if (typeof file.arrayBuffer === 'function') return new Uint8Array(await file.arrayBuffer())
+  if (typeof FileReader !== 'undefined') {
+    return await new Promise<Uint8Array>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onerror = () => reject(reader.error ?? new Error('Não foi possível ler o arquivo.'))
+      reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer))
+      reader.readAsArrayBuffer(file)
+    })
+  }
+  return new Uint8Array(await new Response(file as unknown as Blob).arrayBuffer())
+}
 
 export type ContractInput = Omit<ClientContract, 'id' | 'client_id' | 'created_at' | 'created_by' | 'updated_at' | 'updated_by' | 'archived_at' | 'archived_by'>
 
@@ -64,8 +78,20 @@ async function compensateIncompleteDocument(contractId: string, documentId: stri
   }
 }
 
-export async function uploadContractDocument(contractId: string, file: File, documentType: 'main' | 'addendum' | 'other') {
-  if (file.type !== 'application/pdf' || file.size > 10 * 1024 * 1024) throw new Error('Envie apenas PDF de até 10 MB.')
+export type ContractPdfUploadMetadata = {
+  original_bytes: number
+  final_bytes: number
+  saved_ratio: number
+  optimization_status: 'optimized' | 'unchanged'
+  optimization_reason?: string
+  optimization_method?: 'image-recompression'
+  source_fingerprint: string
+}
+
+export async function uploadContractDocument(contractId: string, file: File, documentType: 'main' | 'addendum' | 'other', metadata?: ContractPdfUploadMetadata) {
+  if (file.size > 10 * 1024 * 1024) throw new Error('Envie apenas PDF de até 10 MB.')
+  const validation = validatePdfBytes(await readFileBytes(file), file.name, file.type)
+  if (!validation.valid) throw new Error(validation.reason)
   const { data: userData, error: userError } = await supabase.auth.getUser()
   if (userError || !userData.user) throw new Error('É necessário estar autenticado para anexar um documento.')
   const id = crypto.randomUUID()
@@ -84,6 +110,18 @@ export async function uploadContractDocument(contractId: string, file: File, doc
       throw new Error('O objeto enviado não foi confirmado no Storage. Nenhum documento foi anexado.')
     }
     throw new Error('O upload foi enviado, mas a finalização não pôde ser confirmada. O documento ficou pendente de reconciliação; não repita a operação sem verificar o histórico.')
+  }
+  if (metadata) {
+    try {
+      await recordContractEvent(contractId, 'updated', 'Documento PDF processado antes do upload', {
+        document_id: id,
+        document_name: file.name,
+        ...metadata,
+      })
+    } catch {
+      // A auditoria não pode transformar um upload já finalizado em um
+      // falso erro de armazenamento. O documento permanece pronto.
+    }
   }
   return finalized.storage_path
 }
