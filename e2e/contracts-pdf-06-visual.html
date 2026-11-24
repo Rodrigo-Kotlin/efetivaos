@@ -10,68 +10,140 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = '/node_modules/pdfjs-dist/build/pdf.worker.mjs'
     const encoder = new TextEncoder()
     const categories = [
-      { id: 'native-text-tables', label: 'Native text and tables', kind: 'native' },
-      { id: 'color-scan', label: 'Color scan', kind: 'color' },
-      { id: 'grayscale-scan', label: 'Grayscale scan', kind: 'gray' },
-      { id: 'simulated-signature-stamp', label: 'Simulated signature and stamp', kind: 'signed' },
-      { id: 'mixed-native-raster', label: 'Mixed native and raster content', kind: 'mixed' },
+      { id: 'scanned-contract-color', label: 'Synthetic scanned contract — color', kind: 'color' },
+      { id: 'scanned-contract-grayscale', label: 'Synthetic scanned contract — grayscale', kind: 'gray' },
+      { id: 'mixed-contract-native-scanned', label: 'Synthetic mixed native and scanned contract', kind: 'mixed' },
     ]
 
-    function drawSyntheticCanvas(kind, label) {
+    function drawSyntheticCanvas(kind) {
       const canvas = document.createElement('canvas')
-      canvas.width = 1000
-      canvas.height = 1400
+      canvas.width = 1600
+      canvas.height = 2200
       const context = canvas.getContext('2d')
-      context.fillStyle = '#ffffff'
+      const gray = kind === 'gray'
+      const ink = gray ? '#272727' : '#263238'
+      const secondary = gray ? '#666666' : '#53646d'
+      const rule = gray ? '#9a9a9a' : '#9aabb1'
+      const accent = gray ? '#555555' : '#245b4a'
+      const paper = gray ? '#f4f4f1' : '#fffdf5'
+      context.fillStyle = paper
       context.fillRect(0, 0, canvas.width, canvas.height)
-      context.fillStyle = '#0f5132'
-      context.fillRect(0, 0, canvas.width, 130)
+      const texture = context.createImageData(canvas.width, canvas.height)
+      let seed = gray ? 0x4f1bbcdc : 0x8a31f27d
+      for (let index = 0; index < texture.data.length; index += 4) {
+        seed = Math.imul(seed ^ (seed >>> 15), 0x45d9f3b)
+        const grain = (seed & 7) - 3
+        texture.data[index] = Math.max(0, Math.min(255, (gray ? 244 : 255) + grain))
+        texture.data[index + 1] = Math.max(0, Math.min(255, (gray ? 244 : 253) + grain))
+        texture.data[index + 2] = Math.max(0, Math.min(255, (gray ? 241 : 245) + grain))
+        texture.data[index + 3] = 255
+      }
+      context.putImageData(texture, 0, 0)
+      context.strokeStyle = '#d1cbc0'
+      context.lineWidth = 3
+      context.strokeRect(38, 38, 1524, 2124)
+      context.fillStyle = accent
+      context.fillRect(38, 38, 1524, 126)
       context.fillStyle = '#ffffff'
       context.font = 'bold 38px Arial'
-      context.fillText('EFETIVA OS · CONTRATOS', 48, 78)
-      context.fillStyle = '#111827'
-      context.font = 'bold 34px Arial'
-      context.fillText(label, 52, 205)
-      context.font = '24px Arial'
-      context.fillStyle = '#475569'
-      context.fillText('Documento sintético para validação técnica local', 52, 250)
-      if (kind === 'native') {
-        context.strokeStyle = '#94a3b8'
+      context.fillText('EFETIVA SST · DOCUMENTO SINTÉTICO', 76, 114)
+      context.fillStyle = ink
+      context.font = 'bold 32px Arial'
+      context.fillText('CONTRATO DE PRESTAÇÃO DE SERVIÇOS', 76, 238)
+      context.font = '26px Arial'
+      context.fillStyle = secondary
+      context.fillText('Contrato CT-SINT-2026-014 · Emitido em 15/03/2026', 76, 286)
+      context.fillText('Material criado exclusivamente para validação visual do otimizador PDF.', 76, 326)
+
+      const line = (y) => {
+        context.strokeStyle = rule
         context.lineWidth = 2
-        for (let row = 0; row < 8; row++) {
-          const y = 340 + row * 90
-          context.strokeRect(52, y, 896, 70)
-          context.beginPath(); context.moveTo(270, y); context.lineTo(270, y + 70); context.stroke()
-          context.beginPath(); context.moveTo(620, y); context.lineTo(620, y + 70); context.stroke()
-          context.fillStyle = '#1f2937'
-          context.font = '22px Arial'
-          context.fillText(`Item contratual ${row + 1}`, 72, y + 43)
-          context.fillText('Vigente', 300, y + 43)
-          context.fillText(`R$ ${(row + 1) * 1250},00`, 650, y + 43)
-        }
-      } else {
-        const image = context.createImageData(896, 920)
-        let random = 0x12345678
-        for (let i = 0; i < image.data.length; i += 4) {
-          random = Math.imul(random ^ (random >>> 13), 0x5bd1e995)
-          const pixel = random & 0xff
-          image.data[i] = pixel
-          image.data[i + 1] = kind === 'gray' ? pixel : (pixel + 67) & 0xff
-          image.data[i + 2] = kind === 'gray' ? pixel : (pixel + 131) & 0xff
-          image.data[i + 3] = 255
-        }
-        context.putImageData(image, 52, 330)
-        context.fillStyle = '#ffffff'
-        context.font = 'bold 30px Arial'
-        context.fillText(kind === 'gray' ? 'RASTER GRAYSCALE' : 'RASTER COLOR', 80, 390)
+        context.beginPath(); context.moveTo(76, y); context.lineTo(1524, y); context.stroke()
       }
-      if (kind === 'signed') {
-        context.strokeStyle = '#1d4ed8'
-        context.lineWidth = 8
-        context.beginPath(); context.arc(760, 1120, 115, 0, Math.PI * 2); context.stroke()
-        context.fillStyle = '#1d4ed8'
-        context.font = 'bold 28px cursive'
-        context.fillText('ASSINADO', 690, 1128)
+      const text = (value, x, y, size = 28, weight = '') => {
+        context.fillStyle = ink
+        context.font = `${weight} ${size}px Arial`
+        context.fillText(value, x, y)
+      }
+      const paragraph = (lines, y) => {
+        lines.forEach((value, index) => text(value, 76, y + index * 38, 27))
+        return y + lines.length * 38
+      }
+
+      text('1. PARTES E OBJETO', 76, 404, 29, 'bold')
+      paragraph([
+        'CONTRATANTE: Horizonte Exemplo Serviços Ltda. · CNPJ 00.000.000/0001-00',
+        'CONTRATADA: Núcleo Técnico Fictício S.A. · CNPJ 11.111.111/0001-11',
+        'As partes ajustam a prestação de serviços de saúde e segurança ocupacional,',
+        'conforme as condições, os prazos e os valores descritos neste instrumento.',
+      ], 450)
+      line(622)
+
+      text('2. CONDIÇÕES CONTRATUAIS', 76, 680, 29, 'bold')
+      paragraph([
+        '2.1. A CONTRATADA realizará as atividades com zelo técnico e manterá registros',
+        'das entregas. O cronograma inicial será confirmado em até 5 (cinco) dias úteis.',
+        '2.2. A vigência será de 01/04/2026 a 31/03/2027, com renovação mediante aceite.',
+        '2.3. O pagamento ocorrerá até o dia 10 de cada mês, após o envio da nota fiscal.',
+      ], 726)
+      line(900)
+
+      text('3. QUADRO DE SERVIÇOS E VALORES', 76, 958, 29, 'bold')
+      const left = 76
+      const top = 1010
+      const widths = [720, 240, 300, 188]
+      const rows = [
+        ['Serviço contratado', 'Qtd.', 'Periodicidade', 'Valor'],
+        ['Inventário de riscos ocupacionais', '01', 'Anual', 'R$ 2.480,00'],
+        ['Laudo técnico das instalações', '01', 'Anual', 'R$ 1.950,00'],
+        ['Treinamento de integração', '04', 'Mensal', 'R$ 780,00'],
+        ['Acompanhamento documental', '12', 'Mensal', 'R$ 420,00'],
+      ]
+      let x = left
+      rows.forEach((row, rowIndex) => {
+        const y = top + rowIndex * 66
+        let cellX = x
+        row.forEach((value, columnIndex) => {
+          context.strokeStyle = rule
+          context.lineWidth = 2
+          context.strokeRect(cellX, y, widths[columnIndex], 66)
+          text(value, cellX + 18, y + 42, rowIndex === 0 ? 24 : 25, rowIndex === 0 ? 'bold' : '')
+          cellX += widths[columnIndex]
+        })
+      })
+      text('TOTAL MENSAL ESTIMADO: R$ 1.200,00 · TOTAL ANUAL ESTIMADO: R$ 14.400,00', 76, 1378, 27, 'bold')
+      line(1430)
+
+      text('4. ACEITE E ASSINATURAS', 76, 1490, 29, 'bold')
+      paragraph([
+        'As partes declaram ter lido e compreendido as cláusulas acima, firmando este',
+        'instrumento para todos os fins, em duas vias de igual teor e forma.',
+      ], 1540)
+      const signatureY = 1770
+      context.strokeStyle = rule
+      context.lineWidth = 2
+      context.beginPath(); context.moveTo(100, signatureY); context.lineTo(690, signatureY); context.stroke()
+      context.beginPath(); context.moveTo(900, signatureY); context.lineTo(1490, signatureY); context.stroke()
+      context.fillStyle = gray ? '#444444' : '#173d70'
+      context.font = 'italic 38px "Segoe Script", "Comic Sans MS", cursive'
+      context.fillText('Marina Exemplo', 210, signatureY - 18)
+      context.fillText('Rafael Fictício', 1010, signatureY - 18)
+      text('Representante da CONTRATANTE', 135, signatureY + 46, 23)
+      text('Representante da CONTRATADA', 935, signatureY + 46, 23)
+      context.strokeStyle = gray ? '#555555' : '#a33d32'
+      context.lineWidth = 7
+      context.beginPath(); context.arc(1300, 1990, 116, 0, Math.PI * 2); context.stroke()
+      context.font = 'bold 24px Arial'
+      context.fillStyle = gray ? '#555555' : '#a33d32'
+      context.fillText('SINTÉTICO', 1232, 1982)
+      context.fillText('SEM VALOR', 1225, 2015)
+      text('São Paulo, 15 de março de 2026.', 76, 2058, 25)
+      if (kind === 'mixed') {
+        context.fillStyle = '#fff9e8'
+        context.fillRect(1040, 150, 450, 105)
+        context.strokeStyle = accent
+        context.strokeRect(1040, 150, 450, 105)
+        text('PÁGINA DIGITALIZADA', 1070, 215, 25, 'bold')
       }
       return canvas
     }
@@ -81,9 +153,11 @@
       const font = await pdf.embedFont(StandardFonts.Helvetica)
       const page = pdf.addPage([595, 842])
       page.drawText(category.label, { x: 36, y: 800, size: 18, font, color: rgb(0.06, 0.32, 0.2) })
-      if (category.kind === 'native') {
-        page.drawText('Texto nativo preservado. Tabela sintética abaixo.', { x: 36, y: 770, size: 11, font })
-        for (let row = 0; row < 12; row++) page.drawText(`Linha ${row + 1} · Serviço contratual · R$ ${(row + 1) * 1250},00`, { x: 48, y: 735 - row * 35, size: 10, font })
+      if (category.kind === 'mixed') {
+        page.drawText('CONTRATO DE PRESTAÇÃO DE SERVIÇOS · CT-SINT-2026-014', { x: 36, y: 770, size: 10, font })
+        page.drawText('Cabeçalho nativo; cláusulas, tabela e assinaturas em página digitalizada.', { x: 36, y: 750, size: 9, font })
+        const png = await pdf.embedPng(canvas.toDataURL('image/png'))
+        page.drawImage(png, { x: 36, y: 70, width: 523, height: 660 })
       } else {
         const png = await pdf.embedPng(canvas.toDataURL('image/png'))
         page.drawImage(png, { x: 36, y: 70, width: 523, height: 732 })
@@ -148,6 +222,25 @@
       }
     }
 
+    function createDetailComparison(originalCanvas, optimizedCanvas, y, height, label) {
+      const width = Math.min(originalCanvas.width, optimizedCanvas.width)
+      const cropHeight = Math.min(height, originalCanvas.height - y, optimizedCanvas.height - y)
+      const scale = 2
+      const canvas = document.createElement('canvas')
+      canvas.width = width * scale
+      canvas.height = (cropHeight + 34) * scale
+      const context = canvas.getContext('2d')
+      context.fillStyle = '#ffffff'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.fillStyle = '#172033'
+      context.font = `${16 * scale}px Arial`
+      context.fillText(`${label} — original`, 12 * scale, 22 * scale)
+      context.fillText(`${label} — resultante`, (width + 12) * scale, 22 * scale)
+      context.drawImage(originalCanvas, 0, y, width, cropHeight, 0, 34 * scale, width * scale, cropHeight * scale)
+      context.drawImage(optimizedCanvas, 0, y, width, cropHeight, width * scale, 34 * scale, width * scale, cropHeight * scale)
+      return canvas
+    }
+
     window.buildPdfReview = async () => {
       const results = []
       for (const category of categories) {
@@ -161,6 +254,8 @@
         const originalCanvas = await renderPdf(originalBytes)
         const optimizedCanvas = await renderPdf(optimizedBytes)
         const difference = createDifference(originalCanvas.canvas, optimizedCanvas.canvas)
+        const textDetail = createDetailComparison(originalCanvas.canvas, optimizedCanvas.canvas, 560, 190, 'Texto pequeno e valores')
+        const signatureDetail = createDetailComparison(originalCanvas.canvas, optimizedCanvas.canvas, 950, 210, 'Assinaturas e carimbo')
         results.push({
           ...category,
           originalPdf,
@@ -168,6 +263,10 @@
           originalPng: originalCanvas.canvas.toDataURL('image/png'),
           optimizedPng: optimizedCanvas.canvas.toDataURL('image/png'),
           diffPng: difference.canvas.toDataURL('image/png'),
+          detailPngs: {
+            textValues: textDetail.toDataURL('image/png'),
+            signatureStamp: signatureDetail.toDataURL('image/png'),
+          },
           originalPageCount: originalCanvas.pageCount,
           optimizedPageCount: optimizedCanvas.pageCount,
           originalBytes: original.byteLength,

@@ -1,0 +1,164 @@
+{
+  "generatedAt": "2026-11-24T20:39:07.010Z",
+  "humanApproval": "PENDING",
+  "reviews": [
+    {
+      "id": "scanned-contract-color",
+      "label": "Synthetic scanned contract — color",
+      "kind": "color",
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
+      "originalBytes": 2240554,
+      "finalBytes": 339993,
+      "status": "optimized",
+      "savedRatio": 0.8482549405191752,
+      "imagesAnalyzed": 1,
+      "imagesRecompressed": 1,
+      "changedPixelRatio": 0.03912368478683949,
+      "meanAbsoluteDelta": 1.3885671879197665,
+      "maxDelta": 30,
+      "reason": null
+    },
+    {
+      "id": "scanned-contract-grayscale",
+      "label": "Synthetic scanned contract — grayscale",
+      "kind": "gray",
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
+      "originalBytes": 2210061,
+      "finalBytes": 403599,
+      "status": "optimized",
+      "savedRatio": 0.817381058712859,
+      "imagesAnalyzed": 1,
+      "imagesRecompressed": 1,
+      "changedPixelRatio": 0.0012049378512739625,
+      "meanAbsoluteDelta": 1.0509017527900208,
+      "maxDelta": 8,
+      "reason": null
+    },
+    {
+      "id": "mixed-contract-native-scanned",
+      "label": "Synthetic mixed native and scanned contract",
+      "kind": "mixed",
+      "originalPageCount": 1,
+      "optimizedPageCount": 1,
+      "originalBytes": 2218410,
+      "finalBytes": 345230,
+      "status": "optimized",
+      "savedRatio": 0.8443795330890143,
+      "imagesAnalyzed": 1,
+      "imagesRecompressed": 1,
+      "changedPixelRatio": 0.03617118806517482,
+      "meanAbsoluteDelta": 1.2586608787091293,
+      "maxDelta": 38,
+      "reason": null
+    }
+  ],
+  "files": [
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-original.pdf",
+      "bytes": 2240554,
+      "sha256": "dde2ef180b054b36d8aaa63bf0f59237edd4a91e306bb7c33662b5c7a1e6fab3"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-optimized.pdf",
+      "bytes": 339993,
+      "sha256": "dc81a18d1cd94ff90d35033f34a5e7d38f0f0a828fb81b8942a0dde4ae068045"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-original.png",
+      "bytes": 1268592,
+      "sha256": "83d15ac05692bef1b6b2aec456e5b1c9ac2a64b234c38de586f148d19e02513b"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-optimized.png",
+      "bytes": 1011669,
+      "sha256": "504d1cafcd026e5a096c4373f3d9f63411b48f7f776a019c24c3d4e038b876c0"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-diff.png",
+      "bytes": 582856,
+      "sha256": "04ebf5660d4fef286bf1ce4669ce8900f9bdab88ddbe1819a1f1b6203dd9a64b"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-detail-text-values.png",
+      "bytes": 608577,
+      "sha256": "3ae1e9f3ba26fc0271f472b7f1e702b1163f21a1a504b8b7e4e4cb15583a43e5"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-color-detail-signature-stamp.png",
+      "bytes": 521800,
+      "sha256": "f3dbd089fc6fde08403d7f87c3209fcc6509dccd4840340a1a737ae417aec39d"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-original.pdf",
+      "bytes": 2210061,
+      "sha256": "36dd9657ebdd3081fc9ff83b3c24b83598ac9cf8a2d0fbdec1095152721b0589"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-optimized.pdf",
+      "bytes": 403599,
+      "sha256": "9469dd839740fd6482aabe247883f8f896153e04fe8a1dd930d63f9bbb7c24c8"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-original.png",
+      "bytes": 949001,
+      "sha256": "64761e3e38e2de84d328693aba7e89a659ce2b5b38250912929fdb16fa0802b5"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-optimized.png",
+      "bytes": 946003,
+      "sha256": "97767bf733893d22192e12d8fef8eec4ddac54ddd0276d87ec8cb8db0f6fb4b4"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-diff.png",
+      "bytes": 532839,
+      "sha256": "5aaec99dc2a1b27887a4cd625062f39703b8fa111f47ab81fa2eb77365609632"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-detail-text-values.png",
+      "bytes": 481886,
+      "sha256": "f16bee1084272fc97945daacaedf2a39138ad7c319845a709500eb3d322b7c03"
+    },
+    {
+      "name": "contracts-pdf-08-scanned-contract-grayscale-detail-signature-stamp.png",
+      "bytes": 391961,
+      "sha256": "7b7dc9803ad59a7fba115acf7df5eda114b31e6504d01fd26a86f7e58fbb9c45"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-original.pdf",
+      "bytes": 2218410,
+      "sha256": "9ac63248fd3895de2acc9c29b0c0e0b949f77adff8b620df9b0e85725978077c"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-optimized.pdf",
+      "bytes": 345230,
+      "sha256": "1786b50338d002b193261c8740bca318c4830e7617eaf9bb61745f5c371b1949"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-original.png",
+      "bytes": 1185153,
+      "sha256": "b1145a5516b5865db605f9658869850d181d1072f41b63ca5255478241236e06"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-optimized.png",
+      "bytes": 961784,
+      "sha256": "f4106189e16320f8f87ade804f6b6be73f352d75bfcafe965e7a95f8c08e3a00"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-diff.png",
+      "bytes": 539788,
+      "sha256": "08c3501b56a47a3cbade168512858cb612c1211d71a7e670758665c721a99518"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-detail-text-values.png",
+      "bytes": 539575,
+      "sha256": "fa6c7f2ae076e0abd9f61a68ebb9a9d4d0f6b223fc387620f520790789f40256"
+    },
+    {
+      "name": "contracts-pdf-08-mixed-contract-native-scanned-detail-signature-stamp.png",
+      "bytes": 542333,
+      "sha256": "9ab34d888a7f88eae61be7153f283ef6bb8f29ca8ac6194492204f06afc17975"
+    }
+  ]
+}
