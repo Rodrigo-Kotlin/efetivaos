@@ -7,10 +7,13 @@ import { useUploadContractDocument } from '@/features/crm/queries/contract-queri
 import { prepareContractPdf, type PreparedContractPdf } from '@/features/crm/pdf/pdf-upload'
 
 type ContractDocumentUploadProps = {
-  contractId: string
+  contractId?: string
   documentType: 'main' | 'addendum' | 'other'
   disabled?: boolean
   onUploaded?: () => void
+  deferUpload?: boolean
+  onPrepared?: (prepared: PreparedContractPdf | null) => void
+  selectLabel?: string
 }
 
 function formatBytes(value: number): string {
@@ -23,9 +26,9 @@ function percent(value: number): string {
   return `${(value * 100).toFixed(1)}%`
 }
 
-export function ContractDocumentUpload({ contractId, documentType, disabled = false, onUploaded }: ContractDocumentUploadProps) {
+export function ContractDocumentUpload({ contractId, documentType, disabled = false, onUploaded, deferUpload = false, onPrepared, selectLabel = 'Anexar PDF do contrato' }: ContractDocumentUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const upload = useUploadContractDocument(contractId)
+  const upload = useUploadContractDocument(contractId ?? '')
   const [processing, setProcessing] = useState(false)
   const [stage, setStage] = useState('Aguardando seleção')
   const [prepared, setPrepared] = useState<PreparedContractPdf | null>(null)
@@ -39,11 +42,13 @@ export function ContractDocumentUpload({ contractId, documentType, disabled = fa
     try {
       const result = await prepareContractPdf(file, { onProgress: (next) => setStage(next === 'complete' ? 'Pronto para confirmação' : `Processando: ${next}…`) })
       setPrepared(result)
+      onPrepared?.(result)
       setStage('Pronto para confirmação')
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Não foi possível processar o PDF.')
       setStage('Falha no processamento')
       setFileKey((key) => key + 1)
+      onPrepared?.(null)
     } finally {
       setProcessing(false)
     }
@@ -51,12 +56,13 @@ export function ContractDocumentUpload({ contractId, documentType, disabled = fa
 
   function cancel() {
     setPrepared(null)
+    onPrepared?.(null)
     setStage('Aguardando seleção')
     setFileKey((key) => key + 1)
   }
 
   async function confirm() {
-    if (!prepared) return
+    if (!prepared || deferUpload || !contractId) return
     try {
       await upload.mutateAsync({ file: prepared.file, type: documentType, metadata: prepared.metadata })
       toast.success('Documento anexado.')
@@ -80,7 +86,7 @@ export function ContractDocumentUpload({ contractId, documentType, disabled = fa
       />
       {!prepared ? (
         <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => inputRef.current?.click()}>
-          <Upload className="size-4" /> {processing ? stage : 'Anexar PDF do contrato'}
+          <Upload className="size-4" /> {processing ? stage : selectLabel}
         </Button>
       ) : (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-sm">
@@ -94,9 +100,9 @@ export function ContractDocumentUpload({ contractId, documentType, disabled = fa
             </div>
             <button type="button" aria-label="Cancelar documento selecionado" className="rounded p-1 text-slate-500 hover:bg-white" onClick={cancel} disabled={upload.isPending}><X className="size-4" /></button>
           </div>
-          <p role="status" className="mt-2 text-xs text-slate-600">{upload.isPending ? 'Enviando após confirmação…' : 'Revise o resultado e confirme o envio.'}</p>
+          <p role="status" className="mt-2 text-xs text-slate-600">{deferUpload ? 'O PDF será enviado após o cadastro do contrato.' : upload.isPending ? 'Enviando após confirmação…' : 'Revise o resultado e confirme o envio.'}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button type="button" size="sm" disabled={upload.isPending} onClick={() => void confirm()}><Check className="size-4" /> Confirmar envio</Button>
+            {!deferUpload && <Button type="button" size="sm" disabled={upload.isPending} onClick={() => void confirm()}><Check className="size-4" /> Confirmar envio</Button>}
             <Button type="button" size="sm" variant="outline" disabled={upload.isPending} onClick={cancel}><RotateCcw className="size-4" /> Escolher outro</Button>
           </div>
         </div>

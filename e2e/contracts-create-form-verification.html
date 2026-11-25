@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head><meta charset="utf-8"><title>Efetiva OS — criação de contrato com PDF</title></head>
+  <body><main id="root"></main></body>
+  <script type="module">
+    import { createElement } from 'react'
+    import { createRoot } from 'react-dom/client'
+    import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+    import ClientContracts from '/src/features/crm/pages/client-contracts.tsx'
+    import '/src/styles/globals.css'
+
+    createRoot(document.getElementById('root')).render(
+      createElement(QueryClientProvider, { client: new QueryClient() },
+        createElement('main', { className: 'mx-auto max-w-4xl p-6 sm:p-10' },
+          createElement('p', { className: 'text-sm font-semibold uppercase tracking-wide text-emerald-800' }, 'CRM · Clientes · Contratos'),
+          createElement('h1', { className: 'mt-2 font-serif text-3xl font-semibold text-slate-950' }, 'Cliente sintético de validação'),
+          createElement(ClientContracts, { clientId: 'client-synthetic-001', clientName: 'Cliente sintético' }),
+        ),
+      ),
+    )
+  </script>
+</html>

@@ -5,12 +5,13 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { EmptyState, ErrorState, selectClassName, TableSkeleton, textareaClassName } from '@/components/shared/operational-ui'
-import { getContractDocumentUrl, type ContractInput } from '@/features/crm/api/contracts-api'
+import { getContractDocumentUrl, uploadContractDocument, type ContractInput } from '@/features/crm/api/contracts-api'
 import { useArchiveContract, useClientContracts, useContractDocuments, useContractEvents, useCreateContract, useRecordContractEvent, useUpdateContract } from '@/features/crm/queries/contract-queries'
 import type { ClientContract, ContractStatus } from '@/types/database'
 import { useAuth } from '@/features/auth/auth-context'
 import { useDiscardContractDocument } from '@/features/crm/queries/contract-queries'
 import { ContractDocumentUpload } from './contract-document-upload'
+import type { PreparedContractPdf } from '@/features/crm/pdf/pdf-upload'
 
 const blank: ContractInput = { contract_number: '', title: '', contract_type: '', description: null, contracted_services: null, commercial_owner: null, contracted_value: null, modality: 'recurring', billing_period: 'monthly', payment_terms: null, first_billing_date: null, signed_at: null, starts_at: new Date().toISOString().slice(0, 10), ends_at: null, auto_renewal: false, notice_period_days: null, status: 'draft', internal_notes: null }
 const statusLabel: Record<ContractStatus, string> = { draft: 'Rascunho', active: 'Vigente', suspended: 'Suspenso', closed: 'Encerrado', terminated: 'Rescindido' }
@@ -39,13 +40,14 @@ function Section({ title, description, children }: { title: string; description:
   return <fieldset className="rounded-xl border border-slate-200 bg-white p-4"><legend className="px-1 font-semibold text-slate-950">{title}</legend><p className="mb-4 text-xs text-slate-500">{description}</p>{children}</fieldset>
 }
 
-function ContractForm({ initial, clientName, pending, onCancel, onSubmit }: { initial: ContractInput; clientName: string; pending: boolean; onCancel: () => void; onSubmit: (input: ContractInput) => Promise<void> }) {
+function ContractForm({ initial, clientName, pending, onCancel, onSubmit }: { initial: ContractInput; clientName: string; pending: boolean; onCancel: () => void; onSubmit: (input: ContractInput, prepared: PreparedContractPdf | null) => Promise<void> }) {
   const [form, setForm] = useState<ContractInput>(initial)
+  const [prepared, setPrepared] = useState<PreparedContractPdf | null>(null)
   const set = (key: keyof ContractInput, value: unknown) => setForm((old) => ({ ...old, [key]: value }))
   const text = (key: keyof ContractInput) => (form[key] as string | null) ?? ''
   const submit = (event: React.FormEvent) => {
     event.preventDefault()
-    void onSubmit({ ...form, contracted_value: text('contracted_value') || null, notice_period_days: text('notice_period_days') ? Number(text('notice_period_days')) : null, billing_period: form.modality === 'one_off' ? null : text('billing_period') || null })
+    void onSubmit({ ...form, contracted_value: text('contracted_value') || null, notice_period_days: text('notice_period_days') ? Number(text('notice_period_days')) : null, billing_period: form.modality === 'one_off' ? null : text('billing_period') || null }, prepared)
   }
   return <form className="space-y-4" onSubmit={submit}>
     <Section title="Informações gerais" description="Identificação e contexto comercial do contrato.">
@@ -87,7 +89,11 @@ function ContractForm({ initial, clientName, pending, onCancel, onSubmit }: { in
       </div>
     </Section>
 
-    <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button><Button disabled={pending} type="submit">{pending ? 'Salvando...' : 'Salvar contrato'}</Button></div>
+    <Section title="Documento do contrato" description="Selecione o PDF do contrato. O sistema tentará reduzir seu tamanho sem comprometer a integridade documental.">
+      <ContractDocumentUpload documentType="main" deferUpload onPrepared={setPrepared} selectLabel="Selecionar PDF do contrato" />
+    </Section>
+
+    <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button><Button disabled={pending} type="submit">{pending ? 'Salvando...' : prepared ? 'Salvar contrato e anexar PDF' : 'Salvar contrato'}</Button></div>
   </form>
 }
 
@@ -127,7 +133,43 @@ function ContractExtras({ contract }: { contract: ClientContract }) {
 }
 
 export default function ClientContracts({ clientId, clientName }: { clientId: string; clientName: string }) {
-  const query = useClientContracts(clientId); const create = useCreateContract(clientId); const update = useUpdateContract(clientId); const archive = useArchiveContract(clientId); const [editing, setEditing] = useState<ClientContract | 'new' | null>(null); const [expanded, setExpanded] = useState<string | null>(null); const [archiveTarget, setArchiveTarget] = useState<ClientContract | null>(null)
-  async function save(input: ContractInput) { try { if (editing === 'new') { await create.mutateAsync(input); toast.success('Contrato cadastrado.') } else if (editing) { await update.mutateAsync({ id: editing.id, input }); toast.success('Contrato atualizado.') } setEditing(null) } catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível salvar o contrato.') } }
-  return <section id="contratos" className="mt-8 scroll-mt-6 border-t border-slate-200 pt-8"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-serif text-2xl font-semibold">Contratos</h2><p className="text-sm text-slate-600">Contratos comerciais vinculados a este cliente.</p></div><Button size="sm" onClick={() => setEditing('new')}><Plus className="size-4" /> Novo contrato</Button></div>{editing && <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50/30 p-4"><div className="mb-4 flex items-center justify-between gap-3"><h3 className="font-semibold">{editing === 'new' ? 'Cadastrar contrato' : 'Editar contrato'}</h3><Button size="icon" variant="ghost" onClick={() => setEditing(null)} aria-label="Fechar formulário"><X className="size-4" /></Button></div><ContractForm initial={editing === 'new' ? blank : editing} clientName={clientName} pending={create.isPending || update.isPending} onCancel={() => setEditing(null)} onSubmit={save} /></div>}{query.isLoading ? <TableSkeleton columns={4} /> : query.isError ? <ErrorState onRetry={() => void query.refetch()} /> : query.data?.length === 0 ? <EmptyState title="Nenhum contrato" description="Este cliente ainda não possui contratos comerciais." action={<Button onClick={() => setEditing('new')}><Plus className="size-4" /> Cadastrar contrato</Button>} /> : <div className="space-y-3">{query.data?.filter((c) => !c.archived_at).map((contract) => { const warning = expiration(contract); return <article className="rounded-xl border border-slate-200 p-4" key={contract.id}><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{contract.contract_number} · {contract.contract_type}</p><h3 className="mt-1 break-words font-semibold">{contract.title}</h3><p className="mt-1 text-sm text-slate-600">{modalityLabel[contract.modality]} · início {formatDate(contract.starts_at)}{contract.ends_at ? ` · término ${formatDate(contract.ends_at)}` : ''}</p><p className="mt-1 text-sm font-semibold text-slate-800">{formatMoney(contract.contracted_value, contract.modality)}{contract.billing_period ? ` · ${contract.billing_period}` : ''}</p>{contract.auto_renewal && <p className="mt-1 text-xs font-semibold text-emerald-700">Renovação automática ativa</p>}{warning && <p className={`mt-1 text-sm font-semibold ${warning === 'Vencido' ? 'text-red-700' : 'text-amber-700'}`}><CalendarDays className="mr-1 inline size-4" />{warning}</p>}</div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{statusLabel[contract.status]}</span><Button size="sm" variant="ghost" onClick={() => setEditing(contract)}><Pencil className="size-4" /> Editar</Button><Button size="sm" variant="ghost" onClick={() => setExpanded(expanded === contract.id ? null : contract.id)}><History className="size-4" /> {expanded === contract.id ? 'Ocultar detalhes' : 'Documentos e histórico'}</Button><Button size="sm" variant="ghost" disabled={archive.isPending} onClick={() => setArchiveTarget(contract)}><Archive className="size-4" /> Arquivar</Button></div></div>{expanded === contract.id && <ContractExtras contract={contract} />}</article> })}</div>}<Dialog open={Boolean(archiveTarget)} onOpenChange={(open) => { if (!open) setArchiveTarget(null) }}><DialogContent><DialogHeader><DialogTitle>Arquivar contrato?</DialogTitle><DialogDescription>O contrato “{archiveTarget?.title}” será arquivado e deixará de aparecer na lista ativa. Nenhum dado será excluído.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setArchiveTarget(null)}>Cancelar</Button><Button disabled={archive.isPending} onClick={() => { if (!archiveTarget) return; archive.mutate(archiveTarget.id, { onSuccess: () => { setArchiveTarget(null); toast.success('Contrato arquivado.') }, onError: (error) => toast.error(error.message) }) }}>{archive.isPending ? 'Arquivando...' : 'Confirmar arquivamento'}</Button></DialogFooter></DialogContent></Dialog></section>
+  const query = useClientContracts(clientId); const create = useCreateContract(clientId); const update = useUpdateContract(clientId); const archive = useArchiveContract(clientId); const [editing, setEditing] = useState<ClientContract | 'new' | null>(null); const [expanded, setExpanded] = useState<string | null>(null); const [archiveTarget, setArchiveTarget] = useState<ClientContract | null>(null); const [uploadFailure, setUploadFailure] = useState<{ contractId: string; contractTitle: string; prepared: PreparedContractPdf; message: string } | null>(null)
+  async function save(input: ContractInput, prepared: PreparedContractPdf | null) {
+    try {
+      if (editing === 'new') {
+        const created = await create.mutateAsync(input)
+        setEditing(null)
+        if (!prepared) {
+          toast.success('Contrato cadastrado.')
+          return
+        }
+        try {
+          await uploadContractDocument(created.id, prepared.file, 'main', prepared.metadata)
+          setUploadFailure(null)
+          toast.success('Contrato cadastrado e PDF anexado.')
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Não foi possível anexar o PDF.'
+          setUploadFailure({ contractId: created.id, contractTitle: created.title, prepared, message })
+          toast.error(`Contrato cadastrado, mas o PDF não foi anexado: ${message}`)
+        }
+      } else if (editing) {
+        await update.mutateAsync({ id: editing.id, input })
+        toast.success('Contrato atualizado.')
+        setEditing(null)
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Não foi possível salvar o contrato.')
+    }
+  }
+  async function retryUpload() {
+    if (!uploadFailure) return
+    try {
+      await uploadContractDocument(uploadFailure.contractId, uploadFailure.prepared.file, 'main', uploadFailure.prepared.metadata)
+      setUploadFailure(null)
+      toast.success('PDF anexado ao contrato.')
+    } catch (error) {
+      setUploadFailure((current) => current ? { ...current, message: error instanceof Error ? error.message : 'Não foi possível anexar o PDF.' } : current)
+    }
+  }
+  return <section id="contratos" className="mt-8 scroll-mt-6 border-t border-slate-200 pt-8"><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-serif text-2xl font-semibold">Contratos</h2><p className="text-sm text-slate-600">Contratos comerciais vinculados a este cliente.</p></div><Button size="sm" onClick={() => setEditing('new')}><Plus className="size-4" /> Novo contrato</Button></div>{uploadFailure && <div role="alert" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm"><p className="font-semibold text-amber-950">Contrato "{uploadFailure.contractTitle}" cadastrado sem o PDF.</p><p className="mt-1 text-amber-900">{uploadFailure.message}</p><div className="mt-3 flex flex-wrap gap-2"><Button size="sm" onClick={() => void retryUpload()}>Tentar anexar PDF novamente</Button><Button size="sm" variant="outline" onClick={() => setUploadFailure(null)}>Fechar aviso</Button></div></div>}{editing && <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50/30 p-4"><div className="mb-4 flex items-center justify-between gap-3"><h3 className="font-semibold">{editing === 'new' ? 'Cadastrar contrato' : 'Editar contrato'}</h3><Button size="icon" variant="ghost" onClick={() => setEditing(null)} aria-label="Fechar formulário"><X className="size-4" /></Button></div><ContractForm initial={editing === 'new' ? blank : editing} clientName={clientName} pending={create.isPending || update.isPending} onCancel={() => setEditing(null)} onSubmit={save} /></div>}{query.isLoading ? <TableSkeleton columns={4} /> : query.isError ? <ErrorState onRetry={() => void query.refetch()} /> : query.data?.length === 0 ? <EmptyState title="Nenhum contrato" description="Este cliente ainda não possui contratos comerciais." action={<Button onClick={() => setEditing('new')}><Plus className="size-4" /> Cadastrar contrato</Button>} /> : <div className="space-y-3">{query.data?.filter((c) => !c.archived_at).map((contract) => { const warning = expiration(contract); return <article className="rounded-xl border border-slate-200 p-4" key={contract.id}><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{contract.contract_number} · {contract.contract_type}</p><h3 className="mt-1 break-words font-semibold">{contract.title}</h3><p className="mt-1 text-sm text-slate-600">{modalityLabel[contract.modality]} · início {formatDate(contract.starts_at)}{contract.ends_at ? ` · término ${formatDate(contract.ends_at)}` : ''}</p><p className="mt-1 text-sm font-semibold text-slate-800">{formatMoney(contract.contracted_value, contract.modality)}{contract.billing_period ? ` · ${contract.billing_period}` : ''}</p>{contract.auto_renewal && <p className="mt-1 text-xs font-semibold text-emerald-700">Renovação automática ativa</p>}{warning && <p className={`mt-1 text-sm font-semibold ${warning === 'Vencido' ? 'text-red-700' : 'text-amber-700'}`}><CalendarDays className="mr-1 inline size-4" />{warning}</p>}</div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{statusLabel[contract.status]}</span><Button size="sm" variant="ghost" onClick={() => setEditing(contract)}><Pencil className="size-4" /> Editar</Button><Button size="sm" variant="ghost" onClick={() => setExpanded(expanded === contract.id ? null : contract.id)}><History className="size-4" /> {expanded === contract.id ? 'Ocultar detalhes' : 'Documentos e histórico'}</Button><Button size="sm" variant="ghost" disabled={archive.isPending} onClick={() => setArchiveTarget(contract)}><Archive className="size-4" /> Arquivar</Button></div></div>{expanded === contract.id && <ContractExtras contract={contract} />}</article> })}</div>}<Dialog open={Boolean(archiveTarget)} onOpenChange={(open) => { if (!open) setArchiveTarget(null) }}><DialogContent><DialogHeader><DialogTitle>Arquivar contrato?</DialogTitle><DialogDescription>O contrato "{archiveTarget?.title}" será arquivado e deixará de aparecer na lista ativa. Nenhum dado será excluído.</DialogDescription></DialogHeader><DialogFooter><Button variant="outline" onClick={() => setArchiveTarget(null)}>Cancelar</Button><Button disabled={archive.isPending} onClick={() => { if (!archiveTarget) return; archive.mutate(archiveTarget.id, { onSuccess: () => { setArchiveTarget(null); toast.success('Contrato arquivado.') }, onError: (error) => toast.error(error.message) }) }}>{archive.isPending ? 'Arquivando...' : 'Confirmar arquivamento'}</Button></DialogFooter></DialogContent></Dialog></section>
 }
